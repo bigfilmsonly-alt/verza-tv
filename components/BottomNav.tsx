@@ -93,7 +93,7 @@ export default function BottomNav() {
         borderTop: "1px solid rgba(255,255,255,0.06)",
       }}
     >
-      <div className="flex items-center justify-around" style={{ height: 72, paddingTop: 8, paddingBottom: 10 }}>
+      <div className="flex items-center justify-around px-3" style={{ height: 72, paddingTop: 8, paddingBottom: 10 }}>
         {tabs.map((tab) => {
           const active = isActive(tab.href);
           const color = active ? ACTIVE : INACTIVE;

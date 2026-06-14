@@ -32,32 +32,36 @@ export default function Header() {
         target="_blank"
         rel="noopener noreferrer"
         className="flex items-center gap-2 no-underline"
-        aria-label="Verza TV on Instagram"
+        aria-label="Follow Verza TV on Instagram"
       >
         <span
           className="text-[11px] font-semibold"
           style={{ color: "#A0A0B0" }}
         >
-          @verzatv
+          Follow us
         </span>
         <div
-          className="relative w-9 h-9 rounded-full flex items-center justify-center"
+          className="relative w-10 h-10 rounded-full flex items-center justify-center"
           style={{
             background: "linear-gradient(135deg, #E0115F, #8B5CF6, #3B82F6)",
-            padding: "2px",
+            padding: "2.5px",
           }}
         >
           <div
-            className="w-full h-full rounded-full flex items-center justify-center overflow-hidden"
+            className="w-full h-full rounded-full flex items-center justify-center"
             style={{ background: "#07070E" }}
           >
-            <Image
-              src="/logo.png"
-              alt="Verza TV"
-              width={28}
-              height={28}
-              className="object-contain brightness-125"
-            />
+            {/* Play symbol only */}
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <defs>
+                <linearGradient id="play-grad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stopColor="#E0115F" />
+                  <stop offset="50%" stopColor="#8B5CF6" />
+                  <stop offset="100%" stopColor="#3B82F6" />
+                </linearGradient>
+              </defs>
+              <polygon points="8,5 20,12 8,19" fill="url(#play-grad)" />
+            </svg>
           </div>
         </div>
       </a>

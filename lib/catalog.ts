@@ -732,7 +732,7 @@ export const catalog: Series[] = [
     channel: "Verza Originals",
     categories: ["reality"],
     episodeCount: 60,
-    posterUrl: "/posters/the-producer.png",
+    posterUrl: "",
     freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(60), status: "live",
   },
 
