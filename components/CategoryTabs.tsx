@@ -9,18 +9,18 @@ interface CategoryTabsProps {
 
 export default function CategoryTabs({ active, onSelect }: CategoryTabsProps) {
   return (
-    <div className="flex gap-5 overflow-x-auto px-4 py-3 no-scrollbar">
+    <div className="flex justify-between px-4 py-3">
       {BROWSE_TABS.map((tab) => {
         const isActive = tab.key === active;
         return (
           <button
             key={tab.key}
             onClick={() => onSelect(tab.key)}
-            className="relative flex-shrink-0 pb-2 border-0 cursor-pointer bg-transparent"
+            className="relative pb-2 border-0 cursor-pointer bg-transparent"
             style={{ padding: 0 }}
           >
             <span
-              className="text-[13px] font-bold tracking-wider uppercase"
+              className="text-[12px] font-bold tracking-wide uppercase whitespace-nowrap"
               style={{
                 color: isActive ? "#F5F4F8" : "#6B6B7B",
               }}
