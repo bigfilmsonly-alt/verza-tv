@@ -86,9 +86,8 @@ export default function BottomNav() {
 
   return (
     <nav
-      className="bottom-nav fixed bottom-0 left-1/2 -translate-x-1/2 w-full z-50"
+      className="bottom-nav fixed bottom-0 w-full z-50"
       style={{
-        maxWidth: 440,
         paddingBottom: "env(safe-area-inset-bottom, 0px)",
         background: "#0D0D14",
         borderTop: "1px solid rgba(255,255,255,0.06)",

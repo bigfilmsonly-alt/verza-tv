@@ -126,6 +126,14 @@ body {
   }
 }
 
+/* ---- Bottom nav positioning (CSS so desktop frame can override) ---- */
+
+.bottom-nav {
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 440px;
+}
+
 /* ---- Mobile-first shell ---- */
 
 .app-shell {
@@ -240,6 +248,7 @@ body {
   .iphone-nav-dock {
     flex-shrink: 0;
     width: 100%;
+    overflow: visible;
     background: #0D0D14;
     border-top: 1px solid rgba(255, 255, 255, 0.06);
   }
@@ -249,7 +258,7 @@ body {
     bottom: auto !important;
     left: auto !important;
     transform: none !important;
-    max-width: 100% !important;
+    max-width: none !important;
     width: 100% !important;
   }
 
