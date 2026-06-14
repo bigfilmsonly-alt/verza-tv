@@ -108,8 +108,9 @@ export default function BottomNav() {
               {/* Active gradient bar — matches header tab style */}
               {active && (
                 <div
-                  className="absolute bottom-0 rounded-full"
+                  className="absolute rounded-full"
                   style={{
+                    bottom: -6,
                     width: "60%",
                     height: 3,
                     background: "linear-gradient(90deg, #E0115F, #8B5CF6)",
