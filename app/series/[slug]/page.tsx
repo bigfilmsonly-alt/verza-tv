@@ -92,7 +92,7 @@ export default async function SeriesPage({ params }: Props) {
       />
 
       {/* ---- Hero Poster ---- */}
-      <section className="series-hero relative w-full" style={{ aspectRatio: "16 / 9" }}>
+      <section className="series-hero relative w-full" style={{ aspectRatio: "3 / 4", maxHeight: "50vh", background: "#07070E" }}>
         {series.posterUrl ? (
           <Image
             src={series.posterUrl}
@@ -100,7 +100,7 @@ export default async function SeriesPage({ params }: Props) {
             fill
             priority
             sizes="100vw"
-            className="object-cover object-top"
+            className="object-contain"
           />
         ) : (
           <div

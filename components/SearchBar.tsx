@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import type { Series } from "@/lib/catalog";
 
 interface SearchBarProps {
@@ -75,9 +76,26 @@ export default function SearchBar({ series }: SearchBarProps) {
               }
             >
               <div
-                className="w-10 h-14 rounded-md flex-shrink-0"
+                className="w-10 h-14 rounded-md flex-shrink-0 overflow-hidden relative"
                 style={{ background: "#1A1A26" }}
-              />
+              >
+                {s.posterUrl ? (
+                  <Image
+                    src={s.posterUrl}
+                    alt={s.title}
+                    fill
+                    sizes="40px"
+                    className="object-cover"
+                  />
+                ) : (
+                  <div
+                    className="absolute inset-0 flex items-center justify-center text-[8px] font-semibold text-center px-0.5"
+                    style={{ color: "#6B6B7B" }}
+                  >
+                    {s.episodeCount}ep
+                  </div>
+                )}
+              </div>
               <div className="min-w-0">
                 <p className="text-sm font-medium truncate">{s.title}</p>
                 <p className="text-xs truncate" style={{ color: "#6B6B7B" }}>

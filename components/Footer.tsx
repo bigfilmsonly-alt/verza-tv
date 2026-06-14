@@ -1,7 +1,4 @@
-import Link from "next/link";
 import { T } from "@/lib/theme";
-
-/* TODO: add <meta name="apple-itunes-app" content="app-id=XXXXXXXXX"> to layout head once app is live */
 
 const socialLinks = [
   {
@@ -78,9 +75,7 @@ export default function Footer() {
       >
         {/* Section 1 — App Store Badges */}
         <div className="flex gap-3 justify-center mb-6">
-          {/* TODO: add real store URLs */}
-          <a
-            href="#"
+          <span
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -89,18 +84,18 @@ export default function Footer() {
               borderRadius: 8,
               border: `1px solid ${T.line}`,
               color: T.text,
-              textDecoration: "none",
               fontSize: 12,
               fontWeight: 500,
+              opacity: 0.85,
+              cursor: "default",
             }}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
               <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
             </svg>
-            Download on the App Store
-          </a>
-          <a
-            href="#"
+            App Store
+          </span>
+          <span
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -109,16 +104,17 @@ export default function Footer() {
               borderRadius: 8,
               border: `1px solid ${T.line}`,
               color: T.text,
-              textDecoration: "none",
               fontSize: 12,
               fontWeight: 500,
+              opacity: 0.85,
+              cursor: "default",
             }}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
               <path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-1.4l2.834 1.64a1 1 0 0 1 0 1.74l-2.834 1.64-2.532-2.533 2.532-2.487zM5.864 2.658L16.8 9.007l-2.302 2.285-8.634-8.634z" />
             </svg>
-            Get it on Google Play
-          </a>
+            Google Play
+          </span>
         </div>
 
         {/* Section 2 — Social Links */}
@@ -130,8 +126,8 @@ export default function Footer() {
               target="_blank"
               rel="noopener noreferrer"
               title={social.name}
-              className="flex items-center gap-1.5 transition-colors"
-              style={{ color: T.textMute, textDecoration: "none", fontSize: 12 }}
+              className="flex items-center gap-1.5 transition-opacity opacity-70 hover:opacity-100"
+              style={{ color: T.text, textDecoration: "none", fontSize: 12 }}
             >
               {social.icon}
               <span className="hidden sm:inline">{social.name}</span>
@@ -142,14 +138,12 @@ export default function Footer() {
         {/* Section 3 — Legal Links */}
         <div className="flex flex-wrap justify-center gap-x-4 gap-y-1.5 mb-5">
           {legalLinks.map((link) => (
-            <Link
+            <span
               key={link.href}
-              href={link.href}
-              style={{ color: T.textMute, textDecoration: "none", fontSize: 12 }}
-              className="transition-colors hover:opacity-80"
+              style={{ color: T.textMute, fontSize: 12 }}
             >
               {link.label}
-            </Link>
+            </span>
           ))}
         </div>
 
@@ -158,7 +152,7 @@ export default function Footer() {
           className="text-center m-0"
           style={{ color: T.textMute, fontSize: 11 }}
         >
-          &copy; 2025 Verza TV. All rights reserved. Microdramas, Reality &amp; More.
+          &copy; 2026 Verza TV. All rights reserved. Microdramas, Reality &amp; More.
         </p>
       </div>
     </footer>

@@ -272,7 +272,7 @@ export default function MePage() {
             </div>
           </div>
           <Link
-            href="/shop"
+            href="/coins"
             className="px-5 py-2 rounded-lg text-sm font-semibold no-underline transition-opacity hover:opacity-90"
             style={{ background: T.coin, color: T.bg }}
           >
@@ -294,13 +294,13 @@ export default function MePage() {
           icon={Icons.play}
           label="Continue Watching"
           detail="No history"
-          href="/me/list"
+          href="/me/list?tab=recent"
         />
         <MenuRow
           icon={Icons.receipt}
           label="Purchase History"
           detail="No purchases"
-          href="/me/list"
+          href="/me/purchases"
           last
         />
       </SectionCard>
@@ -312,18 +312,18 @@ export default function MePage() {
           icon={Icons.globe}
           label="Language"
           detail="English"
-          href="/me"
+          href="/me/settings"
         />
         <MenuRow
           icon={Icons.bell}
           label="Notifications"
-          href="/me"
+          href="/me/settings"
         />
         <MenuRow
           icon={Icons.moon}
           label="Dark Mode"
           detail="On"
-          href="/me"
+          href="/me/settings"
           last
         />
       </SectionCard>

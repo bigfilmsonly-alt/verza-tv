@@ -20,19 +20,19 @@ const CHANNEL_META: Record<
 > = {
   "Verza Originals": {
     description:
-      "The flagship channel. Romance, thriller, mystery, and revenge -- 70+ original micro-dramas produced by Verza TV.",
+      "The flagship channel. Romance, thriller, mystery, and revenge \u2014 70+ original micro-dramas produced by Verza TV.",
     icon: "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z",
     posterLimit: 6,
   },
   StorageBlue: {
     description:
-      "Reality meets comedy. When abandoned storage units go to auction, one crew finds more than furniture -- they find fame, feuds, and hidden fortunes.",
+      "Reality meets comedy. When abandoned storage units go to auction, one crew finds more than furniture \u2014 they find fame, feuds, and hidden fortunes.",
     icon: "M23 7l-7 5 7 5V7zM14 5H3a2 2 0 00-2 2v10a2 2 0 002 2h11a2 2 0 002-2V7a2 2 0 00-2-2z",
     posterLimit: 20,
   },
   "The Vertical Tea": {
     description:
-      "The hottest takes on micro-drama, celebrity scandals, and internet chaos -- served piping hot, sixty seconds at a time.",
+      "The hottest takes on micro-drama, celebrity scandals, and internet chaos \u2014 served piping hot, sixty seconds at a time.",
     icon: "M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75",
     posterLimit: 20,
   },

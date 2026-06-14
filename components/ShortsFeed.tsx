@@ -68,7 +68,7 @@ function ShortCard({ series, isActive }: { series: Series; isActive: boolean }) 
       style={{
         height: "calc(100dvh - 56px)", /* only bottom nav */
         scrollSnapAlign: "start",
-        background: "#000",
+        background: "#07070E",
       }}
     >
       {/* Full-bleed poster — edge to edge */}
@@ -77,7 +77,7 @@ function ShortCard({ series, isActive }: { series: Series; isActive: boolean }) 
           src={series.posterUrl}
           alt={series.title}
           fill
-          className="object-cover"
+          className="object-contain"
           sizes="100vw"
           priority={isActive}
         />

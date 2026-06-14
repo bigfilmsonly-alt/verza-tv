@@ -127,7 +127,7 @@ export default async function MyListPage(props: {
 
       {/* ---- Tab bar ---- */}
       <div
-        className="flex mx-4 rounded-lg overflow-hidden mb-1"
+        className="flex mx-4 rounded-lg overflow-hidden mb-2"
         style={{
           background: T.surface,
           border: `1px solid ${T.line}`,

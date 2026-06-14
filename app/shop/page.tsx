@@ -75,9 +75,12 @@ export default function ShopPage() {
                 {product.name}
               </p>
               <p className="text-sm font-bold" style={{ color: T.accent }}>
-                ${product.price.toFixed(2)}
+                ${product.price % 1 === 0 ? product.price.toFixed(0) : product.price.toFixed(2)}
               </p>
-              <p className="text-[10px] mt-0.5" style={{ color: T.textMute }}>
+              <p
+                className="text-[10px] mt-1 inline-block px-1.5 py-0.5 rounded font-medium uppercase tracking-wide"
+                style={{ color: T.textMute, background: `${T.text}08` }}
+              >
                 {product.category}
               </p>
             </div>

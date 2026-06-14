@@ -43,12 +43,14 @@ export default function FeedSearch({ series }: FeedSearchProps) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search shows..."
-          className="w-full pl-11 pr-4 py-3.5 rounded-xl text-sm outline-none"
+          className="w-full pl-11 pr-4 py-3.5 rounded-xl text-sm outline-none transition-colors duration-200"
           style={{
             background: "rgba(255,255,255,0.04)",
             color: "#F5F4F8",
             border: "1px solid rgba(255,255,255,0.1)",
           }}
+          onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.2)")}
+          onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")}
         />
       </div>
 
@@ -67,6 +69,8 @@ export default function FeedSearch({ series }: FeedSearchProps) {
               className="flex items-center gap-3 px-4 py-3 no-underline transition-colors"
               style={{ color: "#F5F4F8" }}
               onClick={() => setQuery("")}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.04)")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
             >
               <div className="min-w-0">
                 <p className="text-sm font-medium truncate">{s.title}</p>

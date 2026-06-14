@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { catalog, BROWSE_TABS } from "@/lib/catalog";
+import { T } from "@/lib/theme";
 import SearchBar from "@/components/SearchBar";
 
 export const metadata: Metadata = {
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
 export default function DiscoverPage() {
   return (
     <section className="px-4 pt-6 pb-8">
-      <h1 className="text-2xl font-bold mb-5" style={{ color: "#F5F4F8" }}>
+      <h1 className="text-2xl font-bold mb-5" style={{ color: T.text }}>
         Discover
       </h1>
 
@@ -24,7 +25,7 @@ export default function DiscoverPage() {
       {/* Browse Categories */}
       <h2
         className="text-sm font-semibold uppercase tracking-wider mb-3"
-        style={{ color: "#6B6B7B" }}
+        style={{ color: T.textMute }}
       >
         Browse by Category
       </h2>
@@ -35,9 +36,9 @@ export default function DiscoverPage() {
             href={`/discover/${tab.key}`}
             className="flex items-center justify-center h-20 rounded-xl text-sm font-semibold no-underline transition-transform active:scale-95"
             style={{
-              background: "linear-gradient(135deg, #E0115F22, #E0115F44)",
-              border: "1px solid #E0115F33",
-              color: "#E0115F",
+              background: `linear-gradient(135deg, ${T.accent}22, ${T.accent}44)`,
+              border: `1px solid ${T.accent}33`,
+              color: T.accent,
             }}
           >
             {tab.label}
@@ -48,7 +49,7 @@ export default function DiscoverPage() {
       {/* All Series */}
       <h2
         className="text-sm font-semibold uppercase tracking-wider mb-4"
-        style={{ color: "#6B6B7B" }}
+        style={{ color: T.textMute }}
       >
         All Series
       </h2>
@@ -58,11 +59,11 @@ export default function DiscoverPage() {
             key={series.slug}
             href={`/series/${series.slug}`}
             className="flex items-center gap-4 rounded-xl p-3 no-underline transition-colors"
-            style={{ background: "#12121C", color: "#F5F4F8" }}
+            style={{ background: T.surface, color: T.text }}
           >
             <div
               className="w-14 h-20 rounded-lg flex-shrink-0 overflow-hidden relative"
-              style={{ background: "#1A1A26" }}
+              style={{ background: T.raised }}
             >
               {series.posterUrl ? (
                 <Image
@@ -75,7 +76,7 @@ export default function DiscoverPage() {
               ) : (
                 <div
                   className="absolute inset-0 flex items-center justify-center text-[10px] font-semibold text-center px-1"
-                  style={{ color: "#6B6B7B" }}
+                  style={{ color: T.textMute }}
                 >
                   {series.episodeCount}ep
                 </div>
