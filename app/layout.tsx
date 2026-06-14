@@ -96,7 +96,7 @@ export default function RootLayout({
             <div className="iphone-nav-dock">
               <BottomNav />
             </div>
-            <div className="iphone-home-indicator" />
+{/* home indicator removed */}
           </div>
 
           {/* Mobile: no frame, direct render */}
