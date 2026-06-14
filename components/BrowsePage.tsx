@@ -71,7 +71,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         <div className="relative">
           <Link href={`/series/${current.slug}`} className="block">
             <div
-              className="relative w-full overflow-hidden"
+              className="relative w-full overflow-hidden hero-section"
               style={{ aspectRatio: "3 / 4", maxHeight: "60dvh" }}
             >
               {current.posterUrl ? (
@@ -156,7 +156,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
       {/* Tab Grid */}
       {gridItems.length > 0 && (
         <section className="mt-4 px-3 pb-6">
-          <div className="grid grid-cols-3 gap-2.5">
+          <div className="grid grid-cols-3 gap-2.5 poster-grid">
             {gridItems.map((s) => (
               <Link key={s.slug} href={`/series/${s.slug}`} className="block no-underline">
                 <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "3 / 4" }}>
@@ -173,7 +173,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
       {/* All Shows */}
       <section className="px-3 pb-8">
         <h2 className="text-sm font-semibold uppercase tracking-wider mb-4 px-1" style={{ color: "#6B6B7B" }}>All Shows</h2>
-        <div className="grid grid-cols-3 gap-2.5">
+        <div className="grid grid-cols-3 gap-2.5 poster-grid">
           {liveSeries.map((s) => (
             <Link key={s.slug} href={`/series/${s.slug}`} className="block no-underline">
               <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "3 / 4" }}>

@@ -28,29 +28,33 @@ export default async function ProductPage({ params }: Props) {
 
   return (
     <section className="px-4 pt-6 pb-8">
-      {/* Product Image Carousel */}
-      <div className="mb-6">
-        <ImageCarousel images={product.images} alt={product.name} />
-      </div>
+      <div className="product-detail">
+        {/* Product Image Carousel */}
+        <div className="mb-6">
+          <ImageCarousel images={product.images} alt={product.name} />
+        </div>
 
-      {/* Info */}
-      <h1 className="text-xl font-bold mb-2" style={{ color: T.text }}>
-        {product.name}
-      </h1>
-      <p className="text-2xl font-bold mb-1" style={{ color: T.accent }}>
-        ${product.price.toFixed(2)}
-      </p>
-      <p className="text-xs mb-1" style={{ color: T.textMute }}>
-        {product.category} &middot; Free shipping over $100
-      </p>
-      {product.images.length > 1 && (
-        <p className="text-xs mb-4" style={{ color: T.textDim }}>
-          {product.images.length} color options available
-        </p>
-      )}
+        {/* Info */}
+        <div>
+          <h1 className="text-xl font-bold mb-2" style={{ color: T.text }}>
+            {product.name}
+          </h1>
+          <p className="text-2xl font-bold mb-1" style={{ color: T.accent }}>
+            ${product.price.toFixed(2)}
+          </p>
+          <p className="text-xs mb-1" style={{ color: T.textMute }}>
+            {product.category} &middot; Free shipping over $100
+          </p>
+          {product.images.length > 1 && (
+            <p className="text-xs mb-4" style={{ color: T.textDim }}>
+              {product.images.length} color options available
+            </p>
+          )}
 
-      <div className="mt-4">
-        <AddToCartButton product={product} />
+          <div className="mt-4">
+            <AddToCartButton product={product} />
+          </div>
+        </div>
       </div>
     </section>
   );

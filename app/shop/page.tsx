@@ -27,7 +27,7 @@ export default function ShopPage() {
       </div>
 
       {/* Product Grid */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="product-grid grid grid-cols-2 gap-3">
         {products.map((product) => (
           <Link
             key={product.id}

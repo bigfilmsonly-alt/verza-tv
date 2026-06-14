@@ -28,7 +28,7 @@ export default function DiscoverPage() {
       >
         Browse by Category
       </h2>
-      <div className="grid grid-cols-2 gap-3 mb-10">
+      <div className="genre-grid grid grid-cols-2 gap-3 mb-10">
         {BROWSE_TABS.map((tab) => (
           <Link
             key={tab.key}

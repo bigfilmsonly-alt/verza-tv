@@ -92,7 +92,7 @@ export default async function SeriesPage({ params }: Props) {
       />
 
       {/* ---- Hero Poster ---- */}
-      <section className="relative w-full" style={{ aspectRatio: "16 / 9" }}>
+      <section className="series-hero relative w-full" style={{ aspectRatio: "16 / 9" }}>
         {series.posterUrl ? (
           <Image
             src={series.posterUrl}
@@ -301,7 +301,7 @@ export default async function SeriesPage({ params }: Props) {
           Episodes
         </h2>
 
-        <div className="flex flex-col gap-2 mb-8">
+        <div className="episode-list flex flex-col gap-2 mb-8">
           {episodes.map((ep) => {
             const isFree = ep.number <= FREE_EPISODES;
             return (

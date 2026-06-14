@@ -138,3 +138,123 @@ body {
   display: flex;
   flex-direction: column;
 }
+
+/* ---- Landscape orientation ---- */
+
+@media (orientation: landscape) {
+  .app-shell {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  /* Shorter bottom nav in landscape */
+  .bottom-nav {
+    height: 3rem; /* 48px — h-12 equivalent */
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+  }
+
+  .bottom-nav svg {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+
+  .bottom-nav span {
+    font-size: 0.625rem;
+    line-height: 0.75rem;
+  }
+
+  /* Constrain hero so it doesn't fill the short viewport */
+  .hero-section,
+  [class*="hero"] {
+    max-height: 60vh;
+  }
+
+  .hero-section img,
+  [class*="hero"] img {
+    max-height: 55vh;
+    object-fit: cover;
+  }
+
+  /* Shop product grid: more columns in landscape */
+  .product-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  /* Product detail: side-by-side layout */
+  .product-detail {
+    display: flex;
+    gap: 1.5rem;
+  }
+
+  .product-detail > *:first-child {
+    flex: 0 0 50%;
+  }
+
+  /* Image carousel: wider aspect ratio instead of square */
+  .image-carousel {
+    aspect-ratio: 4 / 3 !important;
+  }
+
+  /* Poster grids: expand to 5 columns */
+  .poster-grid {
+    grid-template-columns: repeat(5, 1fr) !important;
+  }
+
+  /* Series hero: constrain height */
+  .series-hero {
+    max-height: 50vh;
+  }
+
+  /* Episode list: 2 columns */
+  .episode-list {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+
+  /* Genre/discover grid: 3 columns */
+  .genre-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+
+  /* Reduce bottom padding for shorter nav */
+  main {
+    padding-bottom: 3.5rem !important;
+  }
+}
+
+/* Very short landscape screens (keyboard open, small phones) */
+@media (orientation: landscape) and (max-height: 500px) {
+  .hero-section,
+  [class*="hero"] {
+    max-height: 45vh;
+  }
+
+  .hero-section img,
+  [class*="hero"] img {
+    max-height: 40vh;
+  }
+
+  /* Shop product grid: 4 columns on very short landscape */
+  .product-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  /* Ensure the main content area stays scrollable */
+  .app-shell {
+    min-height: 100dvh;
+    overflow-y: auto;
+  }
+
+  /* Even more compact nav on very short screens */
+  .bottom-nav {
+    height: 2.5rem; /* 40px */
+    padding-top: 0.125rem;
+    padding-bottom: 0.125rem;
+  }
+
+  .bottom-nav span {
+    display: none; /* Hide labels, show icons only */
+  }
+}

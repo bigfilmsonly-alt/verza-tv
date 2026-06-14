@@ -17,7 +17,7 @@ export default function ImageCarousel({ images, alt }: ImageCarouselProps) {
   const next = () => setActive((i) => (i === count - 1 ? 0 : i + 1));
 
   return (
-    <div className="relative w-full rounded-xl overflow-hidden" style={{ aspectRatio: "1" }}>
+    <div className="image-carousel relative w-full rounded-xl overflow-hidden" style={{ aspectRatio: "1" }}>
       {/* Image */}
       <div className="relative w-full h-full" style={{ background: T.raised }}>
         {images[active] ? (
