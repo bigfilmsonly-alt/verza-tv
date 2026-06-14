@@ -40,7 +40,7 @@ export function webSiteSchema() {
       "@type": "SearchAction",
       target: {
         "@type": "EntryPoint",
-        urlTemplate: `${BASE_URL}/discover?q={search_term_string}`,
+        urlTemplate: `${BASE_URL}/search?q={search_term_string}`,
       },
       "query-input": "required name=search_term_string",
     },
@@ -159,6 +159,36 @@ export function breadcrumbSchema(items: BreadcrumbItem[]) {
       position: index + 1,
       name: item.name,
       item: item.url,
+    })),
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/*  ItemList                                                          */
+/* ------------------------------------------------------------------ */
+
+interface ItemListInput {
+  name: string;
+  description: string;
+  items: { name: string; url: string; image?: string; position: number }[];
+}
+
+export function itemListSchema(input: ItemListInput) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: input.name,
+    description: input.description,
+    numberOfItems: input.items.length,
+    itemListElement: input.items.map((item) => ({
+      "@type": "ListItem",
+      position: item.position,
+      item: {
+        "@type": "TVSeries",
+        name: item.name,
+        url: item.url,
+        ...(item.image ? { image: item.image } : {}),
+      },
     })),
   };
 }

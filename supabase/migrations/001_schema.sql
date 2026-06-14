@@ -1,154 +1,131 @@
--- Series
-create table public.series (
-  id uuid primary key default gen_random_uuid(),
-  slug text unique not null,
-  title text not null,
-  logline text not null,
-  genre text not null,
-  channel text not null,
-  episode_count int not null default 0,
-  poster_url text,
-  trailer_url text,
-  free_episodes int not null default 5,
-  coin_per_episode int not null default 49,
-  season_pass_coins int,
-  status text not null default 'live' check (status in ('live','coming_soon')),
-  created_at timestamptz not null default now()
-);
+-- Verza TV — Core Schema
 
--- Episodes
-create table public.episodes (
-  id uuid primary key default gen_random_uuid(),
-  series_slug text not null references public.series(slug),
-  number int not null,
-  title text not null,
-  duration_s int not null default 90,
-  video_id text,
-  thumb_url text,
-  is_free boolean not null default false,
-  unlock_coins int not null default 49,
-  clip_id text,
-  captions_url text,
+-- Users (extends Supabase auth.users)
+create table if not exists public.profiles (
+  id uuid primary key references auth.users(id) on delete cascade,
+  display_name text,
+  avatar_url text,
+  coin_balance integer not null default 0,
+  is_vip boolean not null default false,
+  vip_expires_at timestamptz,
+  streak_days integer not null default 0,
+  streak_last_date date,
+  language text not null default 'en',
   created_at timestamptz not null default now(),
-  unique(series_slug, number)
+  updated_at timestamptz not null default now()
 );
 
--- Users
-create table public.users (
-  id uuid primary key references auth.users(id),
-  handle text unique,
-  email text,
-  coin_balance int not null default 0,
-  vip_status text default null,
+-- Coin ledger (immutable append-only)
+create table if not exists public.coin_ledger (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  amount integer not null, -- positive = credit, negative = debit
+  reason text not null check (reason in ('purchase','unlock','season_pass','ad','daily','refund','admin')),
+  reference_id text, -- stripe payment ID, episode slug, etc.
+  balance_after integer not null,
   created_at timestamptz not null default now()
 );
 
--- Entitlements
-create table public.entitlements (
+-- Entitlements (what episodes a user has unlocked)
+create table if not exists public.entitlements (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references public.users(id),
-  scope text not null check (scope in ('episode','season')),
-  ref_id text not null,
-  granted_at timestamptz not null default now()
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  series_slug text not null,
+  episode_number integer, -- null = season pass (all episodes)
+  granted_at timestamptz not null default now(),
+  unique(user_id, series_slug, episode_number)
 );
 
--- Coin Ledger
-create table public.coin_ledger (
+-- Purchases (Stripe/IAP receipts)
+create table if not exists public.purchases (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references public.users(id),
-  delta int not null,
-  reason text not null check (reason in ('purchase','unlock','daily','referral','ad','bonus')),
-  ref_id text,
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  provider text not null check (provider in ('stripe','apple','google')),
+  provider_id text not null unique, -- Stripe payment intent, Apple receipt, etc.
+  product_type text not null check (product_type in ('coin_pack','season_pass','vip','merch')),
+  product_id text not null,
+  amount_cents integer not null,
+  currency text not null default 'usd',
+  status text not null default 'pending' check (status in ('pending','completed','refunded','failed')),
   created_at timestamptz not null default now()
 );
 
--- Purchases
-create table public.purchases (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references public.users(id),
-  provider text not null,
-  amount int not null,
-  coins int not null,
-  status text not null default 'pending',
-  created_at timestamptz not null default now()
+-- Watch progress (continue watching)
+create table if not exists public.watch_progress (
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  series_slug text not null,
+  episode_number integer not null,
+  progress_seconds integer not null default 0,
+  completed boolean not null default false,
+  updated_at timestamptz not null default now(),
+  primary key (user_id, series_slug, episode_number)
 );
 
--- Tickets
-create table public.tickets (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid references public.users(id),
-  device text,
-  app_version text,
-  screen text,
-  severity text not null default 'medium',
-  status text not null default 'open',
-  body text not null,
-  created_at timestamptz not null default now()
-);
-
--- Uploads
-create table public.uploads (
-  id uuid primary key default gen_random_uuid(),
-  uploader_id uuid not null references public.users(id),
-  series_slug text,
-  status text not null default 'pending' check (status in ('pending','processing','approved','rejected','live')),
-  video_id text,
-  created_at timestamptz not null default now()
+-- My List (saved shows)
+create table if not exists public.my_list (
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  series_slug text not null,
+  added_at timestamptz not null default now(),
+  primary key (user_id, series_slug)
 );
 
 -- Channels
-create table public.channels (
+create table if not exists public.channels (
   id uuid primary key default gen_random_uuid(),
-  name text unique not null,
   slug text unique not null,
+  name text not null,
   description text,
   avatar_url text,
-  subscriber_count int not null default 0,
-  is_verified boolean not null default false,
+  banner_url text,
+  subscriber_count integer not null default 0,
   created_at timestamptz not null default now()
 );
 
--- Creators
-create table public.creators (
+-- Support tickets
+create table if not exists public.tickets (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid references public.users(id),
-  channel_id uuid references public.channels(id),
-  display_name text not null,
-  bio text,
-  avatar_url text,
+  user_id uuid references public.profiles(id) on delete set null,
+  email text not null,
+  subject text not null,
+  body text not null,
+  status text not null default 'open' check (status in ('open','in_progress','resolved','closed')),
   created_at timestamptz not null default now()
 );
+
+-- RLS policies
+alter table public.profiles enable row level security;
+alter table public.coin_ledger enable row level security;
+alter table public.entitlements enable row level security;
+alter table public.purchases enable row level security;
+alter table public.watch_progress enable row level security;
+alter table public.my_list enable row level security;
+alter table public.tickets enable row level security;
+
+-- Users can read/update their own profile
+create policy "Users read own profile" on public.profiles for select using (auth.uid() = id);
+create policy "Users update own profile" on public.profiles for update using (auth.uid() = id);
+
+-- Users can read their own ledger
+create policy "Users read own ledger" on public.coin_ledger for select using (auth.uid() = user_id);
+
+-- Users can read their own entitlements
+create policy "Users read own entitlements" on public.entitlements for select using (auth.uid() = user_id);
+
+-- Users can read their own purchases
+create policy "Users read own purchases" on public.purchases for select using (auth.uid() = user_id);
+
+-- Users can CRUD their own watch progress
+create policy "Users manage watch progress" on public.watch_progress for all using (auth.uid() = user_id);
+
+-- Users can CRUD their own list
+create policy "Users manage my list" on public.my_list for all using (auth.uid() = user_id);
+
+-- Users can create tickets, read their own
+create policy "Users create tickets" on public.tickets for insert with check (auth.uid() = user_id);
+create policy "Users read own tickets" on public.tickets for select using (auth.uid() = user_id);
 
 -- Indexes
-create index idx_episodes_series on public.episodes(series_slug, number);
-create index idx_series_channel on public.series(channel);
-create index idx_series_genre on public.series(genre);
-create index idx_series_status on public.series(status);
-create index idx_entitlements_user on public.entitlements(user_id, ref_id);
-create index idx_coin_ledger_user on public.coin_ledger(user_id);
-
--- RLS
-alter table public.series enable row level security;
-alter table public.episodes enable row level security;
-alter table public.users enable row level security;
-alter table public.entitlements enable row level security;
-alter table public.coin_ledger enable row level security;
-alter table public.purchases enable row level security;
-alter table public.tickets enable row level security;
-alter table public.uploads enable row level security;
-alter table public.channels enable row level security;
-alter table public.creators enable row level security;
-
--- Public read for catalog
-create policy "series_public_read" on public.series for select using (true);
-create policy "episodes_public_read" on public.episodes for select using (true);
-create policy "channels_public_read" on public.channels for select using (true);
-create policy "creators_public_read" on public.creators for select using (true);
-
--- Users read own data
-create policy "users_read_own" on public.users for select using (auth.uid() = id);
-create policy "entitlements_read_own" on public.entitlements for select using (auth.uid() = user_id);
-create policy "coin_ledger_read_own" on public.coin_ledger for select using (auth.uid() = user_id);
-create policy "purchases_read_own" on public.purchases for select using (auth.uid() = user_id);
-create policy "tickets_read_own" on public.tickets for select using (auth.uid() = user_id);
-create policy "uploads_read_own" on public.uploads for select using (auth.uid() = uploader_id);
+create index if not exists idx_coin_ledger_user on public.coin_ledger(user_id, created_at desc);
+create index if not exists idx_entitlements_user on public.entitlements(user_id, series_slug);
+create index if not exists idx_watch_progress_user on public.watch_progress(user_id, updated_at desc);
+create index if not exists idx_my_list_user on public.my_list(user_id, added_at desc);
