@@ -18,7 +18,7 @@ export const products: Product[] = [
     price: 90.00,
     priceConfirmed: true,
     category: "Apparel",
-    imageUrl: "",
+    imageUrl: "/shop/champion-tie-dye-hoodie.png",
   },
   {
     id: "prod_2",
@@ -27,7 +27,7 @@ export const products: Product[] = [
     price: 15.00,
     priceConfirmed: true,
     category: "Drinkware",
-    imageUrl: "",
+    imageUrl: "/shop/verzatv-mug.png",
   },
   {
     id: "prod_3",
@@ -54,7 +54,7 @@ export const products: Product[] = [
     price: 70.00, // TODO: confirm price
     priceConfirmed: false,
     category: "Apparel",
-    imageUrl: "",
+    imageUrl: "/shop/verzatv-joggers.png",
   },
   {
     id: "prod_6",
@@ -63,7 +63,7 @@ export const products: Product[] = [
     price: 95.00, // TODO: confirm price
     priceConfirmed: false,
     category: "Apparel",
-    imageUrl: "",
+    imageUrl: "/shop/verzatv-hoodie.png",
   },
 ];
 

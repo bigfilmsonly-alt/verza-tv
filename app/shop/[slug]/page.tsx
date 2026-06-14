@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Image from "next/image";
 import type { Metadata } from "next";
 import { products, getProductBySlug } from "@/lib/products";
 import { T } from "@/lib/theme";
@@ -29,17 +30,25 @@ export default async function ProductPage({ params }: Props) {
     <section className="px-4 pt-6 pb-8">
       {/* Product Image */}
       <div
-        className="w-full rounded-xl flex items-center justify-center text-base font-bold mb-6"
-        style={{
-          aspectRatio: "1",
-          background: `linear-gradient(135deg, ${T.raised}, ${T.surface})`,
-          color: T.textMute,
-        }}
+        className="w-full rounded-xl overflow-hidden relative mb-6"
+        style={{ aspectRatio: "1", background: T.raised }}
       >
         {product.imageUrl ? (
-          product.name
+          <Image
+            src={product.imageUrl}
+            alt={product.name}
+            fill
+            priority
+            sizes="(max-width: 440px) 100vw, 440px"
+            className="object-cover"
+          />
         ) : (
-          <span className="text-center px-4">{product.name}</span>
+          <div
+            className="absolute inset-0 flex items-center justify-center text-base font-bold text-center px-4"
+            style={{ color: T.textMute }}
+          >
+            {product.name}
+          </div>
         )}
       </div>
 

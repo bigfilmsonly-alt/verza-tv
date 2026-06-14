@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { T } from "@/lib/theme";
 import { products } from "@/lib/products";
 import { BRAND } from "@/lib/config";
@@ -36,17 +37,24 @@ export default function ShopPage() {
           >
             {/* Product Image */}
             <div
-              className="w-full flex items-center justify-center text-xs font-semibold"
-              style={{
-                aspectRatio: "1",
-                background: `linear-gradient(135deg, ${T.raised}, ${T.surface})`,
-                color: T.textMute,
-              }}
+              className="w-full relative overflow-hidden"
+              style={{ aspectRatio: "1", background: T.raised }}
             >
               {product.imageUrl ? (
-                product.name
+                <Image
+                  src={product.imageUrl}
+                  alt={product.name}
+                  fill
+                  sizes="(max-width: 440px) 50vw, 220px"
+                  className="object-cover"
+                />
               ) : (
-                <span className="text-center px-2">{product.name.replace("VerzaTV ", "")}</span>
+                <div
+                  className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-center px-2"
+                  style={{ color: T.textMute }}
+                >
+                  {product.name.replace("VerzaTV ", "")}
+                </div>
               )}
             </div>
 
