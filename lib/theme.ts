@@ -1,0 +1,15 @@
+export const T = {
+  bg: "#07070E",
+  surface: "#12121C",
+  raised: "#1A1A26",
+  line: "rgba(255,255,255,.08)",
+  text: "#F5F4F8",
+  textDim: "#A0A0B0",
+  textMute: "#6B6B7B",
+  accent: "#E0115F",
+  gold: "#F6C800",
+  deepGold: "#946312",
+  success: "#2ECC71",
+  live: "#FF3B5C",
+  coin: "#FFC83D",
+} as const;
