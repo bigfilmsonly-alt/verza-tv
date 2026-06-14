@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 import JsonLd from "@/components/JsonLd";
 import {
   SERIES,
-  getSeriesBySlug,
+  getSeriesWithDetail,
   getEpisodesForSeries,
   formatDuration,
 } from "@/lib/catalog";
@@ -32,7 +32,7 @@ type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const series = getSeriesBySlug(slug);
+  const series = getSeriesWithDetail(slug);
   if (!series) return { title: "Not Found" };
 
   return {
@@ -41,7 +41,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title: series.title,
       description: series.logline,
-      images: [series.posterUrl],
+      images: series.posterUrl ? [series.posterUrl] : [],
     },
   };
 }
@@ -52,7 +52,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function SeriesPage({ params }: Props) {
   const { slug } = await params;
-  const series = getSeriesBySlug(slug);
+  const series = getSeriesWithDetail(slug);
   if (!series) notFound();
 
   const episodes = getEpisodesForSeries(slug);
@@ -141,11 +141,71 @@ export default async function SeriesPage({ params }: Props) {
 
         {/* Logline */}
         <p
-          className="text-sm leading-relaxed mb-4"
+          className="text-sm leading-relaxed mb-3"
           style={{ color: T.textDim }}
         >
           {series.logline}
         </p>
+
+        {/* Rating + Year */}
+        {series.rating && (
+          <div className="flex items-center gap-3 mb-3">
+            <span
+              className="flex items-center gap-1 text-xs font-bold px-2 py-1 rounded"
+              style={{ background: `${T.coin}22`, color: T.coin }}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill={T.coin} stroke="none">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+              </svg>
+              {series.rating.toFixed(1)}
+            </span>
+            {series.year && (
+              <span className="text-xs" style={{ color: T.textMute }}>
+                {series.year}
+              </span>
+            )}
+            <span className="text-xs" style={{ color: T.textMute }}>
+              {series.channel}
+            </span>
+          </div>
+        )}
+
+        {/* Description */}
+        {series.description && (
+          <p
+            className="text-sm leading-relaxed mb-4"
+            style={{ color: T.textDim }}
+          >
+            {series.description}
+          </p>
+        )}
+
+        {/* Cast */}
+        {series.cast && series.cast.length > 0 && (
+          <div className="mb-3">
+            <p className="text-xs font-semibold mb-1" style={{ color: T.textMute }}>
+              Cast
+            </p>
+            <p className="text-sm" style={{ color: T.textDim }}>
+              {series.cast.join(" \u00b7 ")}
+            </p>
+          </div>
+        )}
+
+        {/* Tags */}
+        {series.tags && series.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mb-4">
+            {series.tags.map((tag) => (
+              <span
+                key={tag}
+                className="text-[10px] font-medium px-2 py-0.5 rounded-full"
+                style={{ background: `${T.accent}15`, color: T.accent, border: `1px solid ${T.accent}30` }}
+              >
+                #{tag}
+              </span>
+            ))}
+          </div>
+        )}
 
         {/* First 5 Free badge */}
         <div

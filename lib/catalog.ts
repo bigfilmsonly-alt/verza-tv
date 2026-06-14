@@ -13,6 +13,10 @@ export const BROWSE_TABS: { key: BrowseCategory; label: string }[] = [
   { key: "red-carpet", label: "Red Carpet" },
 ];
 
+export type PosterMood =
+  | "ballroom" | "noir" | "rose" | "sunset" | "ice"
+  | "blood" | "emerald" | "violet" | "gold" | "storage";
+
 export interface Series {
   slug: string;
   title: string;
@@ -27,6 +31,13 @@ export interface Series {
   coinPerEpisode: number;
   seasonPassCoins: number;
   status: "live" | "coming_soon";
+  /* Rich detail fields */
+  description?: string;
+  cast?: string[];
+  tags?: string[];
+  rating?: number;
+  year?: number;
+  posterMood?: PosterMood;
 }
 
 function sp(eps: number) {
@@ -998,6 +1009,20 @@ export function getSeriesByChannel(channel: string): Series[] {
 
 export function getSeriesBySlug(slug: string): Series | undefined {
   return catalog.find((s) => s.slug === slug);
+}
+
+/** Get series with full detail metadata merged in */
+export function getSeriesWithDetail(slug: string): Series | undefined {
+  const s = catalog.find((c) => c.slug === slug);
+  if (!s) return undefined;
+  // Lazy-import detail to keep catalog lightweight
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { SERIES_DETAIL } = require("./series-detail");
+    const detail = SERIES_DETAIL[slug];
+    if (detail) return { ...s, ...detail };
+  } catch { /* detail file optional */ }
+  return s;
 }
 
 export function getSeriesByGenre(genre: string): Series[] {
