@@ -8,7 +8,7 @@ export const BROWSE_TABS: { key: BrowseCategory; label: string }[] = [
   { key: "drama", label: "Drama" },
   { key: "new", label: "New" },
   { key: "popular", label: "Popular" },
-  { key: "music", label: "Music" },
+  { key: "music", label: "Shows" }, // TODO: "Music" tab renamed to "Shows" — StorageBlue is reality/comedy, not music. Source real music content or confirm this rename with the team.
   { key: "reality", label: "Reality" },
   { key: "red-carpet", label: "Red Carpet" },
 ];
@@ -788,14 +788,14 @@ export const catalog: Series[] = [
     freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(52), status: "live",
   },
   {
-    slug: "the-chauffer",
-    title: "The Chauffer",
+    slug: "the-chauffeur",
+    title: "The Chauffeur",
     logline: "He drives her everywhere. She trusts him with her life. He's been reporting every move to her enemies.",
     genre: "Romantic suspense",
     channel: "Verza Originals",
     categories: ["drama"],
     episodeCount: 50,
-    posterUrl: "/posters/the-chauffer.png",
+    posterUrl: "/posters/the-chauffeur.png",
     freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(50), status: "live",
   },
   {
@@ -909,14 +909,14 @@ export const catalog: Series[] = [
     freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(52), status: "live",
   },
   {
-    slug: "the-pendelton-secrete",
-    title: "The Pendelton Secrete",
-    logline: "The Pendelton estate holds a fortune, a family of liars, and a secret that could bring down a dynasty.",
+    slug: "the-pendleton-secret",
+    title: "The Pendleton Secret",
+    logline: "The Pendleton estate holds a fortune, a family of liars, and a secret that could bring down a dynasty.",
     genre: "Family thriller",
     channel: "Verza Originals",
     categories: ["drama"],
     episodeCount: 54,
-    posterUrl: "/posters/the-pendelton-secrete.png",
+    posterUrl: "/posters/the-pendleton-secret.png",
     freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(54), status: "live",
   },
   {

@@ -402,7 +402,7 @@ export const SERIES_DETAIL: Record<string, SeriesDetail> = {
     tags: ["dark-romance", "escape", "obsession"],
     rating: 8.7, year: 2025, posterMood: "noir",
   },
-  "the-chauffer": {
+  "the-chauffeur": {
     description: "He drives her everywhere. She trusts him with her life. He's been reporting every move to her enemies. But somewhere between the lies and the leather seats, the driver fell for the passenger.",
     cast: ["James Carter", "Elena Vandermeer", "Mr. Black"],
     tags: ["betrayal", "romance", "suspense"],
@@ -468,9 +468,9 @@ export const SERIES_DETAIL: Record<string, SeriesDetail> = {
     tags: ["obsession", "dark-romance", "thriller"],
     rating: 8.6, year: 2025, posterMood: "blood",
   },
-  "the-pendelton-secrete": {
-    description: "The Pendelton estate holds a fortune, a family of liars, and a secret that could bring down a dynasty. When the youngest heir starts digging, she discovers that the family's greatest asset is also its greatest sin.",
-    cast: ["Eloise Pendelton", "James Mercer", "Lady Pendelton"],
+  "the-pendleton-secret": {
+    description: "The Pendleton estate holds a fortune, a family of liars, and a secret that could bring down a dynasty. When the youngest heir starts digging, she discovers that the family's greatest asset is also its greatest sin.",
+    cast: ["Eloise Pendleton", "James Mercer", "Lady Pendleton"],
     tags: ["family-thriller", "estate", "mystery"],
     rating: 8.5, year: 2025, posterMood: "emerald",
   },

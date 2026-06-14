@@ -31,6 +31,17 @@ const nextConfig: NextConfig = {
           { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
         ],
       },
+      // Prevent search engines from indexing preview/development deploys
+      ...(process.env.VERCEL_ENV !== "production"
+        ? [
+            {
+              source: "/(.*)",
+              headers: [
+                { key: "X-Robots-Tag", value: "noindex, nofollow" },
+              ],
+            },
+          ]
+        : []),
     ];
   },
 
@@ -42,6 +53,9 @@ const nextConfig: NextConfig = {
         destination: "/:path+",
         permanent: true,
       },
+      // Typo slug redirects
+      { source: "/series/the-chauffer", destination: "/series/the-chauffeur", permanent: true },
+      { source: "/series/the-pendelton-secrete", destination: "/series/the-pendleton-secret", permanent: true },
     ];
   },
 };
