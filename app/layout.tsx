@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import BottomNav from "@/components/BottomNav";
+import { CartProvider } from "@/lib/cart";
+import CartDrawer from "@/components/CartDrawer";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -32,10 +34,13 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
-        <div className="app-shell">
-          <main className="flex-1 pb-16">{children}</main>
-          <BottomNav />
-        </div>
+        <CartProvider>
+          <div className="app-shell">
+            <main className="flex-1 pb-16">{children}</main>
+            <BottomNav />
+          </div>
+          <CartDrawer />
+        </CartProvider>
       </body>
     </html>
   );

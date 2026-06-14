@@ -24,14 +24,23 @@ export default function HeroCarousel({ series }: HeroCarouselProps) {
       {/* Hero image — full width, tall */}
       <Link href={`/series/${current.slug}`} className="block">
         <div className="relative w-full" style={{ height: "65dvh", minHeight: 420 }}>
-          <Image
-            src={current.posterUrl}
-            alt={current.title}
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover"
-          />
+          {current.posterUrl ? (
+            <Image
+              src={current.posterUrl}
+              alt={current.title}
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover"
+            />
+          ) : (
+            <div
+              className="absolute inset-0 flex items-center justify-center text-lg font-bold"
+              style={{ background: "linear-gradient(135deg, #1A1A26, #12121C)", color: "#6B6B7B" }}
+            >
+              {current.title}
+            </div>
+          )}
           {/* Bottom gradient fade */}
           <div
             className="absolute inset-0"

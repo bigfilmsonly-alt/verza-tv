@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { catalog } from "@/lib/catalog";
+import { catalog, BROWSE_TABS } from "@/lib/catalog";
 import { T } from "@/lib/theme";
 
 const KNOWN_GENRES = [
+  ...BROWSE_TABS.map((t) => t.key),
   "romance",
   "thriller",
   "drama",
@@ -15,7 +16,7 @@ const KNOWN_GENRES = [
   "horror",
   "crime",
   "fantasy",
-] as const;
+];
 
 export function generateStaticParams() {
   return KNOWN_GENRES.map((genre) => ({ genre }));
@@ -105,13 +106,22 @@ export default async function GenrePage({
                 className="w-14 h-20 rounded-lg flex-shrink-0 overflow-hidden relative"
                 style={{ background: T.raised }}
               >
-                <Image
-                  src={series.posterUrl}
-                  alt={series.title}
-                  fill
-                  sizes="56px"
-                  className="object-cover"
-                />
+                {series.posterUrl ? (
+                  <Image
+                    src={series.posterUrl}
+                    alt={series.title}
+                    fill
+                    sizes="56px"
+                    className="object-cover"
+                  />
+                ) : (
+                  <div
+                    className="absolute inset-0 flex items-center justify-center text-[10px] font-semibold text-center px-1"
+                    style={{ color: T.textMute }}
+                  >
+                    {series.episodeCount}ep
+                  </div>
+                )}
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold truncate">

@@ -84,14 +84,23 @@ export default async function SeriesPage({ params }: Props) {
 
       {/* ---- Hero Poster ---- */}
       <section className="relative w-full" style={{ aspectRatio: "16 / 9" }}>
-        <Image
-          src={series.posterUrl}
-          alt={series.title}
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover object-top"
-        />
+        {series.posterUrl ? (
+          <Image
+            src={series.posterUrl}
+            alt={series.title}
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-top"
+          />
+        ) : (
+          <div
+            className="absolute inset-0 flex items-center justify-center text-lg font-bold"
+            style={{ background: `linear-gradient(135deg, ${T.raised}, ${T.surface})`, color: T.textMute }}
+          >
+            {series.title}
+          </div>
+        )}
         {/* Gradient fade to background */}
         <div
           className="absolute inset-0"

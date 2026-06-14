@@ -19,13 +19,25 @@ export default function SeriesCard({ series, dimmed }: SeriesCardProps) {
         className="relative overflow-hidden rounded-lg"
         style={{ width: 130, aspectRatio: "3 / 4.2" }}
       >
-        <Image
-          src={series.posterUrl}
-          alt={series.title}
-          fill
-          sizes="130px"
-          className="object-cover"
-        />
+        {series.posterUrl ? (
+          <Image
+            src={series.posterUrl}
+            alt={series.title}
+            fill
+            sizes="130px"
+            className="object-cover"
+          />
+        ) : (
+          <div
+            className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-center px-2"
+            style={{
+              background: "linear-gradient(135deg, #1A1A26, #12121C)",
+              color: "#6B6B7B",
+            }}
+          >
+            {series.title}
+          </div>
+        )}
 
         {/* Episode count badge */}
         <span

@@ -1,47 +1,31 @@
 "use client";
 
-import { useState } from "react";
-
-const CATEGORIES = [
-  "DRAMA",
-  "NEW",
-  "POPULAR",
-  "MUSIC",
-  "REALITY",
-  "ROMANCE",
-  "THRILLER",
-  "MYSTERY",
-  "COMEDY",
-] as const;
+import { BROWSE_TABS, type BrowseCategory } from "@/lib/catalog";
 
 interface CategoryTabsProps {
-  onSelect?: (category: string) => void;
+  active: BrowseCategory;
+  onSelect: (category: BrowseCategory) => void;
 }
 
-export default function CategoryTabs({ onSelect }: CategoryTabsProps) {
-  const [active, setActive] = useState(0);
-
+export default function CategoryTabs({ active, onSelect }: CategoryTabsProps) {
   return (
     <div className="flex gap-5 overflow-x-auto px-4 py-3 no-scrollbar">
-      {CATEGORIES.map((cat, i) => {
-        const isActive = i === active;
+      {BROWSE_TABS.map((tab) => {
+        const isActive = tab.key === active;
         return (
           <button
-            key={cat}
-            onClick={() => {
-              setActive(i);
-              onSelect?.(cat);
-            }}
+            key={tab.key}
+            onClick={() => onSelect(tab.key)}
             className="relative flex-shrink-0 pb-2 border-0 cursor-pointer bg-transparent"
             style={{ padding: 0 }}
           >
             <span
-              className="text-[13px] font-bold tracking-wider"
+              className="text-[13px] font-bold tracking-wider uppercase"
               style={{
                 color: isActive ? "#F5F4F8" : "#6B6B7B",
               }}
             >
-              {cat}
+              {tab.label}
             </span>
             {isActive && (
               <div
