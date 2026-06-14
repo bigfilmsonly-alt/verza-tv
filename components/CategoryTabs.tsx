@@ -32,7 +32,7 @@ export default function CategoryTabs({ active, onSelect }: CategoryTabsProps) {
                 className="absolute bottom-0 left-0 rounded-full"
                 style={{
                   width: "60%",
-                  height: 3,
+                  height: 4,
                   background: "linear-gradient(90deg, #E0115F, #8B5CF6)",
                 }}
               />

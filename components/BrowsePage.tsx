@@ -25,6 +25,7 @@ function Poster({ src, alt }: { src: string; alt: string }) {
       fill
       sizes="(max-width: 440px) 33vw, 146px"
       className="object-cover"
+      style={{ filter: "saturate(1.12) contrast(1.04) brightness(1.02)" }}
     />
   );
 }
@@ -117,7 +118,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
 
           <div className="px-4 pt-3 pb-1">
             <Link href={`/series/${current.slug}`} className="no-underline">
-              <h2 className="text-lg font-extrabold leading-tight uppercase tracking-wide" style={{ color: "#F5F4F8" }}>
+              <h2 className="text-lg font-extrabold leading-tight uppercase tracking-wide" style={{ color: "#FFFFFF" }}>
                 {current.title}
               </h2>
             </Link>
@@ -137,7 +138,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                     <div
                       className="rounded-full"
                       style={{
-                        width: i === heroIdx % heroSlides.length ? 20 : 6,
+                        width: i === heroIdx % heroSlides.length ? 24 : 6,
                         height: 6,
                         background: i === heroIdx % heroSlides.length
                           ? "linear-gradient(90deg, #E0115F, #8B5CF6)"
@@ -158,7 +159,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         <section className="mt-4 px-3 pb-6">
           <div className="grid grid-cols-3 gap-2.5 poster-grid">
             {gridItems.map((s) => (
-              <Link key={s.slug} href={`/series/${s.slug}`} className="block no-underline">
+              <Link key={s.slug} href={`/series/${s.slug}`} className="block no-underline transition-transform duration-200 hover:scale-[1.03]">
                 <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "3 / 4" }}>
                   <Poster src={s.posterUrl} alt={s.title} />
                 </div>
@@ -172,10 +173,10 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
 
       {/* All Shows */}
       <section className="px-3 pb-8">
-        <h2 className="text-sm font-semibold uppercase tracking-wider mb-4 px-1" style={{ color: "#6B6B7B" }}>All Shows</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wider mb-4 px-1" style={{ color: "#8A8A9A" }}>All Shows</h2>
         <div className="grid grid-cols-3 gap-2.5 poster-grid">
           {liveSeries.map((s) => (
-            <Link key={s.slug} href={`/series/${s.slug}`} className="block no-underline">
+            <Link key={s.slug} href={`/series/${s.slug}`} className="block no-underline transition-transform duration-200 hover:scale-[1.03]">
               <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "3 / 4" }}>
                 <Poster src={s.posterUrl} alt={s.title} />
               </div>

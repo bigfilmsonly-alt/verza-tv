@@ -26,6 +26,7 @@ export default function SeriesCard({ series, dimmed }: SeriesCardProps) {
             fill
             sizes="130px"
             className="object-cover"
+            style={{ filter: "saturate(1.12) contrast(1.04) brightness(1.02)" }}
           />
         ) : (
           <div

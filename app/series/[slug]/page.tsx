@@ -101,6 +101,7 @@ export default async function SeriesPage({ params }: Props) {
             priority
             sizes="100vw"
             className="object-contain"
+            style={{ filter: "saturate(1.12) contrast(1.04) brightness(1.02)" }}
           />
         ) : (
           <div
@@ -161,7 +162,7 @@ export default async function SeriesPage({ params }: Props) {
           <div className="flex items-center gap-3 mb-3">
             <span
               className="flex items-center gap-1 text-xs font-bold px-2 py-1 rounded"
-              style={{ background: `${T.coin}22`, color: T.coin }}
+              style={{ background: `${T.coin}22`, color: T.coin, boxShadow: "0 0 8px rgba(246, 200, 0, 0.2)" }}
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill={T.coin} stroke="none">
                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
@@ -208,7 +209,7 @@ export default async function SeriesPage({ params }: Props) {
               <span
                 key={tag}
                 className="text-[10px] font-medium px-2 py-0.5 rounded-full"
-                style={{ background: `${T.accent}15`, color: T.accent, border: `1px solid ${T.accent}30` }}
+                style={{ background: `${T.accent}22`, color: T.accent, border: `1px solid ${T.accent}30` }}
               >
                 #{tag}
               </span>
@@ -220,7 +221,7 @@ export default async function SeriesPage({ params }: Props) {
         <div
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold mb-6"
           style={{
-            background: `${T.accent}22`,
+            background: `${T.accent}33`,
             color: T.accent,
             border: `1px solid ${T.accent}44`,
           }}
@@ -246,6 +247,7 @@ export default async function SeriesPage({ params }: Props) {
           style={{
             background: T.raised,
             border: `1px solid ${T.line}`,
+            boxShadow: "0 0 12px rgba(224, 17, 95, 0.08)",
           }}
         >
           <div className="flex items-center justify-between">

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const ACTIVE = "#F5F4F8";
+const ACTIVE = "#FFFFFF";
 const INACTIVE = "#6B6B7B";
 
 interface Tab {
@@ -90,7 +90,7 @@ export default function BottomNav() {
       style={{
         paddingBottom: "env(safe-area-inset-bottom, 0px)",
         background: "#0D0D14",
-        borderTop: "1px solid rgba(255,255,255,0.06)",
+        borderTop: "1px solid rgba(224, 17, 95, 0.12)",
       }}
     >
       <div className="flex items-center justify-around px-3" style={{ height: 72, paddingTop: 8, paddingBottom: 10 }}>
@@ -112,7 +112,7 @@ export default function BottomNav() {
                   style={{
                     bottom: -6,
                     width: "60%",
-                    height: 3,
+                    height: 4,
                     background: "linear-gradient(90deg, #E0115F, #8B5CF6)",
                   }}
                 />

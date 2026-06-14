@@ -8,6 +8,9 @@
   --color-muted: #6B6B7B;
   --color-accent: #E0115F;
   --color-accent-soft: rgba(224, 17, 95, 0.15);
+  --color-accent-glow: rgba(224, 17, 95, 0.12);
+  --color-purple: #8B5CF6;
+  --color-purple-soft: rgba(139, 92, 246, 0.15);
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
 
@@ -132,6 +135,27 @@ body {
   left: 50%;
   transform: translateX(-50%);
   max-width: 440px;
+}
+
+/* ---- Premium visual enhancements ---- */
+
+/* Make all poster images pop with slight saturation + contrast boost */
+.poster-grid img,
+.hero-section img,
+.short-card img {
+  filter: saturate(1.15) contrast(1.05);
+}
+
+/* Vibrant accent glow on interactive elements */
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid #E0115F;
+  outline-offset: 2px;
+}
+
+/* Premium gradient backgrounds for cards */
+.premium-glow {
+  box-shadow: 0 0 20px rgba(224, 17, 95, 0.08), 0 0 40px rgba(139, 92, 246, 0.05);
 }
 
 /* ---- Mobile-first shell ---- */

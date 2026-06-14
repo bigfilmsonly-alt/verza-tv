@@ -80,6 +80,7 @@ function ShortCard({ series, isActive }: { series: Series; isActive: boolean }) 
           className="object-contain"
           sizes="100vw"
           priority={isActive}
+          style={{ filter: "saturate(1.12) contrast(1.04) brightness(1.02)" }}
         />
       ) : (
         <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, #1A1A26, #0A0A12)" }} />

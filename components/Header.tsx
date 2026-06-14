@@ -8,10 +8,10 @@ export default function Header() {
     <header
       className="sticky top-0 z-40 flex items-center justify-between px-4 py-2.5"
       style={{
-        background: "rgba(7, 7, 14, 0.85)",
+        background: "rgba(7, 7, 14, 0.92)",
         backdropFilter: "blur(16px)",
         WebkitBackdropFilter: "blur(16px)",
-        borderBottom: "1px solid rgba(255,255,255,0.06)",
+        borderBottom: "1px solid rgba(224, 17, 95, 0.15)",
       }}
     >
       {/* Logo — left */}
@@ -36,7 +36,7 @@ export default function Header() {
       >
         <span
           className="text-[11px] font-semibold"
-          style={{ color: "#A0A0B0" }}
+          style={{ color: "#C0C0CC" }}
         >
           Follow us
         </span>
