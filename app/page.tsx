@@ -18,7 +18,7 @@ function PosterImage({ src, alt, fill, sizes, className }: {
   if (!src) {
     return (
       <div
-        className={`flex items-center justify-center text-xs font-semibold ${className ?? ""}`}
+        className={`flex items-center justify-center text-xs font-semibold text-center px-2 ${className ?? ""}`}
         style={{
           position: fill ? "absolute" : undefined,
           inset: fill ? 0 : undefined,
@@ -26,7 +26,7 @@ function PosterImage({ src, alt, fill, sizes, className }: {
           color: "#6B6B7B",
         }}
       >
-        {alt.split(" ").slice(0, 2).join(" ")}
+        {alt}
       </div>
     );
   }
@@ -92,7 +92,7 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* ---- Poster Row (rest of tab) ---- */}
+      {/* ---- Poster Row (rest of filtered tab) ---- */}
       {filtered.length > 1 && (
         <div className="mt-6 px-4">
           <div className="flex gap-3 overflow-x-auto no-scrollbar">
@@ -127,7 +127,7 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* ---- All Shows ---- */}
+      {/* ---- All Shows — Full Poster Grid ---- */}
       <section className="mt-8 px-4 pb-8">
         <h2
           className="text-sm font-semibold uppercase tracking-wider mb-4"
@@ -135,31 +135,41 @@ export default function HomePage() {
         >
           All Shows
         </h2>
-        <div className="flex flex-col gap-3">
+        <div className="grid grid-cols-2 gap-3">
           {live.map((s) => (
             <Link
               key={s.slug}
               href={`/series/${s.slug}`}
-              className="flex items-center gap-3 rounded-xl p-3 no-underline"
-              style={{ background: "#12121C", color: "#F5F4F8" }}
+              className="block no-underline"
             >
               <div
-                className="w-12 h-16 rounded-lg flex-shrink-0 overflow-hidden relative"
-                style={{ background: "#1A1A26" }}
+                className="relative overflow-hidden rounded-lg"
+                style={{ aspectRatio: "3 / 4" }}
               >
                 <PosterImage
                   src={s.posterUrl}
                   alt={s.title}
                   fill
-                  sizes="48px"
+                  sizes="(max-width: 440px) 50vw, 220px"
                   className="object-cover"
                 />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold truncate">{s.title}</p>
-                <p className="text-xs mt-0.5" style={{ color: "#6B6B7B" }}>
-                  {s.genre} &middot; {s.episodeCount} ep
-                </p>
+                {/* Bottom gradient for title readability */}
+                <div
+                  className="absolute inset-x-0 bottom-0 px-2.5 pb-2.5 pt-10"
+                  style={{
+                    background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%)",
+                  }}
+                >
+                  <p
+                    className="text-xs font-bold leading-tight line-clamp-2"
+                    style={{ color: "#F5F4F8" }}
+                  >
+                    {s.title}
+                  </p>
+                  <p className="text-[10px] mt-0.5" style={{ color: "#A0A0B0" }}>
+                    {s.genre}
+                  </p>
+                </div>
               </div>
             </Link>
           ))}
