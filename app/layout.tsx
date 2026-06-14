@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import BottomNav from "@/components/BottomNav";
+import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import { CartProvider } from "@/lib/cart";
 import CartDrawer from "@/components/CartDrawer";
@@ -85,6 +86,7 @@ export default function RootLayout({
           <div className="app-shell">
             <Header />
             <main className="flex-1 pb-16">{children}</main>
+            <Footer />
             <BottomNav />
           </div>
           <CartDrawer />
