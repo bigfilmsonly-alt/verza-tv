@@ -40,9 +40,9 @@ export default function ShopPage() {
               className="w-full relative overflow-hidden"
               style={{ aspectRatio: "1", background: T.raised }}
             >
-              {product.imageUrl ? (
+              {product.images[0] ? (
                 <Image
-                  src={product.imageUrl}
+                  src={product.images[0]}
                   alt={product.name}
                   fill
                   sizes="(max-width: 440px) 50vw, 220px"
@@ -55,6 +55,14 @@ export default function ShopPage() {
                 >
                   {product.name.replace("VerzaTV ", "")}
                 </div>
+              )}
+              {product.images.length > 1 && (
+                <span
+                  className="absolute top-2 right-2 text-[10px] font-bold px-1.5 py-0.5 rounded"
+                  style={{ background: "rgba(7,7,14,0.75)", color: "#fff", backdropFilter: "blur(4px)" }}
+                >
+                  {product.images.length} colors
+                </span>
               )}
             </div>
 

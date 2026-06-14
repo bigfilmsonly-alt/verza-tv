@@ -1,9 +1,9 @@
 import { notFound } from "next/navigation";
-import Image from "next/image";
 import type { Metadata } from "next";
 import { products, getProductBySlug } from "@/lib/products";
 import { T } from "@/lib/theme";
 import AddToCartButton from "@/components/AddToCartButton";
+import ImageCarousel from "@/components/ImageCarousel";
 
 export async function generateStaticParams() {
   return products.map((p) => ({ slug: p.slug }));
@@ -28,28 +28,9 @@ export default async function ProductPage({ params }: Props) {
 
   return (
     <section className="px-4 pt-6 pb-8">
-      {/* Product Image */}
-      <div
-        className="w-full rounded-xl overflow-hidden relative mb-6"
-        style={{ aspectRatio: "1", background: T.raised }}
-      >
-        {product.imageUrl ? (
-          <Image
-            src={product.imageUrl}
-            alt={product.name}
-            fill
-            priority
-            sizes="(max-width: 440px) 100vw, 440px"
-            className="object-cover"
-          />
-        ) : (
-          <div
-            className="absolute inset-0 flex items-center justify-center text-base font-bold text-center px-4"
-            style={{ color: T.textMute }}
-          >
-            {product.name}
-          </div>
-        )}
+      {/* Product Image Carousel */}
+      <div className="mb-6">
+        <ImageCarousel images={product.images} alt={product.name} />
       </div>
 
       {/* Info */}
@@ -59,12 +40,18 @@ export default async function ProductPage({ params }: Props) {
       <p className="text-2xl font-bold mb-1" style={{ color: T.accent }}>
         ${product.price.toFixed(2)}
       </p>
-      <p className="text-xs mb-6" style={{ color: T.textMute }}>
+      <p className="text-xs mb-1" style={{ color: T.textMute }}>
         {product.category} &middot; Free shipping over $100
       </p>
+      {product.images.length > 1 && (
+        <p className="text-xs mb-4" style={{ color: T.textDim }}>
+          {product.images.length} color options available
+        </p>
+      )}
 
-      {/* Add to Cart */}
-      <AddToCartButton product={product} />
+      <div className="mt-4">
+        <AddToCartButton product={product} />
+      </div>
     </section>
   );
 }

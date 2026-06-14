@@ -7,7 +7,7 @@ export interface Product {
   price: number;
   priceConfirmed: boolean;
   category: ProductCategory;
-  imageUrl: string;
+  images: string[];
 }
 
 export const products: Product[] = [
@@ -18,7 +18,11 @@ export const products: Product[] = [
     price: 90.00,
     priceConfirmed: true,
     category: "Apparel",
-    imageUrl: "/shop/champion-tie-dye-hoodie.png",
+    images: [
+      "/shop/champion-tie-dye-hoodie.png",
+      "/shop/champion-tie-dye-hoodie-navy.png",
+      "/shop/champion-tie-dye-hoodie-red.png",
+    ],
   },
   {
     id: "prod_2",
@@ -27,7 +31,10 @@ export const products: Product[] = [
     price: 15.00,
     priceConfirmed: true,
     category: "Drinkware",
-    imageUrl: "/shop/verzatv-mug.png",
+    images: [
+      "/shop/verzatv-mug.png",
+      "/shop/verzatv-mug-2.png",
+    ],
   },
   {
     id: "prod_3",
@@ -36,7 +43,10 @@ export const products: Product[] = [
     price: 30.00,
     priceConfirmed: true,
     category: "Apparel",
-    imageUrl: "/shop/embroidered-socks.png",
+    images: [
+      "/shop/embroidered-socks.png",
+      "/shop/embroidered-socks-black.png",
+    ],
   },
   {
     id: "prod_4",
@@ -45,7 +55,7 @@ export const products: Product[] = [
     price: 35.00,
     priceConfirmed: true,
     category: "Drinkware",
-    imageUrl: "/shop/flip-straw-water-bottle.png",
+    images: ["/shop/flip-straw-water-bottle.png"],
   },
   {
     id: "prod_5",
@@ -54,7 +64,10 @@ export const products: Product[] = [
     price: 70.00, // TODO: confirm price
     priceConfirmed: false,
     category: "Apparel",
-    imageUrl: "/shop/verzatv-joggers.png",
+    images: [
+      "/shop/verzatv-joggers.png",
+      "/shop/verzatv-joggers-black.png",
+    ],
   },
   {
     id: "prod_6",
@@ -63,7 +76,7 @@ export const products: Product[] = [
     price: 95.00, // TODO: confirm price
     priceConfirmed: false,
     category: "Apparel",
-    imageUrl: "/shop/verzatv-hoodie.png",
+    images: ["/shop/verzatv-hoodie.png"],
   },
   {
     id: "prod_7",
@@ -72,7 +85,7 @@ export const products: Product[] = [
     price: 85.00, // TODO: confirm price
     priceConfirmed: false,
     category: "Apparel",
-    imageUrl: "/shop/verzatv-logo-hoodie.png",
+    images: ["/shop/verzatv-logo-hoodie.png"],
   },
   {
     id: "prod_8",
@@ -81,7 +94,10 @@ export const products: Product[] = [
     price: 110.00, // TODO: confirm price
     priceConfirmed: false,
     category: "Apparel",
-    imageUrl: "/shop/verzatv-fleece-jacket.png",
+    images: [
+      "/shop/verzatv-fleece-jacket.png",
+      "/shop/verzatv-fleece-jacket-navy.png",
+    ],
   },
   {
     id: "prod_9",
@@ -90,7 +106,7 @@ export const products: Product[] = [
     price: 35.00, // TODO: confirm price
     priceConfirmed: false,
     category: "Accessories",
-    imageUrl: "/shop/verzatv-cap.png",
+    images: ["/shop/verzatv-cap.png"],
   },
   {
     id: "prod_10",
@@ -99,7 +115,7 @@ export const products: Product[] = [
     price: 45.00, // TODO: confirm price
     priceConfirmed: false,
     category: "Apparel",
-    imageUrl: "/shop/verzatv-tshirt.png",
+    images: ["/shop/verzatv-tshirt.png"],
   },
 ];
 

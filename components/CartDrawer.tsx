@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useCart } from "@/lib/cart";
 import { T } from "@/lib/theme";
 
@@ -60,12 +61,24 @@ export default function CartDrawer() {
                   className="flex items-center gap-3 rounded-xl p-3"
                   style={{ background: T.surface }}
                 >
-                  {/* Thumbnail placeholder */}
+                  {/* Thumbnail */}
                   <div
-                    className="w-14 h-14 rounded-lg flex-shrink-0 flex items-center justify-center text-[10px] font-semibold"
-                    style={{ background: T.raised, color: T.textMute }}
+                    className="w-14 h-14 rounded-lg flex-shrink-0 overflow-hidden relative"
+                    style={{ background: T.raised }}
                   >
-                    {item.product.name.replace("VerzaTV ", "").split(" ")[0]}
+                    {item.product.images[0] ? (
+                      <Image
+                        src={item.product.images[0]}
+                        alt={item.product.name}
+                        fill
+                        sizes="56px"
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center text-[10px] font-semibold" style={{ color: T.textMute }}>
+                        {item.product.name.replace("VerzaTV ", "").split(" ")[0]}
+                      </div>
+                    )}
                   </div>
 
                   {/* Info */}
