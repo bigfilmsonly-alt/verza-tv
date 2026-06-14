@@ -45,7 +45,7 @@ export const products: Product[] = [
     price: 35.00,
     priceConfirmed: true,
     category: "Drinkware",
-    imageUrl: "",
+    imageUrl: "/shop/flip-straw-water-bottle.png",
   },
   {
     id: "prod_5",
