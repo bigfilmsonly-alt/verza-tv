@@ -36,7 +36,7 @@ export const products: Product[] = [
     price: 30.00,
     priceConfirmed: true,
     category: "Apparel",
-    imageUrl: "",
+    imageUrl: "/shop/embroidered-socks.png",
   },
   {
     id: "prod_4",
@@ -59,11 +59,47 @@ export const products: Product[] = [
   {
     id: "prod_6",
     slug: "verzatv-hoodie",
-    name: "VerzaTV Hoodie",
+    name: "VerzaTV Champion Hoodie",
     price: 95.00, // TODO: confirm price
     priceConfirmed: false,
     category: "Apparel",
     imageUrl: "/shop/verzatv-hoodie.png",
+  },
+  {
+    id: "prod_7",
+    slug: "verzatv-logo-hoodie",
+    name: "VerzaTV Logo Hoodie",
+    price: 85.00, // TODO: confirm price
+    priceConfirmed: false,
+    category: "Apparel",
+    imageUrl: "/shop/verzatv-logo-hoodie.png",
+  },
+  {
+    id: "prod_8",
+    slug: "verzatv-fleece-jacket",
+    name: "VerzaTV Columbia Fleece Jacket",
+    price: 110.00, // TODO: confirm price
+    priceConfirmed: false,
+    category: "Apparel",
+    imageUrl: "/shop/verzatv-fleece-jacket.png",
+  },
+  {
+    id: "prod_9",
+    slug: "verzatv-cap",
+    name: "VerzaTV Cap",
+    price: 35.00, // TODO: confirm price
+    priceConfirmed: false,
+    category: "Accessories",
+    imageUrl: "/shop/verzatv-cap.png",
+  },
+  {
+    id: "prod_10",
+    slug: "verzatv-tshirt",
+    name: "VerzaTV T-Shirt",
+    price: 45.00, // TODO: confirm price
+    priceConfirmed: false,
+    category: "Apparel",
+    imageUrl: "/shop/verzatv-tshirt.png",
   },
 ];
 
