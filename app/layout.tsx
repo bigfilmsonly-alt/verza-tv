@@ -30,7 +30,15 @@ export const metadata: Metadata = {
     description:
       "Stream binge-worthy micro-dramas, reality shows, and original series — all in vertical, all in minutes.",
     url: SITE_URL,
-    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Verza TV" }],
+    images: [
+      {
+        url: `${SITE_URL}/og-image.png`,
+        width: 1200,
+        height: 630,
+        alt: "Verza TV — Microdramas, Reality & More",
+        type: "image/png",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
@@ -38,9 +46,22 @@ export const metadata: Metadata = {
     title: "Verza TV — Microdramas, Reality & More",
     description:
       "Stream binge-worthy micro-dramas, reality shows, and original series — all in vertical, all in minutes.",
-    images: ["/og-image.png"],
+    images: [
+      {
+        url: `${SITE_URL}/og-image.png`,
+        width: 1200,
+        height: 630,
+        alt: "Verza TV",
+      },
+    ],
   },
-  /* Production: allow indexing. Override per-page if needed. */
+  icons: {
+    icon: "/favicon.ico",
+    apple: [
+      { url: "/apple-touch-icon-180.png", sizes: "180x180", type: "image/png" },
+      { url: "/apple-touch-icon.png", sizes: "512x512", type: "image/png" },
+    ],
+  },
   robots: { index: true, follow: true },
 };
 
