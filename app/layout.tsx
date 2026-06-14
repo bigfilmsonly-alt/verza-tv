@@ -90,8 +90,11 @@ export default function RootLayout({
                 <Header />
                 <main className="flex-1 pb-16">{children}</main>
                 <Footer />
-                <BottomNav />
               </div>
+            </div>
+            {/* Bottom nav OUTSIDE the scroll area, pinned to frame bottom */}
+            <div className="iphone-nav-dock">
+              <BottomNav />
             </div>
             <div className="iphone-home-indicator" />
           </div>

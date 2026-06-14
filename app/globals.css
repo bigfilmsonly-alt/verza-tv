@@ -231,21 +231,26 @@ body {
     min-height: 100%;
   }
 
-  /* Bottom nav: sticky to the bottom of the scroll container */
+  /* Hide the bottom nav inside the scroll area (it's duplicated outside) */
   .iphone-screen .bottom-nav {
-    position: sticky !important;
-    bottom: 0 !important;
-    max-width: 100% !important;
-    left: 0 !important;
-    right: 0 !important;
-    transform: none !important;
-    border-radius: 0;
-    z-index: 50;
+    display: none !important;
   }
 
-  /* Header stays sticky within the scroll context */
-  .iphone-screen .sticky {
-    position: sticky;
+  /* Nav dock: sits below the scroll area inside the frame */
+  .iphone-nav-dock {
+    flex-shrink: 0;
+    width: 100%;
+    background: #0D0D14;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .iphone-nav-dock .bottom-nav {
+    position: relative !important;
+    bottom: auto !important;
+    left: auto !important;
+    transform: none !important;
+    max-width: 100% !important;
+    width: 100% !important;
   }
 
   /* Home indicator */
