@@ -10,5 +10,9 @@ export const metadata: Metadata = {
 
 export default function ShortsPage() {
   const series = getLiveSeries();
-  return <ShortsFeed series={series} />;
+  return (
+    <div style={{ margin: "-0px 0 0 0" }}>
+      <ShortsFeed series={series} />
+    </div>
+  );
 }
