@@ -6,7 +6,7 @@ import Link from "next/link";
 export default function Header() {
   return (
     <header
-      className="sticky top-0 z-40 flex items-center px-4 py-2.5"
+      className="sticky top-0 z-40 flex items-center justify-center px-4 py-2.5"
       style={{
         background: "rgba(7, 7, 14, 0.85)",
         backdropFilter: "blur(16px)",
@@ -20,7 +20,7 @@ export default function Header() {
           alt="Verza TV"
           width={130}
           height={40}
-          className="object-contain"
+          className="object-contain brightness-125"
           priority
         />
       </Link>
