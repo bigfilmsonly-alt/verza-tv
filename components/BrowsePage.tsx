@@ -72,7 +72,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
           <Link href={`/series/${current.slug}`} className="block">
             <div
               className="relative w-full overflow-hidden hero-section"
-              style={{ height: "calc(100dvh - 290px)", minHeight: 200 }}
+              style={{ height: "calc(100dvh - 280px)", minHeight: 220, background: "#07070E" }}
             >
               {current.posterUrl ? (
                 <Image
@@ -81,7 +81,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                   fill
                   priority
                   sizes="100vw"
-                  className="object-cover object-top"
+                  className="object-contain"
                 />
               ) : (
                 <div
