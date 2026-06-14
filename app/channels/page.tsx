@@ -22,7 +22,7 @@ const CHANNEL_META: Record<
     description:
       "The flagship channel. Romance, thriller, mystery, and revenge \u2014 70+ original micro-dramas produced by Verza TV.",
     icon: "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z",
-    posterLimit: 6,
+    posterLimit: 12,
   },
   StorageBlue: {
     description:
@@ -97,10 +97,16 @@ function PosterThumb({ series }: { series: Series }) {
 }
 
 export default function ChannelsPage() {
-  const channelNames = getChannels();
+  const liveChannelNames = getChannels();
+
+  /* Merge live channels with channels defined in CHANNEL_META so
+     pre-launch channels (StorageBlue, The Vertical Tea) still appear */
+  const allChannelNames = Array.from(
+    new Set([...liveChannelNames, ...Object.keys(CHANNEL_META)])
+  );
 
   /* Sort so Verza Originals appears first */
-  const sortedChannels = channelNames.sort((a, b) => {
+  const sortedChannels = allChannelNames.sort((a, b) => {
     if (a === "Verza Originals") return -1;
     if (b === "Verza Originals") return 1;
     return a.localeCompare(b);
@@ -162,8 +168,9 @@ export default function ChannelsPage() {
                       className="text-xs"
                       style={{ color: T.textMute }}
                     >
-                      {series.length}{" "}
-                      {series.length === 1 ? "show" : "shows"}
+                      {series.length > 0
+                        ? `${series.length} ${series.length === 1 ? "show" : "shows"}`
+                        : "Coming Soon"}
                     </p>
                   </div>
                 </div>
@@ -178,18 +185,37 @@ export default function ChannelsPage() {
               </div>
 
               {/* Horizontal scrollable poster row */}
-              <div
-                className="px-4 pb-4 flex gap-3 overflow-x-auto"
-                style={{
-                  scrollbarWidth: "none",
-                  msOverflowStyle: "none",
-                  WebkitOverflowScrolling: "touch",
-                }}
-              >
-                {displaySeries.map((s) => (
-                  <PosterThumb key={s.slug} series={s} />
-                ))}
-              </div>
+              {displaySeries.length > 0 ? (
+                <div
+                  className="px-4 pb-4 flex gap-3 overflow-x-auto"
+                  style={{
+                    scrollbarWidth: "none",
+                    msOverflowStyle: "none",
+                    WebkitOverflowScrolling: "touch",
+                  }}
+                >
+                  {displaySeries.map((s) => (
+                    <PosterThumb key={s.slug} series={s} />
+                  ))}
+                </div>
+              ) : (
+                <div className="px-4 pb-4">
+                  <div
+                    className="rounded-lg py-8 flex flex-col items-center justify-center gap-2"
+                    style={{ background: T.raised }}
+                  >
+                    <span
+                      className="text-[11px] font-semibold uppercase tracking-widest"
+                      style={{ color: T.accent }}
+                    >
+                      Coming Soon
+                    </span>
+                    <p className="text-xs" style={{ color: T.textMute }}>
+                      New shows launching soon on this channel
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* View All link */}
               {series.length > posterLimit && (

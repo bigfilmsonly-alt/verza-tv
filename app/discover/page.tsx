@@ -86,28 +86,28 @@ export default function DiscoverPage() {
               <p className="text-sm font-semibold truncate">{series.title}</p>
               <p
                 className="text-xs mt-0.5 line-clamp-2"
-                style={{ color: "#A0A0B0" }}
+                style={{ color: T.textDim }}
               >
                 {series.logline}
               </p>
               <div className="flex items-center gap-2 mt-1.5">
                 <span
                   className="text-[10px] font-medium px-2 py-0.5 rounded-full"
-                  style={{ background: "#E0115F22", color: "#E0115F" }}
+                  style={{ background: `${T.accent}22`, color: T.accent }}
                 >
                   {series.genre}
                 </span>
                 {series.status === "coming_soon" && (
                   <span
                     className="text-[10px] font-medium px-2 py-0.5 rounded-full"
-                    style={{ background: "#FFC83D22", color: "#FFC83D" }}
+                    style={{ background: `${T.coin}22`, color: T.coin }}
                   >
                     Coming Soon
                   </span>
                 )}
                 {series.status === "live" && (
-                  <span className="text-[10px]" style={{ color: "#6B6B7B" }}>
-                    {series.channel}
+                  <span className="text-[10px]" style={{ color: T.textMute }}>
+                    {series.episodeCount} ep &middot; {series.freeEpisodes} free
                   </span>
                 )}
               </div>
