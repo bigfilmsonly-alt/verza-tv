@@ -1,28 +1,45 @@
+import { catalog, getLiveSeries, getEpisodesForSeries } from "@/lib/catalog";
+
 export function GET() {
-  const baseUrl = "https://verzatv.com";
+  const baseUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
   const now = new Date().toISOString().split("T")[0];
 
   const staticPages = [
     { loc: "/", priority: "1.0", changefreq: "daily" },
     { loc: "/discover", priority: "0.9", changefreq: "daily" },
     { loc: "/channels", priority: "0.8", changefreq: "weekly" },
+    { loc: "/shop", priority: "0.7", changefreq: "monthly" },
     { loc: "/press", priority: "0.6", changefreq: "monthly" },
     { loc: "/about", priority: "0.6", changefreq: "monthly" },
     { loc: "/help", priority: "0.5", changefreq: "monthly" },
+    { loc: "/studio", priority: "0.4", changefreq: "monthly" },
   ];
 
-  // 9 known series slugs — replace with Supabase query when ready
-  const seriesSlugs = [
-    "the-inheritance-game",
-    "i-think-my-wife-wants-to-kill-me",
-    "the-winter-veil",
-    "the-dumb-billionaire",
-    "heiress-in-love",
-    "broken-vows",
-    "last-seen-online",
-    "family-empire",
-    "love-in-rewind",
-  ];
+  const liveSeries = getLiveSeries();
+
+  // Build series page URLs
+  const seriesUrls = liveSeries.map(
+    (s) => `  <url>
+    <loc>${baseUrl}/series/${s.slug}</loc>
+    <lastmod>${now}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>`
+  );
+
+  // Build episode page URLs for each live series
+  const episodeUrls = liveSeries.flatMap((s) => {
+    const episodes = getEpisodesForSeries(s.slug);
+    return episodes.map(
+      (ep) => `  <url>
+    <loc>${baseUrl}/series/${s.slug}/episode/${ep.number}</loc>
+    <lastmod>${now}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>`
+    );
+  });
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -36,19 +53,11 @@ ${staticPages
   </url>`
   )
   .join("\n")}
-${seriesSlugs
-  .map(
-    (slug) => `  <url>
-    <loc>${baseUrl}/series/${slug}</loc>
-    <lastmod>${now}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>`
-  )
-  .join("\n")}
+${seriesUrls.join("\n")}
+${episodeUrls.join("\n")}
 </urlset>`;
 
   return new Response(xml.trim(), {
-    headers: { "Content-Type": "application/xml" },
+    headers: { "Content-Type": "application/xml; charset=utf-8" },
   });
 }

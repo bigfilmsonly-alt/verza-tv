@@ -4,8 +4,7 @@ export function GET() {
     process.env.VERCEL_ENV === "production";
 
   const body = isProduction
-    ? `
-User-agent: *
+    ? `User-agent: *
 Allow: /
 
 User-agent: GPTBot
@@ -23,14 +22,13 @@ Allow: /
 User-agent: Google-Extended
 Allow: /
 
-Sitemap: https://verzatv.com/sitemap.xml
-`
-    : `
-User-agent: *
+Sitemap: https://verzatv.com/sitemap.xml`
+    : `User-agent: *
 Disallow: /
-`;
 
-  return new Response(body.trim(), {
-    headers: { "Content-Type": "text/plain" },
+# Staging: block all crawlers. Deploy to production to enable.`;
+
+  return new Response(body, {
+    headers: { "Content-Type": "text/plain; charset=utf-8" },
   });
 }
