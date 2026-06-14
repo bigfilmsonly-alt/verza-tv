@@ -8,6 +8,7 @@ export function GET() {
   const staticPages = [
     { loc: "/", priority: "1.0", changefreq: "daily" },
     { loc: "/discover", priority: "0.9", changefreq: "daily" },
+    { loc: "/search", priority: "0.7", changefreq: "weekly" },
     { loc: "/channels", priority: "0.8", changefreq: "weekly" },
     { loc: "/shop", priority: "0.7", changefreq: "monthly" },
     { loc: "/press", priority: "0.6", changefreq: "monthly" },
@@ -15,6 +16,20 @@ export function GET() {
     { loc: "/help", priority: "0.5", changefreq: "monthly" },
     { loc: "/studio", priority: "0.4", changefreq: "monthly" },
   ];
+
+  // Genre landing pages (AEO)
+  const genreSlugs = [
+    "romance", "thriller", "drama", "comedy",
+    "mystery", "billionaire", "revenge", "forbidden",
+  ];
+  const genreUrls = genreSlugs.map(
+    (g) => `  <url>
+    <loc>${baseUrl}/genre/${g}</loc>
+    <lastmod>${now}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>`
+  );
 
   const liveSeries = getLiveSeries();
 
@@ -53,6 +68,7 @@ ${staticPages
   </url>`
   )
   .join("\n")}
+${genreUrls.join("\n")}
 ${seriesUrls.join("\n")}
 ${episodeUrls.join("\n")}
 </urlset>`;
