@@ -85,7 +85,6 @@ export default function RootLayout({
         <CartProvider>
           {/* iPhone frame wrapper — visible on desktop only (CSS controlled) */}
           <div className="iphone-frame">
-            <div className="iphone-notch" />
             <div className="iphone-screen">
               <div className="app-shell">
                 <Header />
