@@ -1,12 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import JsonLd from "@/components/JsonLd";
-import ChannelRow from "@/components/ChannelRow";
+import HeroCarousel from "@/components/HeroCarousel";
+import CategoryTabs from "@/components/CategoryTabs";
+import FeedSearch from "@/components/FeedSearch";
 import {
   catalog,
   getLiveSeries,
-  getComingSoonSeries,
-  getSeriesByChannel,
 } from "@/lib/catalog";
 import {
   organizationSchema,
@@ -15,11 +15,11 @@ import {
 } from "@/lib/schemas";
 
 export default function HomePage() {
-  const featured = catalog[0]; // The Missing Piece
-  const mustSees = getSeriesByChannel("Must-sees");
-  const trending = getSeriesByChannel("Trending");
-  const drama = getSeriesByChannel("Drama");
-  const comingSoon = getComingSoonSeries();
+  const live = getLiveSeries();
+  // Featured carousel: first 4 live series
+  const featured = live.slice(0, 4);
+  // Thumbnail row: remaining series
+  const thumbnails = live.slice(4);
 
   return (
     <>
@@ -28,79 +28,83 @@ export default function HomePage() {
         data={[organizationSchema(), webSiteSchema(), mobileAppSchema()]}
       />
 
-      {/* ---- Hero Banner ---- */}
-      <section className="relative w-full" style={{ height: 420 }}>
-        {/* Poster background */}
-        <Image
-          src={featured.posterUrl}
-          alt={featured.title}
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover"
-        />
+      {/* ---- Search Bar ---- */}
+      <FeedSearch series={catalog} />
 
-        {/* Gradient overlay */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(to bottom, rgba(7,7,14,0.25) 0%, rgba(7,7,14,0.6) 50%, #07070E 100%)",
-          }}
-        />
+      {/* ---- Category Tabs ---- */}
+      <CategoryTabs />
 
-        {/* Hero content */}
-        <div className="absolute bottom-0 left-0 right-0 px-4 pb-6">
-          <h1
-            className="text-2xl font-bold leading-tight mb-1"
-            style={{ color: "#F5F4F8" }}
-          >
-            {featured.title}
-          </h1>
-          <p
-            className="text-sm leading-snug mb-4 line-clamp-2"
-            style={{ color: "#A0A0B0" }}
-          >
-            {featured.logline}
-          </p>
+      {/* ---- Hero Carousel ---- */}
+      <HeroCarousel series={featured} />
 
-          {/* CTA buttons */}
-          <div className="flex gap-3">
+      {/* ---- Thumbnail Row ---- */}
+      <div className="mt-6 px-4">
+        <div className="flex gap-3 overflow-x-auto no-scrollbar">
+          {thumbnails.map((s) => (
             <Link
-              href={`/series/${featured.slug}`}
-              className="flex items-center justify-center rounded-full px-6 py-2.5 text-sm font-semibold"
-              style={{
-                background: "#E0115F",
-                color: "#F5F4F8",
-              }}
+              key={s.slug}
+              href={`/series/${s.slug}`}
+              className="flex-shrink-0 block"
+              style={{ width: 150 }}
             >
-              Watch Free
+              <div
+                className="relative overflow-hidden rounded-lg"
+                style={{ width: 150, aspectRatio: "3 / 4" }}
+              >
+                <Image
+                  src={s.posterUrl}
+                  alt={s.title}
+                  fill
+                  sizes="150px"
+                  className="object-cover"
+                />
+              </div>
             </Link>
+          ))}
+        </div>
+      </div>
+
+      {/* ---- All Series (crawlable SSR content) ---- */}
+      <section className="mt-8 px-4 pb-8">
+        <h2
+          className="text-sm font-semibold uppercase tracking-wider mb-4"
+          style={{ color: "#6B6B7B" }}
+        >
+          All Shows
+        </h2>
+        <div className="flex flex-col gap-3">
+          {live.map((s) => (
             <Link
-              href={`/series/${featured.slug}`}
-              className="flex items-center justify-center rounded-full px-6 py-2.5 text-sm font-semibold"
-              style={{
-                background: "rgba(255,255,255,0.08)",
-                color: "#F5F4F8",
-                border: "1px solid rgba(255,255,255,0.12)",
-              }}
+              key={s.slug}
+              href={`/series/${s.slug}`}
+              className="flex items-center gap-3 rounded-xl p-3 no-underline"
+              style={{ background: "#12121C", color: "#F5F4F8" }}
             >
-              Details
+              <div
+                className="w-12 h-16 rounded-lg flex-shrink-0 overflow-hidden relative"
+                style={{ background: "#1A1A26" }}
+              >
+                <Image
+                  src={s.posterUrl}
+                  alt={s.title}
+                  fill
+                  sizes="48px"
+                  className="object-cover"
+                />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold truncate">{s.title}</p>
+                <p
+                  className="text-xs mt-0.5"
+                  style={{ color: "#6B6B7B" }}
+                >
+                  {s.genre} &middot; {s.episodeCount} ep
+                </p>
+              </div>
             </Link>
-          </div>
+          ))}
         </div>
       </section>
-
-      {/* ---- Channel Rows ---- */}
-      <ChannelRow title="Must-sees" series={mustSees} />
-      <ChannelRow title="Trending" series={trending} />
-      <ChannelRow title="Drama" series={drama} />
-
-      {/* ---- Coming Soon ---- */}
-      <ChannelRow title="Coming Soon" series={comingSoon} dimmed />
-
-      {/* Bottom spacer for BottomNav clearance */}
-      <div className="h-8" />
     </>
   );
 }

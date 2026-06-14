@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const ACTIVE = "#E0115F";
+const ACTIVE = "#F5F4F8";
 const INACTIVE = "#6B6B7B";
 
 interface Tab {
@@ -14,61 +14,21 @@ interface Tab {
 
 const tabs: Tab[] = [
   {
-    label: "Feed",
+    label: "Discover",
     href: "/",
     icon: (c) => (
-      <svg
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={c}
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <path d="M3 9.5L12 3l9 6.5" />
         <path d="M19 13v6a1 1 0 0 1-1 1h-4v-5h-4v5H6a1 1 0 0 1-1-1v-6" />
       </svg>
     ),
   },
   {
-    label: "Discover",
-    href: "/discover",
+    label: "Shorts",
+    href: "/shorts",
     icon: (c) => (
-      <svg
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={c}
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <circle cx="11" cy="11" r="7" />
-        <line x1="16.65" y1="16.65" x2="21" y2="21" />
-      </svg>
-    ),
-  },
-  {
-    label: "Studio",
-    href: "/studio",
-    icon: (c) => (
-      <svg
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={c}
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M12 2l1.09 3.26L16 6l-2.18 2.18L14.36 12 12 10.09 9.64 12l.54-3.82L8 6l2.91-.74z" />
-        <path d="M5 15l1.5 2L5 22" />
-        <path d="M19 15l-1.5 2L19 22" />
-        <path d="M12 15v7" />
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <polygon points="6 3 20 12 6 21 6 3" />
       </svg>
     ),
   },
@@ -76,37 +36,38 @@ const tabs: Tab[] = [
     label: "Channels",
     href: "/channels",
     icon: (c) => (
-      <svg
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={c}
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <rect x="3" y="3" width="7" height="7" rx="1.5" />
-        <rect x="14" y="3" width="7" height="7" rx="1.5" />
-        <rect x="3" y="14" width="7" height="7" rx="1.5" />
-        <rect x="14" y="14" width="7" height="7" rx="1.5" />
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="2" y="3" width="20" height="14" rx="2" />
+        <path d="M8 21h8" />
+        <path d="M12 17v4" />
       </svg>
     ),
   },
   {
-    label: "Me",
+    label: "Shop",
+    href: "/shop",
+    icon: (c) => (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+        <line x1="3" y1="6" x2="21" y2="6" />
+        <path d="M16 10a4 4 0 0 1-8 0" />
+      </svg>
+    ),
+  },
+  {
+    label: "My List",
+    href: "/me/list",
+    icon: (c) => (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20 6L9 17l-5-5" />
+      </svg>
+    ),
+  },
+  {
+    label: "Profile",
     href: "/me",
     icon: (c) => (
-      <svg
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={c}
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="8" r="4" />
         <path d="M20 21c0-3.31-3.58-6-8-6s-8 2.69-8 6" />
       </svg>
@@ -119,15 +80,18 @@ export default function BottomNav() {
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
+    if (href === "/me") return pathname === "/me";
     return pathname.startsWith(href);
   };
 
   return (
     <nav
-      className="glass fixed bottom-0 left-1/2 -translate-x-1/2 w-full z-50"
+      className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full z-50"
       style={{
         maxWidth: 440,
         paddingBottom: "env(safe-area-inset-bottom, 0px)",
+        background: "#0D0D14",
+        borderTop: "1px solid rgba(255,255,255,0.06)",
       }}
     >
       <div className="flex items-center justify-around h-14">
@@ -137,7 +101,7 @@ export default function BottomNav() {
 
           return (
             <Link
-              key={tab.href}
+              key={tab.label}
               href={tab.href}
               className="flex flex-col items-center justify-center gap-0.5 flex-1 pt-1.5 pb-1 no-underline"
               style={{ WebkitTapHighlightColor: "transparent" }}
