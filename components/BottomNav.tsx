@@ -93,7 +93,7 @@ export default function BottomNav() {
         borderTop: "1px solid rgba(255,255,255,0.06)",
       }}
     >
-      <div className="flex items-center justify-around h-16">
+      <div className="flex items-center justify-around" style={{ height: 72, paddingTop: 8, paddingBottom: 10 }}>
         {tabs.map((tab) => {
           const active = isActive(tab.href);
           const color = active ? ACTIVE : INACTIVE;
@@ -102,7 +102,7 @@ export default function BottomNav() {
             <Link
               key={tab.label}
               href={tab.href}
-              className="flex flex-col items-center justify-center gap-0.5 flex-1 pt-1.5 pb-1 no-underline"
+              className="flex flex-col items-center justify-center gap-1 flex-1 no-underline"
               style={{ WebkitTapHighlightColor: "transparent" }}
             >
               {tab.icon(color)}
