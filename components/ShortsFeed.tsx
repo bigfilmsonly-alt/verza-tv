@@ -94,7 +94,7 @@ function ShortCard({ series, isActive }: { series: Series; isActive: boolean }) 
       />
 
       {/* ---- Top-left: title + episode chip ---- */}
-      <div className="absolute top-4 left-4 z-10" style={{ maxWidth: "65%" }}>
+      <div className="absolute top-14 left-4 z-10" style={{ maxWidth: "65%" }}>
         <h2
           className="text-base font-bold leading-tight mb-1.5"
           style={{ color: "#fff", textShadow: "0 1px 6px rgba(0,0,0,0.8)" }}
@@ -120,7 +120,7 @@ function ShortCard({ series, isActive }: { series: Series; isActive: boolean }) 
       {/* ---- Top-right: close button ---- */}
       <Link
         href="/"
-        className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center no-underline"
+        className="absolute top-14 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center no-underline"
         style={{ background: "rgba(50,50,50,0.7)", backdropFilter: "blur(4px)" }}
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
