@@ -12,11 +12,36 @@ const inter = Inter({
   display: "swap",
 });
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
+
 export const metadata: Metadata = {
-  title: "Verza TV — Microdramas, Reality & More",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "Verza TV — Microdramas, Reality & More",
+    template: "%s | Verza TV",
+  },
   description:
     "Stream binge-worthy micro-dramas, reality shows, and original series — all in vertical, all in minutes. The first US-based vertical micro-drama platform.",
-  robots: { index: false, follow: false },
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    siteName: "Verza TV",
+    title: "Verza TV — Microdramas, Reality & More",
+    description:
+      "Stream binge-worthy micro-dramas, reality shows, and original series — all in vertical, all in minutes.",
+    url: SITE_URL,
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Verza TV" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    site: "@VerzaTV",
+    title: "Verza TV — Microdramas, Reality & More",
+    description:
+      "Stream binge-worthy micro-dramas, reality shows, and original series — all in vertical, all in minutes.",
+    images: ["/og-image.png"],
+  },
+  /* Production: allow indexing. Override per-page if needed. */
+  robots: { index: true, follow: true },
 };
 
 export const viewport: Viewport = {

@@ -36,9 +36,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!series) return { title: "Not Found" };
 
   return {
-    title: `${series.title} -- Watch Free on Verza TV`,
+    title: `${series.title} — Watch Free on Verza TV`,
     description: series.logline,
+    alternates: { canonical: `/series/${slug}` },
     openGraph: {
+      title: series.title,
+      description: series.logline,
+      url: `/series/${slug}`,
+      type: "video.tv_show",
+      images: series.posterUrl ? [{ url: series.posterUrl, width: 800, height: 1067, alt: series.title }] : [],
+    },
+    twitter: {
+      card: "summary_large_image",
       title: series.title,
       description: series.logline,
       images: series.posterUrl ? [series.posterUrl] : [],

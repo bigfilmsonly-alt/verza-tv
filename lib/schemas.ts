@@ -11,9 +11,18 @@ export function organizationSchema() {
     "@type": "Organization",
     name: "Verza TV",
     url: BASE_URL,
+    logo: `${BASE_URL}/logo.png`,
     description:
       "The first US-based vertical micro-drama streaming app. 80+ originals.",
-    sameAs: [] as string[],
+    founder: {
+      "@type": "Person",
+      name: "Alan Mruvka",
+    },
+    sameAs: [
+      "https://www.instagram.com/verzatv",
+      "https://www.tiktok.com/@verzatv",
+      "https://x.com/VerzaTV",
+    ],
   };
 }
 
@@ -31,7 +40,7 @@ export function webSiteSchema() {
       "@type": "SearchAction",
       target: {
         "@type": "EntryPoint",
-        urlTemplate: `${BASE_URL}/search?q={search_term_string}`,
+        urlTemplate: `${BASE_URL}/discover?q={search_term_string}`,
       },
       "query-input": "required name=search_term_string",
     },
@@ -49,6 +58,12 @@ export function mobileAppSchema() {
     name: "Verza TV",
     operatingSystem: "iOS, Android",
     applicationCategory: "EntertainmentApplication",
+    description: "Stream binge-worthy micro-dramas, reality shows, and original series — all in vertical, all in minutes.",
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "USD",
+    },
   };
 }
 
@@ -74,7 +89,12 @@ export function seriesSchema(series: SeriesInput) {
     genre: series.genre,
     numberOfEpisodes: series.episodeCount,
     url: `${BASE_URL}/series/${series.slug}`,
-    image: series.posterUrl,
+    image: series.posterUrl ? `${BASE_URL}${series.posterUrl}` : undefined,
+    productionCompany: {
+      "@type": "Organization",
+      name: "Verza TV",
+      url: BASE_URL,
+    },
   };
 }
 
@@ -89,15 +109,10 @@ interface EpisodeInput {
   thumbUrl: string;
 }
 
-/**
- * Convert a duration in seconds to an ISO 8601 duration string.
- * Example: 125 -> "PT2M5S"
- */
 function toIsoDuration(seconds: number): string {
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
   const s = seconds % 60;
-
   let iso = "PT";
   if (h > 0) iso += `${h}H`;
   if (m > 0) iso += `${m}M`;
