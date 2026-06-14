@@ -32,17 +32,21 @@ export default function Player({
         style={{ aspectRatio: "9 / 16", background: T.bg }}
       >
         {/* Poster background */}
-        <Image
-          src={posterUrl}
-          alt={title}
-          fill
-          sizes="(max-width: 440px) 100vw, 440px"
-          className="object-cover"
-          style={{
-            filter: playing ? "brightness(0.15)" : "brightness(0.6)",
-            transition: "filter 0.4s ease",
-          }}
-        />
+        {posterUrl ? (
+          <Image
+            src={posterUrl}
+            alt={title}
+            fill
+            sizes="(max-width: 440px) 100vw, 440px"
+            className="object-cover"
+            style={{
+              filter: playing ? "brightness(0.15)" : "brightness(0.6)",
+              transition: "filter 0.4s ease",
+            }}
+          />
+        ) : (
+          <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, #1A1A26, #07070E)" }} />
+        )}
 
         {/* Content overlay */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">

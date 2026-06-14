@@ -24,14 +24,18 @@ export default function CoinPaywall({
     <div className="relative mx-4 rounded-2xl overflow-hidden">
       {/* Dimmed poster background */}
       <div className="relative" style={{ aspectRatio: "9 / 16" }}>
-        <Image
-          src={posterUrl}
-          alt="Locked episode"
-          fill
-          sizes="(max-width: 440px) 100vw, 440px"
-          className="object-cover"
-          style={{ filter: "brightness(0.25) blur(2px)" }}
-        />
+        {posterUrl ? (
+          <Image
+            src={posterUrl}
+            alt="Locked episode"
+            fill
+            sizes="(max-width: 440px) 100vw, 440px"
+            className="object-cover"
+            style={{ filter: "brightness(0.25) blur(2px)" }}
+          />
+        ) : (
+          <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, #1A1A26, #07070E)" }} />
+        )}
 
         {/* Dark overlay */}
         <div
