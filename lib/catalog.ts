@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------ */
-/*  Full catalog — 79 live series + coming soon                        */
+/*  Full catalog — 75 live series + coming soon                        */
 /* ------------------------------------------------------------------ */
 
 export type BrowseCategory = "drama" | "new" | "popular" | "music" | "reality" | "red-carpet";
@@ -8,9 +8,7 @@ export const BROWSE_TABS: { key: BrowseCategory; label: string }[] = [
   { key: "drama", label: "Drama" },
   { key: "new", label: "New" },
   { key: "popular", label: "Popular" },
-  { key: "music", label: "Shows" }, // TODO: "Music" tab renamed to "Shows" — StorageBlue is reality/comedy, not music. Source real music content or confirm this rename with the team.
   { key: "reality", label: "Reality" },
-  { key: "red-carpet", label: "Red Carpet" },
 ];
 
 export type PosterMood =
@@ -665,32 +663,10 @@ export const catalog: Series[] = [
   /* ================================================================ */
   /*  MUSIC TAB                                                        */
   /* ================================================================ */
-  {
-    slug: "storageblue-too-much-junk",
-    title: "StorageBlue: Too Much Junk",
-    logline: "When storage units go to auction, one crew finds more than furniture — they find fame, feuds, and hidden fortunes.",
-    genre: "Reality \u00b7 Comedy",
-    channel: "StorageBlue",
-    categories: ["music"],
-    episodeCount: 50,
-    posterUrl: "",
-    freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(50), status: "live",
-  },
 
   /* ================================================================ */
   /*  REALITY TAB                                                      */
   /* ================================================================ */
-  {
-    slug: "the-vertical-tea",
-    title: "The Vertical Tea",
-    logline: "The hottest takes on micro-drama, celebrity scandals, and internet chaos — served piping hot, sixty seconds at a time.",
-    genre: "Talk \u00b7 Reality",
-    channel: "The Vertical Tea",
-    categories: ["reality"],
-    episodeCount: 50,
-    posterUrl: "",
-    freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(50), status: "live",
-  },
   {
     slug: "school-hall",
     title: "School Hall",
@@ -724,32 +700,10 @@ export const catalog: Series[] = [
     posterUrl: "/posters/my-sister-stole-my-man.png",
     freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(46), status: "live",
   },
-  {
-    slug: "the-producer",
-    title: "The Producer",
-    logline: "Behind every hit show is a producer willing to do anything — including destroy the people who made him.",
-    genre: "Industry drama",
-    channel: "Verza Originals",
-    categories: ["reality"],
-    episodeCount: 60,
-    posterUrl: "",
-    freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(60), status: "live",
-  },
 
   /* ================================================================ */
   /*  RED CARPET TAB                                                   */
   /* ================================================================ */
-  {
-    slug: "vertical-drama-love-awards",
-    title: "Vertical Drama Love Awards",
-    logline: "The biggest stars of micro-drama gather for one unforgettable night of glamour, tears, and surprises.",
-    genre: "Event \u00b7 Red Carpet",
-    channel: "Verza Originals",
-    categories: ["red-carpet"],
-    episodeCount: 6,
-    posterUrl: "",
-    freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(6), status: "live",
-  },
 
   /* ================================================================ */
   /*  NEW FROM DRIVE                                                   */

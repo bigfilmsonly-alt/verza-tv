@@ -183,18 +183,6 @@ export const SERIES_DETAIL: Record<string, SeriesDetail> = {
     tags: ["fake-relationship", "high-society", "secrets"],
     rating: 8.6, year: 2025, posterMood: "violet",
   },
-  "storageblue-too-much-junk": {
-    description: "The StorageBlue crew tackles the homes, hoards, and disasters everyone else walks away from. With free pickup, a promise to beat any price, and zero filter, every job is one bad surprise from total chaos. Episode 1: The Apartment Collapse — her apartment hit a breaking point, and so did the crew.",
-    cast: ["The StorageBlue Crew"],
-    tags: ["reality", "comedy", "cleanout"],
-    rating: 8.3, year: 2025, posterMood: "storage",
-  },
-  "the-vertical-tea": {
-    description: "Gossip, guests, feuds, and the stories behind your favorite shows — your front-row seat to everything happening on and off camera. Hosted with zero chill and all the receipts, it's the nightly debrief the whole platform is talking about. Only on Verza TV.",
-    cast: ["The Vertical Tea Hosts"],
-    tags: ["talk-show", "gossip", "reality"],
-    rating: 8.5, year: 2025, posterMood: "violet",
-  },
   "i-think-my-wife-wants-to-kill-me": {
     description: "Every night he notices another small thing — the locked drawer, the new life-insurance policy, the way she smiles when she thinks he's asleep. He could be paranoid. Or he could be the next missing husband on the evening news. The clock is ticking, and only one of them knows the truth.",
     cast: ["Derek Mallory", "Vanessa Mallory", "Officer Pike"],
@@ -212,12 +200,6 @@ export const SERIES_DETAIL: Record<string, SeriesDetail> = {
     cast: ["Aria Belle", "Jonah Reyes", "Elliot Vance"],
     tags: ["love-triangle", "romance", "drama"],
     rating: 8.4, year: 2025, posterMood: "blood",
-  },
-  "vertical-drama-love-awards": {
-    description: "Walk the red carpet with the stars, the creators, and the winners. Exclusive interviews, unforgettable looks, and the moments everyone will be talking about — a celebration of the shows and the people behind vertical drama's biggest year. Only on Verza TV.",
-    cast: ["Verza TV Stars & Creators"],
-    tags: ["event", "red-carpet", "awards"],
-    rating: 9.0, year: 2025, posterMood: "gold",
   },
 
   /* ---- Extended catalog (titles not in the original 34) ---- */
@@ -377,12 +359,6 @@ export const SERIES_DETAIL: Record<string, SeriesDetail> = {
     cast: ["Lily Park", "Rose Park", "James Whitfield"],
     tags: ["twins", "betrayal", "family-drama"],
     rating: 8.5, year: 2025, posterMood: "blood",
-  },
-  "the-producer": {
-    description: "Behind every hit show is a producer willing to do anything — including destroy the people who made him. As the cameras roll and the ratings climb, the darkest drama isn't on screen. It's in the production office.",
-    cast: ["Marcus Webb", "Alana Price", "Tommy Devereaux"],
-    tags: ["industry", "drama", "power"],
-    rating: 8.6, year: 2025, posterMood: "noir",
   },
   "the-phoenix-conspiracy": {
     description: "A dead billionaire's daughter returns from the grave — and everyone who profited from her death is terrified. She's alive, she remembers everything, and she has a list.",
