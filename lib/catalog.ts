@@ -45,7 +45,7 @@ export const catalog: Series[] = [
     channel: "Verza Originals",
     categories: ["drama"],
     episodeCount: 58,
-    posterUrl: "",
+    posterUrl: "/posters/the-dumb-billionaire-heiress-in-love.png",
     freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(58), status: "live",
   },
   {
@@ -89,7 +89,7 @@ export const catalog: Series[] = [
     channel: "Verza Originals",
     categories: ["drama"],
     episodeCount: 54,
-    posterUrl: "",
+    posterUrl: "/posters/undercovered-heart.png",
     freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(54), status: "live",
   },
   {
@@ -100,7 +100,7 @@ export const catalog: Series[] = [
     channel: "Verza Originals",
     categories: ["drama"],
     episodeCount: 52,
-    posterUrl: "",
+    posterUrl: "/posters/under-her-control.png",
     freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(52), status: "live",
   },
   {
@@ -111,7 +111,7 @@ export const catalog: Series[] = [
     channel: "Verza Originals",
     categories: ["drama"],
     episodeCount: 56,
-    posterUrl: "",
+    posterUrl: "/posters/two-worlds-apart.png",
     freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(56), status: "live",
   },
   {
@@ -123,7 +123,7 @@ export const catalog: Series[] = [
     categories: ["drama", "popular"],
     popularRank: 2,
     episodeCount: 60,
-    posterUrl: "",
+    posterUrl: "/posters/the-blackthornes.png",
     freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(60), status: "live",
   },
   {
@@ -157,7 +157,7 @@ export const catalog: Series[] = [
     categories: ["drama", "popular"],
     popularRank: 3,
     episodeCount: 55,
-    posterUrl: "",
+    posterUrl: "/posters/the-day-we-got-married.png",
     freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(55), status: "live",
   },
   {
@@ -168,7 +168,7 @@ export const catalog: Series[] = [
     channel: "Verza Originals",
     categories: ["drama"],
     episodeCount: 52,
-    posterUrl: "",
+    posterUrl: "/posters/the-winter-veil.png",
     freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(52), status: "live",
   },
   {
@@ -179,7 +179,7 @@ export const catalog: Series[] = [
     channel: "Verza Originals",
     categories: ["drama"],
     episodeCount: 58,
-    posterUrl: "",
+    posterUrl: "/posters/the-marriage-contract.png",
     freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(58), status: "live",
   },
   {
@@ -190,7 +190,7 @@ export const catalog: Series[] = [
     channel: "Verza Originals",
     categories: ["drama"],
     episodeCount: 50,
-    posterUrl: "",
+    posterUrl: "/posters/the-haunted-sisters.png",
     freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(50), status: "live",
   },
   {
@@ -202,7 +202,7 @@ export const catalog: Series[] = [
     categories: ["drama", "popular"],
     popularRank: 4,
     episodeCount: 54,
-    posterUrl: "",
+    posterUrl: "/posters/the-missing-piece.png",
     freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(54), status: "live",
   },
   {
@@ -599,7 +599,7 @@ export const catalog: Series[] = [
     categories: ["popular"],
     popularRank: 5,
     episodeCount: 56,
-    posterUrl: "",
+    posterUrl: "/posters/camouflage.png",
     freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(56), status: "live",
   },
   {
@@ -611,7 +611,7 @@ export const catalog: Series[] = [
     categories: ["popular"],
     popularRank: 6,
     episodeCount: 54,
-    posterUrl: "",
+    posterUrl: "/posters/killer-romance.png",
     freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(54), status: "live",
   },
   {
@@ -623,7 +623,7 @@ export const catalog: Series[] = [
     categories: ["popular"],
     popularRank: 7,
     episodeCount: 58,
-    posterUrl: "",
+    posterUrl: "/posters/honey-gold.png",
     freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(58), status: "live",
   },
   {
@@ -635,7 +635,7 @@ export const catalog: Series[] = [
     categories: ["popular"],
     popularRank: 8,
     episodeCount: 52,
-    posterUrl: "",
+    posterUrl: "/posters/revenge-on-my-cheating-fiance.png",
     freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(52), status: "live",
   },
   {
@@ -647,7 +647,7 @@ export const catalog: Series[] = [
     categories: ["popular"],
     popularRank: 9,
     episodeCount: 55,
-    posterUrl: "",
+    posterUrl: "/posters/the-escort.png",
     freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(55), status: "live",
   },
 
@@ -688,7 +688,7 @@ export const catalog: Series[] = [
     channel: "Verza Originals",
     categories: ["reality"],
     episodeCount: 52,
-    posterUrl: "",
+    posterUrl: "/posters/school-hall.png",
     freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(52), status: "live",
   },
   {
