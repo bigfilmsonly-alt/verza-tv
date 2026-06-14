@@ -9,6 +9,7 @@ export const BROWSE_TABS: { key: BrowseCategory; label: string }[] = [
   { key: "new", label: "New" },
   { key: "popular", label: "Popular" },
   { key: "reality", label: "Reality" },
+  { key: "red-carpet", label: "Red Carpet" },
 ];
 
 export type PosterMood =

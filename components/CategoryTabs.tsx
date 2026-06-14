@@ -20,7 +20,7 @@ export default function CategoryTabs({ active, onSelect }: CategoryTabsProps) {
             style={{ padding: 0 }}
           >
             <span
-              className="text-[12px] font-bold tracking-wide uppercase whitespace-nowrap"
+              className="text-[11px] font-bold tracking-wide uppercase whitespace-nowrap"
               style={{
                 color: isActive ? "#F5F4F8" : "#6B6B7B",
               }}
