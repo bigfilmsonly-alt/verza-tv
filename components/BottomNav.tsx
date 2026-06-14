@@ -102,9 +102,20 @@ export default function BottomNav() {
             <Link
               key={tab.label}
               href={tab.href}
-              className="flex flex-col items-center justify-center gap-1 flex-1 no-underline"
+              className="relative flex flex-col items-center justify-center gap-1 flex-1 no-underline"
               style={{ WebkitTapHighlightColor: "transparent" }}
             >
+              {/* Active gradient bar — matches header tab style */}
+              {active && (
+                <div
+                  className="absolute top-0 rounded-full"
+                  style={{
+                    width: "60%",
+                    height: 3,
+                    background: "linear-gradient(90deg, #E0115F, #8B5CF6)",
+                  }}
+                />
+              )}
               {tab.icon(color)}
               <span
                 className="text-[11px] font-medium leading-none"
