@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------ */
-/*  Full catalog — 37 live series + coming soon                        */
+/*  Full catalog — 42 live series + coming soon                        */
 /* ------------------------------------------------------------------ */
 
 export interface Series {
@@ -413,6 +413,60 @@ export const catalog: Series[] = [
     episodeCount: 60,
     posterUrl: "/posters/the-producer.png",
     freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(60), status: "live",
+  },
+
+  /* ================================================================ */
+  /*  NEW RELEASES                                                     */
+  /* ================================================================ */
+  {
+    slug: "runaway-bride",
+    title: "Runaway Bride",
+    logline: "She ran from the altar. Fate led her to the stranger who saved her life — and ruined it.",
+    genre: "Romantic drama",
+    channel: "Romance",
+    episodeCount: 54,
+    posterUrl: "/posters/runaway-bride.png",
+    freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(54), status: "live",
+  },
+  {
+    slug: "sisters-have-crush-on-the-same-man",
+    title: "Sisters Have Crush on the Same Man",
+    logline: "One man. Two sisters. A love that could destroy them all.",
+    genre: "Family romance",
+    channel: "Drama",
+    episodeCount: 52,
+    posterUrl: "/posters/sisters-have-crush-on-the-same-man.png",
+    freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(52), status: "live",
+  },
+  {
+    slug: "the-billionaires-lost-love",
+    title: "The Billionaire's Lost Love",
+    logline: "He lost her once. This time, he'll fight to keep her — even if it means burning his empire down.",
+    genre: "Billionaire romance",
+    channel: "Must-sees",
+    episodeCount: 58,
+    posterUrl: "/posters/the-billionaires-lost-love.png",
+    freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(58), status: "live",
+  },
+  {
+    slug: "the-billionaires-vow",
+    title: "The Billionaire's Vow",
+    logline: "Two men. One vow. A choice that could cost her everything — love, loyalty, or her fortune.",
+    genre: "Billionaire drama",
+    channel: "Trending",
+    episodeCount: 56,
+    posterUrl: "/posters/the-billionaires-vow.png",
+    freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(56), status: "live",
+  },
+  {
+    slug: "the-billionaires-betrayal",
+    title: "The Billionaire's Betrayal",
+    logline: "She married into wealth and power. She didn't know the price was her freedom.",
+    genre: "Betrayal drama",
+    channel: "Thriller",
+    episodeCount: 55,
+    posterUrl: "/posters/the-billionaires-betrayal.png",
+    freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(55), status: "live",
   },
 
   /* ================================================================ */
