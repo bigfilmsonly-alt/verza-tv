@@ -251,6 +251,7 @@ body {
     overflow: visible;
     background: #0D0D14;
     border-top: 1px solid rgba(255, 255, 255, 0.06);
+    padding-bottom: 16px; /* push content up away from rounded frame edge */
   }
 
   .iphone-nav-dock .bottom-nav {
