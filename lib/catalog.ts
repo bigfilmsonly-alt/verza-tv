@@ -227,6 +227,16 @@ export const catalog: Series[] = [
   /*  ROMANCE                                                          */
   /* ================================================================ */
   {
+    slug: "one-night-stand",
+    title: "One Night Stand",
+    logline: "One night. No names. No strings. Or so they thought — until she discovers he's her new boss.",
+    genre: "Steamy romance",
+    channel: "Romance",
+    episodeCount: 56,
+    posterUrl: "/posters/one-night-stand.png",
+    freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(56), status: "live",
+  },
+  {
     slug: "if-only-you-were-mine",
     title: "If Only You Were Mine",
     logline: "Best friends since childhood, they swore never to cross the line — until one drunken confession changed everything.",
