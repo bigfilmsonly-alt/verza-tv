@@ -72,7 +72,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
           <Link href={`/series/${current.slug}`} className="block">
             <div
               className="relative w-full overflow-hidden hero-section"
-              style={{ aspectRatio: "3 / 4", maxHeight: "60dvh" }}
+              style={{ height: "calc(100dvh - 290px)", minHeight: 200 }}
             >
               {current.posterUrl ? (
                 <Image
