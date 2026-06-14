@@ -139,6 +139,133 @@ body {
   flex-direction: column;
 }
 
+/* ---- iPhone frame on desktop ---- */
+
+.iphone-frame {
+  display: none; /* hidden on mobile */
+}
+
+.mobile-only {
+  display: block; /* visible on mobile */
+}
+
+@media (min-width: 520px) and (orientation: portrait),
+       (min-width: 520px) and (min-height: 600px) {
+  body {
+    background: #000 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  .mobile-only {
+    display: none !important;
+  }
+
+  .iphone-frame {
+    display: block;
+    position: relative;
+    width: 410px;
+    height: min(92vh, 880px);
+    border-radius: 52px;
+    border: 4px solid #2a2a2e;
+    box-shadow:
+      0 0 0 2px #1a1a1e,
+      0 0 0 5px #111,
+      0 20px 60px rgba(0, 0, 0, 0.6),
+      inset 0 0 3px rgba(255, 255, 255, 0.03);
+    overflow: hidden;
+    background: var(--color-bg);
+  }
+
+  /* Notch / Dynamic Island */
+  .iphone-notch {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 126px;
+    height: 34px;
+    background: #000;
+    border-radius: 20px;
+    z-index: 9999;
+  }
+
+  /* Side button accents */
+  .iphone-frame::before {
+    content: "";
+    position: absolute;
+    right: -7px;
+    top: 160px;
+    width: 3px;
+    height: 64px;
+    background: #2a2a2e;
+    border-radius: 0 2px 2px 0;
+    z-index: 10;
+  }
+
+  .iphone-frame::after {
+    content: "";
+    position: absolute;
+    left: -7px;
+    top: 140px;
+    width: 3px;
+    height: 36px;
+    background: #2a2a2e;
+    border-radius: 2px 0 0 2px;
+    box-shadow: 0 52px 0 #2a2a2e, 0 96px 0 #2a2a2e;
+    z-index: 10;
+  }
+
+  /* The app content scrolls inside the frame */
+  .iphone-screen {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border-radius: 48px;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .iphone-screen::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Override app-shell inside the frame */
+  .iphone-screen .app-shell {
+    max-width: 100%;
+    min-height: 100%;
+    border-radius: 48px;
+    overflow: hidden;
+  }
+
+  /* Bottom nav pins to frame bottom, not viewport */
+  .iphone-screen .bottom-nav {
+    position: absolute !important;
+    max-width: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+    transform: none !important;
+    border-radius: 0 0 48px 48px;
+  }
+
+  /* Home indicator bar */
+  .iphone-home-indicator {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 134px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 3px;
+    z-index: 9999;
+  }
+}
+
 /* ---- Landscape orientation ---- */
 
 @media (orientation: landscape) {

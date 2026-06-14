@@ -83,12 +83,30 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <CartProvider>
-          <div className="app-shell">
-            <Header />
-            <main className="flex-1 pb-16">{children}</main>
-            <Footer />
-            <BottomNav />
+          {/* iPhone frame wrapper — visible on desktop only (CSS controlled) */}
+          <div className="iphone-frame">
+            <div className="iphone-notch" />
+            <div className="iphone-screen">
+              <div className="app-shell">
+                <Header />
+                <main className="flex-1 pb-16">{children}</main>
+                <Footer />
+                <BottomNav />
+              </div>
+            </div>
+            <div className="iphone-home-indicator" />
           </div>
+
+          {/* Mobile: no frame, direct render */}
+          <div className="mobile-only">
+            <div className="app-shell">
+              <Header />
+              <main className="flex-1 pb-16">{children}</main>
+              <Footer />
+              <BottomNav />
+            </div>
+          </div>
+
           <CartDrawer />
         </CartProvider>
       </body>
