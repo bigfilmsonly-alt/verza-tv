@@ -44,6 +44,6 @@ export async function GET(
     playbackId: mux.playbackId,
     playbackUrl: `https://stream.mux.com/${mux.playbackId}.m3u8`,
     duration: mux.duration,
-    poster: `https://image.mux.com/${mux.playbackId}/thumbnail.jpg?time=5`,
+    poster: `https://image.mux.com/${mux.playbackId}/thumbnail.jpg?time=5&width=720&height=1280`,
   });
 }

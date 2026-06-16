@@ -51,7 +51,7 @@ export default function Player({
     : null;
 
   const posterThumb = playbackId
-    ? `https://image.mux.com/${playbackId}/thumbnail.jpg?time=2&width=720`
+    ? `https://image.mux.com/${playbackId}/thumbnail.jpg?time=2&width=1080&height=1920`
     : posterUrl;
 
   /* ---- Attach HLS ------------------------------------------------ */
@@ -72,9 +72,12 @@ export default function Player({
     // hls.js for other browsers
     if (Hls.isSupported()) {
       const hls = new Hls({
-        maxBufferLength: 30,
-        maxMaxBufferLength: 60,
-        startLevel: -1, // auto quality
+        maxBufferLength: 60,
+        maxMaxBufferLength: 120,
+        startLevel: -1,            // auto quality selection
+        capLevelToPlayerSize: false, // don't cap quality to player size
+        enableWorker: true,
+        lowLatencyMode: false,
       });
       hlsRef.current = hls;
       hls.loadSource(hlsUrl);

@@ -59,10 +59,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 /*  Page                                                               */
 /* ------------------------------------------------------------------ */
 
+function hashCode(str: string): number {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
 export default async function SeriesPage({ params }: Props) {
   const { slug } = await params;
   const series = getSeriesWithDetail(slug);
   if (!series) notFound();
+
+  const pseudoViews = 50000 + (hashCode(series.slug) % 950000);
 
   const episodes = getEpisodesForSeries(slug);
   const BASE_URL =
@@ -180,6 +188,16 @@ export default async function SeriesPage({ params }: Props) {
           </div>
         )}
 
+        {/* Social proof */}
+        <div className="flex items-center gap-3 mb-3">
+          <span className="text-xs" style={{ color: T.textDim }}>
+            {(pseudoViews).toLocaleString()} views
+          </span>
+          <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "rgba(224, 17, 95, 0.15)", color: T.accent }}>
+            Trending
+          </span>
+        </div>
+
         {/* Description */}
         {series.description && (
           <p
@@ -240,6 +258,21 @@ export default async function SeriesPage({ params }: Props) {
           </svg>
           First {FREE_EPISODES} Episodes FREE
         </div>
+
+        <Link
+          href={`/series/${series.slug}/1`}
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-sm font-bold no-underline transition-transform active:scale-95 mb-6"
+          style={{
+            background: "linear-gradient(135deg, #E0115F, #8B5CF6)",
+            color: "#fff",
+            boxShadow: "0 0 20px rgba(224, 17, 95, 0.3)",
+          }}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff" stroke="none">
+            <polygon points="6 3 20 12 6 21" />
+          </svg>
+          Watch Episode 1 Free
+        </Link>
 
         {/* ---- Season Pass Card ---- */}
         <div

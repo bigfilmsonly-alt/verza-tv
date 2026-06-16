@@ -6,6 +6,7 @@ import Link from "next/link";
 import CategoryTabs from "@/components/CategoryTabs";
 import FeedSearch from "@/components/FeedSearch";
 import type { Series, BrowseCategory } from "@/lib/catalog";
+import PosterSkeleton from "@/components/PosterSkeleton";
 
 function Poster({ src, alt }: { src: string; alt: string }) {
   if (!src) {
@@ -66,6 +67,13 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
     <>
       <FeedSearch series={allSeries} />
       <CategoryTabs active={activeTab} onSelect={setActiveTab} />
+
+      {/* Hero Skeleton */}
+      {!current && (
+        <div className="px-3">
+          <div className="skeleton w-full" style={{ height: "calc(100dvh - 280px)", minHeight: 220 }} />
+        </div>
+      )}
 
       {/* Hero Slideshow */}
       {current && (
@@ -150,18 +158,50 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                 ))}
               </div>
             )}
+            <Link
+              href={`/series/${current.slug}/1`}
+              className="inline-flex items-center gap-2 mt-3 px-5 py-2.5 rounded-full text-sm font-bold no-underline transition-transform active:scale-95"
+              style={{
+                background: "linear-gradient(135deg, #E0115F, #8B5CF6)",
+                color: "#fff",
+                boxShadow: "0 0 20px rgba(224, 17, 95, 0.3)",
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff" stroke="none">
+                <polygon points="6 3 20 12 6 21" />
+              </svg>
+              Start Watching Free
+            </Link>
           </div>
         </div>
       )}
 
       {/* Tab Grid */}
-      {gridItems.length > 0 && (
+      {gridItems.length === 0 && filtered.length > 4 ? (
         <section className="mt-4 px-3 pb-6">
-          <div className="grid grid-cols-3 gap-2.5 poster-grid">
+          <PosterSkeleton count={9} />
+        </section>
+      ) : gridItems.length > 0 && (
+        <section className="mt-4 px-3 pb-6">
+          <div className="grid grid-cols-3 gap-2.5 poster-grid stagger-children">
             {gridItems.map((s) => (
-              <Link key={s.slug} href={`/series/${s.slug}`} className="block no-underline transition-transform duration-200 hover:scale-[1.03]">
+              <Link key={s.slug} href={`/series/${s.slug}`} className="group block no-underline transition-transform duration-200 hover:scale-[1.03]">
                 <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "3 / 4" }}>
                   <Poster src={s.posterUrl} alt={s.title} />
+                  {/* Play preview overlay on hover */}
+                  <div
+                    className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
+                    style={{ background: "rgba(0,0,0,0.3)" }}
+                  >
+                    <div
+                      className="w-10 h-10 rounded-full flex items-center justify-center"
+                      style={{ background: "rgba(224, 17, 95, 0.85)", backdropFilter: "blur(4px)" }}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff" stroke="none">
+                        <polygon points="8 5 20 12 8 19" />
+                      </svg>
+                    </div>
+                  </div>
                 </div>
                 <p className="mt-1.5 text-[11px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>{s.title}</p>
                 <p className="text-[10px] mt-0.5 line-clamp-1" style={{ color: "#6B6B7B" }}>{s.genre}</p>
@@ -174,11 +214,25 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
       {/* All Shows */}
       <section className="px-3 pb-8">
         <h2 className="text-sm font-semibold uppercase tracking-wider mb-4 px-1" style={{ color: "#8A8A9A" }}>All Shows</h2>
-        <div className="grid grid-cols-3 gap-2.5 poster-grid">
+        <div className="grid grid-cols-3 gap-2.5 poster-grid stagger-children">
           {liveSeries.map((s) => (
-            <Link key={s.slug} href={`/series/${s.slug}`} className="block no-underline transition-transform duration-200 hover:scale-[1.03]">
+            <Link key={s.slug} href={`/series/${s.slug}`} className="group block no-underline transition-transform duration-200 hover:scale-[1.03]">
               <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "3 / 4" }}>
                 <Poster src={s.posterUrl} alt={s.title} />
+                {/* Play preview overlay on hover */}
+                <div
+                  className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
+                  style={{ background: "rgba(0,0,0,0.3)" }}
+                >
+                  <div
+                    className="w-10 h-10 rounded-full flex items-center justify-center"
+                    style={{ background: "rgba(224, 17, 95, 0.85)", backdropFilter: "blur(4px)" }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff" stroke="none">
+                      <polygon points="8 5 20 12 8 19" />
+                    </svg>
+                  </div>
+                </div>
               </div>
               <p className="mt-1.5 text-[11px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>{s.title}</p>
               <p className="text-[10px] mt-0.5 line-clamp-1" style={{ color: "#6B6B7B" }}>{s.genre}</p>

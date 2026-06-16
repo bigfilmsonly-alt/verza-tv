@@ -69,16 +69,24 @@ function ShortCard({ series, isActive }: { series: Series; isActive: boolean }) 
   const playbackId = muxEpisodes?.[0]?.playbackId ?? null;
 
   /* Play / pause when card becomes active or inactive */
+  const muxSrc = playbackId ? `https://stream.mux.com/${playbackId}.m3u8` : null;
+
   useEffect(() => {
     const vid = videoRef.current;
     if (!vid) return;
     if (isActive) {
+      /* Restore src if it was cleared and start playback */
+      if (muxSrc && !vid.getAttribute("src")) {
+        vid.src = muxSrc;
+      }
       vid.play().catch(() => {/* autoplay may be blocked */});
     } else {
+      /* Pause, clear src and release network resources to free memory */
       vid.pause();
-      vid.currentTime = 0;
+      vid.removeAttribute("src");
+      vid.load();
     }
-  }, [isActive]);
+  }, [isActive, muxSrc]);
 
   /* Sync muted state to video element */
   useEffect(() => {
@@ -100,11 +108,12 @@ function ShortCard({ series, isActive }: { series: Series; isActive: boolean }) 
         <video
           ref={videoRef}
           src={`https://stream.mux.com/${playbackId}.m3u8`}
-          poster={`https://image.mux.com/${playbackId}/thumbnail.jpg?time=5`}
+          poster={`https://image.mux.com/${playbackId}/thumbnail.jpg?time=5&width=720&height=1280`}
           playsInline
           muted={muted}
           loop
           autoPlay={isActive}
+          preload={isActive ? "auto" : "none"}
           className="absolute inset-0 w-full h-full object-contain"
           style={{ background: "#07070E" }}
         />

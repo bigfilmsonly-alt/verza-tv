@@ -114,7 +114,7 @@ export default async function EpisodePage({ params }: Props) {
               number: ep.number,
               title: ep.title,
               durationS: ep.durationS,
-              thumbUrl: mux ? `https://image.mux.com/${mux.playbackId}/thumbnail.jpg?time=5` : `${BASE_URL}${series.posterUrl}`,
+              thumbUrl: mux ? `https://image.mux.com/${mux.playbackId}/thumbnail.jpg?time=5&width=1080&height=1920` : `${BASE_URL}${series.posterUrl}`,
             },
           ),
           seriesSchema({
