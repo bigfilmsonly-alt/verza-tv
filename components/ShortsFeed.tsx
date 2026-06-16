@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Series } from "@/lib/catalog";
 import { T } from "@/lib/theme";
+import { MUX_MAP } from "@/lib/mux-map";
 
 function shuffleArray<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -59,8 +60,31 @@ function RailButton({ children, label, onClick }: {
 function ShortCard({ series, isActive }: { series: Series; isActive: boolean }) {
   const [liked, setLiked] = useState(false);
   const [muted, setMuted] = useState(true);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const likeCount = pseudoCount(series.slug, 1, 50);
   const epNum = pseudoCount(series.slug, 1, 5);
+
+  /* Resolve Mux playback ID for first episode (if available) */
+  const muxEpisodes = MUX_MAP[series.slug];
+  const playbackId = muxEpisodes?.[0]?.playbackId ?? null;
+
+  /* Play / pause when card becomes active or inactive */
+  useEffect(() => {
+    const vid = videoRef.current;
+    if (!vid) return;
+    if (isActive) {
+      vid.play().catch(() => {/* autoplay may be blocked */});
+    } else {
+      vid.pause();
+      vid.currentTime = 0;
+    }
+  }, [isActive]);
+
+  /* Sync muted state to video element */
+  useEffect(() => {
+    const vid = videoRef.current;
+    if (vid) vid.muted = muted;
+  }, [muted]);
 
   return (
     <div
@@ -71,8 +95,20 @@ function ShortCard({ series, isActive }: { series: Series; isActive: boolean }) 
         background: "#07070E",
       }}
     >
-      {/* Full-bleed poster — edge to edge */}
-      {series.posterUrl ? (
+      {/* Full-bleed video or poster fallback */}
+      {playbackId ? (
+        <video
+          ref={videoRef}
+          src={`https://stream.mux.com/${playbackId}.m3u8`}
+          poster={`https://image.mux.com/${playbackId}/thumbnail.jpg?time=5`}
+          playsInline
+          muted={muted}
+          loop
+          autoPlay={isActive}
+          className="absolute inset-0 w-full h-full object-contain"
+          style={{ background: "#07070E" }}
+        />
+      ) : series.posterUrl ? (
         <Image
           src={series.posterUrl}
           alt={series.title}

@@ -11,6 +11,7 @@ import {
   getEpisodesForSeries,
   formatDuration,
 } from "@/lib/catalog";
+import { getPlayback } from "@/lib/mux-map";
 import {
   seriesSchema,
   episodeSchema,
@@ -85,6 +86,8 @@ export default async function EpisodePage({ params }: Props) {
   const ep = getEpisode(slug, epNum);
   if (!ep) notFound();
 
+  const mux = getPlayback(slug, epNum);
+
   const episodes = getEpisodesForSeries(slug);
   const isFree = ep.number <= series.freeEpisodes;
   const hasPrev = ep.number > 1;
@@ -111,7 +114,7 @@ export default async function EpisodePage({ params }: Props) {
               number: ep.number,
               title: ep.title,
               durationS: ep.durationS,
-              thumbUrl: `${BASE_URL}${series.posterUrl}`,
+              thumbUrl: mux ? `https://image.mux.com/${mux.playbackId}/thumbnail.jpg?time=5` : `${BASE_URL}${series.posterUrl}`,
             },
           ),
           seriesSchema({
@@ -186,6 +189,7 @@ export default async function EpisodePage({ params }: Props) {
           episodeNumber={ep.number}
           durationS={ep.durationS}
           seriesSlug={series.slug}
+          playbackId={mux?.playbackId}
         />
       ) : (
         <CoinPaywall

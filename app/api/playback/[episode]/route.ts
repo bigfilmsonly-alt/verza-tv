@@ -1,54 +1,49 @@
 import { NextRequest, NextResponse } from "next/server";
-import { FREE_EPISODES, DEFAULT_COIN_PER_EPISODE } from "@/lib/config";
-
-// Stub: in production, check Supabase entitlements + generate Mux signed URL
-// For now, return a playback response that the client can use
+import { FREE_EPISODES } from "@/lib/config";
+import { getPlayback } from "@/lib/mux-map";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ episode: string }> }
 ) {
   const { episode } = await params;
-  const [slug, epStr] = episode.split("--"); // format: series-slug--episode-number
-  const epNum = parseInt(epStr || "1", 10);
+  const parts = episode.split("--");
+  const slug = parts[0];
+  const epNum = parseInt(parts[1] || "1", 10);
 
   if (!slug || isNaN(epNum)) {
     return NextResponse.json({ error: "Invalid episode" }, { status: 400 });
   }
 
-  // Free gate: first N episodes are always free
   const isFree = epNum <= FREE_EPISODES;
 
   if (!isFree) {
-    // In production: check auth + entitlements from Supabase
-    // const user = await getUser(request);
-    // const entitled = await checkEntitlement(user.id, slug, epNum);
-    // if (!entitled) return NextResponse.json({ error: "Payment required" }, { status: 402 });
-
-    // Stub: return paywall response
-    return NextResponse.json(
-      {
-        status: "paywall",
-        message: "This episode requires coins to unlock",
-        series: slug,
-        episode: epNum,
-        coinCost: DEFAULT_COIN_PER_EPISODE,
-      },
-      { status: 402 }
-    );
+    return NextResponse.json({
+      status: "paywall",
+      message: "This episode requires coins to unlock",
+      series: slug,
+      episode: epNum,
+      coinCost: 49,
+    }, { status: 402 });
   }
 
-  // In production: generate Mux signed URL
-  // const signedUrl = await generateMuxSignedUrl(playbackId, expiresIn: 3600);
+  // Look up real Mux playback
+  const mux = getPlayback(slug, epNum);
 
-  // Stub: return playback token
+  if (!mux) {
+    return NextResponse.json({
+      status: "not_found",
+      message: "No video available for this episode",
+    }, { status: 404 });
+  }
+
   return NextResponse.json({
     status: "ok",
     series: slug,
     episode: epNum,
-    playbackType: "stub", // "mux" in production
-    // playbackUrl: signedUrl, // Mux signed URL
-    // expiresAt: new Date(Date.now() + 3600000).toISOString(),
-    message: "Playback stub — wire Mux signed URLs in production",
+    playbackId: mux.playbackId,
+    playbackUrl: `https://stream.mux.com/${mux.playbackId}.m3u8`,
+    duration: mux.duration,
+    poster: `https://image.mux.com/${mux.playbackId}/thumbnail.jpg?time=5`,
   });
 }
