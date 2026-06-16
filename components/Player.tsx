@@ -2,9 +2,15 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
-import Hls from "hls.js";
+import type HlsType from "hls.js";
 import { T } from "@/lib/theme";
 import { formatDuration } from "@/lib/catalog";
+
+// Dynamic import — hls.js only needed on Chrome/Firefox, not Safari/iOS
+let HlsModule: typeof HlsType | null = null;
+if (typeof window !== "undefined") {
+  import("hls.js").then((m) => { HlsModule = m.default; }).catch(() => {});
+}
 
 /* ------------------------------------------------------------------ */
 /*  Props                                                              */
@@ -34,7 +40,7 @@ export default function Player({
   void _seriesSlug;
 
   const videoRef = useRef<HTMLVideoElement>(null);
-  const hlsRef = useRef<Hls | null>(null);
+  const hlsRef = useRef<HlsType | null>(null);
   const progressRef = useRef<HTMLDivElement>(null);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -45,6 +51,8 @@ export default function Player({
   const [buffered, setBuffered] = useState(0);
   const [showControls, setShowControls] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [hlsReady, setHlsReady] = useState(false);
 
   const hlsUrl = playbackId
     ? `https://stream.mux.com/${playbackId}.m3u8`
@@ -54,57 +62,73 @@ export default function Player({
     ? `https://image.mux.com/${playbackId}/thumbnail.jpg?time=2&width=1080&height=1920`
     : posterUrl;
 
-  /* ---- Attach HLS ------------------------------------------------ */
+  /* ---- Pre-attach HLS on mount (not on play click) --------------- */
 
   useEffect(() => {
-    if (!hlsUrl || !started) return;
+    if (!hlsUrl) return;
 
     const video = videoRef.current;
     if (!video) return;
 
+    console.log("[Player] Attaching HLS source:", hlsUrl);
+
     // Native HLS support (Safari / iOS)
     if (video.canPlayType("application/vnd.apple.mpegurl")) {
+      console.log("[Player] Using native HLS (Safari/iOS)");
       video.src = hlsUrl;
-      video.play().catch(() => {});
+      setHlsReady(true);
       return;
     }
 
     // hls.js for other browsers
-    if (Hls.isSupported()) {
-      const hls = new Hls({
+    if (HlsModule && HlsModule.isSupported()) {
+      console.log("[Player] Using hls.js");
+      const hls = new HlsModule({
         maxBufferLength: 60,
         maxMaxBufferLength: 120,
-        startLevel: -1,            // auto quality selection
-        capLevelToPlayerSize: false, // don't cap quality to player size
+        startLevel: -1,
+        capLevelToPlayerSize: false,
         enableWorker: true,
         lowLatencyMode: false,
       });
       hlsRef.current = hls;
       hls.loadSource(hlsUrl);
       hls.attachMedia(video);
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        video.play().catch(() => {});
+
+      hls.on(HlsModule.Events.MANIFEST_PARSED, (_event: string, data: { levels: unknown[] }) => {
+        console.log("[Player] HLS manifest parsed, levels:", data.levels.length);
+        setHlsReady(true);
       });
-      hls.on(Hls.Events.ERROR, (_event, data) => {
+
+      hls.on(HlsModule.Events.ERROR, (_event: string, data: { type: string; details: string; fatal: boolean }) => {
+        console.error("[Player] HLS error:", data.type, data.details, data.fatal);
         if (data.fatal) {
-          if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+          if (data.type === HlsModule!.ErrorTypes.NETWORK_ERROR) {
+            console.log("[Player] Fatal network error, attempting recovery...");
             hls.startLoad();
-          } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+          } else if (data.type === HlsModule!.ErrorTypes.MEDIA_ERROR) {
+            console.log("[Player] Fatal media error, attempting recovery...");
             hls.recoverMediaError();
+          } else {
+            console.error("[Player] Fatal error, cannot recover:", data.type);
+            setError("Video failed to load. Please try refreshing the page.");
           }
         }
       });
+
+      return () => {
+        console.log("[Player] Destroying HLS instance");
+        hls.destroy();
+        hlsRef.current = null;
+      };
     }
 
-    return () => {
-      if (hlsRef.current) {
-        hlsRef.current.destroy();
-        hlsRef.current = null;
-      }
-    };
-  }, [hlsUrl, started]);
+    // Neither native HLS nor hls.js supported
+    console.error("[Player] HLS not supported in this browser");
+    setError("Your browser does not support video playback. Please try Chrome, Safari, or Firefox.");
+  }, [hlsUrl]);
 
-  /* ---- Video event listeners ------------------------------------- */
+  /* ---- Video event listeners (always attached -- video always in DOM) */
 
   useEffect(() => {
     const video = videoRef.current;
@@ -117,15 +141,26 @@ export default function Player({
       }
     };
     const onPlay = () => {
+      console.log("[Player] Video play event fired");
       setPlaying(true);
       setLoading(false);
     };
     const onPause = () => setPlaying(false);
     const onWaiting = () => setLoading(true);
-    const onCanPlay = () => setLoading(false);
+    const onCanPlay = () => {
+      console.log("[Player] Video canplay event fired");
+      setLoading(false);
+    };
     const onProgress = () => {
       if (video.buffered.length > 0) {
         setBuffered(video.buffered.end(video.buffered.length - 1));
+      }
+    };
+    const onError = () => {
+      console.error("[Player] Video element error:", video.error?.message);
+      if (started) {
+        setError("Video playback error. Please try again.");
+        setLoading(false);
       }
     };
 
@@ -136,6 +171,7 @@ export default function Player({
     video.addEventListener("waiting", onWaiting);
     video.addEventListener("canplay", onCanPlay);
     video.addEventListener("progress", onProgress);
+    video.addEventListener("error", onError);
 
     return () => {
       video.removeEventListener("timeupdate", onTimeUpdate);
@@ -145,8 +181,9 @@ export default function Player({
       video.removeEventListener("waiting", onWaiting);
       video.removeEventListener("canplay", onCanPlay);
       video.removeEventListener("progress", onProgress);
+      video.removeEventListener("error", onError);
     };
-  }, [started]);
+  }, []); // No dependencies -- video element is always in the DOM now
 
   /* ---- Controls auto-hide ---------------------------------------- */
 
@@ -163,9 +200,30 @@ export default function Player({
   /* ---- Interactions ---------------------------------------------- */
 
   const handleStart = () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    console.log("[Player] Play button clicked, hlsReady:", hlsReady);
     setStarted(true);
-    setPlaying(true);
     setLoading(true);
+    setError(null);
+
+    // HLS is already attached -- just play
+    video.play()
+      .then(() => {
+        console.log("[Player] video.play() resolved");
+      })
+      .catch((err) => {
+        console.error("[Player] video.play() rejected:", err);
+        // Autoplay may be blocked -- try muted
+        video.muted = true;
+        video.play().catch((err2) => {
+          console.error("[Player] Muted play also failed:", err2);
+          setError("Tap to play. Your browser blocked autoplay.");
+          setLoading(false);
+        });
+      });
+
     scheduleHide();
   };
 
@@ -198,6 +256,50 @@ export default function Player({
     scheduleHide();
   };
 
+  const handleRetry = () => {
+    setError(null);
+    setLoading(true);
+
+    // Destroy and re-create HLS
+    if (hlsRef.current) {
+      hlsRef.current.destroy();
+      hlsRef.current = null;
+    }
+
+    const video = videoRef.current;
+    if (!video || !hlsUrl) return;
+
+    if (video.canPlayType("application/vnd.apple.mpegurl")) {
+      video.src = hlsUrl;
+      video.play().catch(() => {});
+      return;
+    }
+
+    if (HlsModule && HlsModule.isSupported()) {
+      const hls = new HlsModule({
+        maxBufferLength: 60,
+        maxMaxBufferLength: 120,
+        startLevel: -1,
+        capLevelToPlayerSize: false,
+        enableWorker: true,
+        lowLatencyMode: false,
+      });
+      hlsRef.current = hls;
+      hls.loadSource(hlsUrl);
+      hls.attachMedia(video);
+      hls.on(HlsModule.Events.MANIFEST_PARSED, () => {
+        setHlsReady(true);
+        video.play().catch(() => {});
+      });
+      hls.on(HlsModule.Events.ERROR, (_event: string, data: { fatal: boolean }) => {
+        if (data.fatal) {
+          setError("Video failed to load. Please try refreshing the page.");
+          setLoading(false);
+        }
+      });
+    }
+  };
+
   const progress = duration > 0 ? currentTime / duration : 0;
   const bufferPct = duration > 0 ? buffered / duration : 0;
 
@@ -217,18 +319,19 @@ export default function Player({
         style={{ aspectRatio: "9 / 16", background: T.bg }}
         onClick={handleTap}
       >
-        {/* Hidden video element */}
-        {started && (
-          <video
-            ref={videoRef}
-            className="absolute inset-0 w-full h-full object-cover"
-            playsInline
-            muted
-            autoPlay
-            preload="auto"
-            poster={posterThumb}
-          />
-        )}
+        {/* Video element -- ALWAYS rendered, hidden behind poster until started */}
+        <video
+          ref={videoRef}
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{
+            zIndex: started ? 1 : 0,
+            opacity: started ? 1 : 0,
+          }}
+          playsInline
+          muted
+          preload="auto"
+          poster={posterThumb}
+        />
 
         {/* Poster overlay before start */}
         {!started && posterThumb && (
@@ -238,7 +341,7 @@ export default function Player({
             fill
             sizes="(max-width: 440px) 100vw, 440px"
             className="object-cover"
-            style={{ filter: "brightness(0.6)" }}
+            style={{ filter: "brightness(0.6)", zIndex: 2 }}
             priority
           />
         )}
@@ -251,6 +354,7 @@ export default function Player({
               style={{
                 background: "linear-gradient(to bottom, rgba(0,0,0,0.6), transparent)",
                 opacity: showControls ? 1 : 0,
+                zIndex: 5,
               }}
             />
             <div
@@ -258,13 +362,14 @@ export default function Player({
               style={{
                 background: "linear-gradient(to top, rgba(0,0,0,0.7), transparent)",
                 opacity: showControls ? 1 : 0,
+                zIndex: 5,
               }}
             />
           </>
         )}
 
         {/* Big play button (before start) */}
-        {!started && (
+        {!started && !error && (
           <div className="absolute inset-0 flex items-center justify-center z-10">
             <button
               className="w-16 h-16 rounded-full flex items-center justify-center transition-transform active:scale-90"
@@ -285,8 +390,50 @@ export default function Player({
           </div>
         )}
 
+        {/* Error message overlay */}
+        {error && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center z-30 px-6">
+            <div
+              className="rounded-xl px-6 py-5 text-center max-w-xs"
+              style={{
+                background: "rgba(0,0,0,0.8)",
+                backdropFilter: "blur(12px)",
+              }}
+            >
+              <svg
+                width="32"
+                height="32"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke={T.accent}
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="mx-auto mb-3"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              <p className="text-sm mb-4" style={{ color: T.text }}>
+                {error}
+              </p>
+              <button
+                className="px-5 py-2 rounded-full text-sm font-semibold transition-transform active:scale-95"
+                style={{ background: T.accent, color: T.text }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleRetry();
+                }}
+              >
+                Try Again
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Loading spinner */}
-        {loading && started && (
+        {loading && started && !error && (
           <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
             <div
               className="w-10 h-10 rounded-full border-2 border-transparent animate-spin"
@@ -299,7 +446,7 @@ export default function Player({
         )}
 
         {/* Center pause/play icon (shown briefly on tap) */}
-        {started && showControls && !loading && (
+        {started && showControls && !loading && !error && (
           <div
             className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none transition-opacity duration-200"
             style={{ opacity: showControls ? 1 : 0 }}

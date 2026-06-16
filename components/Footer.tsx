@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { T } from "@/lib/theme";
 
 const socialLinks = [
@@ -138,12 +139,14 @@ export default function Footer() {
         {/* Section 3 — Legal Links */}
         <div className="flex flex-wrap justify-center gap-x-4 gap-y-1.5 mb-5">
           {legalLinks.map((link) => (
-            <span
+            <Link
               key={link.href}
+              href={link.href}
+              className="no-underline transition-opacity hover:opacity-80"
               style={{ color: T.textMute, fontSize: 12 }}
             >
               {link.label}
-            </span>
+            </Link>
           ))}
         </div>
 

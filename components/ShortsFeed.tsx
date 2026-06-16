@@ -3,8 +3,13 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import type HlsType from "hls.js";
 import type { Series } from "@/lib/catalog";
+
+let HlsModule: typeof HlsType | null = null;
+if (typeof window !== "undefined") {
+  import("hls.js").then((m) => { HlsModule = m.default; }).catch(() => {});
+}
 import { T } from "@/lib/theme";
 import { MUX_MAP } from "@/lib/mux-map";
 
@@ -60,7 +65,9 @@ function RailButton({ children, label, onClick }: {
 function ShortCard({ series, isActive }: { series: Series; isActive: boolean }) {
   const [liked, setLiked] = useState(false);
   const [muted, setMuted] = useState(true);
+  const [videoError, setVideoError] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const hlsRef = useRef<HlsType | null>(null);
   const likeCount = pseudoCount(series.slug, 1, 50);
   const epNum = pseudoCount(series.slug, 1, 5);
 
@@ -68,25 +75,51 @@ function ShortCard({ series, isActive }: { series: Series; isActive: boolean }) 
   const muxEpisodes = MUX_MAP[series.slug];
   const playbackId = muxEpisodes?.[0]?.playbackId ?? null;
 
-  /* Play / pause when card becomes active or inactive */
-  const muxSrc = playbackId ? `https://stream.mux.com/${playbackId}.m3u8` : null;
-
+  /* Attach HLS source once — works across Safari (native) and Chrome/Firefox (hls.js) */
   useEffect(() => {
     const vid = videoRef.current;
-    if (!vid) return;
-    if (isActive) {
-      /* Restore src if it was cleared and start playback */
-      if (muxSrc && !vid.getAttribute("src")) {
-        vid.src = muxSrc;
+    if (!vid || !playbackId) return;
+
+    const hlsUrl = `https://stream.mux.com/${playbackId}.m3u8`;
+    let hls: HlsType | null = null;
+
+    if (vid.canPlayType("application/vnd.apple.mpegurl")) {
+      /* Safari / iOS — native HLS support */
+      vid.src = hlsUrl;
+    } else if (HlsModule && HlsModule.isSupported()) {
+      /* Chrome / Firefox — use hls.js */
+      hls = new HlsModule({ maxBufferLength: 30 });
+      hls.loadSource(hlsUrl);
+      hls.attachMedia(vid);
+      hls.on(HlsModule.Events.ERROR, (_event: string, data: { fatal: boolean }) => {
+        if (data.fatal) {
+          setVideoError(true);
+        }
+      });
+      hlsRef.current = hls;
+    } else {
+      /* No HLS support at all — fall back to poster */
+      setVideoError(true);
+    }
+
+    return () => {
+      if (hls) {
+        hls.destroy();
+        hlsRef.current = null;
       }
+    };
+  }, [playbackId]);
+
+  /* Play / pause when card becomes active or inactive — never touch the src */
+  useEffect(() => {
+    const vid = videoRef.current;
+    if (!vid || !playbackId) return;
+    if (isActive) {
       vid.play().catch(() => {/* autoplay may be blocked */});
     } else {
-      /* Pause, clear src and release network resources to free memory */
       vid.pause();
-      vid.removeAttribute("src");
-      vid.load();
     }
-  }, [isActive, muxSrc]);
+  }, [isActive, playbackId]);
 
   /* Sync muted state to video element */
   useEffect(() => {
@@ -104,19 +137,31 @@ function ShortCard({ series, isActive }: { series: Series; isActive: boolean }) 
       }}
     >
       {/* Full-bleed video or poster fallback */}
-      {playbackId ? (
-        <video
-          ref={videoRef}
-          src={`https://stream.mux.com/${playbackId}.m3u8`}
-          poster={`https://image.mux.com/${playbackId}/thumbnail.jpg?time=5&width=720&height=1280`}
-          playsInline
-          muted={muted}
-          loop
-          autoPlay={isActive}
-          preload={isActive ? "auto" : "none"}
-          className="absolute inset-0 w-full h-full object-contain"
-          style={{ background: "#07070E" }}
-        />
+      {playbackId && !videoError ? (
+        <>
+          <video
+            ref={videoRef}
+            poster={`https://image.mux.com/${playbackId}/thumbnail.jpg?time=5&width=720&height=1280`}
+            playsInline
+            muted={muted}
+            loop
+            autoPlay={isActive}
+            preload={isActive ? "auto" : "none"}
+            className="absolute inset-0 w-full h-full object-contain"
+            style={{ background: "#07070E" }}
+            onError={() => setVideoError(true)}
+          />
+          {/* Poster overlay while video loads to prevent black flash */}
+          <Image
+            src={`https://image.mux.com/${playbackId}/thumbnail.jpg?time=5&width=720&height=1280`}
+            alt={series.title}
+            fill
+            className="absolute inset-0 object-contain pointer-events-none transition-opacity duration-300"
+            sizes="100vw"
+            style={{ opacity: isActive ? 0 : 1 }}
+            priority={isActive}
+          />
+        </>
       ) : series.posterUrl ? (
         <Image
           src={series.posterUrl}
