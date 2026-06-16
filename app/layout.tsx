@@ -80,8 +80,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">
+    <html lang="en" className={`${inter.variable} h-full antialiased`} style={{ background: "#07070E" }}>
+      <body className="min-h-full flex flex-col" style={{ background: "#07070E" }}>
         <CartProvider>
           {/* iPhone frame wrapper — visible on desktop only (CSS controlled) */}
           <div className="iphone-frame">

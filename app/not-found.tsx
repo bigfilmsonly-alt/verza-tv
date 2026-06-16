@@ -3,7 +3,7 @@ import { T } from "@/lib/theme";
 
 export default function NotFound() {
   return (
-    <section className="px-4 pt-16 pb-8 text-center">
+    <section className="px-4 pt-16 pb-8 text-center" style={{ background: "#07070E", minHeight: "100vh" }}>
       <h1 className="text-6xl font-extrabold mb-4" style={{ color: T.accent }}>
         404
       </h1>

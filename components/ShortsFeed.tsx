@@ -66,6 +66,7 @@ function ShortCard({ series, isActive }: { series: Series; isActive: boolean }) 
   const [liked, setLiked] = useState(false);
   const [muted, setMuted] = useState(true);
   const [videoError, setVideoError] = useState(false);
+  const [videoPlaying, setVideoPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<HlsType | null>(null);
   const likeCount = pseudoCount(series.slug, 1, 50);
@@ -118,6 +119,7 @@ function ShortCard({ series, isActive }: { series: Series; isActive: boolean }) 
       vid.play().catch(() => {/* autoplay may be blocked */});
     } else {
       vid.pause();
+      setVideoPlaying(false);
     }
   }, [isActive, playbackId]);
 
@@ -136,41 +138,35 @@ function ShortCard({ series, isActive }: { series: Series; isActive: boolean }) 
         background: "#07070E",
       }}
     >
-      {/* Full-bleed video or poster fallback */}
-      {playbackId && !videoError ? (
-        <>
-          <video
-            ref={videoRef}
-            poster={`https://image.mux.com/${playbackId}/thumbnail.jpg?time=5&width=720&height=1280`}
-            playsInline
-            muted={muted}
-            loop
-            autoPlay={isActive}
-            preload={isActive ? "auto" : "none"}
-            className="absolute inset-0 w-full h-full object-contain"
-            style={{ background: "#07070E" }}
-            onError={() => setVideoError(true)}
-          />
-          {/* Poster overlay while video loads to prevent black flash */}
-          <Image
-            src={`https://image.mux.com/${playbackId}/thumbnail.jpg?time=5&width=720&height=1280`}
-            alt={series.title}
-            fill
-            className="absolute inset-0 object-contain pointer-events-none transition-opacity duration-300"
-            sizes="100vw"
-            style={{ opacity: isActive ? 0 : 1 }}
-            priority={isActive}
-          />
-        </>
-      ) : series.posterUrl ? (
+      {/* Full-bleed video (when available) */}
+      {playbackId && !videoError && (
+        <video
+          ref={videoRef}
+          playsInline
+          muted={muted}
+          loop
+          autoPlay={isActive}
+          preload={isActive ? "auto" : "none"}
+          className="absolute inset-0 w-full h-full object-contain"
+          style={{ background: "#07070E" }}
+          onPlaying={() => setVideoPlaying(true)}
+          onError={() => setVideoError(true)}
+        />
+      )}
+
+      {/* Local poster art — always rendered, fades out only once video is actually playing */}
+      {series.posterUrl ? (
         <Image
           src={series.posterUrl}
           alt={series.title}
           fill
-          className="object-contain"
+          className="absolute inset-0 object-contain pointer-events-none transition-opacity duration-500"
           sizes="100vw"
           priority={isActive}
-          style={{ filter: "saturate(1.12) contrast(1.04) brightness(1.02)" }}
+          style={{
+            opacity: videoPlaying && !videoError ? 0 : 1,
+            filter: "saturate(1.12) contrast(1.04) brightness(1.02)",
+          }}
         />
       ) : (
         <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, #1A1A26, #0A0A12)" }} />

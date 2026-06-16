@@ -58,9 +58,9 @@ export default function Player({
     ? `https://stream.mux.com/${playbackId}.m3u8`
     : null;
 
-  const posterThumb = playbackId
-    ? `https://image.mux.com/${playbackId}/thumbnail.jpg?time=2&width=1080&height=1920`
-    : posterUrl;
+  const muxThumb = playbackId
+    ? `https://image.mux.com/${playbackId}/thumbnail.jpg?time=2&width=720`
+    : "";
 
   /* ---- Pre-attach HLS on mount (not on play click) --------------- */
 
@@ -316,7 +316,7 @@ export default function Player({
       {/* Player container -- 9:16 vertical */}
       <div
         className="relative rounded-2xl overflow-hidden select-none"
-        style={{ aspectRatio: "9 / 16", background: T.bg }}
+        style={{ aspectRatio: "9 / 16", background: "#07070E" }}
         onClick={handleTap}
       >
         {/* Video element -- ALWAYS rendered, hidden behind poster until started */}
@@ -330,18 +330,18 @@ export default function Player({
           playsInline
           muted
           preload="auto"
-          poster={posterThumb}
+          poster={muxThumb || undefined}
         />
 
-        {/* Poster overlay before start */}
-        {!started && posterThumb && (
+        {/* Poster overlay before start — uses local poster art for instant display */}
+        {!started && posterUrl && (
           <Image
-            src={posterThumb}
+            src={posterUrl}
             alt={title}
             fill
             sizes="(max-width: 440px) 100vw, 440px"
             className="object-cover"
-            style={{ filter: "brightness(0.6)", zIndex: 2 }}
+            style={{ filter: "brightness(0.7)", zIndex: 2 }}
             priority
           />
         )}
@@ -614,7 +614,7 @@ function PosterFallback({
     <div className="mx-4">
       <div
         className="relative rounded-2xl overflow-hidden"
-        style={{ aspectRatio: "9 / 16", background: T.bg }}
+        style={{ aspectRatio: "9 / 16", background: "#07070E" }}
       >
         {posterUrl ? (
           <Image
@@ -623,8 +623,9 @@ function PosterFallback({
             fill
             sizes="(max-width: 440px) 100vw, 440px"
             className="object-cover"
+            priority
             style={{
-              filter: playing ? "brightness(0.15)" : "brightness(0.6)",
+              filter: playing ? "brightness(0.15)" : "brightness(0.7)",
               transition: "filter 0.4s ease",
             }}
           />

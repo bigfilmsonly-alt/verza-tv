@@ -21,7 +21,7 @@ export default function CoinPaywall({
   episodeNumber,
 }: CoinPaywallProps) {
   return (
-    <div className="relative mx-4 rounded-2xl overflow-hidden">
+    <div className="relative mx-4 rounded-2xl overflow-hidden" style={{ backgroundColor: "#07070E" }}>
       {/* Dimmed poster background */}
       <div className="relative" style={{ aspectRatio: "9 / 16" }}>
         {posterUrl ? (
@@ -29,6 +29,7 @@ export default function CoinPaywall({
             src={posterUrl}
             alt="Locked episode"
             fill
+            priority
             sizes="(max-width: 440px) 100vw, 440px"
             className="object-cover"
             style={{ filter: "brightness(0.25) blur(2px)" }}
