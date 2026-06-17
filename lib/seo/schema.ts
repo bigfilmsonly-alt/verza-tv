@@ -1,3 +1,5 @@
+import { getLiveSeries } from "@/lib/catalog";
+
 const BASE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
 
@@ -28,7 +30,7 @@ export function organizationSchema() {
     url: BASE_URL,
     logo: `${BASE_URL}/logo.png`,
     description:
-      "The first US-based vertical micro-drama streaming app. 80+ originals.",
+      `The first US-based vertical micro-drama streaming app. ${getLiveSeries().length}+ originals.`,
     founder: {
       "@type": "Person",
       name: "Alan Mruvka",

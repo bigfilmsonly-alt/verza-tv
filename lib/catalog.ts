@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------ */
-/*  Full catalog — 75 live series + coming soon                        */
+/*  Full catalog — live series + coming soon                            */
 /* ------------------------------------------------------------------ */
 
 export type BrowseCategory = "drama" | "new" | "popular" | "music" | "reality" | "red-carpet";
@@ -697,7 +697,7 @@ export const catalog: Series[] = [
     logline: "Twin sisters. One fiance. The wrong twin said yes — and the right one wants blood.",
     genre: "Family drama",
     channel: "Verza Originals",
-    categories: ["reality"],
+    categories: ["drama"],
     episodeCount: 46,
     posterUrl: "/posters/my-sister-stole-my-man.png",
     freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(46), status: "live",
@@ -907,6 +907,62 @@ export const catalog: Series[] = [
     episodeCount: 56,
     posterUrl: "/posters/the-inheritance-game.png",
     freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(56), status: "live",
+  },
+
+  /* ================================================================ */
+  /*  MUSIC TAB                                                        */
+  /* ================================================================ */
+  {
+    slug: "storageblue-too-much-junk",
+    title: "StorageBlue: Too Much Junk",
+    logline: "When storage units go to auction, one crew finds more than furniture — they find fame, feuds, and hidden fortunes.",
+    genre: "Reality \u00b7 Comedy",
+    channel: "StorageBlue",
+    categories: ["music"],
+    episodeCount: 24,
+    posterUrl: "",
+    freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(24), status: "live",
+  },
+
+  /* ================================================================ */
+  /*  REALITY TAB (additional)                                         */
+  /* ================================================================ */
+  {
+    slug: "the-vertical-tea",
+    title: "The Vertical Tea",
+    logline: "The hottest takes on micro-drama, celebrity scandals, and internet chaos — served piping hot, sixty seconds at a time.",
+    genre: "Talk \u00b7 Reality",
+    channel: "The Vertical Tea",
+    categories: ["reality"],
+    episodeCount: 40,
+    posterUrl: "",
+    freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(40), status: "live",
+  },
+
+  /* ================================================================ */
+  /*  RED CARPET TAB                                                   */
+  /* ================================================================ */
+  {
+    slug: "vertical-drama-love-awards",
+    title: "Vertical Drama Love Awards",
+    logline: "The biggest stars of micro-drama gather for one unforgettable night of glamour, tears, and surprises.",
+    genre: "Event \u00b7 Red Carpet",
+    channel: "Verza Originals",
+    categories: ["red-carpet"],
+    episodeCount: 6,
+    posterUrl: "",
+    freeEpisodes: 6, coinPerEpisode: 0, seasonPassCoins: 0, status: "live",
+  },
+  {
+    slug: "exes-premiere",
+    title: "EXES Premiere",
+    logline: "Exclusive red carpet coverage from the premiere of EXES — the stars, the drama, and the moments everyone will be talking about.",
+    genre: "Event \u00b7 Red Carpet",
+    channel: "Verza Originals",
+    categories: ["red-carpet"],
+    episodeCount: 4,
+    posterUrl: "",
+    freeEpisodes: 4, coinPerEpisode: 0, seasonPassCoins: 0, status: "live",
   },
 
   /* ================================================================ */

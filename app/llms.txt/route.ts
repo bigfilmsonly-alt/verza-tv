@@ -1,4 +1,5 @@
 import { BRAND, FREE_EPISODES, DEFAULT_COIN_PER_EPISODE, VIP_WEEKLY, VIP_YEARLY } from "@/lib/config";
+import { getLiveSeries } from "@/lib/catalog";
 
 export function GET() {
   const body = `# ${BRAND.name}
@@ -11,7 +12,7 @@ ${BRAND.name} is the first US-based vertical micro-drama streaming platform. We 
 ${BRAND.name} was founded by Alan Mruvka, co-founder of E! Entertainment Television. Alan brings decades of experience building entertainment brands from the ground up.
 
 ## Key Features
-- 80+ original series at launch across Romance, Thriller, Drama, Reality, Comedy, Mystery, Sci-Fi, and Horror
+- ${getLiveSeries().length}+ original series at launch across Romance, Thriller, Drama, Reality, Comedy, Mystery, Sci-Fi, and Horror
 - Episode format: 60-120 seconds, vertical (9:16), cinema-quality production
 - First ${FREE_EPISODES} episodes of every series are free -- no account required
 - Coin-based unlock system: ${DEFAULT_COIN_PER_EPISODE} coins per episode, packs from $1.99

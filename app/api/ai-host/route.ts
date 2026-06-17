@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getLiveSeries } from "@/lib/catalog";
 
 // AI Host — server-only, uses ANTHROPIC_API_KEY
 // Provides show recommendations, host commentary, and personalized suggestions
@@ -74,7 +75,7 @@ function getScriptedResponse(prompt: string): string {
   }
 
   return (
-    "Welcome to Verza TV! We have 80+ original micro-dramas across romance, thriller, " +
+    `Welcome to Verza TV! We have ${getLiveSeries().length}+ original micro-dramas across romance, thriller, ` +
     "drama, and more. Every series starts with 5 free episodes. What genre are you in " +
     "the mood for?"
   );

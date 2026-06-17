@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { T } from "@/lib/theme";
 import { BRAND } from "@/lib/config";
+import { getLiveSeries } from "@/lib/catalog";
 
 export const metadata: Metadata = {
   title: `Press | ${BRAND.name}`,
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
 const BRAND_FACTS = [
   { label: "Platform", value: "First US-based vertical micro-drama streaming app" },
   { label: "Founded By", value: "Alan Mruvka, co-founder of E! Entertainment Television" },
-  { label: "Content Library", value: "80+ original series at launch" },
+  { label: "Content Library", value: `${getLiveSeries().length}+ original series at launch` },
   { label: "Episode Format", value: "60-120 seconds, vertical 9:16" },
   { label: "Total Episode Views", value: "120M+" },
   { label: "Average per Episode", value: "425K views" },

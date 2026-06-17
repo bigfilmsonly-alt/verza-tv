@@ -8,10 +8,12 @@ import SearchBar from "@/components/SearchBar";
 export const metadata: Metadata = {
   title: "Discover Micro-Dramas | Verza TV",
   description:
-    "Browse Drama, New, Popular, Music, Reality, and Red Carpet micro-dramas on Verza TV. 80+ original series, all vertical, all binge-worthy.",
+    `Browse micro-dramas on Verza TV by category. ${getLiveSeries().length}+ original series, all vertical, all binge-worthy.`,
 };
 
 export default function DiscoverPage() {
+  const activeTabs = BROWSE_TABS.filter(tab => getSeriesByCategory(tab.key).length > 0);
+
   return (
     <section className="px-4 pt-6 pb-8">
       <h1 className="text-2xl font-bold mb-5" style={{ color: T.text }}>
@@ -30,7 +32,7 @@ export default function DiscoverPage() {
         Browse by Category
       </h2>
       <div className="genre-grid grid grid-cols-2 gap-3 mb-10">
-        {BROWSE_TABS.map((tab) => (
+        {activeTabs.map((tab) => (
           <Link
             key={tab.key}
             href={`/discover/${tab.key}`}
