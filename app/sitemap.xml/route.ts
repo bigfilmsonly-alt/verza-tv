@@ -1,77 +1,18 @@
-import { catalog, getLiveSeries, getEpisodesForSeries } from "@/lib/catalog";
-
 export function GET() {
   const baseUrl =
     process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
-  const now = new Date().toISOString().split("T")[0];
 
-  const staticPages = [
-    { loc: "/", priority: "1.0", changefreq: "daily" },
-    { loc: "/discover", priority: "0.9", changefreq: "daily" },
-    { loc: "/search", priority: "0.7", changefreq: "weekly" },
-    { loc: "/channels", priority: "0.8", changefreq: "weekly" },
-    { loc: "/shop", priority: "0.7", changefreq: "monthly" },
-    { loc: "/press", priority: "0.6", changefreq: "monthly" },
-    { loc: "/about", priority: "0.6", changefreq: "monthly" },
-    { loc: "/help", priority: "0.5", changefreq: "monthly" },
-    { loc: "/studio", priority: "0.4", changefreq: "monthly" },
+  const sitemaps = [
+    `${baseUrl}/sitemaps/shows.xml`,
+    `${baseUrl}/sitemaps/episodes.xml`,
+    `${baseUrl}/sitemaps/genres.xml`,
+    `${baseUrl}/sitemaps/pages.xml`,
   ];
-
-  // Genre landing pages (AEO)
-  const genreSlugs = [
-    "romance", "thriller", "drama", "comedy",
-    "mystery", "billionaire", "revenge", "forbidden",
-  ];
-  const genreUrls = genreSlugs.map(
-    (g) => `  <url>
-    <loc>${baseUrl}/genre/${g}</loc>
-    <lastmod>${now}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>`
-  );
-
-  const liveSeries = getLiveSeries();
-
-  // Build series page URLs
-  const seriesUrls = liveSeries.map(
-    (s) => `  <url>
-    <loc>${baseUrl}/series/${s.slug}</loc>
-    <lastmod>${now}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>`
-  );
-
-  // Build episode page URLs for each live series
-  const episodeUrls = liveSeries.flatMap((s) => {
-    const episodes = getEpisodesForSeries(s.slug);
-    return episodes.map(
-      (ep) => `  <url>
-    <loc>${baseUrl}/series/${s.slug}/episode/${ep.number}</loc>
-    <lastmod>${now}</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>`
-    );
-  });
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${staticPages
-  .map(
-    (page) => `  <url>
-    <loc>${baseUrl}${page.loc}</loc>
-    <lastmod>${now}</lastmod>
-    <changefreq>${page.changefreq}</changefreq>
-    <priority>${page.priority}</priority>
-  </url>`
-  )
-  .join("\n")}
-${genreUrls.join("\n")}
-${seriesUrls.join("\n")}
-${episodeUrls.join("\n")}
-</urlset>`;
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${sitemaps.map((url) => `  <sitemap><loc>${url}</loc></sitemap>`).join("\n")}
+</sitemapindex>`;
 
   return new Response(xml.trim(), {
     headers: { "Content-Type": "application/xml; charset=utf-8" },
