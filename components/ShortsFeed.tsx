@@ -68,24 +68,16 @@ function RailButton({ children, label, onClick }: {
 /* ================================================================== */
 function useActiveVideo(
   videoRef: React.RefObject<HTMLVideoElement | null>,
-  playbackIds: (string | null)[],
-  activeIndex: number,
+  playbackId: string | null,
   muted: boolean,
 ) {
   const hlsRef = useRef<HlsType | null>(null);
-  const currentIdRef = useRef<string | null>(null);
   const [playing, setPlaying] = useState(false);
 
-  /* ---- swap source whenever activeIndex changes ---- */
+  /* ---- swap source whenever playbackId changes ---- */
   useEffect(() => {
     const vid = videoRef.current;
     if (!vid) return;
-
-    const playbackId = playbackIds[activeIndex] ?? null;
-
-    /* same source — skip */
-    if (playbackId === currentIdRef.current) return;
-    currentIdRef.current = playbackId;
 
     /* tear down previous */
     setPlaying(false);
@@ -140,8 +132,7 @@ function useActiveVideo(
     attach();
 
     return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeIndex, playbackIds]);
+  }, [playbackId, videoRef]);
 
   /* ---- listen for the "playing" event to reveal video ---- */
   useEffect(() => {
@@ -336,11 +327,13 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
     setShuffled(shuffleArray(withMux));
   }, [series]);
 
-  /* build playbackId array (stable ref across renders) */
-  const playbackIds = shuffled.map((s) => MUX_MAP[s.slug]?.[0]?.playbackId ?? null);
+  /* current playbackId — a stable string dep, not a new array each render */
+  const currentPlaybackId = shuffled[activeIndex]
+    ? (MUX_MAP[shuffled[activeIndex].slug]?.[0]?.playbackId ?? null)
+    : null;
 
   /* the hook that owns all playback */
-  const playing = useActiveVideo(videoRef, playbackIds, activeIndex, muted);
+  const playing = useActiveVideo(videoRef, currentPlaybackId, muted);
 
   /* IntersectionObserver — root is the scroll-snap container */
   const observerCallback = useCallback(
