@@ -6,12 +6,17 @@ import Link from "next/link";
 import type HlsType from "hls.js";
 import type { Series } from "@/lib/catalog";
 
-let HlsModule: typeof HlsType | null = null;
-if (typeof window !== "undefined") {
-  import("hls.js").then((m) => { HlsModule = m.default; }).catch(() => {});
-}
 import { T } from "@/lib/theme";
 import { MUX_MAP } from "@/lib/mux-map";
+
+// Load hls.js dynamically — resolves a promise so we can await it
+let hlsPromise: Promise<typeof HlsType | null> | null = null;
+function getHls(): Promise<typeof HlsType | null> {
+  if (!hlsPromise && typeof window !== "undefined") {
+    hlsPromise = import("hls.js").then((m) => m.default).catch(() => null);
+  }
+  return hlsPromise || Promise.resolve(null);
+}
 
 function shuffleArray<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -76,40 +81,56 @@ function ShortCard({ series, isActive }: { series: Series; isActive: boolean }) 
   const muxEpisodes = MUX_MAP[series.slug];
   const playbackId = muxEpisodes?.[0]?.playbackId ?? null;
 
-  /* Attach HLS source once — works across Safari (native) and Chrome/Firefox (hls.js) */
+  /* Attach HLS source once — awaits hls.js module load for Chrome/Firefox */
   useEffect(() => {
     const vid = videoRef.current;
     if (!vid || !playbackId) return;
 
-    const hlsUrl = `https://stream.mux.com/${playbackId}.m3u8`;
+    let destroyed = false;
     let hls: HlsType | null = null;
+    const hlsUrl = `https://stream.mux.com/${playbackId}.m3u8`;
 
-    if (vid.canPlayType("application/vnd.apple.mpegurl")) {
-      /* Safari / iOS — native HLS support */
-      vid.src = hlsUrl;
-    } else if (HlsModule && HlsModule.isSupported()) {
-      /* Chrome / Firefox — use hls.js */
-      hls = new HlsModule({ maxBufferLength: 30 });
+    async function attach() {
+      if (!vid || destroyed) return;
+
+      // Safari / iOS — native HLS
+      if (vid.canPlayType("application/vnd.apple.mpegurl")) {
+        vid.src = hlsUrl;
+        if (isActive) vid.play().catch(() => {});
+        return;
+      }
+
+      // Chrome / Firefox — need hls.js (await the dynamic import)
+      const Hls = await getHls();
+      if (destroyed || !Hls || !Hls.isSupported()) {
+        setVideoError(true);
+        return;
+      }
+
+      hls = new Hls({ maxBufferLength: 30, enableWorker: true });
       hls.loadSource(hlsUrl);
       hls.attachMedia(vid);
-      hls.on(HlsModule.Events.ERROR, (_event: string, data: { fatal: boolean }) => {
-        if (data.fatal) {
-          setVideoError(true);
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        if (!destroyed && isActive) {
+          vid.play().catch(() => {});
         }
       });
+      hls.on(Hls.Events.ERROR, (_event: string, data: { fatal: boolean }) => {
+        if (data.fatal && !destroyed) setVideoError(true);
+      });
       hlsRef.current = hls;
-    } else {
-      /* No HLS support at all — fall back to poster */
-      setVideoError(true);
     }
 
+    attach();
+
     return () => {
+      destroyed = true;
       if (hls) {
         hls.destroy();
         hlsRef.current = null;
       }
     };
-  }, [playbackId]);
+  }, [playbackId, isActive]);
 
   /* Play / pause when card becomes active or inactive — never touch the src */
   useEffect(() => {
