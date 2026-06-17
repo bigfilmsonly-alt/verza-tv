@@ -186,9 +186,10 @@ function ShortVideo({ playbackId, isActive, muted }: {
 /* ================================================================== */
 /*  ShortCard — one card in the feed                                   */
 /* ================================================================== */
-function ShortCard({ series, isActive, isNearActive, muted, setMuted }: {
+function ShortCard({ series, isActive, isNearActive, muted, setMuted, onPrev, onNext, hasPrev, hasNext }: {
   series: Series; isActive: boolean; isNearActive: boolean;
   muted: boolean; setMuted: (m: boolean) => void;
+  onPrev: () => void; onNext: () => void; hasPrev: boolean; hasNext: boolean;
 }) {
   const [liked, setLiked] = useState(false);
   const likeCount = pseudoCount(series.slug, 1, 50);
@@ -242,6 +243,34 @@ function ShortCard({ series, isActive, isNearActive, muted, setMuted }: {
           background: "linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 15%, transparent 70%, rgba(0,0,0,0.3) 100%)",
         }}
       />
+
+      {/* Left arrow — previous video */}
+      {hasPrev && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onPrev(); }}
+          className="absolute left-2 z-20 w-10 h-10 rounded-full flex items-center justify-center"
+          style={{ top: "50%", transform: "translateY(-50%)", background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)", border: "1px solid rgba(255,255,255,0.15)", cursor: "pointer" }}
+          aria-label="Previous video"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+        </button>
+      )}
+
+      {/* Right arrow — next video */}
+      {hasNext && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onNext(); }}
+          className="absolute right-14 z-20 w-10 h-10 rounded-full flex items-center justify-center"
+          style={{ top: "50%", transform: "translateY(-50%)", background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)", border: "1px solid rgba(255,255,255,0.15)", cursor: "pointer" }}
+          aria-label="Next video"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </button>
+      )}
 
       {/* Top-left: title + episode chip */}
       <div className="absolute top-14 left-4 z-10" style={{ maxWidth: "65%" }}>
@@ -364,6 +393,13 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
     return () => observer.disconnect();
   }, [shuffled, observerCallback]);
 
+  const scrollTo = useCallback((index: number) => {
+    const container = containerRef.current;
+    if (!container || index < 0 || index >= shuffled.length) return;
+    const cards = container.querySelectorAll(".short-card");
+    cards[index]?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [shuffled.length]);
+
   if (shuffled.length === 0) return null;
 
   return (
@@ -388,6 +424,10 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
             isNearActive={Math.abs(i - activeIndex) <= 1}
             muted={muted}
             setMuted={setMuted}
+            hasPrev={i > 0}
+            hasNext={i < shuffled.length - 1}
+            onPrev={() => scrollTo(i - 1)}
+            onNext={() => scrollTo(i + 1)}
           />
         </div>
       ))}
