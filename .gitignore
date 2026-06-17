@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Poster backups
+public/posters-backup-*/
+
+# Script output
+scripts/out/

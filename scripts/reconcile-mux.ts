@@ -89,7 +89,7 @@ async function pullMuxAssets(forceRefresh: boolean): Promise<MuxAsset[]> {
         created_at: new Date((asset.created_at as number) * 1000).toISOString(),
         status: asset.status || "unknown",
         aspect_ratio: asset.aspect_ratio || "unknown",
-        passthrough: (asset as Record<string, unknown>).passthrough as string || "",
+        passthrough: String((asset as Record<string, unknown>).passthrough ?? ""),
       });
     }
 
