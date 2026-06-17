@@ -85,15 +85,19 @@ function ShortVideo({ playbackId, isActive, muted }: {
 
     function tryPlay() {
       if (cancelled || !vid) return;
-      vid.muted = true;
+      /* First attempt: use current muted preference */
+      vid.muted = muted;
       vid.play()
         .then(() => { if (!cancelled) setAutoplayFailed(false); })
         .catch(() => {
           if (!cancelled) {
-            setAutoplayFailed(true);
-            setTimeout(() => {
-              if (vid && !cancelled) { vid.muted = true; vid.play().catch(() => {}); }
-            }, 500);
+            /* Autoplay with sound blocked — fall back to muted */
+            vid.muted = true;
+            vid.play()
+              .then(() => { if (!cancelled) setAutoplayFailed(false); })
+              .catch(() => {
+                if (!cancelled) setAutoplayFailed(true);
+              });
           }
         });
     }
