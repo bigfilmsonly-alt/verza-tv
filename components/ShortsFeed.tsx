@@ -81,7 +81,7 @@ function ShortCard({ series, isActive }: { series: Series; isActive: boolean }) 
   const muxEpisodes = MUX_MAP[series.slug];
   const playbackId = muxEpisodes?.[0]?.playbackId ?? null;
 
-  /* Attach HLS source once — awaits hls.js module load for Chrome/Firefox */
+  /* Attach HLS source on MOUNT — preloads so video is ready before becoming active */
   useEffect(() => {
     const vid = videoRef.current;
     if (!vid || !playbackId) return;
@@ -96,7 +96,6 @@ function ShortCard({ series, isActive }: { series: Series; isActive: boolean }) 
       // Safari / iOS — native HLS
       if (vid.canPlayType("application/vnd.apple.mpegurl")) {
         vid.src = hlsUrl;
-        if (isActive) vid.play().catch(() => {});
         return;
       }
 
@@ -110,11 +109,6 @@ function ShortCard({ series, isActive }: { series: Series; isActive: boolean }) 
       hls = new Hls({ maxBufferLength: 30, enableWorker: true });
       hls.loadSource(hlsUrl);
       hls.attachMedia(vid);
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        if (!destroyed && isActive) {
-          vid.play().catch(() => {});
-        }
-      });
       hls.on(Hls.Events.ERROR, (_event: string, data: { fatal: boolean }) => {
         if (data.fatal && !destroyed) setVideoError(true);
       });
@@ -130,14 +124,18 @@ function ShortCard({ series, isActive }: { series: Series; isActive: boolean }) 
         hlsRef.current = null;
       }
     };
-  }, [playbackId, isActive]);
+  }, [playbackId]); // Only depends on playbackId — attaches once, never re-destroys on scroll
 
-  /* Play / pause when card becomes active or inactive — never touch the src */
+  /* Play when active, pause when not — separate from HLS attachment */
   useEffect(() => {
     const vid = videoRef.current;
     if (!vid || !playbackId) return;
     if (isActive) {
-      vid.play().catch(() => {/* autoplay may be blocked */});
+      // Small delay to let HLS attach finish if needed
+      const timer = setTimeout(() => {
+        vid.play().catch(() => {});
+      }, 100);
+      return () => clearTimeout(timer);
     } else {
       vid.pause();
       setVideoPlaying(false);
