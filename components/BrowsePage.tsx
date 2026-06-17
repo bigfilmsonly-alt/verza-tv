@@ -124,7 +124,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
             </>
           )}
 
-          <div className="px-4 pt-3 pb-1">
+          <div className="px-4 pt-3 pb-1 text-center">
             <Link href={`/series/${current.slug}`} className="no-underline">
               <h2 className="text-lg font-extrabold leading-tight uppercase tracking-wide" style={{ color: "#FFFFFF" }}>
                 {current.title}
@@ -134,7 +134,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               {current.genre} &middot; {current.episodeCount} episodes
             </p>
             {heroSlides.length > 1 && (
-              <div className="flex items-center gap-1.5 mt-2.5">
+              <div className="flex items-center justify-center gap-1.5 mt-2.5">
                 {heroSlides.map((_, i) => (
                   <button
                     key={i}
