@@ -5,15 +5,19 @@ import { T } from "@/lib/theme";
 import { products } from "@/lib/products";
 import { BRAND } from "@/lib/config";
 import CartButton from "@/components/CartButton";
+import { organizationSchema } from "@/lib/seo/schema";
+import JsonLd from "@/components/JsonLd";
 
 export const metadata: Metadata = {
   title: `Shop | ${BRAND.name}`,
   description: "Official Verza TV merch — hoodies, mugs, socks, water bottles, and more.",
+  alternates: { canonical: "/shop" },
 };
 
 export default function ShopPage() {
   return (
     <section className="px-4 pt-6 pb-8">
+      <JsonLd data={organizationSchema()} />
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold" style={{ color: T.text }}>

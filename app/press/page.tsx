@@ -2,11 +2,14 @@ import type { Metadata } from "next";
 import { T } from "@/lib/theme";
 import { BRAND } from "@/lib/config";
 import { getLiveSeries } from "@/lib/catalog";
+import { organizationSchema } from "@/lib/seo/schema";
+import JsonLd from "@/components/JsonLd";
 
 export const metadata: Metadata = {
   title: `Press | ${BRAND.name}`,
   description:
     "Verza TV press page. Brand facts, key metrics, and media resources for the first US-based vertical micro-drama streaming platform.",
+  alternates: { canonical: "/press" },
 };
 
 const BRAND_FACTS = [
@@ -35,6 +38,7 @@ const FILMOLOGY_FACTS = [
 export default function PressPage() {
   return (
     <section className="px-4 pt-6 pb-8">
+      <JsonLd data={organizationSchema()} />
       <h1
         className="text-2xl font-bold mb-2"
         style={{ color: T.text }}

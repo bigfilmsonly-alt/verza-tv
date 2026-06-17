@@ -4,6 +4,8 @@ import Image from "next/image";
 import { T } from "@/lib/theme";
 import { BRAND } from "@/lib/config";
 import { getChannels, getSeriesByChannel, type Series } from "@/lib/catalog";
+import { organizationSchema } from "@/lib/seo/schema";
+import JsonLd from "@/components/JsonLd";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
 
@@ -114,6 +116,7 @@ export default function ChannelsPage() {
 
   return (
     <section className="px-4 pt-6 pb-8">
+      <JsonLd data={organizationSchema()} />
       <h1 className="text-2xl font-bold mb-1" style={{ color: T.text }}>
         Channels
       </h1>

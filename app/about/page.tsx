@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   title: `About | ${BRAND.name}`,
   description:
     `Verza TV is the first US-based vertical micro-drama streaming platform. Founded by Alan Mruvka, co-founder of E! Entertainment Television. ${getLiveSeries().length}+ originals, powered by Filmology Labs.`,
+  alternates: { canonical: "/about" },
 };
 
 export default function AboutPage() {

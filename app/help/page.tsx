@@ -63,6 +63,7 @@ export const metadata: Metadata = {
   title: `Help & FAQ | ${BRAND.name}`,
   description:
     "Frequently asked questions about Verza TV. Learn about coins, VIP, episode pricing, season passes, supported devices, and more.",
+  alternates: { canonical: "/help" },
 };
 
 export default function HelpPage() {
