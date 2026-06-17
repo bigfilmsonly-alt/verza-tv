@@ -38,8 +38,8 @@ interface Props {
 }
 
 export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
-  // Only show tabs that have content
-  const activeTabs = BROWSE_TABS.filter(tab => getSeriesByCategory(tab.key).length > 0);
+  // Show ALL tabs (including empty ones like Music, Red Carpet)
+  const activeTabs = BROWSE_TABS;
 
   const [activeTab, setActiveTab] = useState<BrowseCategory>("drama");
   const [heroIdx, setHeroIdx] = useState(0);

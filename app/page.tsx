@@ -19,8 +19,8 @@ export default function HomePage() {
     BROWSE_TABS.map((tab) => [tab.key, getSeriesByCategory(tab.key)])
   );
 
-  // Only include tabs that have content
-  const activeTabs = BROWSE_TABS.filter(tab => (tabData[tab.key] ?? []).length > 0);
+  // Show ALL tabs including empty ones
+  const activeTabs = BROWSE_TABS;
 
   return (
     <>
