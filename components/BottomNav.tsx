@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslation } from "@/components/LangProvider";
 
 const ACTIVE = "#FFFFFF";
 const INACTIVE = "#FFFFFF";
@@ -79,6 +80,7 @@ const tabs: Tab[] = [
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const { t } = useTranslation();
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
@@ -100,15 +102,19 @@ export default function BottomNav() {
         {tabs.map((tab) => {
           const active = isActive(tab.href);
           const color = active ? ACTIVE : INACTIVE;
+          const labelMap: Record<string, string> = {
+            "Discover": t("nav.discover"), "Shorts": t("nav.shorts"),
+            "Widescreen": t("nav.widescreen"), "Shop": t("nav.shop"),
+            "Library": t("nav.library"), "Profile": t("nav.profile"),
+          };
 
           return (
             <Link
-              key={tab.label}
+              key={tab.href}
               href={tab.href}
               className="relative flex flex-col items-center justify-center gap-1 flex-1 no-underline"
               style={{ WebkitTapHighlightColor: "transparent" }}
             >
-              {/* Active gradient bar — matches header tab style */}
               {active && (
                 <div
                   className="absolute rounded-full"
@@ -125,7 +131,7 @@ export default function BottomNav() {
                 className="text-[11px] font-medium leading-none"
                 style={{ color }}
               >
-                {tab.label}
+                {labelMap[tab.label] ?? tab.label}
               </span>
             </Link>
           );

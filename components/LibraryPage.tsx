@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { T } from "@/lib/theme";
 import { getChannels, getSeriesByChannel, type Series } from "@/lib/catalog";
+import { useTranslation } from "@/components/LangProvider";
 
 type LibraryTab = "channels" | "my-list";
 
@@ -97,6 +98,7 @@ function ChannelsContent() {
 
 /* ---- My List content ---- */
 function MyListContent() {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-col items-center justify-center py-16 px-4">
       <div className="w-20 h-20 rounded-full flex items-center justify-center mb-5" style={{ background: `${T.accent}12` }}>
@@ -104,12 +106,12 @@ function MyListContent() {
           <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
         </svg>
       </div>
-      <p className="text-base font-semibold mb-1.5" style={{ color: T.text }}>No saved shows yet</p>
+      <p className="text-base font-semibold mb-1.5" style={{ color: T.text }}>{t("library.noSavedShows")}</p>
       <p className="text-sm text-center max-w-[260px] mb-6 leading-relaxed" style={{ color: T.textMute }}>
         Tap the bookmark icon on any show to add it here for easy access.
       </p>
       <Link href="/" className="px-6 py-2.5 rounded-lg text-sm font-semibold no-underline transition-opacity hover:opacity-90" style={{ background: T.accent, color: "#fff" }}>
-        Browse Shows
+        {t("library.browseShows")}
       </Link>
     </div>
   );
@@ -118,14 +120,15 @@ function MyListContent() {
 /* ---- Main Library page ---- */
 export default function LibraryPage() {
   const [tab, setTab] = useState<LibraryTab>("channels");
+  const { t } = useTranslation();
 
   return (
     <section className="px-4 pt-6 pb-24">
-      <h1 className="text-xl font-bold mb-4" style={{ color: T.text }}>Library</h1>
+      <h1 className="text-xl font-bold mb-4" style={{ color: T.text }}>{t("library.title")}</h1>
 
       {/* Tab switcher */}
       <div className="flex rounded-lg overflow-hidden mb-5" style={{ background: T.surface, border: `1px solid ${T.line}` }}>
-        {([["channels", "Channels"], ["my-list", "My List"]] as const).map(([id, label]) => (
+        {([["channels", t("library.channels")], ["my-list", t("library.myList")]] as [LibraryTab, string][]).map(([id, label]) => (
           <button
             key={id}
             onClick={() => setTab(id)}

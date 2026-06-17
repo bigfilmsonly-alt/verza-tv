@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import { CartProvider } from "@/lib/cart";
 import CartDrawer from "@/components/CartDrawer";
+import { LangProvider } from "@/components/LangProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -83,6 +84,7 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} h-full antialiased`} style={{ background: "#07070E" }}>
       <body className="min-h-full flex flex-col" style={{ background: "#07070E" }}>
         <CartProvider>
+        <LangProvider>
           {/* iPhone frame wrapper — visible on desktop only (CSS controlled) */}
           <div className="iphone-frame">
             <div className="iphone-screen">
@@ -110,6 +112,7 @@ export default function RootLayout({
           </div>
 
           <CartDrawer />
+        </LangProvider>
         </CartProvider>
       </body>
     </html>

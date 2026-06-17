@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { T } from "@/lib/theme";
 import { BRAND } from "@/lib/config";
+import LanguagePicker from "@/components/LanguagePicker";
 
 export const metadata: Metadata = {
   title: `My Account | ${BRAND.name}`,
@@ -308,12 +309,7 @@ export default function MePage() {
       {/* ---- Settings ---- */}
       <SectionLabel>Settings</SectionLabel>
       <SectionCard>
-        <MenuRow
-          icon={Icons.globe}
-          label="Language"
-          detail="English"
-          href="/me"
-        />
+        <LanguagePicker />
         <MenuRow
           icon={Icons.bell}
           label="Notifications"
