@@ -138,38 +138,36 @@ function ShortCard({ series, isActive }: { series: Series; isActive: boolean }) 
         background: "#07070E",
       }}
     >
-      {/* Full-bleed video (when available) */}
-      {playbackId && !videoError && (
+      {/* Full-bleed LIVE video — no poster overlay, video plays directly */}
+      {playbackId && !videoError ? (
         <video
           ref={videoRef}
           playsInline
           muted={muted}
           loop
           autoPlay={isActive}
-          preload={isActive ? "auto" : "none"}
-          className="absolute inset-0 w-full h-full object-contain"
+          preload={isActive ? "auto" : "metadata"}
+          className="absolute inset-0 w-full h-full object-cover"
           style={{ background: "#07070E" }}
           onPlaying={() => setVideoPlaying(true)}
           onError={() => setVideoError(true)}
-        />
-      )}
-
-      {/* Local poster art — always rendered, fades out only once video is actually playing */}
-      {series.posterUrl ? (
-        <Image
-          src={series.posterUrl}
-          alt={series.title}
-          fill
-          className="absolute inset-0 object-contain pointer-events-none transition-opacity duration-500"
-          sizes="100vw"
-          priority={isActive}
-          style={{
-            opacity: videoPlaying && !videoError ? 0 : 1,
-            filter: "saturate(1.12) contrast(1.04) brightness(1.02)",
-          }}
+          poster={`https://image.mux.com/${playbackId}/thumbnail.jpg?time=3&width=720&height=1280`}
         />
       ) : (
-        <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, #1A1A26, #0A0A12)" }} />
+        /* Fallback: poster image only if no video available */
+        series.posterUrl ? (
+          <Image
+            src={series.posterUrl}
+            alt={series.title}
+            fill
+            className="absolute inset-0 object-cover pointer-events-none"
+            sizes="100vw"
+            priority={isActive}
+            style={{ filter: "saturate(1.12) contrast(1.04) brightness(1.02)" }}
+          />
+        ) : (
+          <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, #1A1A26, #0A0A12)" }} />
+        )
       )}
 
       {/* Subtle vignette for readability */}
