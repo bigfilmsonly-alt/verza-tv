@@ -209,9 +209,34 @@ function ShortCard({ series, isActive, isNearActive, muted, setMuted }: {
   muted: boolean; setMuted: (m: boolean) => void;
 }) {
   const [liked, setLiked] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [showCopied, setShowCopied] = useState(false);
   const likeCount = pseudoCount(series.slug, 1, 50);
   const epNum = pseudoCount(series.slug, 1, 5);
   const playbackId = MUX_MAP[series.slug]?.[0]?.playbackId ?? null;
+
+  const shareUrl = typeof window !== "undefined"
+    ? `${window.location.origin}/series/${series.slug}`
+    : `/series/${series.slug}`;
+
+  function handleShare() {
+    if (typeof navigator !== "undefined" && navigator.share) {
+      navigator.share({
+        title: series.title,
+        text: `Watch "${series.title}" on Verza TV`,
+        url: shareUrl,
+      }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        setShowCopied(true);
+        setTimeout(() => setShowCopied(false), 2000);
+      }).catch(() => {});
+    }
+  }
+
+  function handleSave() {
+    setSaved((s) => !s);
+  }
 
   return (
     <div
@@ -309,16 +334,14 @@ function ShortCard({ series, isActive, isNearActive, muted, setMuted }: {
           </svg>
         </RailButton>
 
-        <RailButton label="List">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <polygon points="12 2 2 7 12 12 22 7 12 2" />
-            <polyline points="2 17 12 22 22 17" />
-            <polyline points="2 12 12 17 22 12" />
+        <RailButton label={saved ? "Saved" : "List"} onClick={handleSave}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill={saved ? T.accent : "none"} stroke={saved ? T.accent : "#fff"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
           </svg>
         </RailButton>
 
-        <RailButton label="Share">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <RailButton label={showCopied ? "Copied!" : "Share"} onClick={handleShare}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={showCopied ? T.accent : "#fff"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
             <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
             <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
@@ -382,19 +405,6 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
     return () => observer.disconnect();
   }, [shuffled, observerCallback]);
 
-  /* Arrow navigation — scroll horizontally */
-  const goTo = useCallback((index: number) => {
-    const container = containerRef.current;
-    if (!container || index < 0 || index >= shuffled.length) return;
-    container.scrollTo({
-      left: index * container.clientWidth,
-      behavior: "smooth",
-    });
-  }, [shuffled.length]);
-
-  const goPrev = useCallback(() => goTo(activeIndex - 1), [goTo, activeIndex]);
-  const goNext = useCallback(() => goTo(activeIndex + 1), [goTo, activeIndex]);
-
   if (shuffled.length === 0) return null;
 
   const feedHeight = "calc(100dvh - 72px)";
@@ -446,50 +456,6 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
           </div>
         ))}
       </div>
-
-      {/* Left arrow */}
-      {activeIndex > 0 && (
-        <button
-          onClick={goPrev}
-          className="absolute z-30 w-11 h-11 rounded-full flex items-center justify-center"
-          style={{
-            left: 12,
-            top: "50%",
-            transform: "translateY(-50%)",
-            background: "rgba(0,0,0,0.5)",
-            backdropFilter: "blur(6px)",
-            border: "1.5px solid rgba(255,255,255,0.2)",
-            cursor: "pointer",
-          }}
-          aria-label="Previous video"
-        >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
-        </button>
-      )}
-
-      {/* Right arrow */}
-      {activeIndex < shuffled.length - 1 && (
-        <button
-          onClick={goNext}
-          className="absolute z-30 w-11 h-11 rounded-full flex items-center justify-center"
-          style={{
-            right: 56,
-            top: "50%",
-            transform: "translateY(-50%)",
-            background: "rgba(0,0,0,0.5)",
-            backdropFilter: "blur(6px)",
-            border: "1.5px solid rgba(255,255,255,0.2)",
-            cursor: "pointer",
-          }}
-          aria-label="Next video"
-        >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="9 18 15 12 9 6" />
-          </svg>
-        </button>
-      )}
 
       {/* Dot indicators */}
       <div
