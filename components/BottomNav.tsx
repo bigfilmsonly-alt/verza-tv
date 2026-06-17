@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const ACTIVE = "#FFFFFF";
-const INACTIVE = "#6B6B7B";
+const INACTIVE = "#FFFFFF";
 
 interface Tab {
   label: string;
