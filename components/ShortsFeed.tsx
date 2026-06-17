@@ -63,9 +63,7 @@ function RailButton({ children, label, onClick }: {
 }
 
 /* ================================================================== */
-/*  ShortVideo — self-contained video player per card                  */
-/*  Loads HLS + auto-plays when isActive, tears down when not.         */
-/*  Only rendered for cards near the active index (max 3 in DOM).      */
+/*  ShortVideo — auto-plays when isActive, tears down when not         */
 /* ================================================================== */
 function ShortVideo({ playbackId, isActive, muted }: {
   playbackId: string; isActive: boolean; muted: boolean;
@@ -79,7 +77,6 @@ function ShortVideo({ playbackId, isActive, muted }: {
     if (!vid) return;
 
     if (!isActive) {
-      /* ---- INACTIVE: pause, tear down, reset ---- */
       setStarted(false);
       if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
       vid.pause();
@@ -88,13 +85,12 @@ function ShortVideo({ playbackId, isActive, muted }: {
       return;
     }
 
-    /* ---- ACTIVE: attach HLS + auto-play ---- */
     let cancelled = false;
     const hlsUrl = `https://stream.mux.com/${playbackId}.m3u8`;
 
     function tryPlay() {
       if (cancelled || !vid) return;
-      vid.muted = true; /* force muted for autoplay policy */
+      vid.muted = true;
       vid.play().catch(() => {
         if (!cancelled) setTimeout(() => {
           if (vid) { vid.muted = true; vid.play().catch(() => {}); }
@@ -102,14 +98,12 @@ function ShortVideo({ playbackId, isActive, muted }: {
       });
     }
 
-    /* track when video actually starts rendering frames */
     function onPlaying() { setStarted(true); }
     vid.addEventListener("playing", onPlaying);
 
     async function attach() {
       if (cancelled || !vid) return;
 
-      /* Safari / iOS — native HLS */
       if (vid.canPlayType("application/vnd.apple.mpegurl")) {
         vid.src = hlsUrl;
         vid.load();
@@ -117,7 +111,6 @@ function ShortVideo({ playbackId, isActive, muted }: {
         return;
       }
 
-      /* Chrome / Firefox — hls.js */
       const Hls = await getHls();
       if (cancelled || !Hls || !Hls.isSupported() || !vid) return;
 
@@ -150,19 +143,10 @@ function ShortVideo({ playbackId, isActive, muted }: {
     };
   }, [isActive, playbackId]);
 
-  /* sync muted prop (for unmute toggle) */
   useEffect(() => {
     const vid = videoRef.current;
     if (vid) vid.muted = muted;
   }, [muted]);
-
-  function handleTap(e: React.MouseEvent) {
-    e.stopPropagation();
-    const vid = videoRef.current;
-    if (!vid) return;
-    if (vid.paused) vid.play().catch(() => {});
-    else vid.pause();
-  }
 
   return (
     <video
@@ -178,18 +162,16 @@ function ShortVideo({ playbackId, isActive, muted }: {
         zIndex: started ? 2 : 0,
         transition: "opacity 0.2s ease",
       }}
-      onClick={handleTap}
     />
   );
 }
 
 /* ================================================================== */
-/*  ShortCard — one card in the feed                                   */
+/*  ShortCard — one slide in the horizontal carousel                   */
 /* ================================================================== */
-function ShortCard({ series, isActive, isNearActive, muted, setMuted, onPrev, onNext, hasPrev, hasNext }: {
+function ShortCard({ series, isActive, isNearActive, muted, setMuted }: {
   series: Series; isActive: boolean; isNearActive: boolean;
   muted: boolean; setMuted: (m: boolean) => void;
-  onPrev: () => void; onNext: () => void; hasPrev: boolean; hasNext: boolean;
 }) {
   const [liked, setLiked] = useState(false);
   const likeCount = pseudoCount(series.slug, 1, 50);
@@ -198,14 +180,15 @@ function ShortCard({ series, isActive, isNearActive, muted, setMuted, onPrev, on
 
   return (
     <div
-      className="short-card relative w-full flex-shrink-0 overflow-hidden"
+      className="short-card relative flex-shrink-0 overflow-hidden"
       style={{
-        height: "calc(100dvh - 72px)",
-        scrollSnapAlign: "start",
+        width: "100%",
+        height: "100%",
+        scrollSnapAlign: "center",
         background: "#07070E",
       }}
     >
-      {/* Video — only rendered for active ± 1 cards (max 3 in DOM) */}
+      {/* Video — only rendered for active ± 1 cards */}
       {isNearActive && playbackId && (
         <ShortVideo
           key={playbackId}
@@ -215,7 +198,7 @@ function ShortCard({ series, isActive, isNearActive, muted, setMuted, onPrev, on
         />
       )}
 
-      {/* Thumbnail — always visible behind video */}
+      {/* Thumbnail — always behind video */}
       {playbackId && (
         <img
           src={`https://image.mux.com/${playbackId}/thumbnail.jpg?time=3&width=720&height=1280`}
@@ -225,7 +208,6 @@ function ShortCard({ series, isActive, isNearActive, muted, setMuted, onPrev, on
         />
       )}
 
-      {/* No video: show poster */}
       {!playbackId && series.posterUrl && (
         <Image
           src={series.posterUrl}
@@ -243,34 +225,6 @@ function ShortCard({ series, isActive, isNearActive, muted, setMuted, onPrev, on
           background: "linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 15%, transparent 70%, rgba(0,0,0,0.3) 100%)",
         }}
       />
-
-      {/* Left arrow — previous video */}
-      {hasPrev && (
-        <button
-          onClick={(e) => { e.stopPropagation(); onPrev(); }}
-          className="absolute left-2 z-20 w-10 h-10 rounded-full flex items-center justify-center"
-          style={{ top: "50%", transform: "translateY(-50%)", background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)", border: "1px solid rgba(255,255,255,0.15)", cursor: "pointer" }}
-          aria-label="Previous video"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
-        </button>
-      )}
-
-      {/* Right arrow — next video */}
-      {hasNext && (
-        <button
-          onClick={(e) => { e.stopPropagation(); onNext(); }}
-          className="absolute right-14 z-20 w-10 h-10 rounded-full flex items-center justify-center"
-          style={{ top: "50%", transform: "translateY(-50%)", background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)", border: "1px solid rgba(255,255,255,0.15)", cursor: "pointer" }}
-          aria-label="Next video"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="9 18 15 12 9 6" />
-          </svg>
-        </button>
-      )}
 
       {/* Top-left: title + episode chip */}
       <div className="absolute top-14 left-4 z-10" style={{ maxWidth: "65%" }}>
@@ -357,7 +311,7 @@ function ShortCard({ series, isActive, isNearActive, muted, setMuted, onPrev, on
 }
 
 /* ================================================================== */
-/*  ShortsFeed                                                         */
+/*  ShortsFeed — horizontal carousel with left/right arrows            */
 /* ================================================================== */
 export default function ShortsFeed({ series }: { series: Series[] }) {
   const [shuffled, setShuffled] = useState<Series[]>([]);
@@ -370,6 +324,7 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
     setShuffled(shuffleArray(withMux));
   }, [series]);
 
+  /* Horizontal IntersectionObserver */
   const observerCallback = useCallback(
     (entries: IntersectionObserverEntry[]) => {
       for (const entry of entries) {
@@ -393,44 +348,135 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
     return () => observer.disconnect();
   }, [shuffled, observerCallback]);
 
-  const scrollTo = useCallback((index: number) => {
+  /* Arrow navigation — scroll horizontally */
+  const goTo = useCallback((index: number) => {
     const container = containerRef.current;
     if (!container || index < 0 || index >= shuffled.length) return;
-    const cards = container.querySelectorAll(".short-card");
-    cards[index]?.scrollIntoView({ behavior: "smooth", block: "start" });
+    container.scrollTo({
+      left: index * container.clientWidth,
+      behavior: "smooth",
+    });
   }, [shuffled.length]);
+
+  const goPrev = useCallback(() => goTo(activeIndex - 1), [goTo, activeIndex]);
+  const goNext = useCallback(() => goTo(activeIndex + 1), [goTo, activeIndex]);
 
   if (shuffled.length === 0) return null;
 
+  const feedHeight = "calc(100dvh - 72px)";
+
   return (
     <div
-      ref={containerRef}
-      className="w-full overflow-y-auto no-scrollbar"
       style={{
-        height: "calc(100dvh - 72px)",
-        scrollSnapType: "y mandatory",
-        WebkitOverflowScrolling: "touch",
-        background: "#000",
-        marginTop: "-57px",
         position: "relative",
+        height: feedHeight,
+        marginTop: "-57px",
         zIndex: 30,
+        background: "#000",
       }}
     >
-      {shuffled.map((s, i) => (
-        <div key={s.slug} data-index={i}>
-          <ShortCard
-            series={s}
-            isActive={i === activeIndex}
-            isNearActive={Math.abs(i - activeIndex) <= 1}
-            muted={muted}
-            setMuted={setMuted}
-            hasPrev={i > 0}
-            hasNext={i < shuffled.length - 1}
-            onPrev={() => scrollTo(i - 1)}
-            onNext={() => scrollTo(i + 1)}
+      {/* Horizontal scroll container */}
+      <div
+        ref={containerRef}
+        className="no-scrollbar"
+        style={{
+          display: "flex",
+          overflowX: "auto",
+          overflowY: "hidden",
+          scrollSnapType: "x mandatory",
+          WebkitOverflowScrolling: "touch",
+          width: "100%",
+          height: "100%",
+        }}
+      >
+        {shuffled.map((s, i) => (
+          <div
+            key={s.slug}
+            data-index={i}
+            className="short-card"
+            style={{
+              flex: "0 0 100%",
+              width: "100%",
+              height: "100%",
+              scrollSnapAlign: "center",
+              position: "relative",
+            }}
+          >
+            <ShortCard
+              series={s}
+              isActive={i === activeIndex}
+              isNearActive={Math.abs(i - activeIndex) <= 1}
+              muted={muted}
+              setMuted={setMuted}
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* Left arrow */}
+      {activeIndex > 0 && (
+        <button
+          onClick={goPrev}
+          className="absolute z-30 w-11 h-11 rounded-full flex items-center justify-center"
+          style={{
+            left: 12,
+            top: "50%",
+            transform: "translateY(-50%)",
+            background: "rgba(0,0,0,0.5)",
+            backdropFilter: "blur(6px)",
+            border: "1.5px solid rgba(255,255,255,0.2)",
+            cursor: "pointer",
+          }}
+          aria-label="Previous video"
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+        </button>
+      )}
+
+      {/* Right arrow */}
+      {activeIndex < shuffled.length - 1 && (
+        <button
+          onClick={goNext}
+          className="absolute z-30 w-11 h-11 rounded-full flex items-center justify-center"
+          style={{
+            right: 56,
+            top: "50%",
+            transform: "translateY(-50%)",
+            background: "rgba(0,0,0,0.5)",
+            backdropFilter: "blur(6px)",
+            border: "1.5px solid rgba(255,255,255,0.2)",
+            cursor: "pointer",
+          }}
+          aria-label="Next video"
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </button>
+      )}
+
+      {/* Dot indicators */}
+      <div
+        className="absolute z-30 flex items-center gap-1.5"
+        style={{ bottom: 16, left: "50%", transform: "translateX(-50%)" }}
+      >
+        {shuffled.slice(0, Math.min(shuffled.length, 20)).map((_, i) => (
+          <div
+            key={i}
+            className="rounded-full transition-all duration-200"
+            style={{
+              width: i === activeIndex ? 16 : 6,
+              height: 6,
+              background: i === activeIndex
+                ? "linear-gradient(90deg, #E0115F, #8B5CF6)"
+                : "rgba(255,255,255,0.3)",
+              borderRadius: 3,
+            }}
           />
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
