@@ -199,7 +199,7 @@ function ShortCard({ series, isActive, isNearActive, muted, setMuted }: {
     <div
       className="short-card relative w-full flex-shrink-0 overflow-hidden"
       style={{
-        height: "calc(100dvh - 56px)",
+        height: "calc(100dvh - 72px)",
         scrollSnapAlign: "start",
         background: "#07070E",
       }}
@@ -371,11 +371,11 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
       ref={containerRef}
       className="w-full overflow-y-auto no-scrollbar"
       style={{
-        height: "calc(100dvh - 56px)",
+        height: "calc(100dvh - 72px)",
         scrollSnapType: "y mandatory",
         WebkitOverflowScrolling: "touch",
         background: "#000",
-        marginTop: "-45px",
+        marginTop: "-57px",
         position: "relative",
         zIndex: 30,
       }}
