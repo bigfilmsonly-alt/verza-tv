@@ -71,19 +71,14 @@ function ShortVideo({ playbackId, isActive, muted }: {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<HlsType | null>(null);
   const [started, setStarted] = useState(false);
+  const [autoplayFailed, setAutoplayFailed] = useState(false);
 
+  /* Only run when isActive — cleanup tears down everything */
   useEffect(() => {
+    if (!isActive) return;
+
     const vid = videoRef.current;
     if (!vid) return;
-
-    if (!isActive) {
-      setStarted(false);
-      if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
-      vid.pause();
-      vid.removeAttribute("src");
-      vid.load();
-      return;
-    }
 
     let cancelled = false;
     const hlsUrl = `https://stream.mux.com/${playbackId}.m3u8`;
@@ -91,26 +86,32 @@ function ShortVideo({ playbackId, isActive, muted }: {
     function tryPlay() {
       if (cancelled || !vid) return;
       vid.muted = true;
-      vid.play().catch(() => {
-        if (!cancelled) setTimeout(() => {
-          if (vid) { vid.muted = true; vid.play().catch(() => {}); }
-        }, 500);
-      });
+      vid.play()
+        .then(() => { if (!cancelled) setAutoplayFailed(false); })
+        .catch(() => {
+          if (!cancelled) {
+            setAutoplayFailed(true);
+            setTimeout(() => {
+              if (vid && !cancelled) { vid.muted = true; vid.play().catch(() => {}); }
+            }, 500);
+          }
+        });
     }
 
-    function onPlaying() { setStarted(true); }
+    function onPlaying() { if (!cancelled) { setStarted(true); setAutoplayFailed(false); } }
     vid.addEventListener("playing", onPlaying);
 
     async function attach() {
       if (cancelled || !vid) return;
 
+      /* Safari / iOS — native HLS */
       if (vid.canPlayType("application/vnd.apple.mpegurl")) {
         vid.src = hlsUrl;
-        vid.load();
         tryPlay();
         return;
       }
 
+      /* Chrome / Firefox — hls.js */
       const Hls = await getHls();
       if (cancelled || !Hls || !Hls.isSupported() || !vid) return;
 
@@ -140,6 +141,8 @@ function ShortVideo({ playbackId, isActive, muted }: {
       vid.pause();
       vid.removeAttribute("src");
       vid.load();
+      setStarted(false);
+      setAutoplayFailed(false);
     };
   }, [isActive, playbackId]);
 
@@ -148,21 +151,53 @@ function ShortVideo({ playbackId, isActive, muted }: {
     if (vid) vid.muted = muted;
   }, [muted]);
 
+  /* Fallback: tap to play if autoplay was blocked */
+  function handleTap() {
+    const vid = videoRef.current;
+    if (!vid) return;
+    vid.muted = true;
+    vid.play().catch(() => {});
+  }
+
   return (
-    <video
-      ref={videoRef}
-      playsInline
-      muted
-      loop
-      preload={isActive ? "auto" : "none"}
-      className="absolute inset-0 w-full h-full object-cover"
-      style={{
-        background: "#07070E",
-        opacity: started ? 1 : 0,
-        zIndex: started ? 2 : 0,
-        transition: "opacity 0.2s ease",
-      }}
-    />
+    <>
+      <video
+        ref={videoRef}
+        playsInline
+        muted
+        loop
+        preload={isActive ? "auto" : "none"}
+        className="absolute inset-0 w-full h-full object-cover"
+        style={{
+          background: "#07070E",
+          opacity: started ? 1 : 0,
+          zIndex: started ? 2 : 0,
+          transition: "opacity 0.2s ease",
+        }}
+      />
+      {/* Tap-to-play fallback if autoplay was blocked */}
+      {isActive && autoplayFailed && !started && (
+        <button
+          onClick={handleTap}
+          className="absolute inset-0 z-10 flex items-center justify-center"
+          style={{ background: "transparent", border: "none", cursor: "pointer" }}
+          aria-label="Tap to play"
+        >
+          <div
+            className="w-16 h-16 rounded-full flex items-center justify-center"
+            style={{
+              background: "rgba(0,0,0,0.5)",
+              backdropFilter: "blur(6px)",
+              border: "2px solid rgba(255,255,255,0.3)",
+            }}
+          >
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="#fff">
+              <path d="M8 5.14v13.72a1 1 0 0 0 1.5.86l11.04-6.86a1 1 0 0 0 0-1.72L9.5 4.28A1 1 0 0 0 8 5.14z" />
+            </svg>
+          </div>
+        </button>
+      )}
+    </>
   );
 }
 
@@ -180,11 +215,10 @@ function ShortCard({ series, isActive, isNearActive, muted, setMuted }: {
 
   return (
     <div
-      className="short-card relative flex-shrink-0 overflow-hidden"
+      className="relative flex-shrink-0 overflow-hidden"
       style={{
         width: "100%",
         height: "100%",
-        scrollSnapAlign: "center",
         background: "#07070E",
       }}
     >
@@ -344,7 +378,7 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
       root: container,
       threshold: 0.6,
     });
-    container.querySelectorAll(".short-card").forEach((card) => observer.observe(card));
+    container.querySelectorAll("[data-index]").forEach((card) => observer.observe(card));
     return () => observer.disconnect();
   }, [shuffled, observerCallback]);
 
