@@ -9,7 +9,7 @@ import type { Series } from "@/lib/catalog";
 import { T } from "@/lib/theme";
 import { MUX_MAP } from "@/lib/mux-map";
 
-/* ---- Load hls.js once ---- */
+/* ---- Load hls.js once (dynamic import with typeof window guard — iOS Safari fix) ---- */
 let hlsPromise: Promise<typeof HlsType | null> | null = null;
 function getHls(): Promise<typeof HlsType | null> {
   if (!hlsPromise && typeof window !== "undefined") {
@@ -62,111 +62,141 @@ function RailButton({ children, label, onClick }: {
   );
 }
 
-/* ---- The single shared video player (autoplay on mount) ---- */
-function ActiveVideoPlayer({ playbackId, muted }: { playbackId: string; muted: boolean }) {
-  const videoRef = useRef<HTMLVideoElement>(null);
+/* ================================================================== */
+/*  useActiveVideo — the single hook that owns playback               */
+/*  One <video> element, one hls.js instance, swapped on scroll.      */
+/* ================================================================== */
+function useActiveVideo(
+  videoRef: React.RefObject<HTMLVideoElement | null>,
+  playbackIds: (string | null)[],
+  activeIndex: number,
+  muted: boolean,
+) {
   const hlsRef = useRef<HlsType | null>(null);
+  const currentIdRef = useRef<string | null>(null);
   const [playing, setPlaying] = useState(false);
 
+  /* ---- swap source whenever activeIndex changes ---- */
   useEffect(() => {
     const vid = videoRef.current;
     if (!vid) return;
 
-    let destroyed = false;
-    let hls: HlsType | null = null;
+    const playbackId = playbackIds[activeIndex] ?? null;
+
+    /* same source — skip */
+    if (playbackId === currentIdRef.current) return;
+    currentIdRef.current = playbackId;
+
+    /* tear down previous */
+    setPlaying(false);
+    if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
+    vid.pause();
+    vid.removeAttribute("src");
+    vid.load();
+
+    if (!playbackId) return;
+
+    let cancelled = false;
     const hlsUrl = `https://stream.mux.com/${playbackId}.m3u8`;
 
     function tryPlay() {
-      if (!vid || destroyed) return;
+      if (cancelled || !vid) return;
       vid.play().catch(() => {
-        if (!destroyed) setTimeout(() => vid?.play().catch(() => {}), 300);
+        if (!cancelled) setTimeout(() => vid?.play().catch(() => {}), 400);
       });
     }
 
     async function attach() {
-      if (!vid || destroyed) return;
+      if (cancelled || !vid) return;
 
+      /* Safari / iOS — native HLS */
       if (vid.canPlayType("application/vnd.apple.mpegurl")) {
         vid.src = hlsUrl;
         tryPlay();
         return;
       }
 
+      /* Chrome / Firefox — hls.js */
       const Hls = await getHls();
-      if (destroyed || !Hls || !Hls.isSupported()) return;
+      if (cancelled || !Hls || !Hls.isSupported() || !vid) return;
 
-      hls = new Hls({ maxBufferLength: 30, enableWorker: true });
+      const hls = new Hls({ maxBufferLength: 30, enableWorker: true });
+      hlsRef.current = hls;
       hls.loadSource(hlsUrl);
       hls.attachMedia(vid);
+
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        if (!destroyed) tryPlay();
+        if (!cancelled) tryPlay();
       });
-      hls.on(Hls.Events.ERROR, (_event: string, data: { type: string; details: string; fatal: boolean }) => {
+
+      hls.on(Hls.Events.ERROR, (_e: string, data: { type: string; details: string; fatal: boolean }) => {
         if (data.fatal && hls && Hls) {
           if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hls.startLoad();
           else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
         }
       });
-      hlsRef.current = hls;
     }
-
-    const onPlaying = () => setPlaying(true);
-    vid.addEventListener("playing", onPlaying);
 
     attach();
 
-    return () => {
-      destroyed = true;
-      vid.removeEventListener("playing", onPlaying);
-      if (hls) { hls.destroy(); hlsRef.current = null; }
-      vid.pause();
-      vid.removeAttribute("src");
-      vid.load();
-    };
-  }, [playbackId]);
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeIndex, playbackIds]);
 
+  /* ---- listen for the "playing" event to reveal video ---- */
+  useEffect(() => {
+    const vid = videoRef.current;
+    if (!vid) return;
+    const onPlaying = () => setPlaying(true);
+    const onPause = () => setPlaying(false);
+    vid.addEventListener("playing", onPlaying);
+    vid.addEventListener("pause", onPause);
+    return () => {
+      vid.removeEventListener("playing", onPlaying);
+      vid.removeEventListener("pause", onPause);
+    };
+  }, [videoRef]);
+
+  /* ---- sync muted ---- */
   useEffect(() => {
     const vid = videoRef.current;
     if (vid) vid.muted = muted;
-  }, [muted]);
+  }, [muted, videoRef]);
 
-  function handleTap(e: React.MouseEvent) {
-    e.stopPropagation();
-    const vid = videoRef.current;
-    if (!vid) return;
-    if (vid.paused) vid.play().catch(() => {});
-    else vid.pause();
-  }
+  /* ---- cleanup everything on unmount ---- */
+  useEffect(() => {
+    return () => {
+      if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
+      const vid = videoRef.current;
+      if (vid) { vid.pause(); vid.removeAttribute("src"); vid.load(); }
+    };
+  }, [videoRef]);
 
-  return (
-    <video
-      ref={videoRef}
-      playsInline
-      muted={muted}
-      loop
-      preload="auto"
-      className="absolute inset-0 w-full h-full object-cover"
-      style={{
-        background: "#07070E",
-        opacity: playing ? 1 : 0,
-        zIndex: playing ? 2 : 0,
-      }}
-      onClick={handleTap}
-      poster={`https://image.mux.com/${playbackId}/thumbnail.jpg?time=3&width=720&height=1280`}
-    />
-  );
+  /* ---- pause on tab hide, resume on tab show ---- */
+  useEffect(() => {
+    function onVis() {
+      const vid = videoRef.current;
+      if (!vid) return;
+      if (document.hidden) vid.pause();
+      else vid.play().catch(() => {});
+    }
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+  }, [videoRef]);
+
+  return playing;
 }
 
-/* ---- Single Short Card ---- */
-function ShortCard({ series, isActive, muted, setMuted }: {
-  series: Series; isActive: boolean; muted: boolean; setMuted: (m: boolean) => void;
+/* ================================================================== */
+/*  ShortCard — pure UI, no video logic                                */
+/* ================================================================== */
+function ShortCard({ series, muted, setMuted }: {
+  series: Series; muted: boolean; setMuted: (m: boolean) => void;
 }) {
   const [liked, setLiked] = useState(false);
   const likeCount = pseudoCount(series.slug, 1, 50);
   const epNum = pseudoCount(series.slug, 1, 5);
-
-  const muxEpisodes = MUX_MAP[series.slug];
-  const playbackId = muxEpisodes?.[0]?.playbackId ?? null;
+  const playbackId = MUX_MAP[series.slug]?.[0]?.playbackId ?? null;
 
   return (
     <div
@@ -177,13 +207,8 @@ function ShortCard({ series, isActive, muted, setMuted }: {
         background: "#07070E",
       }}
     >
-      {/* ACTIVE card: render the real video player — key forces fresh mount */}
-      {isActive && playbackId && (
-        <ActiveVideoPlayer key={`video-${playbackId}`} playbackId={playbackId} muted={muted} />
-      )}
-
-      {/* INACTIVE cards: show Mux thumbnail as static image */}
-      {!isActive && playbackId && (
+      {/* Thumbnail — always rendered, sits behind video */}
+      {playbackId && (
         <img
           src={`https://image.mux.com/${playbackId}/thumbnail.jpg?time=3&width=720&height=1280`}
           alt={series.title}
@@ -295,18 +320,29 @@ function ShortCard({ series, isActive, muted, setMuted }: {
   );
 }
 
-/* ---- Main feed ---- */
+/* ================================================================== */
+/*  ShortsFeed — main feed with ONE shared <video> element             */
+/* ================================================================== */
 export default function ShortsFeed({ series }: { series: Series[] }) {
   const [shuffled, setShuffled] = useState<Series[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [muted, setMuted] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
+  /* shuffle on mount */
   useEffect(() => {
     const withMux = series.filter((s) => MUX_MAP[s.slug]?.length > 0);
     setShuffled(shuffleArray(withMux));
   }, [series]);
 
+  /* build playbackId array (stable ref across renders) */
+  const playbackIds = shuffled.map((s) => MUX_MAP[s.slug]?.[0]?.playbackId ?? null);
+
+  /* the hook that owns all playback */
+  const playing = useActiveVideo(videoRef, playbackIds, activeIndex, muted);
+
+  /* IntersectionObserver — root is the scroll-snap container */
   const observerCallback = useCallback(
     (entries: IntersectionObserverEntry[]) => {
       for (const entry of entries) {
@@ -332,12 +368,23 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
 
   if (shuffled.length === 0) return null;
 
+  /* compute video position: overlay it on the active card */
+  const cardHeight = "calc(100dvh - 56px)";
+
+  function handleVideoTap(e: React.MouseEvent) {
+    e.stopPropagation();
+    const vid = videoRef.current;
+    if (!vid) return;
+    if (vid.paused) vid.play().catch(() => {});
+    else vid.pause();
+  }
+
   return (
     <div
       ref={containerRef}
       className="w-full overflow-y-auto no-scrollbar"
       style={{
-        height: "calc(100dvh - 56px)",
+        height: cardHeight,
         scrollSnapType: "y mandatory",
         WebkitOverflowScrolling: "touch",
         background: "#000",
@@ -346,11 +393,30 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
         zIndex: 30,
       }}
     >
+      {/* THE single <video> element — positioned over the active card */}
+      <video
+        ref={videoRef}
+        playsInline
+        muted={muted}
+        loop
+        preload="metadata"
+        className="absolute w-full object-cover pointer-events-auto"
+        style={{
+          height: cardHeight,
+          top: `calc(${activeIndex} * ${cardHeight})`,
+          left: 0,
+          background: "#07070E",
+          opacity: playing ? 1 : 0,
+          zIndex: playing ? 3 : 0,
+          transition: "opacity 0.15s ease",
+        }}
+        onClick={handleVideoTap}
+      />
+
       {shuffled.map((s, i) => (
         <div key={s.slug} data-index={i}>
           <ShortCard
             series={s}
-            isActive={i === activeIndex}
             muted={muted}
             setMuted={setMuted}
           />
