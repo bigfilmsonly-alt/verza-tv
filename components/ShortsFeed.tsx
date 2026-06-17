@@ -75,12 +75,20 @@ function ActiveVideoPlayer({ playbackId, muted }: { playbackId: string; muted: b
     let hls: HlsType | null = null;
     const hlsUrl = `https://stream.mux.com/${playbackId}.m3u8`;
 
+    function tryPlay() {
+      if (!vid || destroyed) return;
+      vid.play().catch(() => {
+        // Retry after a short delay — mobile browsers sometimes need this
+        if (!destroyed) setTimeout(() => vid?.play().catch(() => {}), 300);
+      });
+    }
+
     async function attach() {
       if (!vid || destroyed) return;
 
       if (vid.canPlayType("application/vnd.apple.mpegurl")) {
         vid.src = hlsUrl;
-        vid.play().catch(() => {});
+        tryPlay();
         return;
       }
 
@@ -91,7 +99,7 @@ function ActiveVideoPlayer({ playbackId, muted }: { playbackId: string; muted: b
       hls.loadSource(hlsUrl);
       hls.attachMedia(vid);
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        if (!destroyed) vid.play().catch(() => {});
+        if (!destroyed) tryPlay();
       });
       hlsRef.current = hls;
     }
@@ -145,9 +153,9 @@ function ShortCard({ series, isActive, muted, setMuted }: {
         background: "#07070E",
       }}
     >
-      {/* ACTIVE card: render the real video player */}
+      {/* ACTIVE card: render the real video player — key forces fresh mount */}
       {isActive && playbackId && (
-        <ActiveVideoPlayer playbackId={playbackId} muted={muted} />
+        <ActiveVideoPlayer key={`video-${playbackId}`} playbackId={playbackId} muted={muted} />
       )}
 
       {/* INACTIVE cards: show Mux thumbnail as static image */}
