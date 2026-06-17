@@ -33,13 +33,12 @@ const tabs: Tab[] = [
     ),
   },
   {
-    label: "Channels",
-    href: "/channels",
+    label: "Widescreen",
+    href: "/horizontal",
     icon: (c) => (
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="2" y="3" width="20" height="14" rx="2" />
-        <path d="M8 21h8" />
-        <path d="M12 17v4" />
+        <rect x="1" y="5" width="22" height="14" rx="2" />
+        <polygon points="10 9 15 12 10 15 10 9" fill={c} stroke="none" />
       </svg>
     ),
   },
@@ -55,11 +54,14 @@ const tabs: Tab[] = [
     ),
   },
   {
-    label: "My List",
-    href: "/me/list",
+    label: "Library",
+    href: "/library",
     icon: (c) => (
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M20 6L9 17l-5-5" />
+        <rect x="2" y="3" width="20" height="14" rx="2" />
+        <path d="M8 21h8" />
+        <path d="M12 17v4" />
+        <path d="M7 10l3 3 7-7" />
       </svg>
     ),
   },
@@ -81,6 +83,7 @@ export default function BottomNav() {
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
     if (href === "/me") return pathname === "/me";
+    if (href === "/library") return pathname.startsWith("/library") || pathname.startsWith("/channels") || pathname.startsWith("/me/list");
     return pathname.startsWith(href);
   };
 

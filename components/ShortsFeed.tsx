@@ -62,10 +62,11 @@ function RailButton({ children, label, onClick }: {
   );
 }
 
-/* ---- The single shared video player ---- */
+/* ---- The single shared video player (autoplay on mount) ---- */
 function ActiveVideoPlayer({ playbackId, muted }: { playbackId: string; muted: boolean }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<HlsType | null>(null);
+  const [playing, setPlaying] = useState(false);
 
   useEffect(() => {
     const vid = videoRef.current;
@@ -78,7 +79,6 @@ function ActiveVideoPlayer({ playbackId, muted }: { playbackId: string; muted: b
     function tryPlay() {
       if (!vid || destroyed) return;
       vid.play().catch(() => {
-        // Retry after a short delay — mobile browsers sometimes need this
         if (!destroyed) setTimeout(() => vid?.play().catch(() => {}), 300);
       });
     }
@@ -101,15 +101,27 @@ function ActiveVideoPlayer({ playbackId, muted }: { playbackId: string; muted: b
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
         if (!destroyed) tryPlay();
       });
+      hls.on(Hls.Events.ERROR, (_event: string, data: { type: string; details: string; fatal: boolean }) => {
+        if (data.fatal && hls && Hls) {
+          if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hls.startLoad();
+          else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
+        }
+      });
       hlsRef.current = hls;
     }
+
+    const onPlaying = () => setPlaying(true);
+    vid.addEventListener("playing", onPlaying);
 
     attach();
 
     return () => {
       destroyed = true;
+      vid.removeEventListener("playing", onPlaying);
       if (hls) { hls.destroy(); hlsRef.current = null; }
-      if (vid) { vid.pause(); vid.removeAttribute("src"); vid.load(); }
+      vid.pause();
+      vid.removeAttribute("src");
+      vid.load();
     };
   }, [playbackId]);
 
@@ -118,16 +130,28 @@ function ActiveVideoPlayer({ playbackId, muted }: { playbackId: string; muted: b
     if (vid) vid.muted = muted;
   }, [muted]);
 
+  function handleTap(e: React.MouseEvent) {
+    e.stopPropagation();
+    const vid = videoRef.current;
+    if (!vid) return;
+    if (vid.paused) vid.play().catch(() => {});
+    else vid.pause();
+  }
+
   return (
     <video
       ref={videoRef}
       playsInline
       muted={muted}
       loop
-      autoPlay
       preload="auto"
       className="absolute inset-0 w-full h-full object-cover"
-      style={{ background: "#07070E" }}
+      style={{
+        background: "#07070E",
+        opacity: playing ? 1 : 0,
+        zIndex: playing ? 2 : 0,
+      }}
+      onClick={handleTap}
       poster={`https://image.mux.com/${playbackId}/thumbnail.jpg?time=3&width=720&height=1280`}
     />
   );
