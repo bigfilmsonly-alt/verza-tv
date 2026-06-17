@@ -1,5 +1,9 @@
 # Payments
 
+> **IMPORTANT:** Legal pages (/terms, /privacy, /refund-policy) are DRAFTS and must be
+> reviewed by an attorney before production payments go live. Do NOT switch to live Stripe
+> keys until legal review is complete.
+
 The money path end to end. All payment routes are currently stubbed behind
 environment-variable checks. Plug in `STRIPE_SECRET_KEY` and
 `STRIPE_WEBHOOK_SECRET` to activate the live flow.

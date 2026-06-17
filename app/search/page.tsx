@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { catalog } from "@/lib/catalog";
+import { catalog, getLiveSeries } from "@/lib/catalog";
 import { T } from "@/lib/theme";
 
 /* ------------------------------------------------------------------ */
@@ -18,7 +18,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
     return {
       title: "Search Micro-Dramas",
       description:
-        "Search 80+ micro-drama series on Verza TV by title, genre, or keyword.",
+        `Search ${getLiveSeries().length}+ micro-drama series on Verza TV by title, genre, or keyword.`,
       alternates: { canonical: "/search" },
     };
   }
@@ -147,7 +147,7 @@ export default async function SearchPage({ searchParams }: Props) {
             <line x1="16.65" y1="16.65" x2="21" y2="21" />
           </svg>
           <p className="text-sm mb-1" style={{ color: T.textDim }}>
-            Search 80+ micro-drama series
+            Search {getLiveSeries().length}+ micro-drama series
           </p>
           <p className="text-xs" style={{ color: T.textMute }}>
             Try &ldquo;billionaire&rdquo;, &ldquo;revenge&rdquo;, or

@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import CategoryTabs from "@/components/CategoryTabs";
 import FeedSearch from "@/components/FeedSearch";
-import type { Series, BrowseCategory } from "@/lib/catalog";
+import { BROWSE_TABS, getSeriesByCategory, type Series, type BrowseCategory } from "@/lib/catalog";
 import PosterSkeleton from "@/components/PosterSkeleton";
 
 function Poster({ src, alt }: { src: string; alt: string }) {
@@ -38,6 +38,9 @@ interface Props {
 }
 
 export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
+  // Only show tabs that have content
+  const activeTabs = BROWSE_TABS.filter(tab => getSeriesByCategory(tab.key).length > 0);
+
   const [activeTab, setActiveTab] = useState<BrowseCategory>("drama");
   const [heroIdx, setHeroIdx] = useState(0);
 
@@ -66,7 +69,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
   return (
     <>
       <FeedSearch series={allSeries} />
-      <CategoryTabs active={activeTab} onSelect={setActiveTab} />
+      <CategoryTabs active={activeTab} onSelect={setActiveTab} tabs={activeTabs} />
 
       {/* Hero Skeleton */}
       {!current && (

@@ -3,13 +3,14 @@ import JsonLd from "@/components/JsonLd";
 import { faqSchema } from "@/lib/schemas";
 import { T } from "@/lib/theme";
 import { BRAND, FREE_EPISODES, VIP_WEEKLY, VIP_YEARLY, DEFAULT_COIN_PER_EPISODE } from "@/lib/config";
+import { getLiveSeries } from "@/lib/catalog";
 import { formatPrice } from "@/lib/coins";
 
 const FAQ_ITEMS = [
   {
     question: `What is ${BRAND.name}?`,
     answer:
-      `${BRAND.name} is the first US-based vertical micro-drama streaming platform. We offer 80+ original series with episodes that run 60 to 120 seconds each, designed for phone-first viewing in vertical 9:16 format. Founded by Alan Mruvka, co-founder of E! Entertainment Television.`,
+      `${BRAND.name} is the first US-based vertical micro-drama streaming platform. We offer ${getLiveSeries().length}+ original series with episodes that run 60 to 120 seconds each, designed for phone-first viewing in vertical 9:16 format. Founded by Alan Mruvka, co-founder of E! Entertainment Television.`,
   },
   {
     question: `Is ${BRAND.name} free?`,

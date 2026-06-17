@@ -11,7 +11,7 @@ export function GET() {
     const episodes = getEpisodesForSeries(s.slug);
     return episodes.map(
       (ep) => `  <url>
-    <loc>${baseUrl}/series/${s.slug}/episode/${ep.number}</loc>
+    <loc>${baseUrl}/series/${s.slug}/${ep.number}</loc>
     <lastmod>${now}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>

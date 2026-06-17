@@ -5,12 +5,14 @@ import { BROWSE_TABS, type BrowseCategory } from "@/lib/catalog";
 interface CategoryTabsProps {
   active: BrowseCategory;
   onSelect: (category: BrowseCategory) => void;
+  tabs?: { key: BrowseCategory; label: string }[];
 }
 
-export default function CategoryTabs({ active, onSelect }: CategoryTabsProps) {
+export default function CategoryTabs({ active, onSelect, tabs }: CategoryTabsProps) {
+  const items = tabs || BROWSE_TABS;
   return (
     <div className="flex justify-between px-4 py-3">
-      {BROWSE_TABS.map((tab) => {
+      {items.map((tab) => {
         const isActive = tab.key === active;
         return (
           <button

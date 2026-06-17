@@ -4,6 +4,62 @@ Common operational tasks for maintaining and updating the Verza TV platform.
 
 ---
 
+## Pre-Launch Checklist
+
+### Legal (REQUIRED before production payments)
+- [ ] Terms of Service reviewed by attorney (currently draft at /terms)
+- [ ] Privacy Policy reviewed by attorney (currently draft at /privacy)
+- [ ] Refund Policy reviewed by attorney (currently draft at /refund-policy)
+- [ ] COPPA compliance verified (13+ age gate on sign-up)
+- [ ] CCPA/GDPR data deletion flow implemented
+
+### Payments
+- [ ] Stripe account verified and approved
+- [ ] Switch from test keys to live keys (STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET)
+- [ ] Webhook endpoint verified: https://verzatv.com/api/stripe/webhook
+- [ ] Test purchase → coins → unlock → play loop passes with live keys
+- [ ] Refund handling tested
+
+### Authentication
+- [ ] Supabase Auth configured (email + Google + Apple)
+- [ ] SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY set in Vercel
+- [ ] Password reset flow works
+- [ ] Account deletion flow works (required for App Store)
+
+### Domain & DNS
+- [ ] verzatv.com DNS pointed to Vercel (A record: 76.76.21.21)
+- [ ] www.verzatv.com CNAME → cname.vercel-dns.com
+- [ ] SSL certificate auto-provisioned by Vercel
+- [ ] All 301 redirects verified (old slugs → new)
+- [ ] robots.txt switches to index: true on production domain
+
+### Content
+- [ ] All 76 series have correct poster art (9:16, 1080x1920)
+- [ ] Mux mapping reconciliation shows 0 orphans, 0 duplicates
+- [ ] Video playback verified on iOS Safari, Chrome, Firefox
+- [ ] Free gate (first 5 episodes) confirmed working
+
+### App Stores (if applicable)
+- [ ] iOS App Store listing approved
+- [ ] Google Play listing approved
+- [ ] apple-itunes-app smart banner with real app ID
+- [ ] Deep links tested (Universal Links + App Links)
+
+### Monitoring
+- [ ] Error tracking configured (Sentry or similar)
+- [ ] Uptime monitoring on key endpoints
+- [ ] Stripe webhook delivery monitoring
+- [ ] Mux asset health check scheduled
+
+### Final Verification
+- [ ] Money loop test passes: sign up → buy coins → unlock → play → logout → login → still unlocked
+- [ ] Lighthouse mobile performance ≥ 90
+- [ ] View Source shows real content (no empty body)
+- [ ] Rich Results Test validates JSON-LD
+- [ ] Social share previews work (OG image renders in iMessage/Slack/Twitter)
+
+---
+
 ## Add a Series
 
 1. Add the series entry to `lib/catalog.ts` (slug, title, genre, episode count, etc.)

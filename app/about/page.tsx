@@ -3,11 +3,12 @@ import JsonLd from "@/components/JsonLd";
 import { organizationSchema } from "@/lib/schemas";
 import { T } from "@/lib/theme";
 import { BRAND } from "@/lib/config";
+import { getLiveSeries } from "@/lib/catalog";
 
 export const metadata: Metadata = {
   title: `About | ${BRAND.name}`,
   description:
-    "Verza TV is the first US-based vertical micro-drama streaming platform. Founded by Alan Mruvka, co-founder of E! Entertainment Television. 80+ originals, powered by Filmology Labs.",
+    `Verza TV is the first US-based vertical micro-drama streaming platform. Founded by Alan Mruvka, co-founder of E! Entertainment Television. ${getLiveSeries().length}+ originals, powered by Filmology Labs.`,
 };
 
 export default function AboutPage() {
@@ -134,7 +135,7 @@ export default function AboutPage() {
               className="text-sm leading-relaxed"
               style={{ color: T.textDim }}
             >
-              80+ original series across Romance, Thriller, Drama,
+              {getLiveSeries().length}+ original series across Romance, Thriller, Drama,
               Comedy, Reality, Mystery, Sci-Fi, and Horror. The first 5
               episodes of every series are free. Unlock the rest with
               coins or subscribe to VIP for unlimited access.
@@ -155,7 +156,7 @@ export default function AboutPage() {
             { number: "480K", label: "Monthly Active Users" },
             { number: "68%", label: "Completion Rate" },
             { number: "28 min", label: "Daily Watch Time" },
-            { number: "80+", label: "Original Series" },
+            { number: `${getLiveSeries().length}+`, label: "Original Series" },
             { number: "$6.5B", label: "Market Size" },
           ].map((stat) => (
             <div

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { catalog, BROWSE_TABS } from "@/lib/catalog";
+import { catalog, BROWSE_TABS, getLiveSeries, getSeriesByCategory } from "@/lib/catalog";
 import { T } from "@/lib/theme";
 import SearchBar from "@/components/SearchBar";
 
