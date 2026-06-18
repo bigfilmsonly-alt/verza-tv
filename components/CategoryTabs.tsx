@@ -11,21 +11,20 @@ interface CategoryTabsProps {
 export default function CategoryTabs({ active, onSelect, tabs }: CategoryTabsProps) {
   const items = tabs || BROWSE_TABS;
   return (
-    <div
-      className="flex items-center justify-around px-2 py-2"
-    >
+    <div className="flex items-center">
       {items.map((tab) => {
         const isActive = tab.key === active;
         return (
           <button
             key={tab.key}
             onClick={() => onSelect(tab.key)}
-            className="relative px-3 py-1.5 border-0 cursor-pointer bg-transparent flex-shrink-0"
+            className="relative flex-1 py-2 border-0 cursor-pointer bg-transparent"
+            style={{ padding: "8px 0" }}
           >
             <span
-              className="text-xs font-bold tracking-wider uppercase whitespace-nowrap"
+              className="text-[11px] font-bold tracking-wide uppercase"
               style={{
-                color: isActive ? "#FFFFFF" : "rgba(255,255,255,0.55)",
+                color: isActive ? "#FFFFFF" : "rgba(255,255,255,0.5)",
               }}
             >
               {tab.label}
@@ -34,7 +33,7 @@ export default function CategoryTabs({ active, onSelect, tabs }: CategoryTabsPro
               <div
                 className="absolute bottom-0 left-1/2 -translate-x-1/2 rounded-full"
                 style={{
-                  width: "50%",
+                  width: "60%",
                   height: 3,
                   background: "linear-gradient(90deg, #E0115F, #8B5CF6)",
                 }}
