@@ -26,45 +26,46 @@ export default function Header() {
         />
       </Link>
 
-      {/* Instagram — right, live story ring style */}
-      <a
-        href="https://www.instagram.com/verzatv"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center gap-2 no-underline"
-        aria-label="Follow Verza TV on Instagram"
-      >
-        <span
-          className="text-[11px] font-semibold"
-          style={{ color: "#C0C0CC" }}
+      {/* Right side — Follow us + Instagram */}
+      <div className="flex items-center gap-2">
+        <a
+          href="https://www.instagram.com/verzatv"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 no-underline"
+          aria-label="Follow Verza TV on Instagram"
         >
-          Follow us
-        </span>
-        <div
-          className="relative w-10 h-10 rounded-full flex items-center justify-center"
-          style={{
-            background: "linear-gradient(135deg, #E0115F, #8B5CF6, #3B82F6)",
-            padding: "2.5px",
-          }}
-        >
-          <div
-            className="w-full h-full rounded-full flex items-center justify-center"
-            style={{ background: "#07070E" }}
+          <span
+            className="text-[11px] font-semibold"
+            style={{ color: "#C0C0CC" }}
           >
-            {/* Play symbol only */}
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <defs>
-                <linearGradient id="play-grad" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stopColor="#E0115F" />
-                  <stop offset="50%" stopColor="#8B5CF6" />
-                  <stop offset="100%" stopColor="#3B82F6" />
-                </linearGradient>
-              </defs>
-              <polygon points="8,5 20,12 8,19" fill="url(#play-grad)" />
-            </svg>
+            Follow us
+          </span>
+          <div
+            className="relative w-10 h-10 rounded-full flex items-center justify-center"
+            style={{
+              background: "linear-gradient(135deg, #E0115F, #8B5CF6, #3B82F6)",
+              padding: "2.5px",
+            }}
+          >
+            <div
+              className="w-full h-full rounded-full flex items-center justify-center"
+              style={{ background: "#07070E" }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <defs>
+                  <linearGradient id="play-grad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor="#E0115F" />
+                    <stop offset="50%" stopColor="#8B5CF6" />
+                    <stop offset="100%" stopColor="#3B82F6" />
+                  </linearGradient>
+                </defs>
+                <polygon points="8,5 20,12 8,19" fill="url(#play-grad)" />
+              </svg>
+            </div>
           </div>
-        </div>
-      </a>
+        </a>
+      </div>
     </header>
   );
 }

@@ -12,8 +12,7 @@ export default function CategoryTabs({ active, onSelect, tabs }: CategoryTabsPro
   const items = tabs || BROWSE_TABS;
   return (
     <div
-      className="flex items-center gap-1 py-2 overflow-x-auto no-scrollbar"
-      style={{ WebkitOverflowScrolling: "touch" }}
+      className="flex items-center justify-around px-2 py-2"
     >
       {items.map((tab) => {
         const isActive = tab.key === active;
@@ -24,7 +23,7 @@ export default function CategoryTabs({ active, onSelect, tabs }: CategoryTabsPro
             className="relative px-3 py-1.5 border-0 cursor-pointer bg-transparent flex-shrink-0"
           >
             <span
-              className="text-sm font-bold tracking-wide uppercase whitespace-nowrap"
+              className="text-xs font-bold tracking-wider uppercase whitespace-nowrap"
               style={{
                 color: isActive ? "#FFFFFF" : "rgba(255,255,255,0.55)",
               }}

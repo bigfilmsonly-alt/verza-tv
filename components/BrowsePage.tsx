@@ -67,16 +67,14 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
   const gridItems = filtered.slice(heroSlides.length);
 
   return (
-    <>
-      {/* Search icon + Category tabs */}
-      <div className="flex items-center px-3 pt-2">
-        <div className="flex-1 overflow-hidden">
-          <CategoryTabs active={activeTab} onSelect={setActiveTab} tabs={activeTabs} />
-        </div>
-        <div className="flex-shrink-0 pl-1">
-          <FeedSearch series={allSeries} />
-        </div>
+    <div className="relative">
+      {/* Search icon — floats top-right, next to header IG handle */}
+      <div className="absolute top-2 right-16 z-50">
+        <FeedSearch series={allSeries} />
       </div>
+
+      {/* Category tabs — all visible, no scroll */}
+      <CategoryTabs active={activeTab} onSelect={setActiveTab} tabs={activeTabs} />
 
       {/* Hero Skeleton */}
       {!current && (
@@ -254,6 +252,6 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
           ))}
         </div>
       </section>
-    </>
+    </div>
   );
 }
