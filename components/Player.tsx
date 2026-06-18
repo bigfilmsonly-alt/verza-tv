@@ -197,6 +197,26 @@ export default function Player({
     }, 3000);
   }, []);
 
+  /* ---- Auto-play when HLS is ready ------------------------------- */
+
+  useEffect(() => {
+    if (!hlsReady || started) return;
+    const video = videoRef.current;
+    if (!video) return;
+
+    setStarted(true);
+    setLoading(true);
+
+    video.muted = true;
+    video.play()
+      .then(() => {
+        scheduleHide();
+      })
+      .catch(() => {
+        setLoading(false);
+      });
+  }, [hlsReady, started, scheduleHide]);
+
   /* ---- Interactions ---------------------------------------------- */
 
   const handleStart = () => {
