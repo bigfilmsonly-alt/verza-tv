@@ -86,7 +86,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
             <Link href={`/series/${current.slug}/1`} className="block">
               <div
                 className="relative w-full overflow-hidden"
-                style={{ aspectRatio: "3 / 4", maxHeight: "55dvh", background: "#07070E" }}
+                style={{ aspectRatio: "9 / 16", background: "#07070E" }}
               >
                 {current.posterUrl ? (
                   <Image
@@ -95,8 +95,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                     fill
                     priority
                     sizes="100vw"
-                    className="object-cover"
-                    style={{ objectPosition: "center top" }}
+                    className="object-contain"
                   />
                 ) : (
                   <div
