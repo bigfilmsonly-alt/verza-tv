@@ -78,74 +78,71 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </div>
       )}
 
-      {/* Hero Slideshow — edge-to-edge, all devices */}
+      {/* Hero Slideshow — clean poster, text below */}
       {current && (
-        <div className="relative" style={{ marginLeft: "calc(-1 * max(0px, (100vw - 440px) / 2))", marginRight: "calc(-1 * max(0px, (100vw - 440px) / 2))", width: "100vw", maxWidth: "100vw" }}>
-          <Link href={`/series/${current.slug}/1`} className="block">
-            <div
-              className="relative w-full overflow-hidden"
-              style={{ aspectRatio: "9 / 14", maxHeight: "70dvh", background: "#07070E" }}
-            >
-              {current.posterUrl ? (
-                <Image
-                  src={current.posterUrl}
-                  alt={current.title}
-                  fill
-                  priority
-                  sizes="100vw"
-                  className="object-cover"
-                  style={{ objectPosition: "center top" }}
-                />
-              ) : (
-                <div
-                  className="absolute inset-0 flex items-center justify-center text-lg font-bold"
-                  style={{ background: "linear-gradient(135deg, #1A1A26, #12121C)", color: "#6B6B7B" }}
-                >
-                  {current.title}
-                </div>
-              )}
-
-              {/* Gradient scrim for readability */}
+        <div>
+          {/* Poster image — clean, no text overlay */}
+          <div className="relative">
+            <Link href={`/series/${current.slug}/1`} className="block">
               <div
-                className="absolute inset-0 pointer-events-none"
-                style={{ background: "linear-gradient(to bottom, transparent 50%, rgba(7,7,14,0.85) 100%)" }}
-              />
-            </div>
-          </Link>
-
-          {heroSlides.length > 1 && (
-            <>
-              <button
-                onClick={goPrev}
-                className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center border-0 cursor-pointer z-10"
-                style={{ background: "rgba(7,7,14,0.55)", color: "#fff", backdropFilter: "blur(6px)" }}
-                aria-label="Previous"
+                className="relative w-full overflow-hidden"
+                style={{ aspectRatio: "3 / 4", maxHeight: "55dvh", background: "#07070E" }}
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
-              </button>
-              <button
-                onClick={goNext}
-                className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center border-0 cursor-pointer z-10"
-                style={{ background: "rgba(7,7,14,0.55)", color: "#fff", backdropFilter: "blur(6px)" }}
-                aria-label="Next"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
-              </button>
-            </>
-          )}
+                {current.posterUrl ? (
+                  <Image
+                    src={current.posterUrl}
+                    alt={current.title}
+                    fill
+                    priority
+                    sizes="100vw"
+                    className="object-cover"
+                    style={{ objectPosition: "center top" }}
+                  />
+                ) : (
+                  <div
+                    className="absolute inset-0 flex items-center justify-center text-lg font-bold"
+                    style={{ background: "linear-gradient(135deg, #1A1A26, #12121C)", color: "#6B6B7B" }}
+                  >
+                    {current.title}
+                  </div>
+                )}
+              </div>
+            </Link>
 
-          {/* Title + CTA overlaid on hero bottom */}
-          <div className="absolute bottom-0 left-0 right-0 z-10 px-5 pb-5 text-center pointer-events-none">
-            <Link href={`/series/${current.slug}/1`} className="no-underline pointer-events-auto">
-              <h2 className="text-xl font-extrabold leading-tight uppercase tracking-wide" style={{ color: "#FFFFFF", textShadow: "0 2px 8px rgba(0,0,0,0.6)" }}>
+            {heroSlides.length > 1 && (
+              <>
+                <button
+                  onClick={goPrev}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center border-0 cursor-pointer z-10"
+                  style={{ background: "rgba(7,7,14,0.55)", color: "#fff", backdropFilter: "blur(6px)" }}
+                  aria-label="Previous"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
+                </button>
+                <button
+                  onClick={goNext}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center border-0 cursor-pointer z-10"
+                  style={{ background: "rgba(7,7,14,0.55)", color: "#fff", backdropFilter: "blur(6px)" }}
+                  aria-label="Next"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
+                </button>
+              </>
+            )}
+          </div>
+
+          {/* Title + CTA below the poster */}
+          <div className="px-4 pt-3 pb-1 text-center">
+            <Link href={`/series/${current.slug}/1`} className="no-underline">
+              <h2 className="text-lg font-extrabold leading-tight uppercase tracking-wide" style={{ color: "#FFFFFF" }}>
                 {current.title}
               </h2>
             </Link>
-            <p className="mt-1 text-xs" style={{ color: "rgba(255,255,255,0.6)" }}>
+            <p className="mt-1 text-xs" style={{ color: "#6B6B7B" }}>
               {current.genre} &middot; {current.episodeCount} episodes
             </p>
             {heroSlides.length > 1 && (
-              <div className="flex items-center justify-center gap-1.5 mt-2.5 pointer-events-auto">
+              <div className="flex items-center justify-center gap-1.5 mt-2.5">
                 {heroSlides.map((_, i) => (
                   <button
                     key={i}
@@ -161,7 +158,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                         height: 6,
                         background: i === heroIdx % heroSlides.length
                           ? "linear-gradient(90deg, #E0115F, #8B5CF6)"
-                          : "rgba(255,255,255,0.35)",
+                          : "#6B6B7B",
                         transition: "width 0.3s",
                       }}
                     />
@@ -171,11 +168,11 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
             )}
             <Link
               href={`/series/${current.slug}/1`}
-              className="inline-flex items-center gap-2 mt-3 px-6 py-3 rounded-full text-sm font-bold no-underline transition-transform active:scale-95 pointer-events-auto"
+              className="inline-flex items-center gap-2 mt-3 px-5 py-2.5 rounded-full text-sm font-bold no-underline transition-transform active:scale-95"
               style={{
                 background: "linear-gradient(135deg, #E0115F, #8B5CF6)",
                 color: "#fff",
-                boxShadow: "0 0 24px rgba(224, 17, 95, 0.4)",
+                boxShadow: "0 0 20px rgba(224, 17, 95, 0.3)",
               }}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff" stroke="none">
