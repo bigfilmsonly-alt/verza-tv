@@ -68,13 +68,13 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
 
   return (
     <div>
-      {/* Category tabs + search icon in one row */}
-      <div className="flex items-center px-2 py-1.5">
-        <div className="flex-1 min-w-0">
-          <CategoryTabs active={activeTab} onSelect={setActiveTab} tabs={activeTabs} />
-        </div>
+      {/* Search icon — positioned in header area */}
+      <div className="absolute top-0 right-4 z-50" style={{ marginTop: "-38px" }}>
         <FeedSearch series={allSeries} />
       </div>
+
+      {/* Category tabs — two rows */}
+      <CategoryTabs active={activeTab} onSelect={setActiveTab} tabs={activeTabs} />
 
       {/* Hero Skeleton */}
       {!current && (
@@ -91,7 +91,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
             <Link href={`/series/${current.slug}/1`} className="block">
               <div
                 className="relative w-full overflow-hidden"
-                style={{ aspectRatio: "9 / 16", background: "#07070E" }}
+                style={{ aspectRatio: "3 / 4", background: "#07070E" }}
               >
                 {current.posterUrl ? (
                   <Image
