@@ -95,7 +95,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                     fill
                     priority
                     sizes="100vw"
-                    className="object-contain"
+                    className="object-cover object-top"
                   />
                 ) : (
                   <div
