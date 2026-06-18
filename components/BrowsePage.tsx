@@ -68,8 +68,15 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
 
   return (
     <>
-      <FeedSearch series={allSeries} />
-      <CategoryTabs active={activeTab} onSelect={setActiveTab} tabs={activeTabs} />
+      {/* Search icon + Category tabs */}
+      <div className="flex items-center px-3 pt-2">
+        <div className="flex-1 overflow-hidden">
+          <CategoryTabs active={activeTab} onSelect={setActiveTab} tabs={activeTabs} />
+        </div>
+        <div className="flex-shrink-0 pl-1">
+          <FeedSearch series={allSeries} />
+        </div>
+      </div>
 
       {/* Hero Skeleton */}
       {!current && (
