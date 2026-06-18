@@ -10,7 +10,7 @@ interface SeriesCardProps {
 export default function SeriesCard({ series, dimmed }: SeriesCardProps) {
   return (
     <Link
-      href={`/series/${series.slug}`}
+      href={`/series/${series.slug}/1`}
       className="flex-shrink-0 group"
       style={{ width: 130, opacity: dimmed ? 0.45 : 1 }}
     >

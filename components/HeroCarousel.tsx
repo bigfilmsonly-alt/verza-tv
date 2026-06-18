@@ -22,7 +22,7 @@ export default function HeroCarousel({ series }: HeroCarouselProps) {
   return (
     <div className="relative">
       {/* Hero image — full width, tall */}
-      <Link href={`/series/${current.slug}`} className="block">
+      <Link href={`/series/${current.slug}/1`} className="block">
         <div className="relative w-full" style={{ height: "65dvh", minHeight: 420 }}>
           {current.posterUrl ? (
             <Image
@@ -55,7 +55,7 @@ export default function HeroCarousel({ series }: HeroCarouselProps) {
       {/* Title below image */}
       <div className="px-4 -mt-16 relative z-10">
         <Link
-          href={`/series/${current.slug}`}
+          href={`/series/${current.slug}/1`}
           className="no-underline"
         >
           <h2

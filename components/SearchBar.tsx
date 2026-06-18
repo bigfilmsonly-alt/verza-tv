@@ -64,7 +64,7 @@ export default function SearchBar({ series }: SearchBarProps) {
           {filtered.map((s) => (
             <Link
               key={s.slug}
-              href={`/series/${s.slug}`}
+              href={`/series/${s.slug}/1`}
               className="flex items-center gap-3 px-4 py-3 no-underline transition-colors"
               style={{ color: "#F5F4F8" }}
               onClick={() => setQuery("")}
