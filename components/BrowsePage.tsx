@@ -73,18 +73,18 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
 
       {/* Hero Skeleton */}
       {!current && (
-        <div className="px-3">
-          <div className="skeleton w-full" style={{ height: "calc(100dvh - 280px)", minHeight: 220 }} />
+        <div>
+          <div className="skeleton w-full" style={{ aspectRatio: "9 / 14", maxHeight: "70dvh" }} />
         </div>
       )}
 
-      {/* Hero Slideshow */}
+      {/* Hero Slideshow — edge-to-edge, all devices */}
       {current && (
-        <div className="relative">
+        <div className="relative" style={{ marginLeft: "calc(-1 * max(0px, (100vw - 440px) / 2))", marginRight: "calc(-1 * max(0px, (100vw - 440px) / 2))", width: "100vw", maxWidth: "100vw" }}>
           <Link href={`/series/${current.slug}/1`} className="block">
             <div
-              className="relative w-full overflow-hidden hero-section"
-              style={{ height: "calc(100dvh - 280px)", minHeight: 220, background: "#07070E" }}
+              className="relative w-full overflow-hidden"
+              style={{ aspectRatio: "9 / 14", maxHeight: "70dvh", background: "#07070E" }}
             >
               {current.posterUrl ? (
                 <Image
@@ -94,6 +94,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                   priority
                   sizes="100vw"
                   className="object-cover"
+                  style={{ objectPosition: "center top" }}
                 />
               ) : (
                 <div
@@ -103,6 +104,12 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                   {current.title}
                 </div>
               )}
+
+              {/* Gradient scrim for readability */}
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{ background: "linear-gradient(to bottom, transparent 50%, rgba(7,7,14,0.85) 100%)" }}
+              />
             </div>
           </Link>
 
@@ -127,17 +134,18 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
             </>
           )}
 
-          <div className="px-4 pt-3 pb-1 text-center">
-            <Link href={`/series/${current.slug}/1`} className="no-underline">
-              <h2 className="text-lg font-extrabold leading-tight uppercase tracking-wide" style={{ color: "#FFFFFF" }}>
+          {/* Title + CTA overlaid on hero bottom */}
+          <div className="absolute bottom-0 left-0 right-0 z-10 px-5 pb-5 text-center pointer-events-none">
+            <Link href={`/series/${current.slug}/1`} className="no-underline pointer-events-auto">
+              <h2 className="text-xl font-extrabold leading-tight uppercase tracking-wide" style={{ color: "#FFFFFF", textShadow: "0 2px 8px rgba(0,0,0,0.6)" }}>
                 {current.title}
               </h2>
             </Link>
-            <p className="mt-1 text-xs" style={{ color: "#6B6B7B" }}>
+            <p className="mt-1 text-xs" style={{ color: "rgba(255,255,255,0.6)" }}>
               {current.genre} &middot; {current.episodeCount} episodes
             </p>
             {heroSlides.length > 1 && (
-              <div className="flex items-center justify-center gap-1.5 mt-2.5">
+              <div className="flex items-center justify-center gap-1.5 mt-2.5 pointer-events-auto">
                 {heroSlides.map((_, i) => (
                   <button
                     key={i}
@@ -153,7 +161,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                         height: 6,
                         background: i === heroIdx % heroSlides.length
                           ? "linear-gradient(90deg, #E0115F, #8B5CF6)"
-                          : "#6B6B7B",
+                          : "rgba(255,255,255,0.35)",
                         transition: "width 0.3s",
                       }}
                     />
@@ -163,11 +171,11 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
             )}
             <Link
               href={`/series/${current.slug}/1`}
-              className="inline-flex items-center gap-2 mt-3 px-5 py-2.5 rounded-full text-sm font-bold no-underline transition-transform active:scale-95"
+              className="inline-flex items-center gap-2 mt-3 px-6 py-3 rounded-full text-sm font-bold no-underline transition-transform active:scale-95 pointer-events-auto"
               style={{
                 background: "linear-gradient(135deg, #E0115F, #8B5CF6)",
                 color: "#fff",
-                boxShadow: "0 0 20px rgba(224, 17, 95, 0.3)",
+                boxShadow: "0 0 24px rgba(224, 17, 95, 0.4)",
               }}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff" stroke="none">
