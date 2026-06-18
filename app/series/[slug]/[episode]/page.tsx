@@ -18,6 +18,8 @@ import {
   breadcrumbSchema,
 } from "@/lib/schemas";
 import { T } from "@/lib/theme";
+import { SERIES_DETAIL } from "@/lib/series-detail";
+import SeriesInfoButton from "@/components/SeriesInfoButton";
 
 /* ------------------------------------------------------------------ */
 /*  Static params (first 10 episodes per live series)                  */
@@ -170,15 +172,23 @@ export default async function EpisodePage({ params }: Props) {
           {ep.title}
         </h1>
 
-        {/* Meta line */}
-        <p
-          className="text-sm mb-4"
-          style={{ color: T.textDim }}
-        >
-          Episode {ep.number} of {series.episodeCount}
-          <span style={{ color: T.textMute }}> &middot; </span>
-          {formatDuration(ep.durationS)}
-        </p>
+        {/* Meta line + info button */}
+        <div className="flex items-center gap-3 mb-4">
+          <p
+            className="text-sm flex-1"
+            style={{ color: T.textDim }}
+          >
+            Episode {ep.number} of {series.episodeCount}
+            <span style={{ color: T.textMute }}> &middot; </span>
+            {formatDuration(ep.durationS)}
+          </p>
+          <SeriesInfoButton
+            series={series}
+            seriesDetail={SERIES_DETAIL[series.slug]}
+            currentEpisode={ep.number}
+            totalEpisodes={series.episodeCount}
+          />
+        </div>
       </div>
 
       {/* ---- Player / Paywall ---- */}

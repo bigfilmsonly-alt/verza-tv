@@ -81,7 +81,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
       {/* Hero Slideshow */}
       {current && (
         <div className="relative">
-          <Link href={`/series/${current.slug}`} className="block">
+          <Link href={`/series/${current.slug}/1`} className="block">
             <div
               className="relative w-full overflow-hidden hero-section"
               style={{ height: "calc(100dvh - 280px)", minHeight: 220, background: "#07070E" }}
@@ -93,7 +93,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                   fill
                   priority
                   sizes="100vw"
-                  className="object-contain"
+                  className="object-cover"
                 />
               ) : (
                 <div
