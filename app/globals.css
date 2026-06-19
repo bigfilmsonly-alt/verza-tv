@@ -445,9 +445,9 @@ button:focus-visible {
     aspect-ratio: 4 / 3 !important;
   }
 
-  /* Poster grids: expand to 5 columns */
+  /* Poster grids: keep 3 columns, use minmax to prevent uneven sizing */
   .poster-grid {
-    grid-template-columns: repeat(5, 1fr) !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
   }
 
   /* Series hero: constrain height */

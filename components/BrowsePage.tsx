@@ -192,7 +192,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         <section className="mt-4 px-3 pb-6">
           <div className="grid grid-cols-3 gap-2.5 poster-grid stagger-children">
             {gridItems.map((s) => (
-              <Link key={s.slug} href={`/series/${s.slug}/1`} className="group block no-underline transition-transform duration-200 hover:scale-[1.03]">
+              <Link key={s.slug} href={`/series/${s.slug}/1`} className="group block no-underline transition-transform duration-200 hover:scale-[1.03] overflow-hidden">
                 <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
                   <Poster src={s.posterUrl} alt={s.title} />
                   {/* Play preview overlay on hover */}
