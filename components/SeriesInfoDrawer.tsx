@@ -486,7 +486,7 @@ export default function SeriesInfoDrawer({
                   >
                     <div
                       className="relative rounded-lg overflow-hidden"
-                      style={{ width: 100, aspectRatio: "9 / 16" }}
+                      style={{ width: 100, aspectRatio: "2 / 3" }}
                     >
                       {s.posterUrl ? (
                         <Image

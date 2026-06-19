@@ -13,7 +13,7 @@ type LibraryTab = "channels" | "my-list";
 function PosterThumb({ series }: { series: Series }) {
   return (
     <Link href={`/series/${series.slug}/1`} className="flex-shrink-0 no-underline group">
-      <div className="w-[100px] h-[140px] rounded-lg overflow-hidden relative" style={{ background: T.raised }}>
+      <div className="w-[100px] h-[150px] rounded-lg overflow-hidden relative" style={{ background: T.raised }}>
         {series.posterUrl ? (
           <Image src={series.posterUrl} alt={series.title} fill sizes="100px" className="object-cover transition-transform group-hover:scale-105" />
         ) : (

@@ -74,7 +74,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
       {/* Hero Skeleton */}
       {!current && (
         <div>
-          <div className="skeleton w-full" style={{ aspectRatio: "9 / 14", maxHeight: "70dvh" }} />
+          <div className="skeleton w-full" style={{ aspectRatio: "2 / 3" }} />
         </div>
       )}
 
@@ -210,8 +210,10 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                     </div>
                   </div>
                 </div>
-                <p className="mt-1.5 text-[11px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>{s.title}</p>
-                <p className="text-[10px] mt-0.5 line-clamp-1" style={{ color: "#6B6B7B" }}>{s.genre}</p>
+                <div style={{ height: 36 }}>
+                  <p className="mt-1.5 text-[11px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>{s.title}</p>
+                  <p className="text-[10px] mt-0.5 line-clamp-1" style={{ color: "#6B6B7B" }}>{s.genre}</p>
+                </div>
               </Link>
             ))}
           </div>

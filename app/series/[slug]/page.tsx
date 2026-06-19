@@ -100,7 +100,7 @@ export default async function SeriesPage({ params }: Props) {
       />
 
       {/* ---- Hero Poster ---- */}
-      <section className="series-hero relative w-full" style={{ aspectRatio: "3 / 4", maxHeight: "50vh", background: "#07070E" }}>
+      <section className="series-hero relative w-full" style={{ aspectRatio: "2 / 3", background: "#07070E" }}>
         {series.posterUrl ? (
           <Image
             src={series.posterUrl}
