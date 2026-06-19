@@ -1,12 +1,13 @@
 import { NextRequest } from "next/server";
 import Stripe from "stripe";
+import { getServiceClient } from "@/lib/supabase/server";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
 /**
  * POST /api/stripe/webhook
- * Handles Stripe webhook events for merch purchases and series unlocks.
+ * Handles Stripe webhook events — writes purchases + entitlements to Supabase.
  */
 export async function POST(req: NextRequest) {
   try {
@@ -26,29 +27,67 @@ export async function POST(req: NextRequest) {
       return Response.json({ error: "Invalid signature" }, { status: 400 });
     }
 
+    const supabase = getServiceClient();
+
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
         const type = session.metadata?.type;
+        const email = session.customer_details?.email;
+
+        // Record purchase in database
+        const { data: purchase, error: purchaseErr } = await supabase
+          .from("purchases")
+          .insert({
+            stripe_session_id: session.id,
+            stripe_payment_intent: typeof session.payment_intent === "string" ? session.payment_intent : null,
+            type: type || "merch",
+            series_slug: session.metadata?.seriesSlug || null,
+            amount_cents: session.amount_total || 0,
+            currency: session.currency || "usd",
+            status: "completed",
+            metadata: { email, items: session.metadata },
+          })
+          .select("id")
+          .single();
+
+        if (purchaseErr) {
+          console.error("[webhook] Failed to record purchase:", purchaseErr);
+        } else {
+          console.log("[webhook] Purchase recorded:", purchase?.id);
+        }
+
+        // If series unlock, create entitlement
+        if (type === "series_unlock" && session.metadata?.seriesSlug) {
+          // Try to find user by email
+          const { data: users } = await supabase.auth.admin.listUsers();
+          const user = users?.users?.find((u) => u.email === email);
+
+          if (user) {
+            const { error: entErr } = await supabase
+              .from("entitlements")
+              .upsert({
+                user_id: user.id,
+                series_slug: session.metadata.seriesSlug,
+                purchase_id: purchase?.id,
+              }, { onConflict: "user_id,series_slug" });
+
+            if (entErr) {
+              console.error("[webhook] Failed to create entitlement:", entErr);
+            } else {
+              console.log("[webhook] Entitlement created for", email, session.metadata.seriesSlug);
+            }
+          } else {
+            console.log("[webhook] No user found for email", email, "— entitlement pending");
+          }
+        }
 
         if (type === "merch") {
           console.log("[webhook] Merch purchase completed:", {
             sessionId: session.id,
             amount: session.amount_total,
-            email: session.customer_details?.email,
-            items: session.metadata?.itemCount,
+            email,
           });
-          // TODO: record order in database, send confirmation email
-        }
-
-        if (type === "series_unlock") {
-          console.log("[webhook] Series unlock completed:", {
-            sessionId: session.id,
-            seriesSlug: session.metadata?.seriesSlug,
-            episodeCount: session.metadata?.episodeCount,
-            email: session.customer_details?.email,
-          });
-          // TODO: create entitlement in database so episodes 6+ are unlocked
         }
 
         break;
