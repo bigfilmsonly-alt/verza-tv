@@ -2,11 +2,13 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import LangDropdown from "@/components/LangDropdown";
+import SearchButton from "@/components/SearchButton";
 
-export default function Header({ rightSlot }: { rightSlot?: React.ReactNode }) {
+export default function Header() {
   return (
     <header
-      className="sticky top-0 z-40 flex items-center px-4 py-2"
+      className="sticky top-0 z-40 flex items-center justify-between px-3 py-2"
       style={{
         background: "rgba(7, 7, 14, 0.92)",
         backdropFilter: "blur(16px)",
@@ -14,27 +16,23 @@ export default function Header({ rightSlot }: { rightSlot?: React.ReactNode }) {
         borderBottom: "1px solid rgba(224, 17, 95, 0.15)",
       }}
     >
-      {/* Left spacer — balances the right slot */}
-      <div className="w-10 flex-shrink-0" />
+      {/* Left — language dropdown */}
+      <LangDropdown />
 
-      {/* Logo — centered */}
-      <div className="flex-1 flex justify-center">
-        <Link href="/" className="block">
-          <Image
-            src="/logo.png"
-            alt="Verza TV"
-            width={120}
-            height={37}
-            className="object-contain brightness-125"
-            priority
-          />
-        </Link>
-      </div>
+      {/* Center — logo */}
+      <Link href="/" className="block">
+        <Image
+          src="/logo.png"
+          alt="Verza TV"
+          width={120}
+          height={37}
+          className="object-contain brightness-125"
+          priority
+        />
+      </Link>
 
-      {/* Right side — search icon (or custom slot) */}
-      <div className="w-10 flex-shrink-0 flex justify-end">
-        {rightSlot}
-      </div>
+      {/* Right — search */}
+      <SearchButton />
     </header>
   );
 }

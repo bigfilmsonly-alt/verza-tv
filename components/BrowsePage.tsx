@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import CategoryTabs from "@/components/CategoryTabs";
-import FeedSearch from "@/components/FeedSearch";
 import { BROWSE_TABS, getSeriesByCategory, type Series, type BrowseCategory } from "@/lib/catalog";
 import PosterSkeleton from "@/components/PosterSkeleton";
 
@@ -68,11 +67,6 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
 
   return (
     <div>
-      {/* Search icon — positioned in header area */}
-      <div className="absolute top-0 right-4 z-50" style={{ marginTop: "-38px" }}>
-        <FeedSearch series={allSeries} />
-      </div>
-
       {/* Category tabs — two rows */}
       <CategoryTabs active={activeTab} onSelect={setActiveTab} tabs={activeTabs} />
 
