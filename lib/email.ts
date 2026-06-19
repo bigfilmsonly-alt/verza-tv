@@ -4,8 +4,40 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 const FROM = "Verza TV <noreply@verzatv.com>";
 
-export async function sendWelcomeEmail(email: string, name: string) {
+/* Team members — notified on signups, purchases, and form submissions */
+const TEAM_EMAILS = [
+  "alan@storageblue.com",
+  "matt@verzatv.com",
+  "natalie@verzatv.com",
+  "allison@verzatv.com",
+  "debra@verzatv.com",
+  "bigfilmsonly@gmail.com",
+  "mikecrouch@gmail.com",
+];
+
+/* ---- Team notification (internal) ---- */
+async function notifyTeam(subject: string, body: string) {
   return resend.emails.send({
+    from: FROM,
+    to: TEAM_EMAILS,
+    subject: `[Verza TV] ${subject}`,
+    html: `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 560px; margin: 0 auto; background: #07070E; color: #F5F4F8; padding: 32px 24px; border-radius: 16px;">
+        <img src="https://www.verzatv.com/logo.png" alt="Verza TV" width="120" style="display: block; margin: 0 auto 20px;" />
+        <h2 style="font-size: 18px; text-align: center; margin: 0 0 16px; color: #E0115F;">${subject}</h2>
+        ${body}
+        <p style="font-size: 11px; color: #6B6B7B; text-align: center; margin-top: 24px;">
+          Verza TV Internal Notification
+        </p>
+      </div>
+    `,
+  }).catch((e) => console.error("[email] Team notify failed:", e));
+}
+
+/* ---- New user signup ---- */
+export async function sendWelcomeEmail(email: string, name: string) {
+  // Send welcome to the user
+  const userEmail = resend.emails.send({
     from: FROM,
     to: email,
     subject: "Welcome to Verza TV!",
@@ -27,8 +59,20 @@ export async function sendWelcomeEmail(email: string, name: string) {
       </div>
     `,
   });
+
+  // Notify the team
+  const teamNotify = notifyTeam("New User Signup", `
+    <table style="width: 100%; font-size: 14px; color: #A0A0B0;">
+      <tr><td style="padding: 6px 0; color: #6B6B7B;">Name</td><td style="padding: 6px 0; font-weight: 600; color: #F5F4F8;">${name}</td></tr>
+      <tr><td style="padding: 6px 0; color: #6B6B7B;">Email</td><td style="padding: 6px 0; font-weight: 600; color: #F5F4F8;">${email}</td></tr>
+      <tr><td style="padding: 6px 0; color: #6B6B7B;">Time</td><td style="padding: 6px 0;">${new Date().toLocaleString("en-US", { timeZone: "America/New_York" })} ET</td></tr>
+    </table>
+  `);
+
+  return Promise.all([userEmail, teamNotify]);
 }
 
+/* ---- Purchase confirmation ---- */
 export async function sendPurchaseConfirmation(
   email: string,
   name: string,
@@ -63,7 +107,8 @@ export async function sendPurchaseConfirmation(
         </p>
       `;
 
-  return resend.emails.send({
+  // Send confirmation to the customer
+  const customerEmail = resend.emails.send({
     from: FROM,
     to: email,
     subject,
@@ -77,4 +122,42 @@ export async function sendPurchaseConfirmation(
       </div>
     `,
   });
+
+  // Notify the team
+  const teamSubject = type === "series_unlock"
+    ? `New Series Unlock: ${details.seriesTitle}`
+    : "New Merch Order";
+
+  const teamNotify = notifyTeam(teamSubject, `
+    <table style="width: 100%; font-size: 14px; color: #A0A0B0;">
+      <tr><td style="padding: 6px 0; color: #6B6B7B;">Customer</td><td style="padding: 6px 0; font-weight: 600; color: #F5F4F8;">${name}</td></tr>
+      <tr><td style="padding: 6px 0; color: #6B6B7B;">Email</td><td style="padding: 6px 0; font-weight: 600; color: #F5F4F8;">${email}</td></tr>
+      <tr><td style="padding: 6px 0; color: #6B6B7B;">Type</td><td style="padding: 6px 0; font-weight: 600; color: #E0115F;">${type === "series_unlock" ? "Series Unlock" : "Merch Purchase"}</td></tr>
+      ${details.seriesTitle ? `<tr><td style="padding: 6px 0; color: #6B6B7B;">Series</td><td style="padding: 6px 0;">${details.seriesTitle}</td></tr>` : ""}
+      <tr><td style="padding: 6px 0; color: #6B6B7B;">Amount</td><td style="padding: 6px 0; font-weight: 700; color: #22c55e;">${details.amount}</td></tr>
+      <tr><td style="padding: 6px 0; color: #6B6B7B;">Time</td><td style="padding: 6px 0;">${new Date().toLocaleString("en-US", { timeZone: "America/New_York" })} ET</td></tr>
+    </table>
+  `);
+
+  return Promise.all([customerEmail, teamNotify]);
+}
+
+/* ---- Form submission notification ---- */
+export async function sendFormNotification(
+  formName: string,
+  submitterEmail: string,
+  data: Record<string, string>,
+) {
+  const rows = Object.entries(data)
+    .map(([key, val]) => `<tr><td style="padding: 6px 0; color: #6B6B7B; text-transform: capitalize;">${key}</td><td style="padding: 6px 0; color: #F5F4F8;">${val}</td></tr>`)
+    .join("");
+
+  return notifyTeam(`Form Submission: ${formName}`, `
+    <table style="width: 100%; font-size: 14px; color: #A0A0B0;">
+      <tr><td style="padding: 6px 0; color: #6B6B7B;">Form</td><td style="padding: 6px 0; font-weight: 600; color: #F5F4F8;">${formName}</td></tr>
+      <tr><td style="padding: 6px 0; color: #6B6B7B;">From</td><td style="padding: 6px 0; font-weight: 600; color: #F5F4F8;">${submitterEmail}</td></tr>
+      ${rows}
+      <tr><td style="padding: 6px 0; color: #6B6B7B;">Time</td><td style="padding: 6px 0;">${new Date().toLocaleString("en-US", { timeZone: "America/New_York" })} ET</td></tr>
+    </table>
+  `);
 }
