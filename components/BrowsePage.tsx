@@ -91,7 +91,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
             <Link href={`/series/${current.slug}/1`} className="block">
               <div
                 className="relative w-full overflow-hidden"
-                style={{ aspectRatio: "3 / 4", background: "#07070E" }}
+                style={{ aspectRatio: "9 / 16", maxHeight: "60dvh", background: "#07070E" }}
               >
                 {current.posterUrl ? (
                   <Image
@@ -100,7 +100,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                     fill
                     priority
                     sizes="100vw"
-                    className="object-cover object-top"
+                    className="object-contain"
                   />
                 ) : (
                   <div
@@ -198,7 +198,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
           <div className="grid grid-cols-3 gap-2.5 poster-grid stagger-children">
             {gridItems.map((s) => (
               <Link key={s.slug} href={`/series/${s.slug}/1`} className="group block no-underline transition-transform duration-200 hover:scale-[1.03]">
-                <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "3 / 4" }}>
+                <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "9 / 16" }}>
                   <Poster src={s.posterUrl} alt={s.title} />
                   {/* Play preview overlay on hover */}
                   <div
