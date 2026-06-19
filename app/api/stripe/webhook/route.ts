@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import Stripe from "stripe";
 import { getServiceClient } from "@/lib/supabase/server";
+import { sendPurchaseConfirmation } from "@/lib/email";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
@@ -82,12 +83,22 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        if (type === "merch") {
-          console.log("[webhook] Merch purchase completed:", {
-            sessionId: session.id,
-            amount: session.amount_total,
-            email,
-          });
+        // Send confirmation email
+        if (email) {
+          const amount = `$${((session.amount_total || 0) / 100).toFixed(2)}`;
+          const name = session.customer_details?.name || email.split("@")[0];
+
+          if (type === "series_unlock") {
+            sendPurchaseConfirmation(email, name, "series_unlock", {
+              seriesTitle: session.metadata?.seriesSlug?.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) || "Series",
+              amount,
+            }).catch((e) => console.error("[webhook] Email failed:", e));
+          } else if (type === "merch") {
+            sendPurchaseConfirmation(email, name, "merch", {
+              amount,
+              items: [session.metadata?.itemCount ? `${session.metadata.itemCount} item(s)` : "Merch order"],
+            }).catch((e) => console.error("[webhook] Email failed:", e));
+          }
         }
 
         break;
