@@ -127,6 +127,7 @@ function HorizontalCard({ video, index }: { video: HorizontalVideo; index: numbe
             src={thumbUrl}
             alt={video.title}
             className="absolute inset-0 w-full h-full object-cover"
+            style={{ filter: "saturate(1.3) contrast(1.08) brightness(1.04)" }}
             loading={index < 4 ? "eager" : "lazy"}
           />
         )}

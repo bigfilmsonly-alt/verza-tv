@@ -26,7 +26,7 @@ function Poster({ src, alt }: { src: string; alt: string }) {
       fill
       sizes="(max-width: 440px) 33vw, 146px"
       className="object-cover"
-      style={{ filter: "saturate(1.12) contrast(1.04) brightness(1.02)" }}
+      style={{ filter: "saturate(1.35) contrast(1.1) brightness(1.06)" }}
     />
   );
 }
@@ -96,6 +96,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                     priority
                     sizes="100vw"
                     className="object-cover"
+                    style={{ filter: "saturate(1.4) contrast(1.1) brightness(1.05)" }}
                   />
                 ) : (
                   <div
