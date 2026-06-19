@@ -1,0 +1,28 @@
+{
+  "name": "Verza TV",
+  "short_name": "Verza TV",
+  "description": "Stream binge-worthy micro-dramas, reality shows, and original series — all in vertical, all in minutes.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#07070E",
+  "theme_color": "#07070E",
+  "categories": ["entertainment", "video"],
+  "icons": [
+    {
+      "src": "/apple-touch-icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "related_applications": [],
+  "prefer_related_applications": false
+}

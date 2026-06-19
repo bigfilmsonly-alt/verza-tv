@@ -7,6 +7,7 @@ import Header from "@/components/Header";
 import { CartProvider } from "@/lib/cart";
 import CartDrawer from "@/components/CartDrawer";
 import { LangProvider } from "@/components/LangProvider";
+import ServiceWorker from "@/components/ServiceWorker";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -64,6 +65,12 @@ export const metadata: Metadata = {
       { url: "/apple-touch-icon.png", sizes: "512x512", type: "image/png" },
     ],
   },
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Verza TV",
+  },
   robots: { index: true, follow: true },
 };
 
@@ -83,6 +90,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} h-full antialiased`} style={{ background: "#07070E" }}>
       <body className="min-h-full flex flex-col" style={{ background: "#07070E" }}>
+        <ServiceWorker />
         <CartProvider>
         <LangProvider>
           {/* iPhone frame wrapper — visible on desktop only (CSS controlled) */}
