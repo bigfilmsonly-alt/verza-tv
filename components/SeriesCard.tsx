@@ -17,7 +17,7 @@ export default function SeriesCard({ series, dimmed }: SeriesCardProps) {
       {/* Poster */}
       <div
         className="relative overflow-hidden rounded-lg"
-        style={{ width: 130, aspectRatio: "9 / 16" }}
+        style={{ width: 130, aspectRatio: "2 / 3" }}
       >
         {series.posterUrl ? (
           <Image
