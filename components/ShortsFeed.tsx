@@ -8,6 +8,7 @@ import type { Series } from "@/lib/catalog";
 
 import { T } from "@/lib/theme";
 import { MUX_MAP } from "@/lib/mux-map";
+import { useTranslation } from "@/components/LangProvider";
 
 /* ---- Load hls.js once (dynamic import with typeof window guard — iOS Safari fix) ---- */
 let hlsPromise: Promise<typeof HlsType | null> | null = null;
@@ -212,6 +213,7 @@ function ShortCard({ series, isActive, isNearActive, muted, setMuted }: {
   series: Series; isActive: boolean; isNearActive: boolean;
   muted: boolean; setMuted: (m: boolean) => void;
 }) {
+  const { t } = useTranslation();
   const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(false);
   const [showCopied, setShowCopied] = useState(false);
@@ -338,13 +340,13 @@ function ShortCard({ series, isActive, isNearActive, muted, setMuted }: {
           </svg>
         </RailButton>
 
-        <RailButton label={saved ? "Saved" : "List"} onClick={handleSave}>
+        <RailButton label={saved ? t("shorts.saved") : t("shorts.list")} onClick={handleSave}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill={saved ? T.accent : "none"} stroke={saved ? T.accent : "#fff"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
           </svg>
         </RailButton>
 
-        <RailButton label={showCopied ? "Copied!" : "Share"} onClick={handleShare}>
+        <RailButton label={showCopied ? t("shorts.copied") : t("shorts.share")} onClick={handleShare}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={showCopied ? T.accent : "#fff"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
             <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
@@ -352,7 +354,7 @@ function ShortCard({ series, isActive, isNearActive, muted, setMuted }: {
           </svg>
         </RailButton>
 
-        <RailButton label="Sound" onClick={() => setMuted(!muted)}>
+        <RailButton label={t("shorts.sound")} onClick={() => setMuted(!muted)}>
           {muted ? (
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />

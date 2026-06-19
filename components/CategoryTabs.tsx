@@ -1,6 +1,7 @@
 "use client";
 
 import { BROWSE_TABS, type BrowseCategory } from "@/lib/catalog";
+import { useTranslation } from "@/components/LangProvider";
 
 interface CategoryTabsProps {
   active: BrowseCategory;
@@ -8,13 +9,25 @@ interface CategoryTabsProps {
   tabs?: { key: BrowseCategory; label: string }[];
 }
 
+const TAB_KEYS: Record<string, "tab.drama" | "tab.new" | "tab.popular" | "tab.music" | "tab.reality" | "tab.redCarpet"> = {
+  drama: "tab.drama",
+  new: "tab.new",
+  popular: "tab.popular",
+  music: "tab.music",
+  reality: "tab.reality",
+  "red-carpet": "tab.redCarpet",
+};
+
 export default function CategoryTabs({ active, onSelect, tabs }: CategoryTabsProps) {
   const items = tabs || BROWSE_TABS;
+  const { t } = useTranslation();
   const row1 = items.slice(0, 3);
   const row2 = items.slice(3);
 
   function TabButton({ tab }: { tab: { key: BrowseCategory; label: string } }) {
     const isActive = tab.key === active;
+    const translationKey = TAB_KEYS[tab.key];
+    const label = translationKey ? t(translationKey) : tab.label;
     return (
       <button
         onClick={() => onSelect(tab.key)}
@@ -24,7 +37,7 @@ export default function CategoryTabs({ active, onSelect, tabs }: CategoryTabsPro
           className="text-xs font-bold tracking-wider uppercase"
           style={{ color: "#FFFFFF" }}
         >
-          {tab.label}
+          {label}
         </span>
         {isActive && (
           <div

@@ -46,6 +46,7 @@ export interface Translations {
   "browse.startWatchingFree": string;
   "browse.trending": string;
   "browse.episodes": string;
+  "browse.allShows": string;
   /* Category tabs */
   "tab.drama": string;
   "tab.new": string;
@@ -118,7 +119,7 @@ const en: Translations = {
   "nav.discover": "Discover", "nav.shorts": "Shorts", "nav.widescreen": "Widescreen",
   "nav.shop": "Shop", "nav.library": "Library", "nav.profile": "Profile",
   "header.followUs": "Follow us",
-  "browse.startWatchingFree": "Start Watching Free", "browse.trending": "Trending", "browse.episodes": "episodes",
+  "browse.startWatchingFree": "Start Watching Free", "browse.trending": "Trending", "browse.episodes": "episodes", "browse.allShows": "All Shows",
   "tab.drama": "Drama", "tab.new": "New", "tab.popular": "Popular", "tab.music": "Music", "tab.reality": "Reality", "tab.redCarpet": "Red Carpet",
   "shorts.list": "List", "shorts.saved": "Saved", "shorts.share": "Share", "shorts.copied": "Copied!", "shorts.sound": "Sound",
   "horizontal.widescreen": "Widescreen", "horizontal.episodes": "episodes", "horizontal.play": "Play", "horizontal.pause": "Pause",
@@ -142,7 +143,7 @@ const es: Translations = {
   "nav.discover": "Descubrir", "nav.shorts": "Cortos", "nav.widescreen": "Panor\u00e1mico",
   "nav.shop": "Tienda", "nav.library": "Biblioteca", "nav.profile": "Perfil",
   "header.followUs": "S\u00edguenos",
-  "browse.startWatchingFree": "Empieza a Ver Gratis", "browse.trending": "Tendencia", "browse.episodes": "episodios",
+  "browse.startWatchingFree": "Empieza a Ver Gratis", "browse.trending": "Tendencia", "browse.episodes": "episodios", "browse.allShows": "Todas las Series",
   "tab.drama": "Drama", "tab.new": "Nuevo", "tab.popular": "Popular", "tab.music": "M\u00fasica", "tab.reality": "Reality", "tab.redCarpet": "Alfombra Roja",
   "shorts.list": "Lista", "shorts.saved": "Guardado", "shorts.share": "Compartir", "shorts.copied": "\u00a1Copiado!", "shorts.sound": "Sonido",
   "horizontal.widescreen": "Panor\u00e1mico", "horizontal.episodes": "episodios", "horizontal.play": "Reproducir", "horizontal.pause": "Pausa",
@@ -166,7 +167,7 @@ const fr: Translations = {
   "nav.discover": "D\u00e9couvrir", "nav.shorts": "Courts", "nav.widescreen": "\u00c9cran Large",
   "nav.shop": "Boutique", "nav.library": "Biblioth\u00e8que", "nav.profile": "Profil",
   "header.followUs": "Suivez-nous",
-  "browse.startWatchingFree": "Regarder Gratuitement", "browse.trending": "Tendances", "browse.episodes": "\u00e9pisodes",
+  "browse.startWatchingFree": "Regarder Gratuitement", "browse.trending": "Tendances", "browse.episodes": "\u00e9pisodes", "browse.allShows": "Toutes les S\u00e9ries",
   "tab.drama": "Drame", "tab.new": "Nouveau", "tab.popular": "Populaire", "tab.music": "Musique", "tab.reality": "T\u00e9l\u00e9r\u00e9alit\u00e9", "tab.redCarpet": "Tapis Rouge",
   "shorts.list": "Liste", "shorts.saved": "Enregistr\u00e9", "shorts.share": "Partager", "shorts.copied": "Copi\u00e9!", "shorts.sound": "Son",
   "horizontal.widescreen": "\u00c9cran Large", "horizontal.episodes": "\u00e9pisodes", "horizontal.play": "Lire", "horizontal.pause": "Pause",
@@ -190,7 +191,7 @@ const pt: Translations = {
   "nav.discover": "Descobrir", "nav.shorts": "Curtos", "nav.widescreen": "Tela Cheia",
   "nav.shop": "Loja", "nav.library": "Biblioteca", "nav.profile": "Perfil",
   "header.followUs": "Siga-nos",
-  "browse.startWatchingFree": "Comece a Assistir Gr\u00e1tis", "browse.trending": "Em Alta", "browse.episodes": "epis\u00f3dios",
+  "browse.startWatchingFree": "Comece a Assistir Gr\u00e1tis", "browse.trending": "Em Alta", "browse.episodes": "epis\u00f3dios", "browse.allShows": "Todas as S\u00e9ries",
   "tab.drama": "Drama", "tab.new": "Novo", "tab.popular": "Popular", "tab.music": "M\u00fasica", "tab.reality": "Reality", "tab.redCarpet": "Tapete Vermelho",
   "shorts.list": "Lista", "shorts.saved": "Salvo", "shorts.share": "Compartilhar", "shorts.copied": "Copiado!", "shorts.sound": "Som",
   "horizontal.widescreen": "Tela Cheia", "horizontal.episodes": "epis\u00f3dios", "horizontal.play": "Reproduzir", "horizontal.pause": "Pausar",

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import CategoryTabs from "@/components/CategoryTabs";
+import { useTranslation } from "@/components/LangProvider";
 import { BROWSE_TABS, getSeriesByCategory, type Series, type BrowseCategory } from "@/lib/catalog";
 import PosterSkeleton from "@/components/PosterSkeleton";
 
@@ -37,7 +38,7 @@ interface Props {
 }
 
 export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
-  // Show ALL tabs (including empty ones like Music, Red Carpet)
+  const { t } = useTranslation();
   const activeTabs = BROWSE_TABS;
 
   const [activeTab, setActiveTab] = useState<BrowseCategory>("drama");
@@ -176,7 +177,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff" stroke="none">
                 <polygon points="6 3 20 12 6 21" />
               </svg>
-              Start Watching Free
+              {t("browse.startWatchingFree")}
             </Link>
           </div>
         </div>
@@ -219,7 +220,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
 
       {/* All Shows */}
       <section className="px-3 pb-8">
-        <h2 className="text-sm font-semibold uppercase tracking-wider mb-4 px-1" style={{ color: "#8A8A9A" }}>All Shows</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wider mb-4 px-1" style={{ color: "#8A8A9A" }}>{t("browse.allShows")}</h2>
         <div className="grid grid-cols-3 gap-2.5 poster-grid stagger-children">
           {liveSeries.map((s) => (
             <Link key={s.slug} href={`/series/${s.slug}/1`} className="group block no-underline transition-transform duration-200 hover:scale-[1.03]">

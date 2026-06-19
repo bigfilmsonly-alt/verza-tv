@@ -3,6 +3,7 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import type HlsType from "hls.js";
 import { HORIZONTAL_VIDEOS, type HorizontalVideo } from "@/lib/horizontal-map";
+import { useTranslation } from "@/components/LangProvider";
 
 /* ---- Load hls.js once ---- */
 let hlsPromise: Promise<typeof HlsType | null> | null = null;
@@ -212,6 +213,7 @@ export default function HorizontalFeed() {
   const season1 = HORIZONTAL_VIDEOS.filter((v) => v.season === 1);
   const season2 = HORIZONTAL_VIDEOS.filter((v) => v.season === 2);
   const bonus = HORIZONTAL_VIDEOS.filter((v) => v.season === 0);
+  const { t } = useTranslation();
 
   return (
     <div className="px-4 pt-16 pb-24">
