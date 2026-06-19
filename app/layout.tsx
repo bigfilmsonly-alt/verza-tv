@@ -8,6 +8,7 @@ import { CartProvider } from "@/lib/cart";
 import CartDrawer from "@/components/CartDrawer";
 import { LangProvider } from "@/components/LangProvider";
 import ServiceWorker from "@/components/ServiceWorker";
+import Script from "next/script";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -89,6 +90,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} h-full antialiased`} style={{ background: "#07070E" }}>
+      <head>
+        <Script src="https://www.googletagmanager.com/gtag/js?id=G-HY8HNR5DQD" strategy="afterInteractive" />
+        <Script id="ga4" strategy="afterInteractive">{`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-HY8HNR5DQD');
+        `}</Script>
+      </head>
       <body className="min-h-full flex flex-col" style={{ background: "#07070E" }}>
         <ServiceWorker />
         <CartProvider>
