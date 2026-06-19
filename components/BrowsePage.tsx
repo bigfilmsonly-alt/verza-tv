@@ -183,19 +183,21 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </div>
       )}
 
-      {/* Tab Grid */}
+      {/* Tab Row — horizontal scroll */}
       {gridItems.length === 0 && filtered.length > 4 ? (
-        <section className="mt-4 px-3 pb-6">
+        <section className="mt-4 pb-4">
           <PosterSkeleton count={9} />
         </section>
       ) : gridItems.length > 0 && (
-        <section className="mt-4 px-3 pb-6">
-          <div className="grid grid-cols-3 gap-2.5 poster-grid stagger-children">
+        <section className="mt-4 pb-4">
+          <div
+            className="flex gap-3 overflow-x-auto no-scrollbar px-3"
+            style={{ WebkitOverflowScrolling: "touch" }}
+          >
             {gridItems.map((s) => (
-              <Link key={s.slug} href={`/series/${s.slug}/1`} className="group block no-underline transition-transform duration-200 hover:scale-[1.03] overflow-hidden">
-                <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
+              <Link key={s.slug} href={`/series/${s.slug}/1`} className="group block no-underline flex-shrink-0" style={{ width: 120 }}>
+                <div className="relative overflow-hidden rounded-lg" style={{ width: 120, aspectRatio: "2 / 3" }}>
                   <Poster src={s.posterUrl} alt={s.title} />
-                  {/* Play preview overlay on hover */}
                   <div
                     className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
                     style={{ background: "rgba(0,0,0,0.3)" }}
@@ -220,15 +222,17 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </section>
       )}
 
-      {/* All Shows */}
-      <section className="px-3 pb-8">
-        <h2 className="text-sm font-semibold uppercase tracking-wider mb-4 px-1" style={{ color: "#8A8A9A" }}>{t("browse.allShows")}</h2>
-        <div className="grid grid-cols-3 gap-2.5 poster-grid stagger-children">
+      {/* All Shows — horizontal scroll */}
+      <section className="pb-8">
+        <h2 className="text-sm font-semibold uppercase tracking-wider mb-3 px-4" style={{ color: "#8A8A9A" }}>{t("browse.allShows")}</h2>
+        <div
+          className="flex gap-3 overflow-x-auto no-scrollbar px-3"
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
           {liveSeries.map((s) => (
-            <Link key={s.slug} href={`/series/${s.slug}/1`} className="group block no-underline transition-transform duration-200 hover:scale-[1.03]">
-              <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
+            <Link key={s.slug} href={`/series/${s.slug}/1`} className="group block no-underline flex-shrink-0" style={{ width: 120 }}>
+              <div className="relative overflow-hidden rounded-lg" style={{ width: 120, aspectRatio: "2 / 3" }}>
                 <Poster src={s.posterUrl} alt={s.title} />
-                {/* Play preview overlay on hover */}
                 <div
                   className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
                   style={{ background: "rgba(0,0,0,0.3)" }}
@@ -243,8 +247,10 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                   </div>
                 </div>
               </div>
-              <p className="mt-1.5 text-[11px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>{s.title}</p>
-              <p className="text-[10px] mt-0.5 line-clamp-1" style={{ color: "#6B6B7B" }}>{s.genre}</p>
+              <div style={{ height: 36 }}>
+                <p className="mt-1.5 text-[11px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>{s.title}</p>
+                <p className="text-[10px] mt-0.5 line-clamp-1" style={{ color: "#6B6B7B" }}>{s.genre}</p>
+              </div>
             </Link>
           ))}
         </div>
