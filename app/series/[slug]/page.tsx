@@ -9,7 +9,7 @@ import {
   getEpisodesForSeries,
   formatDuration,
 } from "@/lib/catalog";
-import { formatCoins } from "@/lib/coins";
+// coins module no longer used — direct $4.99 pricing
 import { seriesSchema, breadcrumbSchema } from "@/lib/schemas";
 import { T } from "@/lib/theme";
 import { FREE_EPISODES } from "@/lib/config";
@@ -274,7 +274,7 @@ export default async function SeriesPage({ params }: Props) {
           Watch Episode 1 Free
         </Link>
 
-        {/* ---- Season Pass Card ---- */}
+        {/* ---- Unlock Full Series Card ---- */}
         <div
           className="rounded-xl p-4 mb-6"
           style={{
@@ -289,42 +289,21 @@ export default async function SeriesPage({ params }: Props) {
                 className="text-sm font-bold mb-0.5"
                 style={{ color: T.text }}
               >
-                Season Pass
+                Unlock Full Series
               </p>
               <p
                 className="text-xs"
                 style={{ color: T.textDim }}
               >
-                Unlock all {series.episodeCount} episodes
+                All {series.episodeCount} episodes &middot; one-time payment
               </p>
             </div>
-            <div className="flex items-center gap-1.5">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill={T.coin}
-                stroke="none"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <text
-                  x="12"
-                  y="16"
-                  textAnchor="middle"
-                  fontSize="12"
-                  fontWeight="bold"
-                  fill={T.bg}
-                >
-                  C
-                </text>
-              </svg>
-              <span
-                className="text-base font-bold"
-                style={{ color: T.coin }}
-              >
-                {formatCoins(series.seasonPassCoins)}
-              </span>
-            </div>
+            <span
+              className="text-base font-bold"
+              style={{ color: T.accent }}
+            >
+              $4.99
+            </span>
           </div>
         </div>
 
@@ -373,7 +352,7 @@ export default async function SeriesPage({ params }: Props) {
                   </p>
                 </div>
 
-                {/* Free or coin badge */}
+                {/* Free or Premium badge */}
                 {isFree ? (
                   <div className="flex items-center gap-1 flex-shrink-0">
                     <svg
@@ -401,16 +380,20 @@ export default async function SeriesPage({ params }: Props) {
                       width="14"
                       height="14"
                       viewBox="0 0 24 24"
-                      fill={T.coin}
-                      stroke="none"
+                      fill="none"
+                      stroke={T.accent}
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     >
-                      <circle cx="12" cy="12" r="10" />
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                     </svg>
                     <span
                       className="text-xs font-bold"
-                      style={{ color: T.coin }}
+                      style={{ color: T.accent }}
                     >
-                      {ep.unlockCoins}
+                      $4.99
                     </span>
                   </div>
                 )}

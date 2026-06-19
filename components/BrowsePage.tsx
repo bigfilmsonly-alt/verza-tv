@@ -192,7 +192,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         <section className="mt-4 pb-4">
           <div
             className="flex gap-3 overflow-x-auto no-scrollbar px-3"
-            style={{ WebkitOverflowScrolling: "touch" }}
+            style={{ WebkitOverflowScrolling: "touch", overscrollBehavior: "contain", touchAction: "pan-x" }}
           >
             {gridItems.map((s) => (
               <Link key={s.slug} href={`/series/${s.slug}/1`} className="group block no-underline flex-shrink-0" style={{ width: 120 }}>
@@ -227,7 +227,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         <h2 className="text-sm font-semibold uppercase tracking-wider mb-3 px-4" style={{ color: "#8A8A9A" }}>{t("browse.allShows")}</h2>
         <div
           className="flex gap-3 overflow-x-auto no-scrollbar px-3"
-          style={{ WebkitOverflowScrolling: "touch" }}
+          style={{ WebkitOverflowScrolling: "touch", overscrollBehavior: "contain", touchAction: "pan-x" }}
         >
           {liveSeries.map((s) => (
             <Link key={s.slug} href={`/series/${s.slug}/1`} className="group block no-underline flex-shrink-0" style={{ width: 120 }}>

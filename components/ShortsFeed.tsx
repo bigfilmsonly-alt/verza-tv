@@ -354,7 +354,7 @@ function ShortCard({ series, isActive, isNearActive, muted, setMuted }: {
           </svg>
         </RailButton>
 
-        <RailButton label={t("shorts.sound")} onClick={() => setMuted(!muted)}>
+        <RailButton label={muted ? t("shorts.soundOff") : t("shorts.soundOn")} onClick={() => setMuted(!muted)}>
           {muted ? (
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />

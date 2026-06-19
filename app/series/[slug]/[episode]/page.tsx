@@ -307,12 +307,12 @@ export default async function EpisodePage({ params }: Props) {
                   {listEp.title}
                 </span>
                 <span
-                  className="text-xs flex-shrink-0"
+                  className="text-xs font-bold flex-shrink-0"
                   style={{
-                    color: isListFree ? T.success : T.coin,
+                    color: isListFree ? T.success : T.accent,
                   }}
                 >
-                  {isListFree ? "FREE" : `${listEp.unlockCoins}`}
+                  {isListFree ? "FREE" : "$4.99"}
                 </span>
               </Link>
             );

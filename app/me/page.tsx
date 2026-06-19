@@ -244,43 +244,27 @@ export default function MePage() {
         </Link>
       </div>
 
-      {/* ---- Coin balance card ---- */}
-      <div
-        className="rounded-xl p-5 mb-2"
+      {/* ---- Browse shows CTA ---- */}
+      <Link
+        href="/"
+        className="flex items-center justify-between rounded-xl p-4 mb-2 no-underline"
         style={{
-          background: `linear-gradient(135deg, ${T.coin}11, ${T.coin}22)`,
-          border: `1px solid ${T.coin}33`,
+          background: `linear-gradient(135deg, ${T.accent}11, ${T.accent}22)`,
+          border: `1px solid ${T.accent}33`,
         }}
       >
-        <div className="flex items-center justify-between">
-          <div>
-            <p
-              className="text-[11px] font-semibold uppercase tracking-widest mb-1"
-              style={{ color: T.coin }}
-            >
-              Coin Balance
-            </p>
-            <div className="flex items-baseline gap-2">
-              <span
-                className="text-4xl font-bold leading-none"
-                style={{ color: T.coin }}
-              >
-                0
-              </span>
-              <span className="text-sm" style={{ color: `${T.coin}99` }}>
-                coins
-              </span>
-            </div>
-          </div>
-          <Link
-            href="/shop"
-            className="px-5 py-2 rounded-lg text-sm font-semibold no-underline transition-opacity hover:opacity-90"
-            style={{ background: T.coin, color: T.bg }}
-          >
-            Buy Coins
-          </Link>
+        <div>
+          <p className="text-sm font-bold" style={{ color: T.text }}>
+            Start Watching
+          </p>
+          <p className="text-xs mt-0.5" style={{ color: T.textDim }}>
+            First 5 episodes free &middot; $4.99 per series
+          </p>
         </div>
-      </div>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={T.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
+      </Link>
 
       {/* ---- Library ---- */}
       <SectionLabel>Library</SectionLabel>

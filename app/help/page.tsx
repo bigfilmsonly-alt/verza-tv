@@ -15,37 +15,32 @@ const FAQ_ITEMS = [
   {
     question: `Is ${BRAND.name} free?`,
     answer:
-      `The first ${FREE_EPISODES} episodes of every series are completely free. After that, you can unlock additional episodes using coins, or subscribe to VIP for unlimited access.`,
+      `The first ${FREE_EPISODES} episodes of every series are completely free. After that, you can unlock the full series for just $4.99 — a one-time payment that gives you access to every episode.`,
   },
   {
-    question: "How do coins work?",
+    question: "How much does it cost to unlock a series?",
     answer:
-      `Coins are the in-app currency used to unlock premium episodes. You can purchase coin packs starting at $1.99 for 100 coins. Larger packs include bonus coins. Coins never expire and can be used on any series.`,
+      `Unlocking a full series costs $4.99. This is a one-time payment that gives you access to all episodes in that series — no subscriptions, no hidden fees.`,
   },
   {
-    question: "How much does an episode cost?",
+    question: "How do I unlock a series?",
     answer:
-      `Most episodes cost ${DEFAULT_COIN_PER_EPISODE} coins to unlock. Season passes are also available at roughly 33% off the total episode-by-episode price, so you can binge an entire series for less.`,
+      `Watch the first ${FREE_EPISODES} free episodes. When you reach the next episode, you'll see an "Unlock Full Series — $4.99" button. Tap it, complete the payment, and all episodes are yours.`,
   },
   {
-    question: "What is a season pass?",
+    question: "What payment methods do you accept?",
     answer:
-      `A season pass unlocks every paid episode in a series at a discounted rate -- typically about 33% off what you would pay episode by episode. Once purchased, all current and future episodes in that series are yours to watch anytime.`,
-  },
-  {
-    question: "What is VIP?",
-    answer:
-      `VIP is the premium subscription tier. VIP members get unlimited access to all episodes across every series, plus early access to new releases. Plans are available weekly (${formatPrice(VIP_WEEKLY)}) and yearly (${formatPrice(VIP_YEARLY)}).`,
+      `We accept all major credit and debit cards through Stripe, our secure payment provider. Your payment information is never stored on our servers.`,
   },
   {
     question: "How do I watch free episodes?",
     answer:
-      `Just open any series and start watching. The first ${FREE_EPISODES} episodes are always free -- no account or coins required. After the free episodes, you will see a prompt to unlock the next episode with coins.`,
+      `Just open any series and start watching. The first ${FREE_EPISODES} episodes are always free — no account or payment required. After the free episodes, you can unlock the rest for $4.99.`,
   },
   {
     question: "What devices are supported?",
     answer:
-      `${BRAND.name} is available on iOS, Android, and the web. Your library, coin balance, and watch history sync across all devices when you are signed in.`,
+      `${BRAND.name} is available on iOS, Android, and the web. You can add it to your home screen for a native app experience.`,
   },
   {
     question: "What genres are available?",

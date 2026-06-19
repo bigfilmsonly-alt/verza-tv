@@ -60,6 +60,8 @@ export interface Translations {
   "shorts.share": string;
   "shorts.copied": string;
   "shorts.sound": string;
+  "shorts.soundOn": string;
+  "shorts.soundOff": string;
   /* Horizontal */
   "horizontal.widescreen": string;
   "horizontal.episodes": string;
@@ -121,7 +123,7 @@ const en: Translations = {
   "header.followUs": "Follow us",
   "browse.startWatchingFree": "Start Watching Free", "browse.trending": "Trending", "browse.episodes": "episodes", "browse.allShows": "All Shows",
   "tab.drama": "Drama", "tab.new": "New", "tab.popular": "Popular", "tab.music": "Music", "tab.reality": "Reality", "tab.redCarpet": "Red Carpet",
-  "shorts.list": "List", "shorts.saved": "Saved", "shorts.share": "Share", "shorts.copied": "Copied!", "shorts.sound": "Sound",
+  "shorts.list": "List", "shorts.saved": "Saved", "shorts.share": "Share", "shorts.copied": "Copied!", "shorts.sound": "Sound", "shorts.soundOn": "On", "shorts.soundOff": "Off",
   "horizontal.widescreen": "Widescreen", "horizontal.episodes": "episodes", "horizontal.play": "Play", "horizontal.pause": "Pause",
   "profile.guest": "Guest", "profile.signIn": "Sign In", "profile.signInPrompt": "Sign in to sync your library and purchases",
   "profile.coinBalance": "Coin Balance", "profile.coins": "coins", "profile.buyCoins": "Buy Coins",
@@ -145,7 +147,7 @@ const es: Translations = {
   "header.followUs": "S\u00edguenos",
   "browse.startWatchingFree": "Empieza a Ver Gratis", "browse.trending": "Tendencia", "browse.episodes": "episodios", "browse.allShows": "Todas las Series",
   "tab.drama": "Drama", "tab.new": "Nuevo", "tab.popular": "Popular", "tab.music": "M\u00fasica", "tab.reality": "Reality", "tab.redCarpet": "Alfombra Roja",
-  "shorts.list": "Lista", "shorts.saved": "Guardado", "shorts.share": "Compartir", "shorts.copied": "\u00a1Copiado!", "shorts.sound": "Sonido",
+  "shorts.list": "Lista", "shorts.saved": "Guardado", "shorts.share": "Compartir", "shorts.copied": "\u00a1Copiado!", "shorts.sound": "Sonido", "shorts.soundOn": "On", "shorts.soundOff": "Off",
   "horizontal.widescreen": "Panor\u00e1mico", "horizontal.episodes": "episodios", "horizontal.play": "Reproducir", "horizontal.pause": "Pausa",
   "profile.guest": "Invitado", "profile.signIn": "Iniciar Sesi\u00f3n", "profile.signInPrompt": "Inicia sesi\u00f3n para sincronizar tu biblioteca",
   "profile.coinBalance": "Saldo de Monedas", "profile.coins": "monedas", "profile.buyCoins": "Comprar Monedas",
@@ -169,7 +171,7 @@ const fr: Translations = {
   "header.followUs": "Suivez-nous",
   "browse.startWatchingFree": "Regarder Gratuitement", "browse.trending": "Tendances", "browse.episodes": "\u00e9pisodes", "browse.allShows": "Toutes les S\u00e9ries",
   "tab.drama": "Drame", "tab.new": "Nouveau", "tab.popular": "Populaire", "tab.music": "Musique", "tab.reality": "T\u00e9l\u00e9r\u00e9alit\u00e9", "tab.redCarpet": "Tapis Rouge",
-  "shorts.list": "Liste", "shorts.saved": "Enregistr\u00e9", "shorts.share": "Partager", "shorts.copied": "Copi\u00e9!", "shorts.sound": "Son",
+  "shorts.list": "Liste", "shorts.saved": "Enregistr\u00e9", "shorts.share": "Partager", "shorts.copied": "Copi\u00e9!", "shorts.sound": "Son", "shorts.soundOn": "On", "shorts.soundOff": "Off",
   "horizontal.widescreen": "\u00c9cran Large", "horizontal.episodes": "\u00e9pisodes", "horizontal.play": "Lire", "horizontal.pause": "Pause",
   "profile.guest": "Invit\u00e9", "profile.signIn": "Se Connecter", "profile.signInPrompt": "Connectez-vous pour synchroniser votre biblioth\u00e8que",
   "profile.coinBalance": "Solde de Pi\u00e8ces", "profile.coins": "pi\u00e8ces", "profile.buyCoins": "Acheter des Pi\u00e8ces",
@@ -193,7 +195,7 @@ const pt: Translations = {
   "header.followUs": "Siga-nos",
   "browse.startWatchingFree": "Comece a Assistir Gr\u00e1tis", "browse.trending": "Em Alta", "browse.episodes": "epis\u00f3dios", "browse.allShows": "Todas as S\u00e9ries",
   "tab.drama": "Drama", "tab.new": "Novo", "tab.popular": "Popular", "tab.music": "M\u00fasica", "tab.reality": "Reality", "tab.redCarpet": "Tapete Vermelho",
-  "shorts.list": "Lista", "shorts.saved": "Salvo", "shorts.share": "Compartilhar", "shorts.copied": "Copiado!", "shorts.sound": "Som",
+  "shorts.list": "Lista", "shorts.saved": "Salvo", "shorts.share": "Compartilhar", "shorts.copied": "Copiado!", "shorts.sound": "Som", "shorts.soundOn": "On", "shorts.soundOff": "Off",
   "horizontal.widescreen": "Tela Cheia", "horizontal.episodes": "epis\u00f3dios", "horizontal.play": "Reproduzir", "horizontal.pause": "Pausar",
   "profile.guest": "Convidado", "profile.signIn": "Entrar", "profile.signInPrompt": "Entre para sincronizar sua biblioteca",
   "profile.coinBalance": "Saldo de Moedas", "profile.coins": "moedas", "profile.buyCoins": "Comprar Moedas",

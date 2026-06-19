@@ -411,7 +411,7 @@ export default function SeriesInfoDrawer({
                       </p>
                     </div>
 
-                    {/* Free / Coins badge */}
+                    {/* Free / Premium badge */}
                     {ep.isFree ? (
                       <span
                         className="text-[11px] font-bold px-2 py-0.5 rounded-full flex-shrink-0"
@@ -426,30 +426,24 @@ export default function SeriesInfoDrawer({
                       <span
                         className="flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full flex-shrink-0"
                         style={{
-                          background: "rgba(255, 200, 61, 0.12)",
-                          color: T.coin,
+                          background: "rgba(224, 17, 95, 0.12)",
+                          color: T.accent,
                         }}
                       >
                         <svg
                           width="12"
                           height="12"
                           viewBox="0 0 24 24"
-                          fill="currentColor"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                         >
-                          <circle cx="12" cy="12" r="10" opacity="0.3" />
-                          <circle cx="12" cy="12" r="7" />
-                          <text
-                            x="12"
-                            y="16"
-                            textAnchor="middle"
-                            fontSize="10"
-                            fill={T.bg}
-                            fontWeight="bold"
-                          >
-                            C
-                          </text>
+                          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                         </svg>
-                        {ep.unlockCoins}
+                        $4.99
                       </span>
                     )}
 
