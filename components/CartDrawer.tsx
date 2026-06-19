@@ -150,14 +150,35 @@ export default function CartDrawer() {
                 ${subtotal.toFixed(2)}
               </span>
             </div>
-            <Link
-              href="/api/checkout"
-              onClick={closeCart}
-              className="block w-full py-3.5 rounded-xl text-sm font-bold text-center no-underline transition-opacity hover:opacity-90"
+            <button
+              onClick={async () => {
+                try {
+                  const res = await fetch("/api/checkout", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      items: items.map((i) => ({
+                        productId: i.product.id,
+                        name: i.product.name,
+                        quantity: i.quantity,
+                        priceCents: Math.round(i.product.price * 100),
+                        imageUrl: i.product.images?.[0] ?? undefined,
+                      })),
+                    }),
+                  });
+                  const data = await res.json();
+                  if (data.url) {
+                    window.location.href = data.url;
+                  }
+                } catch (err) {
+                  console.error("Checkout error:", err);
+                }
+              }}
+              className="w-full py-3.5 rounded-xl text-sm font-bold text-center transition-opacity hover:opacity-90 border-0 cursor-pointer"
               style={{ background: T.accent, color: "#fff" }}
             >
               Checkout
-            </Link>
+            </button>
           </div>
         )}
       </div>
