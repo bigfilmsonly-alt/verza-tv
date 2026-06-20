@@ -27,3 +27,38 @@ self.addEventListener("fetch", (event) => {
     );
   }
 });
+
+// Push: show notification
+self.addEventListener("push", (event) => {
+  const data = event.data?.json() ?? {
+    title: "Verza TV",
+    body: "New content available!",
+  };
+  event.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: "/apple-touch-icon-180.png",
+      badge: "/apple-touch-icon-180.png",
+      data: { url: data.url || "/" },
+    })
+  );
+});
+
+// Notification click: open the target URL
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = event.notification.data?.url || "/";
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((windowClients) => {
+      // Focus existing tab if one is open on our origin
+      for (const client of windowClients) {
+        if (client.url.includes(self.location.origin) && "focus" in client) {
+          client.navigate(url);
+          return client.focus();
+        }
+      }
+      // Otherwise open a new tab
+      return clients.openWindow(url);
+    })
+  );
+});

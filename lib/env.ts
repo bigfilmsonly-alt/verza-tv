@@ -18,5 +18,9 @@ export const env = {
   stripeSecretKey: getEnv("STRIPE_SECRET_KEY"),
   stripeWebhookSecret: getEnv("STRIPE_WEBHOOK_SECRET"),
   anthropicApiKey: getEnv("ANTHROPIC_API_KEY"),
+  vapidPublicKey: getEnv("NEXT_PUBLIC_VAPID_PUBLIC_KEY"),
+  vapidPrivateKey: getEnv("VAPID_PRIVATE_KEY"),
+  vapidSubject: getEnv("VAPID_SUBJECT") || "mailto:support@verzatv.com",
+  pushApiKey: getEnv("PUSH_API_KEY"),
   isProduction: process.env.VERCEL_ENV === "production",
 } as const;

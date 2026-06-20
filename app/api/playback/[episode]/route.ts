@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { FREE_EPISODES } from "@/lib/config";
 import { getPlayback } from "@/lib/mux-map";
+import { checkVipStatus } from "@/lib/vip";
 
 export async function GET(
   request: NextRequest,
@@ -16,8 +17,9 @@ export async function GET(
   }
 
   const isFree = epNum <= FREE_EPISODES;
+  const isVip = await checkVipStatus(request);
 
-  if (!isFree) {
+  if (!isFree && !isVip) {
     return NextResponse.json({
       status: "paywall",
       message: "This episode requires coins to unlock",
@@ -45,5 +47,6 @@ export async function GET(
     playbackUrl: `https://stream.mux.com/${mux.playbackId}.m3u8`,
     duration: mux.duration,
     poster: `https://image.mux.com/${mux.playbackId}/thumbnail.jpg?time=5&width=720&height=1280`,
+    vip: isVip || undefined,
   });
 }

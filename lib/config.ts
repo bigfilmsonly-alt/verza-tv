@@ -16,5 +16,26 @@ export const COIN_PACKS = [
 
 export const FREE_EPISODES = 5;
 export const DEFAULT_COIN_PER_EPISODE = 49;
-export const VIP_WEEKLY = 1999;
-export const VIP_YEARLY = 19900;
+export const VIP_MONTHLY_CENTS = 999; // $9.99/mo
+export const VIP_YEARLY_CENTS = 7999; // $79.99/yr (save 33%)
+
+// Backward-compatible aliases (used by help, llms.txt)
+export const VIP_WEEKLY = VIP_MONTHLY_CENTS; // legacy alias
+export const VIP_YEARLY = VIP_YEARLY_CENTS; // legacy alias
+export const VIP_PLANS = {
+  monthly: {
+    id: "monthly" as const,
+    label: "Monthly",
+    cents: 999,
+    interval: "month" as const,
+    intervalCount: 1,
+  },
+  yearly: {
+    id: "yearly" as const,
+    label: "Yearly",
+    cents: 7999,
+    interval: "year" as const,
+    intervalCount: 1,
+    badge: "Save 33%",
+  },
+} as const;

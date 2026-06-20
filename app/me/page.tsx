@@ -3,6 +3,8 @@ import Link from "next/link";
 import { T } from "@/lib/theme";
 import { BRAND } from "@/lib/config";
 import LanguagePicker from "@/components/LanguagePicker";
+import PushNotificationToggle from "@/components/PushNotificationToggle";
+import VipCard from "@/components/VipCard";
 
 export const metadata: Metadata = {
   title: `My Account | ${BRAND.name}`,
@@ -266,6 +268,10 @@ export default function MePage() {
         </svg>
       </Link>
 
+      {/* ---- VIP Subscription ---- */}
+      <SectionLabel>Subscription</SectionLabel>
+      <VipCard />
+
       {/* ---- Library ---- */}
       <SectionLabel>Library</SectionLabel>
       <SectionCard>
@@ -294,11 +300,7 @@ export default function MePage() {
       <SectionLabel>Settings</SectionLabel>
       <SectionCard>
         <LanguagePicker />
-        <MenuRow
-          icon={Icons.bell}
-          label="Notifications"
-          href="/me"
-        />
+        <PushNotificationToggle />
         <MenuRow
           icon={Icons.moon}
           label="Dark Mode"

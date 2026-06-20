@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import JsonLd from "@/components/JsonLd";
 import Player from "@/components/Player";
 import CoinPaywall from "@/components/CoinPaywall";
@@ -20,6 +21,7 @@ import {
 import { T } from "@/lib/theme";
 import { SERIES_DETAIL } from "@/lib/series-detail";
 import SeriesInfoButton from "@/components/SeriesInfoButton";
+import { checkVipStatusServer } from "@/lib/vip-server";
 
 /* ------------------------------------------------------------------ */
 /*  Static params (first 10 episodes per live series)                  */
@@ -91,7 +93,8 @@ export default async function EpisodePage({ params }: Props) {
   const mux = getPlayback(slug, epNum);
 
   const episodes = getEpisodesForSeries(slug);
-  const isFree = ep.number <= series.freeEpisodes;
+  const isVip = await checkVipStatusServer();
+  const isFree = ep.number <= series.freeEpisodes || isVip;
   const hasPrev = ep.number > 1;
   const hasNext = ep.number < series.episodeCount;
 

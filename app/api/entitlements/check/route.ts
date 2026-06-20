@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { FREE_EPISODES } from "@/lib/config";
+import { checkVipStatus } from "@/lib/vip";
 
 type EntitlementReason = "free" | "purchased" | "season_pass" | "vip";
 
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest) {
   if (!series || isNaN(epNum) || epNum < 1) {
     return NextResponse.json(
       { error: "Missing or invalid series/episode params" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -34,24 +35,22 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(res);
   }
 
-  // In production: extract user from auth token/session
-  // const user = await getUser(request);
-  // if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  // VIP check: if user is VIP, all episodes are entitled
+  const isVip = await checkVipStatus(request);
+  if (isVip) {
+    const res: EntitlementResponse = {
+      entitled: true,
+      reason: "vip",
+      series,
+      episode: epNum,
+    };
+    return NextResponse.json(res);
+  }
 
-  // In production: check Supabase entitlements table
-  // 1. Check if user has VIP subscription (vip)
-  // const vip = await checkVipStatus(user.id);
-  // if (vip) return NextResponse.json({ entitled: true, reason: "vip", series, episode: epNum });
+  // TODO: check season pass and individual episode purchases
+  // when auth is fully wired
 
-  // 2. Check if user has season pass for this series (season_pass)
-  // const pass = await checkSeasonPass(user.id, series);
-  // if (pass) return NextResponse.json({ entitled: true, reason: "season_pass", series, episode: epNum });
-
-  // 3. Check if user purchased this specific episode (purchased)
-  // const purchased = await checkEpisodePurchase(user.id, series, epNum);
-  // if (purchased) return NextResponse.json({ entitled: true, reason: "purchased", series, episode: epNum });
-
-  // Stub: no auth wired yet, so locked episodes are never entitled
+  // Default: not entitled
   const res: EntitlementResponse = {
     entitled: false,
     series,

@@ -104,6 +104,156 @@ export async function POST(req: NextRequest) {
         break;
       }
 
+      /* -------------------------------------------------------------- */
+      /*  VIP Subscription — created / activated                         */
+      /* -------------------------------------------------------------- */
+      case "customer.subscription.created":
+      case "customer.subscription.updated": {
+        const sub = event.data.object as Stripe.Subscription;
+        const status = sub.status; // active, trialing, past_due, canceled, etc.
+        const isActive = status === "active" || status === "trialing";
+        const customerId =
+          typeof sub.customer === "string" ? sub.customer : sub.customer.id;
+
+        // Resolve email from customer
+        const customer = await stripe.customers.retrieve(customerId);
+        const email =
+          !("deleted" in customer && customer.deleted) ? customer.email : null;
+
+        if (email) {
+          const { data: users } = await supabase.auth.admin.listUsers();
+          const user = users?.users?.find((u) => u.email === email);
+
+          if (user) {
+            const periodEnd = sub.items.data[0]?.current_period_end
+              ? new Date(sub.items.data[0].current_period_end * 1000).toISOString()
+              : null;
+
+            const { error: profileErr } = await supabase
+              .from("profiles")
+              .update({
+                is_vip: isActive,
+                vip_expires_at: isActive ? periodEnd : null,
+                stripe_customer_id: customerId,
+                stripe_subscription_id: sub.id,
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", user.id);
+
+            if (profileErr) {
+              console.error("[webhook] Failed to update VIP status:", profileErr);
+            } else {
+              console.log(
+                "[webhook] VIP status updated:",
+                email,
+                isActive ? "activated" : "deactivated",
+              );
+            }
+          } else {
+            console.log("[webhook] No user found for customer email:", email);
+          }
+        }
+
+        break;
+      }
+
+      /* -------------------------------------------------------------- */
+      /*  VIP Subscription — deleted / canceled                          */
+      /* -------------------------------------------------------------- */
+      case "customer.subscription.deleted": {
+        const sub = event.data.object as Stripe.Subscription;
+        const customerId =
+          typeof sub.customer === "string" ? sub.customer : sub.customer.id;
+
+        const customer = await stripe.customers.retrieve(customerId);
+        const email =
+          !("deleted" in customer && customer.deleted) ? customer.email : null;
+
+        if (email) {
+          const { data: users } = await supabase.auth.admin.listUsers();
+          const user = users?.users?.find((u) => u.email === email);
+
+          if (user) {
+            const { error: profileErr } = await supabase
+              .from("profiles")
+              .update({
+                is_vip: false,
+                vip_expires_at: null,
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", user.id);
+
+            if (profileErr) {
+              console.error("[webhook] Failed to remove VIP status:", profileErr);
+            } else {
+              console.log("[webhook] VIP removed for:", email);
+            }
+          }
+        }
+
+        break;
+      }
+
+      /* -------------------------------------------------------------- */
+      /*  Invoice paid — renewal tracking                                */
+      /* -------------------------------------------------------------- */
+      case "invoice.payment_succeeded": {
+        const invoice = event.data.object as Stripe.Invoice;
+
+        // Resolve subscription ID from parent (Stripe v22 structure)
+        const subRef = invoice.parent?.subscription_details?.subscription;
+        const subId =
+          typeof subRef === "string" ? subRef : subRef?.id ?? null;
+
+        // Only track subscription invoices (not one-time payments)
+        if (subId) {
+          const customerId =
+            typeof invoice.customer === "string"
+              ? invoice.customer
+              : invoice.customer?.id ?? null;
+
+          const email = invoice.customer_email;
+          console.log(
+            "[webhook] Subscription invoice paid:",
+            subId,
+            email,
+            `$${((invoice.amount_paid || 0) / 100).toFixed(2)}`,
+          );
+
+          // Record in purchases table for history
+          if (customerId) {
+            await supabase.from("purchases").insert({
+              stripe_session_id: invoice.id,
+              type: "vip_renewal",
+              amount_cents: invoice.amount_paid || 0,
+              currency: invoice.currency || "usd",
+              status: "completed",
+              metadata: {
+                email,
+                subscription_id: subId,
+                period_end: invoice.lines?.data?.[0]?.period?.end
+                  ? new Date(
+                      invoice.lines.data[0].period.end * 1000,
+                    ).toISOString()
+                  : null,
+              },
+            });
+          }
+        }
+
+        break;
+      }
+
+      case "invoice.payment_failed": {
+        const invoice = event.data.object as Stripe.Invoice;
+        console.error(
+          "[webhook] Invoice payment failed:",
+          invoice.id,
+          invoice.customer_email,
+        );
+        break;
+      }
+
       case "payment_intent.succeeded": {
         const pi = event.data.object as Stripe.PaymentIntent;
         console.log("[webhook] Payment succeeded:", pi.id, pi.amount);
