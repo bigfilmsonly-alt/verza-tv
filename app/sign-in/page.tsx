@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { T } from "@/lib/theme";
 import { BRAND } from "@/lib/config";
+import { signInAction } from "@/app/actions/auth";
 
 export const metadata: Metadata = {
   title: `Sign In | ${BRAND.name}`,
@@ -102,8 +103,8 @@ export default function SignInPage() {
         Stream micro-dramas, track your library, and more.
       </p>
 
-      {/* Email form */}
-      <form className="flex flex-col gap-3 mb-6">
+      {/* Email + password form */}
+      <form action={signInAction} className="flex flex-col gap-3 mb-6">
         <label className="sr-only" htmlFor="email">Email address</label>
         <input
           id="email"
@@ -112,21 +113,27 @@ export default function SignInPage() {
           placeholder="Email address"
           autoComplete="email"
           required
-          className="w-full rounded-xl px-4 py-3 text-sm outline-none placeholder:opacity-50 transition-colors focus:ring-2"
-          style={{
-            background: T.surface,
-            border: `1px solid ${T.line}`,
-            color: T.text,
-            // @ts-expect-error -- CSS custom property for focus ring
-            "--tw-ring-color": T.accent,
-          }}
+          className="w-full rounded-xl px-4 py-3 text-sm outline-none placeholder:opacity-50"
+          style={{ background: T.surface, border: `1px solid ${T.line}`, color: T.text }}
+        />
+        <label className="sr-only" htmlFor="password">Password</label>
+        <input
+          id="password"
+          name="password"
+          type="password"
+          placeholder="Password"
+          autoComplete="current-password"
+          required
+          minLength={6}
+          className="w-full rounded-xl px-4 py-3 text-sm outline-none placeholder:opacity-50"
+          style={{ background: T.surface, border: `1px solid ${T.line}`, color: T.text }}
         />
         <button
           type="submit"
           className="w-full rounded-xl px-4 py-3 text-sm font-semibold transition-opacity hover:opacity-90"
           style={{ background: T.accent, color: "#fff" }}
         >
-          Continue with Email
+          Sign In
         </button>
       </form>
 

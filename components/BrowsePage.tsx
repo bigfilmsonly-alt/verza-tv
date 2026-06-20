@@ -37,18 +37,35 @@ interface Props {
   tabData: Record<string, Series[]>;
 }
 
+interface ContinueItem {
+  seriesSlug: string;
+  seriesTitle: string;
+  posterUrl: string;
+  episodeNumber: number;
+  totalEpisodes: number;
+}
+
 export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
   const { t } = useTranslation();
   const activeTabs = BROWSE_TABS;
 
   const [activeTab, setActiveTab] = useState<BrowseCategory>("drama");
   const [heroIdx, setHeroIdx] = useState(0);
+  const [continueWatching, setContinueWatching] = useState<ContinueItem[]>([]);
 
   const filtered = tabData[activeTab] ?? [];
   const heroSlides = filtered.slice(0, 4);
   const current = heroSlides[heroIdx % Math.max(heroSlides.length, 1)];
 
   useEffect(() => { setHeroIdx(0); }, [activeTab]);
+
+  // Fetch continue watching data
+  useEffect(() => {
+    fetch("/api/watch-progress")
+      .then((r) => r.json())
+      .then((d) => setContinueWatching(d.items ?? []))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (heroSlides.length <= 1) return;
@@ -70,6 +87,38 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
     <div>
       {/* Category tabs — two rows */}
       <CategoryTabs active={activeTab} onSelect={setActiveTab} tabs={activeTabs} />
+
+      {/* Continue Watching row */}
+      {continueWatching.length > 0 && (
+        <section className="pb-4">
+          <h2 className="text-sm font-semibold uppercase tracking-wider mb-3 px-4" style={{ color: "#8A8A9A" }}>Continue Watching</h2>
+          <div
+            className="flex gap-3 overflow-x-auto no-scrollbar px-3"
+            style={{ WebkitOverflowScrolling: "touch", overscrollBehavior: "contain", touchAction: "pan-x" }}
+          >
+            {continueWatching.map((item) => (
+              <Link key={item.seriesSlug} href={`/series/${item.seriesSlug}/${item.episodeNumber}`} className="group block no-underline flex-shrink-0" style={{ width: 120 }}>
+                <div className="relative overflow-hidden rounded-lg" style={{ width: 120, aspectRatio: "2 / 3" }}>
+                  {item.posterUrl && (
+                    <Image src={item.posterUrl} alt={item.seriesTitle} fill sizes="120px" className="object-cover" style={{ filter: "saturate(1.35) contrast(1.1) brightness(1.06)" }} />
+                  )}
+                  {/* Progress bar */}
+                  <div className="absolute bottom-0 left-0 right-0 h-1" style={{ background: "rgba(0,0,0,0.5)" }}>
+                    <div className="h-full" style={{ width: "50%", background: "#E0115F" }} />
+                  </div>
+                  {/* Episode badge */}
+                  <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded text-[9px] font-bold" style={{ background: "rgba(0,0,0,0.7)", color: "#fff" }}>
+                    EP {item.episodeNumber}
+                  </div>
+                </div>
+                <div style={{ height: 36 }}>
+                  <p className="mt-1.5 text-[11px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>{item.seriesTitle}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Hero Skeleton */}
       {!current && (

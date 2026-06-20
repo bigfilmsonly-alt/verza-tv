@@ -52,6 +52,7 @@ export default function Player({
   const [playing, setPlaying] = useState(false);
   const [showUnlockPopup, setShowUnlockPopup] = useState(false);
   const [unlockLoading, setUnlockLoading] = useState(false);
+  const lastSavedRef = useRef(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(durationS);
   const [buffered, setBuffered] = useState(0);
@@ -140,7 +141,24 @@ export default function Player({
     const video = videoRef.current;
     if (!video) return;
 
-    const onTimeUpdate = () => setCurrentTime(video.currentTime);
+    const onTimeUpdate = () => {
+      setCurrentTime(video.currentTime);
+      // Save progress every 10 seconds
+      const now = Date.now();
+      if (now - lastSavedRef.current > 10000 && video.currentTime > 5) {
+        lastSavedRef.current = now;
+        fetch("/api/watch-progress", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            seriesSlug,
+            episodeNumber,
+            progressSeconds: Math.floor(video.currentTime),
+            completed: false,
+          }),
+        }).catch(() => {});
+      }
+    };
     const onDurationChange = () => {
       if (video.duration && isFinite(video.duration)) {
         setDuration(video.duration);
@@ -171,6 +189,12 @@ export default function Player({
     };
     const onEnded = () => {
       trackEpisodeComplete(seriesSlug, episodeNumber);
+      // Save completed progress
+      fetch("/api/watch-progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ seriesSlug, episodeNumber, progressSeconds: 0, completed: true }),
+      }).catch(() => {});
       if (episodeNumber >= freeEpisodes) {
         /* Last free episode just ended — show unlock popup */
         trackUnlockPrompt(seriesSlug);

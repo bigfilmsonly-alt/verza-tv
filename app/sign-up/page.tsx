@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { T } from "@/lib/theme";
 import { BRAND } from "@/lib/config";
+import { signUpAction } from "@/app/actions/auth";
 
 export const metadata: Metadata = {
   title: `Sign Up | ${BRAND.name}`,
@@ -97,7 +98,7 @@ export default function SignUpPage() {
       </p>
 
       {/* Registration form */}
-      <form className="flex flex-col gap-3 mb-6">
+      <form action={signUpAction} className="flex flex-col gap-3 mb-6">
         <label className="sr-only" htmlFor="email">Email address</label>
         <input
           id="email"
@@ -132,6 +133,19 @@ export default function SignUpPage() {
             // @ts-expect-error -- CSS custom property for focus ring
             "--tw-ring-color": T.accent,
           }}
+        />
+
+        <label className="sr-only" htmlFor="password">Password</label>
+        <input
+          id="password"
+          name="password"
+          type="password"
+          placeholder="Password (6+ characters)"
+          autoComplete="new-password"
+          required
+          minLength={6}
+          className="w-full rounded-xl px-4 py-3 text-sm outline-none placeholder:opacity-50"
+          style={{ background: T.surface, border: `1px solid ${T.line}`, color: T.text }}
         />
 
         {/* Age gate */}
