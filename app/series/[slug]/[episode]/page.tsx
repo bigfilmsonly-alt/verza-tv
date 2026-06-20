@@ -44,9 +44,12 @@ export async function generateStaticParams() {
 /*  Metadata                                                           */
 /* ------------------------------------------------------------------ */
 
-type Props = { params: Promise<{ slug: string; episode: string }> };
+type Props = {
+  params: Promise<{ slug: string; episode: string }>;
+  searchParams: Promise<{ unlocked?: string }>;
+};
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ slug: string; episode: string }> }): Promise<Metadata> {
   const { slug, episode: epStr } = await params;
   const series = getSeriesBySlug(slug);
   const epNum = parseInt(epStr, 10);
@@ -80,8 +83,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 /*  Page                                                               */
 /* ------------------------------------------------------------------ */
 
-export default async function EpisodePage({ params }: Props) {
+export default async function EpisodePage({ params, searchParams }: Props) {
   const { slug, episode: epStr } = await params;
+  const { unlocked } = await searchParams;
   const series = getSeriesBySlug(slug);
   const epNum = parseInt(epStr, 10);
 
@@ -94,7 +98,31 @@ export default async function EpisodePage({ params }: Props) {
 
   const episodes = getEpisodesForSeries(slug);
   const isVip = await checkVipStatusServer();
-  const isFree = ep.number <= series.freeEpisodes || isVip;
+
+  // Check if user has purchased this series (entitlement)
+  let hasEntitlement = false;
+  if (unlocked === "true") {
+    hasEntitlement = true; // Just paid via Stripe, redirected back
+  }
+  if (!hasEntitlement) {
+    try {
+      const { getUser } = await import("@/lib/auth");
+      const user = await getUser();
+      if (user) {
+        const { getServiceClient } = await import("@/lib/supabase/server");
+        const supabase = getServiceClient();
+        const { data } = await supabase
+          .from("entitlements")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("series_slug", slug)
+          .limit(1);
+        if (data && data.length > 0) hasEntitlement = true;
+      }
+    } catch {}
+  }
+
+  const isFree = ep.number <= series.freeEpisodes || isVip || hasEntitlement;
   const hasPrev = ep.number > 1;
   const hasNext = ep.number < series.episodeCount;
 
