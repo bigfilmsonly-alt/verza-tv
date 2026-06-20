@@ -7,6 +7,8 @@ import CategoryTabs from "@/components/CategoryTabs";
 import { useTranslation } from "@/components/LangProvider";
 import { BROWSE_TABS, getSeriesByCategory, type Series, type BrowseCategory } from "@/lib/catalog";
 import PosterSkeleton from "@/components/PosterSkeleton";
+import HeroVideo from "@/components/HeroVideo";
+import { MUX_MAP } from "@/lib/mux-map";
 
 function Poster({ src, alt }: { src: string; alt: string }) {
   if (!src) {
@@ -151,8 +153,14 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                 className="relative w-full overflow-hidden"
                 style={{ aspectRatio: "2 / 3", background: "#07070E" }}
               >
-                {/* Poster slideshow — no video on discover hero */}
-                {current.posterUrl ? (
+                {/* Red Carpet: looping video, no poster */}
+                {activeTab === "red-carpet" && (() => {
+                  const heroMux = MUX_MAP[current.slug]?.[0]?.playbackId;
+                  return heroMux ? <HeroVideo key={`rc-${current.slug}`} playbackId={heroMux} /> : null;
+                })()}
+
+                {/* All other tabs: poster slideshow */}
+                {activeTab !== "red-carpet" && current.posterUrl ? (
                   <Image
                     src={current.posterUrl}
                     alt={current.title}
@@ -162,7 +170,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                     className="object-cover"
                     style={{ filter: "saturate(1.4) contrast(1.1) brightness(1.05)" }}
                   />
-                ) : (
+                ) : activeTab !== "red-carpet" && (
                   <div
                     className="absolute inset-0 flex items-center justify-center text-lg font-bold"
                     style={{ background: "linear-gradient(135deg, #1A1A26, #12121C)", color: "#6B6B7B" }}
@@ -170,7 +178,6 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                     {current.title}
                   </div>
                 )}
-
               </div>
             </Link>
 
