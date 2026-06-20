@@ -23,6 +23,8 @@ interface PlayerProps {
   durationS: number;
   seriesSlug: string;
   playbackId?: string;
+  totalEpisodes?: number;
+  freeEpisodes?: number;
 }
 
 /* ------------------------------------------------------------------ */
@@ -34,10 +36,11 @@ export default function Player({
   title,
   episodeNumber,
   durationS,
-  seriesSlug: _seriesSlug,
+  seriesSlug,
   playbackId,
+  totalEpisodes = 50,
+  freeEpisodes = 5,
 }: PlayerProps) {
-  void _seriesSlug;
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<HlsType | null>(null);
@@ -46,6 +49,8 @@ export default function Player({
 
   const [started, setStarted] = useState(false);
   const [playing, setPlaying] = useState(false);
+  const [showUnlockPopup, setShowUnlockPopup] = useState(false);
+  const [unlockLoading, setUnlockLoading] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(durationS);
   const [buffered, setBuffered] = useState(0);
@@ -163,6 +168,15 @@ export default function Player({
         setLoading(false);
       }
     };
+    const onEnded = () => {
+      if (episodeNumber >= freeEpisodes) {
+        /* Last free episode just ended — show unlock popup */
+        setShowUnlockPopup(true);
+      } else if (episodeNumber < totalEpisodes) {
+        /* Auto-advance to next episode */
+        window.location.href = `/series/${seriesSlug}/${episodeNumber + 1}`;
+      }
+    };
 
     video.addEventListener("timeupdate", onTimeUpdate);
     video.addEventListener("durationchange", onDurationChange);
@@ -172,6 +186,7 @@ export default function Player({
     video.addEventListener("canplay", onCanPlay);
     video.addEventListener("progress", onProgress);
     video.addEventListener("error", onError);
+    video.addEventListener("ended", onEnded);
 
     return () => {
       video.removeEventListener("timeupdate", onTimeUpdate);
@@ -182,8 +197,9 @@ export default function Player({
       video.removeEventListener("canplay", onCanPlay);
       video.removeEventListener("progress", onProgress);
       video.removeEventListener("error", onError);
+      video.removeEventListener("ended", onEnded);
     };
-  }, []); // No dependencies -- video element is always in the DOM now
+  }, [episodeNumber, totalEpisodes, freeEpisodes, seriesSlug]);
 
   /* ---- Controls auto-hide ---------------------------------------- */
 
@@ -609,6 +625,83 @@ export default function Player({
           {formatDuration(durationS)}
         </span>
       </div>
+
+      {/* ---- Unlock Popup (shows after last free episode ends) ---- */}
+      {showUnlockPopup && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center"
+          style={{ background: "rgba(0,0,0,0.8)" }}
+        >
+          <div
+            className="rounded-2xl overflow-hidden mx-4 max-w-sm w-full"
+            style={{ background: T.surface, border: `1px solid ${T.line}` }}
+          >
+            {/* Poster peek */}
+            <div className="relative" style={{ height: 120, overflow: "hidden" }}>
+              {posterUrl && (
+                <Image
+                  src={posterUrl}
+                  alt={title}
+                  fill
+                  className="object-cover"
+                  style={{ filter: "brightness(0.4)" }}
+                />
+              )}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke={T.accent} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+              </div>
+            </div>
+
+            <div className="p-5 text-center">
+              <h3 className="text-lg font-bold mb-1" style={{ color: T.text }}>
+                Keep Watching?
+              </h3>
+              <p className="text-sm mb-4" style={{ color: T.textMute }}>
+                You finished the free episodes! Unlock the full series to continue.
+              </p>
+
+              {/* Unlock button */}
+              <button
+                onClick={async () => {
+                  setUnlockLoading(true);
+                  try {
+                    const res = await fetch("/api/unlock", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ seriesSlug }),
+                    });
+                    const data = await res.json();
+                    if (data.url) window.location.href = data.url;
+                  } catch {
+                    setUnlockLoading(false);
+                  }
+                }}
+                disabled={unlockLoading}
+                className="w-full py-3.5 rounded-xl text-sm font-bold border-0 cursor-pointer mb-3 transition-transform active:scale-[0.97]"
+                style={{ background: T.accent, color: "#fff", opacity: unlockLoading ? 0.7 : 1 }}
+              >
+                {unlockLoading ? "Loading..." : "Unlock Full Series — $4.99"}
+              </button>
+
+              {/* Replay last free episode */}
+              <button
+                onClick={() => {
+                  setShowUnlockPopup(false);
+                  const vid = videoRef.current;
+                  if (vid) { vid.currentTime = 0; vid.play().catch(() => {}); }
+                }}
+                className="text-sm font-medium border-0 bg-transparent cursor-pointer"
+                style={{ color: T.textDim }}
+              >
+                Replay Episode {episodeNumber}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

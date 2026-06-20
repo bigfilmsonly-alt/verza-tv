@@ -200,6 +200,8 @@ export default async function EpisodePage({ params }: Props) {
           durationS={ep.durationS}
           seriesSlug={series.slug}
           playbackId={mux?.playbackId}
+          totalEpisodes={series.episodeCount}
+          freeEpisodes={series.freeEpisodes}
         />
       ) : (
         <CoinPaywall
