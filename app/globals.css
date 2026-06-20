@@ -566,3 +566,12 @@ img {
 * {
   scroll-behavior: smooth;
 }
+
+/* ---- Admin layout: bypass consumer chrome ---- */
+.admin-layout {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  overflow-y: auto;
+  background: #07070E;
+}
