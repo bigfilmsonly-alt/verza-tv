@@ -9,6 +9,8 @@ import CartDrawer from "@/components/CartDrawer";
 import { LangProvider } from "@/components/LangProvider";
 import ServiceWorker from "@/components/ServiceWorker";
 import ContentTranslator from "@/components/ContentTranslator";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
 
 const inter = Inter({
@@ -134,6 +136,8 @@ export default function RootLayout({
           <CartDrawer />
         </LangProvider>
         </CartProvider>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

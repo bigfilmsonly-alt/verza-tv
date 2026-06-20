@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { trackSearch } from "@/lib/track";
 import { getLiveSeries } from "@/lib/catalog";
 
 export default function SearchButton() {
@@ -58,7 +59,7 @@ export default function SearchButton() {
                 ref={inputRef}
                 type="search"
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={(e) => { setQuery(e.target.value); if (e.target.value.length >= 2) trackSearch(e.target.value, filtered.length); }}
                 placeholder="Search shows..."
                 className="w-full pl-10 pr-4 py-3 rounded-xl text-sm outline-none"
                 style={{ background: "rgba(255,255,255,0.08)", color: "#F5F4F8", border: "1px solid rgba(255,255,255,0.15)" }}

@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
 import type HlsType from "hls.js";
+import { trackEpisodeStart, trackEpisodeComplete, trackUnlockPrompt, trackUnlockClick } from "@/lib/track";
 import { T } from "@/lib/theme";
 import { formatDuration } from "@/lib/catalog";
 
@@ -169,8 +170,10 @@ export default function Player({
       }
     };
     const onEnded = () => {
+      trackEpisodeComplete(seriesSlug, episodeNumber);
       if (episodeNumber >= freeEpisodes) {
         /* Last free episode just ended — show unlock popup */
+        trackUnlockPrompt(seriesSlug);
         setShowUnlockPopup(true);
       } else if (episodeNumber < totalEpisodes) {
         /* Auto-advance to next episode */
@@ -222,6 +225,7 @@ export default function Player({
 
     setStarted(true);
     setLoading(true);
+    trackEpisodeStart(seriesSlug, episodeNumber);
 
     video.muted = true;
     video.play()
@@ -667,6 +671,7 @@ export default function Player({
               <button
                 onClick={async () => {
                   setUnlockLoading(true);
+                  trackUnlockClick(seriesSlug);
                   try {
                     const res = await fetch("/api/unlock", {
                       method: "POST",

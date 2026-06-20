@@ -1,5 +1,6 @@
 "use client";
 
+import { trackLanguageChange } from "@/lib/track";
 import {
   createContext,
   useContext,
@@ -42,6 +43,7 @@ export function LangProvider({ children }: { children: ReactNode }) {
 
   const setLocale = useCallback((next: Locale) => {
     setLocaleState(next);
+    trackLanguageChange(next);
     localStorage.setItem(STORAGE_KEY, next);
     document.documentElement.lang = next;
   }, []);
