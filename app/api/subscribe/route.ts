@@ -27,6 +27,7 @@ export async function POST(req: NextRequest) {
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
+      phone_number_collection: { enabled: true },
       line_items: [
         {
           price_data: {

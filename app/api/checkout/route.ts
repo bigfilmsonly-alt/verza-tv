@@ -43,6 +43,7 @@ export async function POST(req: NextRequest) {
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
+      phone_number_collection: { enabled: true },
       line_items: items.map((item) => ({
         price_data: {
           currency: "usd",
