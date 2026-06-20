@@ -1,41 +1,53 @@
-import { BRAND, FREE_EPISODES, DEFAULT_COIN_PER_EPISODE, VIP_WEEKLY, VIP_YEARLY } from "@/lib/config";
+import { BRAND, FREE_EPISODES, VIP_PLANS } from "@/lib/config";
 import { getLiveSeries } from "@/lib/catalog";
+import { GENRE_HUBS } from "@/lib/content/genres";
+import { LEARN_PAGES } from "@/lib/content/learn";
 
 export function GET() {
+  const liveCount = getLiveSeries().length;
   const body = `# ${BRAND.name}
 > ${BRAND.tagline}
 
 ## What is ${BRAND.name}?
-${BRAND.name} is the first US-based vertical micro-drama streaming platform. We produce and distribute premium short-form cinematic episodes (60-120 seconds each) in vertical 9:16 format, designed for phone-first viewing. Available on iOS, Android, and the web at ${BRAND.domain}.
+${BRAND.name} is the first US-based vertical micro-drama streaming platform. Founded by Alan Mruvka, co-founder of E! Entertainment Television. Premium short-form cinematic episodes (60-120 seconds each) in vertical 9:16 format, designed for phone-first viewing. Available at ${BRAND.domain}.
 
-## Founder
-${BRAND.name} was founded by Alan Mruvka, co-founder of E! Entertainment Television. Alan brings decades of experience building entertainment brands from the ground up.
-
-## Key Features
-- ${getLiveSeries().length}+ original series at launch across Romance, Thriller, Drama, Reality, Comedy, Mystery, Sci-Fi, and Horror
+## Quick Facts
+- ${liveCount}+ original series: Romance, Thriller, Drama, Reality, Comedy, Mystery, and more
 - Episode format: 60-120 seconds, vertical (9:16), cinema-quality production
-- First ${FREE_EPISODES} episodes of every series are free -- no account required
-- Coin-based unlock system: ${DEFAULT_COIN_PER_EPISODE} coins per episode, packs from $1.99
-- Season passes at ~33% off episode-by-episode pricing
-- VIP subscription: $${(VIP_WEEKLY / 100).toFixed(2)}/week or $${(VIP_YEARLY / 100).toFixed(2)}/year for unlimited access
-- Backed by Filmology Labs ($250M production facility, 21 soundstages, LED volume wall, Paterson NJ)
+- First ${FREE_EPISODES} episodes of every series are free
+- Full series unlock: $4.99 one-time payment
+- VIP subscription: $${(VIP_PLANS.monthly.cents / 100).toFixed(2)}/month or $${(VIP_PLANS.yearly.cents / 100).toFixed(2)}/year for unlimited access
+- Powered by Filmology Labs ($250M production facility, 21 soundstages, Paterson NJ)
 
-## Key Metrics
-- 120M+ total episode views
-- 425K average views per episode
-- 68% completion rate
-- 480K monthly active users
-- 28 min average daily watch time
+## What Is a Micro-Drama?
+A micro-drama is a serialized story told in very short episodes (60-120 seconds). Each episode ends on a cliffhanger. The format originated in China and is now growing globally. Verza TV is the first US-based platform dedicated to this format.
+
+## How It Works
+1. Browse ${liveCount}+ series across genres
+2. Watch the first 5 episodes free — no account needed
+3. Unlock the full series for $4.99, or subscribe to VIP for all series
+4. Episodes auto-play in sequence for binge watching
+
+## Genres
+${GENRE_HUBS.filter(g => g.editorialApproved).map(g => `- ${g.name}: ${g.description.split('.')[0]}.`).join('\n')}
+
+## Learn More
+${LEARN_PAGES.filter(p => p.editorialApproved).map(p => `- ${p.title}: https://${BRAND.domain}/learn/${p.slug}`).join('\n')}
+
+## Company Pages
+- About: https://${BRAND.domain}/about
+- Founder: https://${BRAND.domain}/founder
+- Press: https://${BRAND.domain}/press
+- Editorial Standards: https://${BRAND.domain}/editorial-standards
+- Media Kit: https://${BRAND.domain}/media-kit
 
 ## Content
-- Series catalog: https://${BRAND.domain}/discover
+- Browse all series: https://${BRAND.domain}
 - Individual series: https://${BRAND.domain}/series/{slug}
-- Channels: Must-sees, Trending, Drama, Reality
 
 ## Contact
 - Website: https://${BRAND.domain}
-- Press: press@${BRAND.domain}
-- Support: support@${BRAND.domain}`;
+- Press: press@${BRAND.domain}`;
 
   return new Response(body, {
     headers: { "Content-Type": "text/plain; charset=utf-8" },

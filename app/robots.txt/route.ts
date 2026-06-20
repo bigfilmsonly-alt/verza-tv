@@ -22,7 +22,13 @@ Allow: /
 User-agent: Google-Extended
 Allow: /
 
-Sitemap: https://verzatv.com/sitemap.xml`
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+Sitemap: https://www.verzatv.com/sitemap.xml`
     : `User-agent: *
 Disallow: /
 
