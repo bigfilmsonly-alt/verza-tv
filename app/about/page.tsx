@@ -144,21 +144,19 @@ export default function AboutPage() {
           </div>
         </div>
 
-        {/* Key Numbers */}
+        {/* Platform Facts */}
         <h2
           className="text-sm font-semibold uppercase tracking-wider mb-3"
           style={{ color: T.accent }}
         >
-          By the Numbers
+          Platform
         </h2>
         <div className="grid grid-cols-2 gap-3 mb-8">
           {[
-            { number: "120M+", label: "Episode Views" },
-            { number: "480K", label: "Monthly Active Users" },
-            { number: "68%", label: "Completion Rate" },
-            { number: "28 min", label: "Daily Watch Time" },
             { number: `${getLiveSeries().length}+`, label: "Original Series" },
-            { number: "$6.5B", label: "Market Size" },
+            { number: "9:16", label: "Vertical Format" },
+            { number: "60-120s", label: "Per Episode" },
+            { number: "5 Free", label: "Episodes per Series" },
           ].map((stat) => (
             <div
               key={stat.label}

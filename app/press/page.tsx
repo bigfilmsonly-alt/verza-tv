@@ -17,13 +17,8 @@ const BRAND_FACTS = [
   { label: "Founded By", value: "Alan Mruvka, co-founder of E! Entertainment Television" },
   { label: "Content Library", value: `${getLiveSeries().length}+ original series at launch` },
   { label: "Episode Format", value: "60-120 seconds, vertical 9:16" },
-  { label: "Total Episode Views", value: "120M+" },
-  { label: "Average per Episode", value: "425K views" },
-  { label: "Completion Rate", value: "68%" },
-  { label: "Monthly Active Users", value: "480K MAU" },
-  { label: "Daily Watch Time", value: "28 min average" },
-  { label: "Platforms", value: "iOS, Android, Web" },
-  { label: "Monetization", value: "Coin-based unlock + VIP subscription" },
+  { label: "Platforms", value: "Web (iOS and Android coming soon)" },
+  { label: "Monetization", value: "$4.99 series unlock + VIP subscription" },
   { label: "Free Episodes", value: "First 5 episodes of every series" },
 ];
 
