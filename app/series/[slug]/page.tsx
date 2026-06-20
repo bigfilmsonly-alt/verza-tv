@@ -13,6 +13,7 @@ import {
 import { seriesSchema, breadcrumbSchema } from "@/lib/schemas";
 import { T } from "@/lib/theme";
 import { FREE_EPISODES } from "@/lib/config";
+import EpisodeDropdown from "@/components/EpisodeDropdown";
 
 /* ------------------------------------------------------------------ */
 /*  Static params                                                      */
@@ -307,79 +308,14 @@ export default async function SeriesPage({ params }: Props) {
           </div>
         </div>
 
-        {/* ---- Episode List ---- */}
-        <h2
-          className="text-base font-bold mb-3"
-          style={{ color: T.text }}
-        >
-          Episodes
-        </h2>
-
-        <div className="episode-list flex flex-col gap-2 mb-8">
-          {episodes.map((ep) => {
-            const isFree = ep.number <= FREE_EPISODES;
-            return (
-              <Link
-                key={ep.number}
-                href={`/series/${series.slug}/${ep.number}`}
-                className="flex items-center gap-3 rounded-xl px-4 py-3 no-underline transition-colors"
-                style={{
-                  background: T.surface,
-                  border: `1px solid ${T.line}`,
-                }}
-              >
-                {/* Episode number */}
-                <span
-                  className="text-sm font-bold w-7 text-center flex-shrink-0"
-                  style={{ color: T.textMute }}
-                >
-                  {ep.number}
-                </span>
-
-                {/* Episode title + duration */}
-                <div className="flex-1 min-w-0">
-                  <p
-                    className="text-sm font-medium truncate"
-                    style={{ color: T.text }}
-                  >
-                    {ep.title}
-                  </p>
-                  <p
-                    className="text-xs"
-                    style={{ color: T.textMute }}
-                  >
-                    {formatDuration(ep.durationS)}
-                  </p>
-                </div>
-
-                {/* Free / Unlock / Locked badge */}
-                {isFree ? (
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={T.success} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polygon points="5 3 19 12 5 21 5 3" />
-                    </svg>
-                    <span className="text-xs font-bold uppercase" style={{ color: T.success }}>Free</span>
-                  </div>
-                ) : ep.number === (series.freeEpisodes ?? 5) + 1 ? (
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                    </svg>
-                    <span className="text-xs font-bold" style={{ color: T.accent }}>$4.99</span>
-                  </div>
-                ) : (
-                  <div className="flex-shrink-0">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T.textMute} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                    </svg>
-                  </div>
-                )}
-              </Link>
-            );
-          })}
-        </div>
+        {/* ---- Episode Dropdown ---- */}
+        <EpisodeDropdown
+          seriesSlug={series.slug}
+          episodes={episodes.map((e) => ({ number: e.number, title: e.title }))}
+          currentEpisode={1}
+          freeEpisodes={series.freeEpisodes ?? FREE_EPISODES}
+          totalEpisodes={series.episodeCount}
+        />
       </div>
 
       {/* Bottom spacer for BottomNav */}
