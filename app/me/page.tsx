@@ -5,6 +5,7 @@ import { BRAND } from "@/lib/config";
 import LanguagePicker from "@/components/LanguagePicker";
 import PushNotificationToggle from "@/components/PushNotificationToggle";
 import VipCard from "@/components/VipCard";
+import { SavedCount, WatchingCount, DarkModeToggle, SignOutButton } from "@/components/ProfileDynamic";
 
 export const metadata: Metadata = {
   title: `My Account | ${BRAND.name}`,
@@ -144,7 +145,7 @@ function MenuRow({
 }: {
   icon: React.ReactNode;
   label: string;
-  detail?: string;
+  detail?: React.ReactNode;
   href: string;
   external?: boolean;
   last?: boolean;
@@ -278,20 +279,20 @@ export default function MePage() {
         <MenuRow
           icon={Icons.bookmark}
           label="My List"
-          detail="0 saved"
-          href="/me/list"
+          detail={<SavedCount />}
+          href="/library"
         />
         <MenuRow
           icon={Icons.play}
           label="Continue Watching"
-          detail="No history"
-          href="/me/list?tab=recent"
+          detail={<WatchingCount />}
+          href="/"
         />
         <MenuRow
           icon={Icons.receipt}
           label="Purchase History"
           detail="No purchases"
-          href="/me/list?tab=recent"
+          href="/me"
           last
         />
       </SectionCard>
@@ -301,13 +302,7 @@ export default function MePage() {
       <SectionCard>
         <LanguagePicker />
         <PushNotificationToggle />
-        <MenuRow
-          icon={Icons.moon}
-          label="Dark Mode"
-          detail="On"
-          href="/me"
-          last
-        />
+        <DarkModeToggle />
       </SectionCard>
 
       {/* ---- Support ---- */}
@@ -356,19 +351,7 @@ export default function MePage() {
 
       {/* ---- Sign out + version ---- */}
       <div className="mt-8 flex flex-col items-center gap-3">
-        <button
-          disabled
-          className="w-full py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-opacity cursor-not-allowed"
-          style={{
-            background: T.surface,
-            border: `1px solid ${T.line}`,
-            color: T.textMute,
-            opacity: 0.5,
-          }}
-        >
-          <span style={{ color: T.textMute }}>{Icons.logOut}</span>
-          Sign Out
-        </button>
+        <SignOutButton />
         <p className="text-xs" style={{ color: T.textMute }}>
           Verza TV v1.0.0
         </p>
