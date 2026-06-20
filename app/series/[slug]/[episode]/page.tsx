@@ -21,6 +21,7 @@ import {
 import { T } from "@/lib/theme";
 import { SERIES_DETAIL } from "@/lib/series-detail";
 import SeriesInfoButton from "@/components/SeriesInfoButton";
+import EpisodeDropdown from "@/components/EpisodeDropdown";
 import { checkVipStatusServer } from "@/lib/vip-server";
 
 /* ------------------------------------------------------------------ */
@@ -123,8 +124,6 @@ export default async function EpisodePage({ params, searchParams }: Props) {
   }
 
   const isFree = ep.number <= series.freeEpisodes || isVip || hasEntitlement;
-  const hasPrev = ep.number > 1;
-  const hasNext = ep.number < series.episodeCount;
 
   const BASE_URL =
     process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
@@ -244,125 +243,14 @@ export default async function EpisodePage({ params, searchParams }: Props) {
         />
       )}
 
-      {/* ---- Episode Navigation ---- */}
-      <div className="flex items-center justify-between px-4 mt-6 mb-8">
-        {hasPrev ? (
-          <Link
-            href={`/series/${series.slug}/${ep.number - 1}`}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-full text-sm font-medium no-underline transition-colors"
-            style={{
-              background: T.surface,
-              color: T.text,
-              border: `1px solid ${T.line}`,
-            }}
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
-            Previous
-          </Link>
-        ) : (
-          <div />
-        )}
-
-        {hasNext ? (
-          <Link
-            href={`/series/${series.slug}/${ep.number + 1}`}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-full text-sm font-medium no-underline transition-colors"
-            style={{
-              background: T.accent,
-              color: T.text,
-            }}
-          >
-            Next
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </Link>
-        ) : (
-          <div />
-        )}
-      </div>
-
-      {/* ---- All Episodes List ---- */}
-      <div className="px-4 mb-8">
-        <h2
-          className="text-base font-bold mb-3"
-          style={{ color: T.text }}
-        >
-          All Episodes
-        </h2>
-
-        <div className="flex flex-col gap-1.5">
-          {episodes.slice(0, 20).map((listEp) => {
-            const isActive = listEp.number === ep.number;
-            const isListFree = listEp.number <= series.freeEpisodes;
-            return (
-              <Link
-                key={listEp.number}
-                href={`/series/${series.slug}/${listEp.number}`}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 no-underline"
-                style={{
-                  background: isActive ? `${T.accent}22` : "transparent",
-                  border: isActive
-                    ? `1px solid ${T.accent}44`
-                    : "1px solid transparent",
-                }}
-              >
-                <span
-                  className="text-xs font-bold w-6 text-center flex-shrink-0"
-                  style={{ color: isActive ? T.accent : T.textMute }}
-                >
-                  {listEp.number}
-                </span>
-                <span
-                  className="text-sm flex-1 truncate"
-                  style={{ color: isActive ? T.text : T.textDim }}
-                >
-                  {listEp.title}
-                </span>
-                {isListFree ? (
-                  <span className="text-xs font-bold flex-shrink-0" style={{ color: T.success }}>FREE</span>
-                ) : listEp.number === (series.freeEpisodes ?? 5) + 1 ? (
-                  <span className="text-xs font-bold flex-shrink-0" style={{ color: T.accent }}>$4.99</span>
-                ) : (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T.textMute} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                  </svg>
-                )}
-              </Link>
-            );
-          })}
-
-          {episodes.length > 20 && (
-            <p
-              className="text-xs text-center py-2"
-              style={{ color: T.textMute }}
-            >
-              + {episodes.length - 20} more episodes
-            </p>
-          )}
-        </div>
-      </div>
+      {/* ---- Episode Dropdown (prev / selector / next) ---- */}
+      <EpisodeDropdown
+        seriesSlug={series.slug}
+        episodes={episodes.map((e) => ({ number: e.number, title: e.title }))}
+        currentEpisode={ep.number}
+        freeEpisodes={series.freeEpisodes}
+        totalEpisodes={series.episodeCount}
+      />
 
       {/* Bottom spacer for BottomNav */}
       <div className="h-8" />
