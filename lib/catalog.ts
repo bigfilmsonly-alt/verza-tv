@@ -54,7 +54,7 @@ export const catalog: Series[] = [
     logline: "She plays the fool so no one suspects her billions — until the one man who sees through it all walks into her life.",
     genre: "Romance \u00b7 Comedy",
     channel: "Verza Originals",
-    categories: ["drama"],
+    categories: ["drama", "red-carpet"],
     episodeCount: 58,
     posterUrl: "/posters/the-dumb-billionaire-heiress-in-love.png",
     freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(58), status: "live",

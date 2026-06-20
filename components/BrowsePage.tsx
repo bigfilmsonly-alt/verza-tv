@@ -7,8 +7,6 @@ import CategoryTabs from "@/components/CategoryTabs";
 import { useTranslation } from "@/components/LangProvider";
 import { BROWSE_TABS, getSeriesByCategory, type Series, type BrowseCategory } from "@/lib/catalog";
 import PosterSkeleton from "@/components/PosterSkeleton";
-import HeroVideo from "@/components/HeroVideo";
-import { MUX_MAP } from "@/lib/mux-map";
 
 function Poster({ src, alt }: { src: string; alt: string }) {
   if (!src) {
@@ -153,13 +151,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                 className="relative w-full overflow-hidden"
                 style={{ aspectRatio: "2 / 3", background: "#07070E" }}
               >
-                {/* Muted autoplay trailer behind poster */}
-                {(() => {
-                  const heroMux = MUX_MAP[current.slug]?.[0]?.playbackId;
-                  return heroMux ? <HeroVideo key={current.slug} playbackId={heroMux} /> : null;
-                })()}
-
-                {/* Poster — visible until video plays, then fades out */}
+                {/* Poster slideshow — no video on discover hero */}
                 {current.posterUrl ? (
                   <Image
                     src={current.posterUrl}
@@ -179,11 +171,6 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                   </div>
                 )}
 
-                {/* Gradient scrim for legibility when video plays */}
-                <div
-                  className="absolute inset-0 pointer-events-none"
-                  style={{ background: "linear-gradient(to bottom, transparent 40%, rgba(7,7,14,0.7) 100%)", zIndex: 6 }}
-                />
               </div>
             </Link>
 
