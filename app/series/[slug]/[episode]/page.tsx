@@ -306,14 +306,16 @@ export default async function EpisodePage({ params }: Props) {
                 >
                   {listEp.title}
                 </span>
-                <span
-                  className="text-xs font-bold flex-shrink-0"
-                  style={{
-                    color: isListFree ? T.success : T.accent,
-                  }}
-                >
-                  {isListFree ? "FREE" : "$4.99"}
-                </span>
+                {isListFree ? (
+                  <span className="text-xs font-bold flex-shrink-0" style={{ color: T.success }}>FREE</span>
+                ) : listEp.number === (series.freeEpisodes ?? 5) + 1 ? (
+                  <span className="text-xs font-bold flex-shrink-0" style={{ color: T.accent }}>$4.99</span>
+                ) : (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T.textMute} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                )}
               </Link>
             );
           })}
