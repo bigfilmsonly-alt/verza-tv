@@ -28,6 +28,14 @@ If **any** condition fails:
 
 The following mechanisms are already built and operational.
 
+### Governance Firewall (lib/seo/governance.ts)
+
+- `checkIndexability()` — master gate: checks editorial approval, content, metadata, links
+- `isSeriesIndexable()` / `isEpisodeIndexable()` — catalog-specific checks
+- `validateSchemaCompliance()` — prevents fake ratings, reviews, authors in JSON-LD
+- `isProductionDeploy()` — ensures only production domain indexes
+- Content types: series/episode (auto-approved), genre_hub/editorial/authority/educational (require approval), admin/auth/search (never indexed)
+
 ### Indexability Gates
 
 - `lib/content/indexability.ts` exports `isIndexableShow()` and `isIndexableEpisode()`.
