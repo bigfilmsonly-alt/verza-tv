@@ -143,11 +143,16 @@ export async function POST(req: NextRequest) {
             if (profileErr) {
               console.error("[webhook] Failed to update VIP status:", profileErr);
             } else {
-              console.log(
-                "[webhook] VIP status updated:",
-                email,
-                isActive ? "activated" : "deactivated",
-              );
+              console.log("[webhook] VIP status updated:", email, isActive ? "activated" : "deactivated");
+
+              // Send VIP email to customer + team
+              if (isActive) {
+                const plan = sub.items.data[0]?.price?.recurring?.interval === "year" ? "Yearly ($79.99/yr)" : "Monthly ($9.99/mo)";
+                sendPurchaseConfirmation(email, email.split("@")[0], "series_unlock", {
+                  seriesTitle: `VIP Subscription — ${plan}`,
+                  amount: plan.includes("79") ? "$79.99" : "$9.99",
+                }).catch((e) => console.error("[webhook] VIP email failed:", e));
+              }
             }
           } else {
             console.log("[webhook] No user found for customer email:", email);
