@@ -120,14 +120,28 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </section>
       )}
 
-      {/* Hero Skeleton */}
-      {!current && (
-        <div>
-          <div className="skeleton w-full" style={{ aspectRatio: "2 / 3" }} />
-        </div>
+      {/* Coming Soon — for empty categories (Music, Reality, Red Carpet) */}
+      {filtered.length === 0 && (
+        <section className="px-4 py-8">
+          <div
+            className="rounded-2xl py-16 flex flex-col items-center justify-center gap-4 text-center"
+            style={{ background: "linear-gradient(135deg, #12121C, #0A0A14)", border: "1px solid rgba(224,17,95,0.15)" }}
+          >
+            <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ background: "rgba(224,17,95,0.12)" }}>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#E0115F" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-bold" style={{ color: "#F5F4F8" }}>Coming Soon</h3>
+            <p className="text-sm max-w-[280px] leading-relaxed" style={{ color: "#6B6B7B" }}>
+              New content for this category is being produced. Check back soon for exclusive releases.
+            </p>
+          </div>
+        </section>
       )}
 
-      {/* Hero Slideshow — clean poster, text below */}
+      {/* Hero Slideshow — only when category has content */}
       {current && (
         <div>
           {/* Poster image — clean, no text overlay */}
@@ -233,31 +247,8 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </div>
       )}
 
-      {/* Coming Soon state for empty categories */}
-      {filtered.length === 0 && (
-        <section className="mt-4 pb-6 px-4">
-          <div
-            className="rounded-xl py-12 flex flex-col items-center justify-center gap-3 text-center"
-            style={{ background: "#12121C", border: "1px solid rgba(255,255,255,0.06)" }}
-          >
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#E0115F" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10" />
-              <polyline points="12 6 12 12 16 14" />
-            </svg>
-            <p className="text-sm font-bold" style={{ color: "#F5F4F8" }}>Coming Soon</p>
-            <p className="text-xs max-w-[240px]" style={{ color: "#6B6B7B" }}>
-              New content for this category is on the way. Check back soon!
-            </p>
-          </div>
-        </section>
-      )}
-
       {/* Tab Row — horizontal scroll */}
-      {filtered.length > 0 && gridItems.length === 0 && filtered.length > 4 ? (
-        <section className="mt-4 pb-4">
-          <PosterSkeleton count={9} />
-        </section>
-      ) : gridItems.length > 0 && (
+      {gridItems.length > 0 && (
         <section className="mt-4 pb-4">
           <div
             className="flex gap-3 overflow-x-auto no-scrollbar px-3"
