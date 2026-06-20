@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import Stripe from "stripe";
 import { getServiceClient } from "@/lib/supabase/server";
 import { sendPurchaseConfirmation } from "@/lib/email";
+import { emitServerEvent } from "@/lib/analytics";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
@@ -56,6 +57,14 @@ export async function POST(req: NextRequest) {
           console.error("[webhook] Failed to record purchase:", purchaseErr);
         } else {
           console.log("[webhook] Purchase recorded:", purchase?.id);
+          emitServerEvent("purchase_completed", {
+            revenue_cents: session.amount_total || 0,
+            currency: session.currency || "usd",
+            purchase_type: type || "merch",
+            show_id: session.metadata?.seriesSlug,
+            stripe_session_id: session.id,
+            user_id: email || undefined,
+          });
         }
 
         // If series unlock, create entitlement
@@ -168,6 +177,10 @@ export async function POST(req: NextRequest) {
               console.error("[webhook] Failed to update VIP status:", profileErr);
             } else {
               console.log("[webhook] VIP status updated:", email, isActive ? "activated" : "deactivated");
+              emitServerEvent(isActive ? "subscription_started" : "subscription_cancelled", {
+                user_id: user.id,
+                stripe_session_id: sub.id,
+              });
 
               // Send VIP email to customer + team
               if (isActive) {
