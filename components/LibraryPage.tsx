@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { T } from "@/lib/theme";
@@ -96,23 +96,123 @@ function ChannelsContent() {
   );
 }
 
+/* ---- Saved list item type ---- */
+interface SavedItem {
+  seriesSlug: string;
+  seriesTitle: string;
+  posterUrl: string;
+  episodeCount: number;
+  genre: string;
+  savedAt: string;
+}
+
 /* ---- My List content ---- */
 function MyListContent() {
   const { t } = useTranslation();
-  return (
-    <div className="flex flex-col items-center justify-center py-16 px-4">
-      <div className="w-20 h-20 rounded-full flex items-center justify-center mb-5" style={{ background: `${T.accent}12` }}>
-        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke={T.accent} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
-        </svg>
+  const [items, setItems] = useState<SavedItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/saved-list")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.items) setItems(data.items);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleRemove = useCallback((slug: string) => {
+    setItems((prev) => prev.filter((i) => i.seriesSlug !== slug));
+    fetch("/api/saved-list", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ seriesSlug: slug }),
+    }).catch(() => {
+      // Refetch on failure to restore state
+      fetch("/api/saved-list")
+        .then((r) => r.json())
+        .then((data) => { if (data.items) setItems(data.items); })
+        .catch(() => {});
+    });
+  }, []);
+
+  /* Loading skeleton */
+  if (loading) {
+    return (
+      <div className="flex flex-col gap-3">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="flex gap-3 p-3 rounded-xl animate-pulse" style={{ background: T.surface }}>
+            <div className="w-[72px] h-[108px] rounded-lg flex-shrink-0" style={{ background: T.raised }} />
+            <div className="flex-1 py-2">
+              <div className="h-4 w-3/4 rounded mb-2" style={{ background: T.raised }} />
+              <div className="h-3 w-1/2 rounded" style={{ background: T.raised }} />
+            </div>
+          </div>
+        ))}
       </div>
-      <p className="text-base font-semibold mb-1.5" style={{ color: T.text }}>{t("library.noSavedShows")}</p>
-      <p className="text-sm text-center max-w-[260px] mb-6 leading-relaxed" style={{ color: T.textMute }}>
-        Tap the bookmark icon on any show to add it here for easy access.
-      </p>
-      <Link href="/" className="px-6 py-2.5 rounded-lg text-sm font-semibold no-underline transition-opacity hover:opacity-90" style={{ background: T.accent, color: "#fff" }}>
-        {t("library.browseShows")}
-      </Link>
+    );
+  }
+
+  /* Empty state */
+  if (items.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 px-4">
+        <div className="w-20 h-20 rounded-full flex items-center justify-center mb-5" style={{ background: `${T.accent}12` }}>
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke={T.accent} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
+          </svg>
+        </div>
+        <p className="text-base font-semibold mb-1.5" style={{ color: T.text }}>{t("library.noSavedShows")}</p>
+        <p className="text-sm text-center max-w-[260px] mb-6 leading-relaxed" style={{ color: T.textMute }}>
+          Tap the bookmark icon on any show to add it here for easy access.
+        </p>
+        <Link href="/" className="px-6 py-2.5 rounded-lg text-sm font-semibold no-underline transition-opacity hover:opacity-90" style={{ background: T.accent, color: "#fff" }}>
+          {t("library.browseShows")}
+        </Link>
+      </div>
+    );
+  }
+
+  /* Saved series list */
+  return (
+    <div className="flex flex-col gap-3">
+      {items.map((item) => (
+        <div key={item.seriesSlug} className="flex gap-3 rounded-xl overflow-hidden" style={{ background: T.surface, border: `1px solid ${T.line}` }}>
+          <Link href={`/series/${item.seriesSlug}/1`} className="flex-shrink-0 no-underline">
+            <div className="w-[72px] h-[108px] relative">
+              {item.posterUrl ? (
+                <Image src={item.posterUrl} alt={item.seriesTitle} fill sizes="72px" className="object-cover" />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center" style={{ background: T.raised, color: T.textMute }}>
+                  <span className="text-[8px] font-medium text-center px-1">{item.seriesTitle}</span>
+                </div>
+              )}
+            </div>
+          </Link>
+          <div className="flex-1 py-3 pr-2 flex flex-col justify-between min-w-0">
+            <div>
+              <Link href={`/series/${item.seriesSlug}/1`} className="no-underline">
+                <h4 className="text-sm font-semibold truncate" style={{ color: T.text }}>{item.seriesTitle}</h4>
+              </Link>
+              <p className="text-xs mt-0.5" style={{ color: T.textMute }}>
+                {item.genre}{item.episodeCount > 0 ? ` \u00b7 ${item.episodeCount} episodes` : ""}
+              </p>
+            </div>
+            <button
+              onClick={() => handleRemove(item.seriesSlug)}
+              className="self-start flex items-center gap-1.5 text-xs font-medium border-none cursor-pointer mt-2 px-0"
+              style={{ background: "none", color: T.accent }}
+              aria-label={`Remove ${item.seriesTitle} from saved list`}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill={T.accent} stroke={T.accent} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
+              </svg>
+              {t("shorts.saved")}
+            </button>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

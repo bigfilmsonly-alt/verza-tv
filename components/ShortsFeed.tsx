@@ -209,13 +209,13 @@ function ShortVideo({ playbackId, isActive, muted }: {
 /* ================================================================== */
 /*  ShortCard — one slide in the horizontal carousel                   */
 /* ================================================================== */
-function ShortCard({ series, isActive, isNearActive, muted, setMuted }: {
+function ShortCard({ series, isActive, isNearActive, muted, setMuted, saved, onToggleSave }: {
   series: Series; isActive: boolean; isNearActive: boolean;
   muted: boolean; setMuted: (m: boolean) => void;
+  saved: boolean; onToggleSave: (slug: string) => void;
 }) {
   const { t } = useTranslation();
   const [liked, setLiked] = useState(false);
-  const [saved, setSaved] = useState(false);
   const [showCopied, setShowCopied] = useState(false);
   const likeCount = pseudoCount(series.slug, 1, 50);
   const epNum = pseudoCount(series.slug, 1, 5);
@@ -241,7 +241,7 @@ function ShortCard({ series, isActive, isNearActive, muted, setMuted }: {
   }
 
   function handleSave() {
-    setSaved((s) => !s);
+    onToggleSave(series.slug);
   }
 
   return (
@@ -381,7 +381,48 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
   const [shuffled, setShuffled] = useState<Series[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [muted, setMuted] = useState(true);
+  const [savedSlugs, setSavedSlugs] = useState<Set<string>>(new Set());
   const containerRef = useRef<HTMLDivElement>(null);
+
+  /* Fetch saved list on mount */
+  useEffect(() => {
+    fetch("/api/saved-list")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.items) {
+          setSavedSlugs(new Set(data.items.map((i: { seriesSlug: string }) => i.seriesSlug)));
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  /* Toggle save/unsave */
+  const handleToggleSave = useCallback((slug: string) => {
+    const isSaved = savedSlugs.has(slug);
+    const method = isSaved ? "DELETE" : "POST";
+
+    // Optimistic update
+    setSavedSlugs((prev) => {
+      const next = new Set(prev);
+      if (isSaved) next.delete(slug);
+      else next.add(slug);
+      return next;
+    });
+
+    fetch("/api/saved-list", {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ seriesSlug: slug }),
+    }).catch(() => {
+      // Revert on failure
+      setSavedSlugs((prev) => {
+        const next = new Set(prev);
+        if (isSaved) next.add(slug);
+        else next.delete(slug);
+        return next;
+      });
+    });
+  }, [savedSlugs]);
 
   useEffect(() => {
     const withMux = series.filter((s) => MUX_MAP[s.slug]?.length > 0);
@@ -459,6 +500,8 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
               isNearActive={Math.abs(i - activeIndex) <= 1}
               muted={muted}
               setMuted={setMuted}
+              saved={savedSlugs.has(s.slug)}
+              onToggleSave={handleToggleSave}
             />
           </div>
         ))}
