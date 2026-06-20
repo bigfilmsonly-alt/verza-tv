@@ -31,15 +31,36 @@ export function organizationSchema() {
     logo: `${BASE_URL}/logo.png`,
     description:
       `The first US-based vertical micro-drama streaming app. ${getLiveSeries().length}+ originals.`,
-    founder: {
-      "@type": "Person",
-      name: "Alan Mruvka",
+    founder: personSchema(),
+    parentOrganization: {
+      "@type": "Organization",
+      name: "Filmology Labs",
+      description: "State-of-the-art production facility powering Verza TV content.",
     },
     sameAs: [
       "https://www.instagram.com/verzatv",
       "https://www.tiktok.com/@verzatv",
       "https://x.com/VerzaTV",
     ],
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/*  Person (Founder)                                                   */
+/* ------------------------------------------------------------------ */
+
+export function personSchema() {
+  return {
+    "@type": "Person",
+    name: "Alan Mruvka",
+    jobTitle: "Founder & CEO",
+    worksFor: {
+      "@type": "Organization",
+      name: "Verza TV",
+      url: BASE_URL,
+    },
+    description:
+      "Co-founder of E! Entertainment Television. Founder of Verza TV.",
   };
 }
 

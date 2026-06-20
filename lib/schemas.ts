@@ -1,6 +1,7 @@
 // Re-export from new location for backward compatibility
 export {
   organizationSchema,
+  personSchema,
   websiteSchema as webSiteSchema,
   mobileApplicationSchema as mobileAppSchema,
   tvSeriesSchema as seriesSchema,
