@@ -8,6 +8,7 @@ import { CartProvider } from "@/lib/cart";
 import CartDrawer from "@/components/CartDrawer";
 import { LangProvider } from "@/components/LangProvider";
 import ServiceWorker from "@/components/ServiceWorker";
+import ContentTranslator from "@/components/ContentTranslator";
 import Script from "next/script";
 
 const inter = Inter({
@@ -103,6 +104,7 @@ export default function RootLayout({
         <ServiceWorker />
         <CartProvider>
         <LangProvider>
+          <ContentTranslator />
           {/* iPhone frame wrapper — visible on desktop only (CSS controlled) */}
           <div className="iphone-frame">
             <div className="iphone-screen">
