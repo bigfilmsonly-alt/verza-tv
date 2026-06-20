@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { T } from "@/lib/theme";
-import { getChannels, getSeriesByChannel, type Series } from "@/lib/catalog";
+import { getChannels, getSeriesByChannel, getSeriesBySlug, type Series } from "@/lib/catalog";
 import { useTranslation } from "@/components/LangProvider";
 
 type LibraryTab = "channels" | "my-list";
@@ -113,28 +113,63 @@ function MyListContent() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Try API first (signed-in users)
     fetch("/api/saved-list")
       .then((r) => r.json())
       .then((data) => {
-        if (data.items) setItems(data.items);
+        if (data.items && data.items.length > 0) {
+          setItems(data.items);
+          setLoading(false);
+          return;
+        }
+        // Fallback: read from localStorage (guests)
+        loadFromLocalStorage();
       })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+      .catch(() => {
+        loadFromLocalStorage();
+      });
+
+    function loadFromLocalStorage() {
+      try {
+        const local = localStorage.getItem("verza-saved");
+        if (local) {
+          const slugs: string[] = JSON.parse(local);
+          const localItems: SavedItem[] = slugs.map((slug) => {
+            const series = getSeriesBySlug(slug);
+            return {
+              seriesSlug: slug,
+              seriesTitle: series?.title ?? slug,
+              posterUrl: series?.posterUrl ?? "",
+              episodeCount: series?.episodeCount ?? 0,
+              genre: series?.genre ?? "",
+              savedAt: new Date().toISOString(),
+            };
+          }).filter((i) => i.seriesTitle !== i.seriesSlug);
+          setItems(localItems);
+        }
+      } catch {}
+      setLoading(false);
+    }
   }, []);
 
   const handleRemove = useCallback((slug: string) => {
     setItems((prev) => prev.filter((i) => i.seriesSlug !== slug));
+
+    // Remove from localStorage
+    try {
+      const local = localStorage.getItem("verza-saved");
+      if (local) {
+        const slugs: string[] = JSON.parse(local);
+        localStorage.setItem("verza-saved", JSON.stringify(slugs.filter((s) => s !== slug)));
+      }
+    } catch {}
+
+    // Also remove from API
     fetch("/api/saved-list", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ seriesSlug: slug }),
-    }).catch(() => {
-      // Refetch on failure to restore state
-      fetch("/api/saved-list")
-        .then((r) => r.json())
-        .then((data) => { if (data.items) setItems(data.items); })
-        .catch(() => {});
-    });
+    }).catch(() => {});
   }, []);
 
   /* Loading skeleton */

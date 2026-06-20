@@ -384,44 +384,48 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
   const [savedSlugs, setSavedSlugs] = useState<Set<string>>(new Set());
   const containerRef = useRef<HTMLDivElement>(null);
 
-  /* Fetch saved list on mount */
+  /* Fetch saved list on mount — API + localStorage fallback */
   useEffect(() => {
+    // Load from localStorage first (works for guests)
+    try {
+      const local = localStorage.getItem("verza-saved");
+      if (local) setSavedSlugs(new Set(JSON.parse(local)));
+    } catch {}
+
+    // Then try API (works for signed-in users)
     fetch("/api/saved-list")
       .then((r) => r.json())
       .then((data) => {
-        if (data.items) {
-          setSavedSlugs(new Set(data.items.map((i: { seriesSlug: string }) => i.seriesSlug)));
+        if (data.items && data.items.length > 0) {
+          const slugs = data.items.map((i: { seriesSlug: string }) => i.seriesSlug);
+          setSavedSlugs(new Set(slugs));
+          localStorage.setItem("verza-saved", JSON.stringify(slugs));
         }
       })
       .catch(() => {});
   }, []);
 
-  /* Toggle save/unsave */
+  /* Toggle save/unsave — saves to both API + localStorage */
   const handleToggleSave = useCallback((slug: string) => {
     const isSaved = savedSlugs.has(slug);
-    const method = isSaved ? "DELETE" : "POST";
 
     // Optimistic update
     setSavedSlugs((prev) => {
       const next = new Set(prev);
       if (isSaved) next.delete(slug);
       else next.add(slug);
+      // Persist to localStorage (always works, even for guests)
+      localStorage.setItem("verza-saved", JSON.stringify([...next]));
       return next;
     });
 
+    // Also persist to API (works if signed in)
+    const method = isSaved ? "DELETE" : "POST";
     fetch("/api/saved-list", {
       method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ seriesSlug: slug }),
-    }).catch(() => {
-      // Revert on failure
-      setSavedSlugs((prev) => {
-        const next = new Set(prev);
-        if (isSaved) next.add(slug);
-        else next.delete(slug);
-        return next;
-      });
-    });
+    }).catch(() => {});
   }, [savedSlugs]);
 
   useEffect(() => {
