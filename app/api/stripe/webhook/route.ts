@@ -78,6 +78,17 @@ export async function POST(req: NextRequest) {
             } else {
               console.log("[webhook] Entitlement created for", email, session.metadata.seriesSlug);
             }
+
+            // Also add to saved list so it appears in My List
+            const { error: saveErr } = await supabase
+              .from("saved_list")
+              .upsert({
+                user_id: user.id,
+                series_slug: session.metadata.seriesSlug,
+                created_at: new Date().toISOString(),
+              }, { onConflict: "user_id,series_slug" });
+            if (saveErr) console.error("[webhook] Failed to add to saved list:", saveErr);
+            else console.log("[webhook] Added to saved list:", session.metadata?.seriesSlug);
           } else {
             console.log("[webhook] No user found for email", email, "— entitlement pending");
           }
