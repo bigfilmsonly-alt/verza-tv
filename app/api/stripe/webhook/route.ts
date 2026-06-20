@@ -89,8 +89,21 @@ export async function POST(req: NextRequest) {
               }, { onConflict: "user_id,series_slug" });
             if (saveErr) console.error("[webhook] Failed to add to saved list:", saveErr);
             else console.log("[webhook] Added to saved list:", session.metadata?.seriesSlug);
-          } else {
-            console.log("[webhook] No user found for email", email, "— entitlement pending");
+          } else if (email) {
+            // No user yet — store pending entitlement by email so it can be claimed on sign-up
+            const { error: pendErr } = await supabase
+              .from("pending_entitlements")
+              .upsert({
+                email: email.toLowerCase(),
+                series_slug: session.metadata.seriesSlug,
+                purchase_id: purchase?.id,
+                created_at: new Date().toISOString(),
+              }, { onConflict: "email,series_slug" });
+            if (pendErr) {
+              console.error("[webhook] Failed to store pending entitlement:", pendErr);
+            } else {
+              console.log("[webhook] Pending entitlement stored for", email, session.metadata.seriesSlug);
+            }
           }
         }
 

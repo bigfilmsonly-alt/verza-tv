@@ -42,7 +42,14 @@ const Icons = {
 /* ------------------------------------------------------------------ */
 /*  Page                                                               */
 /* ------------------------------------------------------------------ */
-export default function SignInPage() {
+type Props = {
+  searchParams: Promise<{ next?: string; error?: string }>;
+};
+
+export default async function SignInPage({ searchParams }: Props) {
+  const { next } = await searchParams;
+  const redirectNext = next || "/";
+
   return (
     <section className="px-4 pt-6 pb-12 max-w-sm mx-auto min-h-[80vh] flex flex-col">
       {/* Back link */}
@@ -81,6 +88,7 @@ export default function SignInPage() {
 
       {/* Email + password form */}
       <form action={signInAction} className="flex flex-col gap-3 mb-6">
+        <input type="hidden" name="next" value={redirectNext} />
         <label className="sr-only" htmlFor="email">Email address</label>
         <input
           id="email"
@@ -123,14 +131,14 @@ export default function SignInPage() {
       </div>
 
       {/* Social buttons */}
-      <OAuthButtons />
+      <OAuthButtons redirectNext={redirectNext} />
 
       {/* Footer links */}
       <div className="mt-auto flex flex-col items-center gap-3">
         <p className="text-sm" style={{ color: T.textDim }}>
           Don&apos;t have an account?{" "}
           <Link
-            href="/sign-up"
+            href={`/sign-up${next ? `?next=${encodeURIComponent(next)}` : ""}`}
             className="font-semibold no-underline"
             style={{ color: T.accent }}
           >

@@ -47,18 +47,21 @@ const btnStyle = {
 /* ------------------------------------------------------------------ */
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
-const REDIRECT_URL = "https://www.verzatv.com/api/auth/callback";
+const BASE_REDIRECT = "https://www.verzatv.com/api/auth/callback";
 
-export default function OAuthButtons() {
+export default function OAuthButtons({ redirectNext }: { redirectNext?: string }) {
   const handleOAuth = async (provider: "google" | "apple") => {
     const supabase = createBrowserSupabase();
     if (!supabase) {
       console.error("Supabase client not available — missing env vars");
       return;
     }
+    const redirectTo = redirectNext && redirectNext !== "/"
+      ? `${BASE_REDIRECT}?next=${encodeURIComponent(redirectNext)}`
+      : BASE_REDIRECT;
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: { redirectTo: REDIRECT_URL },
+      options: { redirectTo },
     });
     if (error) {
       console.error(`OAuth (${provider}) error:`, error.message);

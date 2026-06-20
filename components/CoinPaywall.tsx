@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { T } from "@/lib/theme";
 import { useTranslation } from "@/components/LangProvider";
+import { createBrowserClient } from "@supabase/ssr";
 
 interface CoinPaywallProps {
   posterUrl: string;
@@ -24,6 +25,19 @@ export default function CoinPaywall({
   async function handleUnlock() {
     setLoading(true);
     try {
+      // Check if user is signed in first
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      );
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        // Redirect to sign-in, then back to this episode after login
+        window.location.href = `/sign-in?next=/series/${seriesSlug}/${episodeNumber}`;
+        return;
+      }
+
       const res = await fetch("/api/unlock", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
