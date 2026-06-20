@@ -233,8 +233,27 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </div>
       )}
 
+      {/* Coming Soon state for empty categories */}
+      {filtered.length === 0 && (
+        <section className="mt-4 pb-6 px-4">
+          <div
+            className="rounded-xl py-12 flex flex-col items-center justify-center gap-3 text-center"
+            style={{ background: "#12121C", border: "1px solid rgba(255,255,255,0.06)" }}
+          >
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#E0115F" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+            <p className="text-sm font-bold" style={{ color: "#F5F4F8" }}>Coming Soon</p>
+            <p className="text-xs max-w-[240px]" style={{ color: "#6B6B7B" }}>
+              New content for this category is on the way. Check back soon!
+            </p>
+          </div>
+        </section>
+      )}
+
       {/* Tab Row — horizontal scroll */}
-      {gridItems.length === 0 && filtered.length > 4 ? (
+      {filtered.length > 0 && gridItems.length === 0 && filtered.length > 4 ? (
         <section className="mt-4 pb-4">
           <PosterSkeleton count={9} />
         </section>
