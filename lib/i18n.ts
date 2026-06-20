@@ -109,6 +109,26 @@ export interface Translations {
   "legal.terms": string;
   "legal.privacy": string;
   "legal.refund": string;
+  /* Content pages */
+  "content.synopsis": string;
+  "content.episodes": string;
+  "content.cast": string;
+  "content.moreLikeThis": string;
+  "content.views": string;
+  "content.now": string;
+  "content.info": string;
+  "content.allEpisodes": string;
+  "content.previous": string;
+  "content.next": string;
+  "content.episodeOf": string;
+  "content.trending": string;
+  "content.watchFree": string;
+  "content.unlockSeries": string;
+  "content.oneTimePayment": string;
+  "content.allEpisodesIncluded": string;
+  "content.episodeLocked": string;
+  "content.unlockPrompt": string;
+  "content.tryAgain": string;
   /* Misc */
   "misc.free": string;
   "misc.comingSoon": string;
@@ -139,6 +159,7 @@ const en: Translations = {
   "auth.noAccount": "Don\u2019t have an account?", "auth.haveAccount": "Already have an account?", "auth.signUp": "Sign Up",
   "legal.terms": "Terms of Service", "legal.privacy": "Privacy Policy", "legal.refund": "Refund Policy",
   "misc.free": "Free", "misc.comingSoon": "Coming Soon", "misc.close": "Close",
+  "content.synopsis": "Synopsis", "content.episodes": "Episodes", "content.cast": "Cast", "content.moreLikeThis": "More Like This", "content.views": "views", "content.now": "NOW", "content.info": "Info", "content.allEpisodes": "All Episodes", "content.previous": "Previous", "content.next": "Next", "content.episodeOf": "Episode {n} of {total}", "content.trending": "Trending", "content.watchFree": "Watch Episode 1 Free", "content.unlockSeries": "Unlock Full Series", "content.oneTimePayment": "One-time payment", "content.allEpisodesIncluded": "All episodes included", "content.episodeLocked": "Episode {n} is locked", "content.unlockPrompt": "The first 5 episodes are free. Unlock the full series to keep watching.", "content.tryAgain": "Try Again",
 };
 
 const es: Translations = {
@@ -163,6 +184,7 @@ const es: Translations = {
   "auth.noAccount": "\u00bfNo tienes cuenta?", "auth.haveAccount": "\u00bfYa tienes cuenta?", "auth.signUp": "Registrarse",
   "legal.terms": "T\u00e9rminos de Servicio", "legal.privacy": "Pol\u00edtica de Privacidad", "legal.refund": "Pol\u00edtica de Reembolso",
   "misc.free": "Gratis", "misc.comingSoon": "Pr\u00f3ximamente", "misc.close": "Cerrar",
+  "content.synopsis": "Sinopsis", "content.episodes": "Episodios", "content.cast": "Reparto", "content.moreLikeThis": "M\u00e1s Como Esto", "content.views": "vistas", "content.now": "AHORA", "content.info": "Info", "content.allEpisodes": "Todos los Episodios", "content.previous": "Anterior", "content.next": "Siguiente", "content.episodeOf": "Episodio {n} de {total}", "content.trending": "Tendencia", "content.watchFree": "Ver Episodio 1 Gratis", "content.unlockSeries": "Desbloquear Serie Completa", "content.oneTimePayment": "Pago \u00fanico", "content.allEpisodesIncluded": "Todos los episodios incluidos", "content.episodeLocked": "El episodio {n} est\u00e1 bloqueado", "content.unlockPrompt": "Los primeros 5 episodios son gratis. Desbloquea la serie completa.", "content.tryAgain": "Intentar de Nuevo",
 };
 
 const fr: Translations = {
@@ -187,6 +209,7 @@ const fr: Translations = {
   "auth.noAccount": "Pas de compte?", "auth.haveAccount": "D\u00e9j\u00e0 un compte?", "auth.signUp": "S\u2019inscrire",
   "legal.terms": "Conditions d\u2019Utilisation", "legal.privacy": "Politique de Confidentialit\u00e9", "legal.refund": "Politique de Remboursement",
   "misc.free": "Gratuit", "misc.comingSoon": "Bient\u00f4t", "misc.close": "Fermer",
+  "content.synopsis": "Synopsis", "content.episodes": "\u00c9pisodes", "content.cast": "Distribution", "content.moreLikeThis": "Dans le M\u00eame Genre", "content.views": "vues", "content.now": "EN COURS", "content.info": "Info", "content.allEpisodes": "Tous les \u00c9pisodes", "content.previous": "Pr\u00e9c\u00e9dent", "content.next": "Suivant", "content.episodeOf": "\u00c9pisode {n} sur {total}", "content.trending": "Tendances", "content.watchFree": "Regarder l\u2019\u00c9pisode 1 Gratuitement", "content.unlockSeries": "D\u00e9bloquer la S\u00e9rie", "content.oneTimePayment": "Paiement unique", "content.allEpisodesIncluded": "Tous les \u00e9pisodes inclus", "content.episodeLocked": "L\u2019\u00e9pisode {n} est verrouill\u00e9", "content.unlockPrompt": "Les 5 premiers \u00e9pisodes sont gratuits. D\u00e9bloquez la s\u00e9rie compl\u00e8te.", "content.tryAgain": "R\u00e9essayer",
 };
 
 const pt: Translations = {
@@ -211,6 +234,7 @@ const pt: Translations = {
   "auth.noAccount": "N\u00e3o tem conta?", "auth.haveAccount": "J\u00e1 tem conta?", "auth.signUp": "Cadastrar",
   "legal.terms": "Termos de Servi\u00e7o", "legal.privacy": "Pol\u00edtica de Privacidade", "legal.refund": "Pol\u00edtica de Reembolso",
   "misc.free": "Gr\u00e1tis", "misc.comingSoon": "Em Breve", "misc.close": "Fechar",
+  "content.synopsis": "Sinopse", "content.episodes": "Epis\u00f3dios", "content.cast": "Elenco", "content.moreLikeThis": "Mais Como Isto", "content.views": "visualiza\u00e7\u00f5es", "content.now": "AGORA", "content.info": "Info", "content.allEpisodes": "Todos os Epis\u00f3dios", "content.previous": "Anterior", "content.next": "Pr\u00f3ximo", "content.episodeOf": "Epis\u00f3dio {n} de {total}", "content.trending": "Em Alta", "content.watchFree": "Assistir Epis\u00f3dio 1 Gr\u00e1tis", "content.unlockSeries": "Desbloquear S\u00e9rie", "content.oneTimePayment": "Pagamento \u00fanico", "content.allEpisodesIncluded": "Todos os epis\u00f3dios inclu\u00eddos", "content.episodeLocked": "O epis\u00f3dio {n} est\u00e1 bloqueado", "content.unlockPrompt": "Os primeiros 5 epis\u00f3dios s\u00e3o gr\u00e1tis. Desbloqueie a s\u00e9rie completa.", "content.tryAgain": "Tentar Novamente",
 };
 
 const de: Translations = {
@@ -235,6 +259,7 @@ const de: Translations = {
   "auth.noAccount": "Noch kein Konto?", "auth.haveAccount": "Bereits ein Konto?", "auth.signUp": "Registrieren",
   "legal.terms": "Nutzungsbedingungen", "legal.privacy": "Datenschutzrichtlinie", "legal.refund": "R\u00fcckerstattungsrichtlinie",
   "misc.free": "Kostenlos", "misc.comingSoon": "Demn\u00e4chst", "misc.close": "Schlie\u00dfen",
+  "content.synopsis": "Zusammenfassung", "content.episodes": "Episoden", "content.cast": "Besetzung", "content.moreLikeThis": "\u00c4hnliches", "content.views": "Aufrufe", "content.now": "JETZT", "content.info": "Info", "content.allEpisodes": "Alle Episoden", "content.previous": "Zur\u00fcck", "content.next": "Weiter", "content.episodeOf": "Episode {n} von {total}", "content.trending": "Im Trend", "content.watchFree": "Episode 1 Kostenlos Ansehen", "content.unlockSeries": "Serie Freischalten", "content.oneTimePayment": "Einmalzahlung", "content.allEpisodesIncluded": "Alle Episoden enthalten", "content.episodeLocked": "Episode {n} ist gesperrt", "content.unlockPrompt": "Die ersten 5 Episoden sind kostenlos. Schalte die ganze Serie frei.", "content.tryAgain": "Erneut Versuchen",
 };
 
 const it: Translations = {
@@ -259,6 +284,7 @@ const it: Translations = {
   "auth.noAccount": "Non hai un account?", "auth.haveAccount": "Hai gi\u00e0 un account?", "auth.signUp": "Registrati",
   "legal.terms": "Termini di Servizio", "legal.privacy": "Informativa sulla Privacy", "legal.refund": "Politica di Rimborso",
   "misc.free": "Gratuito", "misc.comingSoon": "In Arrivo", "misc.close": "Chiudi",
+  "content.synopsis": "Trama", "content.episodes": "Episodi", "content.cast": "Cast", "content.moreLikeThis": "Simili", "content.views": "visualizzazioni", "content.now": "ORA", "content.info": "Info", "content.allEpisodes": "Tutti gli Episodi", "content.previous": "Precedente", "content.next": "Successivo", "content.episodeOf": "Episodio {n} di {total}", "content.trending": "Di Tendenza", "content.watchFree": "Guarda Episodio 1 Gratis", "content.unlockSeries": "Sblocca la Serie", "content.oneTimePayment": "Pagamento unico", "content.allEpisodesIncluded": "Tutti gli episodi inclusi", "content.episodeLocked": "L\u2019episodio {n} \u00e8 bloccato", "content.unlockPrompt": "I primi 5 episodi sono gratuiti. Sblocca la serie completa.", "content.tryAgain": "Riprova",
 };
 
 const ja: Translations = {
@@ -283,6 +309,7 @@ const ja: Translations = {
   "auth.noAccount": "\u30a2\u30ab\u30a6\u30f3\u30c8\u3092\u304a\u6301\u3061\u3067\u306a\u3044\u65b9", "auth.haveAccount": "\u30a2\u30ab\u30a6\u30f3\u30c8\u3092\u304a\u6301\u3061\u306e\u65b9", "auth.signUp": "\u65b0\u898f\u767b\u9332",
   "legal.terms": "\u5229\u7528\u898f\u7d04", "legal.privacy": "\u30d7\u30e9\u30a4\u30d0\u30b7\u30fc\u30dd\u30ea\u30b7\u30fc", "legal.refund": "\u8fd4\u91d1\u30dd\u30ea\u30b7\u30fc",
   "misc.free": "\u7121\u6599", "misc.comingSoon": "\u8fd1\u65e5\u516c\u958b", "misc.close": "\u9589\u3058\u308b",
+  "content.synopsis": "\u3042\u3089\u3059\u3058", "content.episodes": "\u30a8\u30d4\u30bd\u30fc\u30c9", "content.cast": "\u30ad\u30e3\u30b9\u30c8", "content.moreLikeThis": "\u985e\u4f3c\u4f5c\u54c1", "content.views": "\u56de\u8996\u8074", "content.now": "\u518d\u751f\u4e2d", "content.info": "\u60c5\u5831", "content.allEpisodes": "\u5168\u30a8\u30d4\u30bd\u30fc\u30c9", "content.previous": "\u524d\u3078", "content.next": "\u6b21\u3078", "content.episodeOf": "\u30a8\u30d4\u30bd\u30fc\u30c9{n}/{total}", "content.trending": "\u30c8\u30ec\u30f3\u30c9", "content.watchFree": "\u30a8\u30d4\u30bd\u30fc\u30c91\u3092\u7121\u6599\u3067\u898b\u308b", "content.unlockSeries": "\u30b7\u30ea\u30fc\u30ba\u3092\u89e3\u9664", "content.oneTimePayment": "\u4e00\u56de\u6255\u3044", "content.allEpisodesIncluded": "\u5168\u30a8\u30d4\u30bd\u30fc\u30c9\u542b\u3080", "content.episodeLocked": "\u30a8\u30d4\u30bd\u30fc\u30c9{n}\u306f\u30ed\u30c3\u30af\u3055\u308c\u3066\u3044\u307e\u3059", "content.unlockPrompt": "\u6700\u521d\u306e5\u30a8\u30d4\u30bd\u30fc\u30c9\u306f\u7121\u6599\u3067\u3059\u3002\u30b7\u30ea\u30fc\u30ba\u5168\u4f53\u3092\u89e3\u9664\u3057\u3066\u304f\u3060\u3055\u3044\u3002", "content.tryAgain": "\u3082\u3046\u4e00\u5ea6",
 };
 
 const ko: Translations = {
@@ -307,6 +334,7 @@ const ko: Translations = {
   "auth.noAccount": "\uacc4\uc815\uc774 \uc5c6\uc73c\uc2e0\uac00\uc694?", "auth.haveAccount": "\uc774\ubbf8 \uacc4\uc815\uc774 \uc788\uc73c\uc2e0\uac00\uc694?", "auth.signUp": "\ud68c\uc6d0\uac00\uc785",
   "legal.terms": "\uc774\uc6a9\uc57d\uad00", "legal.privacy": "\uac1c\uc778\uc815\ubcf4\ucc98\ub9ac\ubc29\uce68", "legal.refund": "\ud658\ubd88 \uc815\ucc45",
   "misc.free": "\ubb34\ub8cc", "misc.comingSoon": "\uacf5\uac1c \uc608\uc815", "misc.close": "\ub2eb\uae30",
+  "content.synopsis": "\uc904\uac70\ub9ac", "content.episodes": "\uc5d0\ud53c\uc18c\ub4dc", "content.cast": "\ucd9c\uc5f0\uc9c4", "content.moreLikeThis": "\ube44\uc2b7\ud55c \uc791\ud488", "content.views": "\uc870\ud68c", "content.now": "\uc7ac\uc0dd\uc911", "content.info": "\uc815\ubcf4", "content.allEpisodes": "\uc804\uccb4 \uc5d0\ud53c\uc18c\ub4dc", "content.previous": "\uc774\uc804", "content.next": "\ub2e4\uc74c", "content.episodeOf": "\uc5d0\ud53c\uc18c\ub4dc {n}/{total}", "content.trending": "\ud2b8\ub80c\ub4dc", "content.watchFree": "\uc5d0\ud53c\uc18c\ub4dc 1 \ubb34\ub8cc \uc2dc\uccad", "content.unlockSeries": "\uc2dc\ub9ac\uc988 \uc7a0\uae08 \ud574\uc81c", "content.oneTimePayment": "\uc77c\ud68c\uc131 \uacb0\uc81c", "content.allEpisodesIncluded": "\ubaa8\ub4e0 \uc5d0\ud53c\uc18c\ub4dc \ud3ec\ud568", "content.episodeLocked": "\uc5d0\ud53c\uc18c\ub4dc {n}\uc740 \uc7a0\uaca8 \uc788\uc2b5\ub2c8\ub2e4", "content.unlockPrompt": "\ucc98\uc74c 5\uac1c \uc5d0\ud53c\uc18c\ub4dc\ub294 \ubb34\ub8cc\uc785\ub2c8\ub2e4. \uc804\uccb4 \uc2dc\ub9ac\uc988\ub97c \uc7a0\uae08 \ud574\uc81c\ud558\uc138\uc694.", "content.tryAgain": "\ub2e4\uc2dc \uc2dc\ub3c4",
 };
 
 const zh: Translations = {
@@ -331,6 +359,7 @@ const zh: Translations = {
   "auth.noAccount": "\u6ca1\u6709\u8d26\u6237\uff1f", "auth.haveAccount": "\u5df2\u6709\u8d26\u6237\uff1f", "auth.signUp": "\u6ce8\u518c",
   "legal.terms": "\u670d\u52a1\u6761\u6b3e", "legal.privacy": "\u9690\u79c1\u653f\u7b56", "legal.refund": "\u9000\u6b3e\u653f\u7b56",
   "misc.free": "\u514d\u8d39", "misc.comingSoon": "\u5373\u5c06\u4e0a\u7ebf", "misc.close": "\u5173\u95ed",
+  "content.synopsis": "Synopsis", "content.episodes": "Episodes", "content.cast": "Cast", "content.moreLikeThis": "More Like This", "content.views": "views", "content.now": "NOW", "content.info": "Info", "content.allEpisodes": "All Episodes", "content.previous": "Previous", "content.next": "Next", "content.episodeOf": "Episode {n} of {total}", "content.trending": "Trending", "content.watchFree": "Watch Episode 1 Free", "content.unlockSeries": "Unlock Full Series", "content.oneTimePayment": "One-time payment", "content.allEpisodesIncluded": "All episodes included", "content.episodeLocked": "Episode {n} is locked", "content.unlockPrompt": "The first 5 episodes are free. Unlock the full series to keep watching.", "content.tryAgain": "Try Again",
 };
 
 const hi: Translations = {
@@ -355,6 +384,7 @@ const hi: Translations = {
   "auth.noAccount": "\u0916\u093e\u0924\u093e \u0928\u0939\u0940\u0902 \u0939\u0948?", "auth.haveAccount": "\u092a\u0939\u0932\u0947 \u0938\u0947 \u0916\u093e\u0924\u093e \u0939\u0948?", "auth.signUp": "\u0938\u093e\u0907\u0928 \u0905\u092a",
   "legal.terms": "\u0938\u0947\u0935\u093e \u0915\u0940 \u0936\u0930\u094d\u0924\u0947\u0902", "legal.privacy": "\u0917\u094b\u092a\u0928\u0940\u092f\u0924\u093e \u0928\u0940\u0924\u093f", "legal.refund": "\u0930\u093f\u095e\u0902\u0921 \u0928\u0940\u0924\u093f",
   "misc.free": "\u092e\u0941\u095e\u094d\u0924", "misc.comingSoon": "\u091c\u0932\u094d\u0926 \u0906 \u0930\u0939\u093e \u0939\u0948", "misc.close": "\u092c\u0902\u0926 \u0915\u0930\u0947\u0902",
+  "content.synopsis": "Synopsis", "content.episodes": "Episodes", "content.cast": "Cast", "content.moreLikeThis": "More Like This", "content.views": "views", "content.now": "NOW", "content.info": "Info", "content.allEpisodes": "All Episodes", "content.previous": "Previous", "content.next": "Next", "content.episodeOf": "Episode {n} of {total}", "content.trending": "Trending", "content.watchFree": "Watch Episode 1 Free", "content.unlockSeries": "Unlock Full Series", "content.oneTimePayment": "One-time payment", "content.allEpisodesIncluded": "All episodes included", "content.episodeLocked": "Episode {n} is locked", "content.unlockPrompt": "The first 5 episodes are free. Unlock the full series to keep watching.", "content.tryAgain": "Try Again",
 };
 
 const ar: Translations = {
@@ -379,6 +409,7 @@ const ar: Translations = {
   "auth.noAccount": "\u0644\u064a\u0633 \u0644\u062f\u064a\u0643 \u062d\u0633\u0627\u0628\u061f", "auth.haveAccount": "\u0644\u062f\u064a\u0643 \u062d\u0633\u0627\u0628 \u0628\u0627\u0644\u0641\u0639\u0644\u061f", "auth.signUp": "\u0625\u0646\u0634\u0627\u0621 \u062d\u0633\u0627\u0628",
   "legal.terms": "\u0634\u0631\u0648\u0637 \u0627\u0644\u062e\u062f\u0645\u0629", "legal.privacy": "\u0633\u064a\u0627\u0633\u0629 \u0627\u0644\u062e\u0635\u0648\u0635\u064a\u0629", "legal.refund": "\u0633\u064a\u0627\u0633\u0629 \u0627\u0644\u0627\u0633\u062a\u0631\u062f\u0627\u062f",
   "misc.free": "\u0645\u062c\u0627\u0646\u064a", "misc.comingSoon": "\u0642\u0631\u064a\u0628\u064b\u0627", "misc.close": "\u0625\u063a\u0644\u0627\u0642",
+  "content.synopsis": "Synopsis", "content.episodes": "Episodes", "content.cast": "Cast", "content.moreLikeThis": "More Like This", "content.views": "views", "content.now": "NOW", "content.info": "Info", "content.allEpisodes": "All Episodes", "content.previous": "Previous", "content.next": "Next", "content.episodeOf": "Episode {n} of {total}", "content.trending": "Trending", "content.watchFree": "Watch Episode 1 Free", "content.unlockSeries": "Unlock Full Series", "content.oneTimePayment": "One-time payment", "content.allEpisodesIncluded": "All episodes included", "content.episodeLocked": "Episode {n} is locked", "content.unlockPrompt": "The first 5 episodes are free. Unlock the full series to keep watching.", "content.tryAgain": "Try Again",
 };
 
 const ru: Translations = {
@@ -403,6 +434,7 @@ const ru: Translations = {
   "auth.noAccount": "\u041d\u0435\u0442 \u0430\u043a\u043a\u0430\u0443\u043d\u0442\u0430?", "auth.haveAccount": "\u0423\u0436\u0435 \u0435\u0441\u0442\u044c \u0430\u043a\u043a\u0430\u0443\u043d\u0442?", "auth.signUp": "\u0420\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044f",
   "legal.terms": "\u0423\u0441\u043b\u043e\u0432\u0438\u044f \u0438\u0441\u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u043d\u0438\u044f", "legal.privacy": "\u041f\u043e\u043b\u0438\u0442\u0438\u043a\u0430 \u043a\u043e\u043d\u0444\u0438\u0434\u0435\u043d\u0446\u0438\u0430\u043b\u044c\u043d\u043e\u0441\u0442\u0438", "legal.refund": "\u041f\u043e\u043b\u0438\u0442\u0438\u043a\u0430 \u0432\u043e\u0437\u0432\u0440\u0430\u0442\u0430",
   "misc.free": "\u0411\u0435\u0441\u043f\u043b\u0430\u0442\u043d\u043e", "misc.comingSoon": "\u0421\u043a\u043e\u0440\u043e", "misc.close": "\u0417\u0430\u043a\u0440\u044b\u0442\u044c",
+  "content.synopsis": "Synopsis", "content.episodes": "Episodes", "content.cast": "Cast", "content.moreLikeThis": "More Like This", "content.views": "views", "content.now": "NOW", "content.info": "Info", "content.allEpisodes": "All Episodes", "content.previous": "Previous", "content.next": "Next", "content.episodeOf": "Episode {n} of {total}", "content.trending": "Trending", "content.watchFree": "Watch Episode 1 Free", "content.unlockSeries": "Unlock Full Series", "content.oneTimePayment": "One-time payment", "content.allEpisodesIncluded": "All episodes included", "content.episodeLocked": "Episode {n} is locked", "content.unlockPrompt": "The first 5 episodes are free. Unlock the full series to keep watching.", "content.tryAgain": "Try Again",
 };
 
 const tr: Translations = {
@@ -427,6 +459,7 @@ const tr: Translations = {
   "auth.noAccount": "Hesab\u0131n\u0131z yok mu?", "auth.haveAccount": "Zaten hesab\u0131n\u0131z var m\u0131?", "auth.signUp": "Kay\u0131t Ol",
   "legal.terms": "Hizmet \u015eartlar\u0131", "legal.privacy": "Gizlilik Politikas\u0131", "legal.refund": "\u0130ade Politikas\u0131",
   "misc.free": "\u00dccretsiz", "misc.comingSoon": "\u00c7ok Yak\u0131nda", "misc.close": "Kapat",
+  "content.synopsis": "Synopsis", "content.episodes": "Episodes", "content.cast": "Cast", "content.moreLikeThis": "More Like This", "content.views": "views", "content.now": "NOW", "content.info": "Info", "content.allEpisodes": "All Episodes", "content.previous": "Previous", "content.next": "Next", "content.episodeOf": "Episode {n} of {total}", "content.trending": "Trending", "content.watchFree": "Watch Episode 1 Free", "content.unlockSeries": "Unlock Full Series", "content.oneTimePayment": "One-time payment", "content.allEpisodesIncluded": "All episodes included", "content.episodeLocked": "Episode {n} is locked", "content.unlockPrompt": "The first 5 episodes are free. Unlock the full series to keep watching.", "content.tryAgain": "Try Again",
 };
 
 const pl: Translations = {
@@ -451,6 +484,7 @@ const pl: Translations = {
   "auth.noAccount": "Nie masz konta?", "auth.haveAccount": "Masz ju\u017c konto?", "auth.signUp": "Zarejestruj si\u0119",
   "legal.terms": "Regulamin", "legal.privacy": "Polityka Prywatno\u015bci", "legal.refund": "Polityka Zwrot\u00f3w",
   "misc.free": "Za Darmo", "misc.comingSoon": "Wkr\u00f3tce", "misc.close": "Zamknij",
+  "content.synopsis": "Synopsis", "content.episodes": "Episodes", "content.cast": "Cast", "content.moreLikeThis": "More Like This", "content.views": "views", "content.now": "NOW", "content.info": "Info", "content.allEpisodes": "All Episodes", "content.previous": "Previous", "content.next": "Next", "content.episodeOf": "Episode {n} of {total}", "content.trending": "Trending", "content.watchFree": "Watch Episode 1 Free", "content.unlockSeries": "Unlock Full Series", "content.oneTimePayment": "One-time payment", "content.allEpisodesIncluded": "All episodes included", "content.episodeLocked": "Episode {n} is locked", "content.unlockPrompt": "The first 5 episodes are free. Unlock the full series to keep watching.", "content.tryAgain": "Try Again",
 };
 
 const nl: Translations = {
@@ -475,6 +509,7 @@ const nl: Translations = {
   "auth.noAccount": "Geen account?", "auth.haveAccount": "Heb je al een account?", "auth.signUp": "Registreren",
   "legal.terms": "Servicevoorwaarden", "legal.privacy": "Privacybeleid", "legal.refund": "Restitutiebeleid",
   "misc.free": "Gratis", "misc.comingSoon": "Binnenkort", "misc.close": "Sluiten",
+  "content.synopsis": "Synopsis", "content.episodes": "Episodes", "content.cast": "Cast", "content.moreLikeThis": "More Like This", "content.views": "views", "content.now": "NOW", "content.info": "Info", "content.allEpisodes": "All Episodes", "content.previous": "Previous", "content.next": "Next", "content.episodeOf": "Episode {n} of {total}", "content.trending": "Trending", "content.watchFree": "Watch Episode 1 Free", "content.unlockSeries": "Unlock Full Series", "content.oneTimePayment": "One-time payment", "content.allEpisodesIncluded": "All episodes included", "content.episodeLocked": "Episode {n} is locked", "content.unlockPrompt": "The first 5 episodes are free. Unlock the full series to keep watching.", "content.tryAgain": "Try Again",
 };
 
 const th: Translations = {
@@ -499,6 +534,7 @@ const th: Translations = {
   "auth.noAccount": "\u0e22\u0e31\u0e07\u0e44\u0e21\u0e48\u0e21\u0e35\u0e1a\u0e31\u0e0d\u0e0a\u0e35?", "auth.haveAccount": "\u0e21\u0e35\u0e1a\u0e31\u0e0d\u0e0a\u0e35\u0e2d\u0e22\u0e39\u0e48\u0e41\u0e25\u0e49\u0e27?", "auth.signUp": "\u0e2a\u0e21\u0e31\u0e04\u0e23\u0e2a\u0e21\u0e32\u0e0a\u0e34\u0e01",
   "legal.terms": "\u0e02\u0e49\u0e2d\u0e01\u0e33\u0e2b\u0e19\u0e14\u0e01\u0e32\u0e23\u0e43\u0e2b\u0e49\u0e1a\u0e23\u0e34\u0e01\u0e32\u0e23", "legal.privacy": "\u0e19\u0e42\u0e22\u0e1a\u0e32\u0e22\u0e04\u0e27\u0e32\u0e21\u0e40\u0e1b\u0e47\u0e19\u0e2a\u0e48\u0e27\u0e19\u0e15\u0e31\u0e27", "legal.refund": "\u0e19\u0e42\u0e22\u0e1a\u0e32\u0e22\u0e01\u0e32\u0e23\u0e04\u0e37\u0e19\u0e40\u0e07\u0e34\u0e19",
   "misc.free": "\u0e1f\u0e23\u0e35", "misc.comingSoon": "\u0e40\u0e23\u0e47\u0e27\u0e46 \u0e19\u0e35\u0e49", "misc.close": "\u0e1b\u0e34\u0e14",
+  "content.synopsis": "Synopsis", "content.episodes": "Episodes", "content.cast": "Cast", "content.moreLikeThis": "More Like This", "content.views": "views", "content.now": "NOW", "content.info": "Info", "content.allEpisodes": "All Episodes", "content.previous": "Previous", "content.next": "Next", "content.episodeOf": "Episode {n} of {total}", "content.trending": "Trending", "content.watchFree": "Watch Episode 1 Free", "content.unlockSeries": "Unlock Full Series", "content.oneTimePayment": "One-time payment", "content.allEpisodesIncluded": "All episodes included", "content.episodeLocked": "Episode {n} is locked", "content.unlockPrompt": "The first 5 episodes are free. Unlock the full series to keep watching.", "content.tryAgain": "Try Again",
 };
 
 const vi: Translations = {
@@ -523,6 +559,7 @@ const vi: Translations = {
   "auth.noAccount": "Ch\u01b0a c\u00f3 t\u00e0i kho\u1ea3n?", "auth.haveAccount": "\u0110\u00e3 c\u00f3 t\u00e0i kho\u1ea3n?", "auth.signUp": "\u0110\u0103ng k\u00fd",
   "legal.terms": "\u0110i\u1ec1u kho\u1ea3n d\u1ecbch v\u1ee5", "legal.privacy": "Ch\u00ednh s\u00e1ch b\u1ea3o m\u1eadt", "legal.refund": "Ch\u00ednh s\u00e1ch ho\u00e0n ti\u1ec1n",
   "misc.free": "Mi\u1ec5n ph\u00ed", "misc.comingSoon": "S\u1eafp ra m\u1eaft", "misc.close": "\u0110\u00f3ng",
+  "content.synopsis": "Synopsis", "content.episodes": "Episodes", "content.cast": "Cast", "content.moreLikeThis": "More Like This", "content.views": "views", "content.now": "NOW", "content.info": "Info", "content.allEpisodes": "All Episodes", "content.previous": "Previous", "content.next": "Next", "content.episodeOf": "Episode {n} of {total}", "content.trending": "Trending", "content.watchFree": "Watch Episode 1 Free", "content.unlockSeries": "Unlock Full Series", "content.oneTimePayment": "One-time payment", "content.allEpisodesIncluded": "All episodes included", "content.episodeLocked": "Episode {n} is locked", "content.unlockPrompt": "The first 5 episodes are free. Unlock the full series to keep watching.", "content.tryAgain": "Try Again",
 };
 
 const id: Translations = {
@@ -547,6 +584,7 @@ const id: Translations = {
   "auth.noAccount": "Belum punya akun?", "auth.haveAccount": "Sudah punya akun?", "auth.signUp": "Daftar",
   "legal.terms": "Ketentuan Layanan", "legal.privacy": "Kebijakan Privasi", "legal.refund": "Kebijakan Pengembalian",
   "misc.free": "Gratis", "misc.comingSoon": "Segera Hadir", "misc.close": "Tutup",
+  "content.synopsis": "Synopsis", "content.episodes": "Episodes", "content.cast": "Cast", "content.moreLikeThis": "More Like This", "content.views": "views", "content.now": "NOW", "content.info": "Info", "content.allEpisodes": "All Episodes", "content.previous": "Previous", "content.next": "Next", "content.episodeOf": "Episode {n} of {total}", "content.trending": "Trending", "content.watchFree": "Watch Episode 1 Free", "content.unlockSeries": "Unlock Full Series", "content.oneTimePayment": "One-time payment", "content.allEpisodesIncluded": "All episodes included", "content.episodeLocked": "Episode {n} is locked", "content.unlockPrompt": "The first 5 episodes are free. Unlock the full series to keep watching.", "content.tryAgain": "Try Again",
 };
 
 const tl: Translations = {
@@ -571,6 +609,7 @@ const tl: Translations = {
   "auth.noAccount": "Wala pang account?", "auth.haveAccount": "May account na?", "auth.signUp": "Mag-sign Up",
   "legal.terms": "Mga Tuntunin ng Serbisyo", "legal.privacy": "Patakaran sa Privacy", "legal.refund": "Patakaran sa Refund",
   "misc.free": "Libre", "misc.comingSoon": "Malapit Na", "misc.close": "Isara",
+  "content.synopsis": "Synopsis", "content.episodes": "Episodes", "content.cast": "Cast", "content.moreLikeThis": "More Like This", "content.views": "views", "content.now": "NOW", "content.info": "Info", "content.allEpisodes": "All Episodes", "content.previous": "Previous", "content.next": "Next", "content.episodeOf": "Episode {n} of {total}", "content.trending": "Trending", "content.watchFree": "Watch Episode 1 Free", "content.unlockSeries": "Unlock Full Series", "content.oneTimePayment": "One-time payment", "content.allEpisodesIncluded": "All episodes included", "content.episodeLocked": "Episode {n} is locked", "content.unlockPrompt": "The first 5 episodes are free. Unlock the full series to keep watching.", "content.tryAgain": "Try Again",
 };
 
 const sw: Translations = {
@@ -595,6 +634,7 @@ const sw: Translations = {
   "auth.noAccount": "Huna akaunti?", "auth.haveAccount": "Una akaunti tayari?", "auth.signUp": "Jisajili",
   "legal.terms": "Masharti ya Huduma", "legal.privacy": "Sera ya Faragha", "legal.refund": "Sera ya Kurejesha Pesa",
   "misc.free": "Bure", "misc.comingSoon": "Inakuja Hivi Karibuni", "misc.close": "Funga",
+  "content.synopsis": "Synopsis", "content.episodes": "Episodes", "content.cast": "Cast", "content.moreLikeThis": "More Like This", "content.views": "views", "content.now": "NOW", "content.info": "Info", "content.allEpisodes": "All Episodes", "content.previous": "Previous", "content.next": "Next", "content.episodeOf": "Episode {n} of {total}", "content.trending": "Trending", "content.watchFree": "Watch Episode 1 Free", "content.unlockSeries": "Unlock Full Series", "content.oneTimePayment": "One-time payment", "content.allEpisodesIncluded": "All episodes included", "content.episodeLocked": "Episode {n} is locked", "content.unlockPrompt": "The first 5 episodes are free. Unlock the full series to keep watching.", "content.tryAgain": "Try Again",
 };
 
 /* All 20 languages fully translated */

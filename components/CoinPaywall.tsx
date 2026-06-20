@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { T } from "@/lib/theme";
+import { useTranslation } from "@/components/LangProvider";
 
 interface CoinPaywallProps {
   posterUrl: string;
@@ -18,6 +19,7 @@ export default function CoinPaywall({
   episodeNumber,
 }: CoinPaywallProps) {
   const [loading, setLoading] = useState(false);
+  const { t } = useTranslation();
 
   async function handleUnlock() {
     setLoading(true);
@@ -73,11 +75,11 @@ export default function CoinPaywall({
           </div>
 
           <p className="text-sm font-medium mb-1" style={{ color: T.textDim }}>
-            Episode {episodeNumber} is locked
+            {t("content.episodeLocked").replace("{n}", String(episodeNumber))}
           </p>
 
           <p className="text-xs mb-6 text-center" style={{ color: T.textMute }}>
-            The first 5 episodes are free. Unlock the full series to keep watching.
+            {t("content.unlockPrompt")}
           </p>
 
           {/* Direct pricing — $4.99 */}
@@ -95,7 +97,7 @@ export default function CoinPaywall({
                   <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
                   <line x1="1" y1="10" x2="23" y2="10" />
                 </svg>
-                Unlock Full Series — $4.99
+                {t("content.unlockSeries")} — $4.99
               </>
             )}
           </button>
@@ -105,9 +107,9 @@ export default function CoinPaywall({
             className="flex items-center gap-2 px-4 py-2 rounded-full mb-4"
             style={{ background: "rgba(255,255,255,0.06)" }}
           >
-            <span className="text-xs" style={{ color: T.textMute }}>One-time payment</span>
+            <span className="text-xs" style={{ color: T.textMute }}>{t("content.oneTimePayment")}</span>
             <span style={{ color: T.textMute }}>&middot;</span>
-            <span className="text-xs font-semibold" style={{ color: T.success ?? "#22c55e" }}>All episodes included</span>
+            <span className="text-xs font-semibold" style={{ color: T.success ?? "#22c55e" }}>{t("content.allEpisodesIncluded")}</span>
           </div>
         </div>
       </div>

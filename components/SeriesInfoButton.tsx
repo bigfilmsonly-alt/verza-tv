@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Series } from "@/lib/catalog";
+import { useTranslation } from "@/components/LangProvider";
 import type { SeriesDetail } from "@/lib/series-detail";
 import SeriesInfoDrawer from "@/components/SeriesInfoDrawer";
 
@@ -20,6 +21,7 @@ export default function SeriesInfoButton({
   totalEpisodes,
 }: SeriesInfoButtonProps) {
   const [open, setOpen] = useState(false);
+  const { t } = useTranslation();
   const router = useRouter();
 
   return (
@@ -39,7 +41,7 @@ export default function SeriesInfoButton({
           <line x1="12" y1="16" x2="12" y2="12" />
           <line x1="12" y1="8" x2="12.01" y2="8" />
         </svg>
-        Info
+        {t("content.info")}
       </button>
 
       {open && (

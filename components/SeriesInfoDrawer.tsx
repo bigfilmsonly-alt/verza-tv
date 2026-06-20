@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import Image from "next/image";
 import type { Series } from "@/lib/catalog";
+import { useTranslation } from "@/components/LangProvider";
 import { getEpisodesForSeries, formatDuration, catalog } from "@/lib/catalog";
 import { SERIES_DETAIL, type SeriesDetail } from "@/lib/series-detail";
 import { T } from "@/lib/theme";
@@ -64,7 +65,7 @@ function Stars({ rating }: { rating: number }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  "More Like This" helpers                                           */
+/*  "{tr("content.moreLikeThis")}" helpers                                           */
 /* ------------------------------------------------------------------ */
 
 function getSimilarSeries(series: Series): Series[] {
@@ -99,6 +100,7 @@ export default function SeriesInfoDrawer({
 }: SeriesInfoDrawerProps) {
   const [tab, setTab] = useState<Tab>("synopsis");
   const sheetRef = useRef<HTMLDivElement>(null);
+  const { t: tr } = useTranslation();
 
   /* Resolve detail — prop takes priority, fall back to lookup */
   const detail: SeriesDetail | undefined =
@@ -262,7 +264,7 @@ export default function SeriesInfoDrawer({
               </p>
               <div className="flex items-center gap-2 mt-0.5">
                 <span className="text-xs" style={{ color: T.textMute }}>
-                  {viewCount(series.slug)} views
+                  {viewCount(series.slug)} {tr("content.views")}
                 </span>
                 {rating > 0 && (
                   <>
@@ -302,7 +304,7 @@ export default function SeriesInfoDrawer({
                       : "3px solid transparent",
                 }}
               >
-                {t === "synopsis" ? "Synopsis" : "Episodes"}
+                {t === "synopsis" ? tr("content.synopsis") : tr("content.episodes")}
               </button>
             ))}
           </div>
@@ -462,14 +464,14 @@ export default function SeriesInfoDrawer({
             </div>
           )}
 
-          {/* ---- More Like This ---- */}
+          {/* ---- {tr("content.moreLikeThis")} ---- */}
           {similar.length > 0 && (
             <div className="mt-6">
               <h3
                 className="text-xs font-bold uppercase tracking-wider mb-3"
                 style={{ color: T.textMute }}
               >
-                More Like This
+                {tr("content.moreLikeThis")}
               </h3>
               <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
                 {similar.map((s) => (
