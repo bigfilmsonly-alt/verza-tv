@@ -186,11 +186,53 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    // Today / yesterday revenue
+    const today = new Date().toISOString().slice(0, 10);
+    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+    const todayRevenue = revenueByDay[today] || 0;
+    const yesterdayRevenue = revenueByDay[yesterday] || 0;
+
+    // 7d / 30d revenue
+    const now = new Date();
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 86400000).toISOString().slice(0, 10);
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 86400000).toISOString().slice(0, 10);
+    let revenue7d = 0;
+    let revenue30d = 0;
+    for (const [day, cents] of Object.entries(revenueByDay)) {
+      if (day >= sevenDaysAgo) revenue7d += cents;
+      if (day >= thirtyDaysAgo) revenue30d += cents;
+    }
+
+    // MRR / ARR from active VIP subscriptions
+    const vipMonthly = (vipResult.data || []).length; // each VIP = $9.99/mo average
+    const mrrCents = vipMonthly * 999; // simplified: assume monthly rate
+    const arrCents = mrrCents * 12;
+
+    // AOV (average order value)
+    const completedPurchases = purchases.filter((p) => p.status === "completed");
+    const aovCents = completedPurchases.length > 0
+      ? Math.round(totalRevenueCents / completedPurchases.length)
+      : 0;
+
+    // Conversion rate: purchasers / total users
+    const conversionRate = totalUsers > 0
+      ? Number(((completedPurchases.length / totalUsers) * 100).toFixed(2))
+      : 0;
+
+    // Refunds
+    const refunds = purchases.filter((p) => p.status === "refunded");
+
     return Response.json({
       range,
       generatedAt: new Date().toISOString(),
       revenue: {
         totalCents: totalRevenueCents,
+        todayCents: todayRevenue,
+        yesterdayCents: yesterdayRevenue,
+        last7dCents: revenue7d,
+        last30dCents: revenue30d,
+        mrrCents,
+        arrCents,
         byType: purchasesByType,
         byDay: revenueByDay,
         stripeAvailableCents: stripeAvailable,
@@ -199,6 +241,10 @@ export async function GET(req: NextRequest) {
       },
       purchases: {
         total: purchases.length,
+        completed: completedPurchases.length,
+        aovCents,
+        conversionRate,
+        refunds: refunds.length,
         recent: purchases.slice(0, 20).map((p) => ({
           id: p.id,
           type: p.type,

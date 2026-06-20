@@ -26,9 +26,19 @@ interface Stats {
     stripeAvailableCents: number;
     stripePendingCents: number;
     chargeTimeline: { date: string; amount: number; count: number }[];
+    todayCents: number;
+    yesterdayCents: number;
+    last7dCents: number;
+    last30dCents: number;
+    mrrCents: number;
+    arrCents: number;
   };
   purchases: {
     total: number;
+    completed: number;
+    aovCents: number;
+    conversionRate: number;
+    refunds: number;
     recent: {
       id: string;
       type: string;
@@ -326,20 +336,59 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* ---- KPI Cards ---- */}
+      {/* ---- Revenue KPIs ---- */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+        <StatCard
+          label="Today"
+          value={fmt(stats.revenue.todayCents)}
+          sub={`Yesterday: ${fmt(stats.revenue.yesterdayCents)}`}
+          color={T.success}
+        />
+        <StatCard
+          label="Last 7 Days"
+          value={fmt(stats.revenue.last7dCents)}
+          color={T.success}
+        />
+        <StatCard
+          label="Last 30 Days"
+          value={fmt(stats.revenue.last30dCents)}
+          color={T.success}
+        />
+        <StatCard
+          label="Lifetime Revenue"
+          value={fmt(stats.revenue.totalCents)}
+          sub={`${stats.purchases.completed} sales`}
+          color={T.success}
+        />
+      </div>
+
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         <StatCard
-          label="Total Revenue"
-          value={fmt(stats.revenue.totalCents)}
-          sub={`${stats.purchases.total} transactions`}
-          color={T.success}
+          label="MRR"
+          value={fmt(stats.revenue.mrrCents)}
+          sub="Monthly recurring"
+          color={T.gold}
+        />
+        <StatCard
+          label="ARR"
+          value={fmt(stats.revenue.arrCents)}
+          sub="Annual run rate"
+          color={T.gold}
         />
         <StatCard
           label="Stripe Balance"
           value={fmt(stats.revenue.stripeAvailableCents)}
           sub={`${fmt(stats.revenue.stripePendingCents)} pending`}
-          color={T.gold}
         />
+        <StatCard
+          label="AOV"
+          value={fmt(stats.purchases.aovCents)}
+          sub={`${stats.purchases.conversionRate}% conversion`}
+        />
+      </div>
+
+      {/* ---- Users + Content KPIs ---- */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         <StatCard
           label="Total Users"
           value={fmtK(stats.users.total)}
@@ -348,13 +397,9 @@ export default function AdminDashboard() {
         <StatCard
           label="Active VIPs"
           value={String(stats.users.activeVips)}
-          sub={`${((stats.users.activeVips / Math.max(stats.users.total, 1)) * 100).toFixed(1)}% conversion`}
+          sub={`${((stats.users.activeVips / Math.max(stats.users.total, 1)) * 100).toFixed(1)}% of users`}
           color={T.accent}
         />
-      </div>
-
-      {/* ---- Second Row KPIs ---- */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         <StatCard
           label="Watch Sessions"
           value={fmtK(stats.content.watchSessions)}
@@ -364,19 +409,6 @@ export default function AdminDashboard() {
           label="Series Unlocked"
           value={String(Object.values(stats.content.seriesUnlocks).reduce((a, b) => a + b, 0))}
           sub={`${Object.keys(stats.content.seriesUnlocks).length} unique series`}
-        />
-        <StatCard
-          label="Saved to List"
-          value={fmtK(stats.content.totalSaved)}
-        />
-        <StatCard
-          label="Avg Revenue/User"
-          value={fmt(
-            stats.users.total > 0
-              ? Math.round(stats.revenue.totalCents / stats.users.total)
-              : 0,
-          )}
-          sub="ARPU"
         />
       </div>
 
