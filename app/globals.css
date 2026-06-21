@@ -284,7 +284,11 @@ button:focus-visible {
 @media (min-width: 520px) and (orientation: portrait),
        (min-width: 520px) and (min-height: 600px) {
   body {
-    background: #000 !important;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 30%, rgba(224, 17, 95, 0.18), transparent 60%),
+      radial-gradient(ellipse 70% 50% at 80% 70%, rgba(139, 92, 246, 0.15), transparent 60%),
+      radial-gradient(ellipse 90% 80% at 50% 50%, rgba(7, 7, 14, 0.9), transparent),
+      linear-gradient(135deg, #0A0A14 0%, #07070E 40%, #110818 70%, #0D0612 100%) !important;
     display: flex;
     align-items: center;
     justify-content: center;

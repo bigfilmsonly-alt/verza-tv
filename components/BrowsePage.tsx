@@ -256,16 +256,13 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </div>
       )}
 
-      {/* Tab Row — horizontal scroll */}
+      {/* Tab Row — vertical grid */}
       {gridItems.length > 0 && (
-        <section className="mt-4 pb-4">
-          <div
-            className="flex gap-3 overflow-x-auto no-scrollbar px-3 snap-x snap-mandatory"
-            style={{ WebkitOverflowScrolling: "touch", overscrollBehaviorY: "none", touchAction: "pan-x pinch-zoom" }}
-          >
+        <section className="mt-4 pb-4 px-3">
+          <div className="poster-grid grid grid-cols-3 gap-3">
             {gridItems.map((s) => (
-              <Link key={s.slug} href={`/series/${s.slug}/1`} className="group block no-underline flex-shrink-0 snap-start" style={{ width: 120 }}>
-                <div className="relative overflow-hidden rounded-lg" style={{ width: 120, aspectRatio: "2 / 3" }}>
+              <Link key={s.slug} href={`/series/${s.slug}/1`} className="group block no-underline">
+                <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
                   <Poster src={s.posterUrl} alt={s.title} />
                   <div
                     className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
@@ -291,16 +288,13 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </section>
       )}
 
-      {/* All Shows — horizontal scroll */}
-      <section className="pb-8">
-        <h2 className="text-sm font-semibold uppercase tracking-wider mb-3 px-4" style={{ color: "#8A8A9A" }}>{t("browse.allShows")}</h2>
-        <div
-          className="flex gap-3 overflow-x-auto no-scrollbar px-3 snap-x snap-mandatory"
-          style={{ WebkitOverflowScrolling: "touch", overscrollBehaviorY: "none", touchAction: "pan-x pinch-zoom" }}
-        >
+      {/* All Shows — vertical grid */}
+      <section className="pb-8 px-3">
+        <h2 className="text-sm font-semibold uppercase tracking-wider mb-3 px-1" style={{ color: "#8A8A9A" }}>{t("browse.allShows")}</h2>
+        <div className="poster-grid grid grid-cols-3 gap-3">
           {liveSeries.map((s) => (
-            <Link key={s.slug} href={`/series/${s.slug}/1`} className="group block no-underline flex-shrink-0 snap-start" style={{ width: 120 }}>
-              <div className="relative overflow-hidden rounded-lg" style={{ width: 120, aspectRatio: "2 / 3" }}>
+            <Link key={s.slug} href={`/series/${s.slug}/1`} className="group block no-underline">
+              <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
                 <Poster src={s.posterUrl} alt={s.title} />
                 <div
                   className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
