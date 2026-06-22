@@ -60,6 +60,7 @@ export default function Player({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hlsReady, setHlsReady] = useState(false);
+  const [muted, setMuted] = useState(true);
 
   const hlsUrl = playbackId
     ? `https://stream.mux.com/${playbackId}.m3u8`
@@ -251,13 +252,21 @@ export default function Player({
     setLoading(true);
     trackEpisodeStart(seriesSlug, episodeNumber);
 
-    video.muted = true;
+    // Restore mute preference — if user unmuted on previous episode, keep sound on
+    const wasMuted = localStorage.getItem("verza-muted") !== "false";
+    video.muted = wasMuted;
+    setMuted(wasMuted);
     video.play()
       .then(() => {
         scheduleHide();
       })
       .catch(() => {
-        setLoading(false);
+        // Autoplay with sound blocked — fall back to muted
+        video.muted = true;
+        setMuted(true);
+        video.play()
+          .then(() => { scheduleHide(); })
+          .catch(() => { setLoading(false); });
       });
   }, [hlsReady, started, scheduleHide]);
 
@@ -392,7 +401,6 @@ export default function Player({
             opacity: started ? 1 : 0,
           }}
           playsInline
-          muted
           preload="auto"
           poster={muxThumb || undefined}
         />
@@ -618,15 +626,27 @@ export default function Player({
             onClick={(e) => {
               e.stopPropagation();
               const video = videoRef.current;
-              if (video) video.muted = !video.muted;
+              if (video) {
+                video.muted = !video.muted;
+                setMuted(video.muted);
+                localStorage.setItem("verza-muted", String(video.muted));
+              }
             }}
             aria-label="Toggle mute"
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T.text} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-              <line x1="23" y1="9" x2="17" y2="15" />
-              <line x1="17" y1="9" x2="23" y2="15" />
-            </svg>
+            {muted ? (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T.text} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                <line x1="23" y1="9" x2="17" y2="15" />
+                <line x1="17" y1="9" x2="23" y2="15" />
+              </svg>
+            ) : (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T.text} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+                <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+              </svg>
+            )}
           </button>
         )}
       </div>
