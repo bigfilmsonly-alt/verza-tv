@@ -142,7 +142,7 @@ const en: Translations = {
   "nav.shop": "Shop", "nav.library": "Library", "nav.profile": "Profile",
   "header.followUs": "Follow us",
   "browse.startWatchingFree": "Start Watching Free", "browse.trending": "Trending", "browse.episodes": "episodes", "browse.allShows": "All Shows",
-  "tab.drama": "Drama", "tab.new": "New", "tab.popular": "Popular", "tab.music": "Music", "tab.reality": "Reality", "tab.redCarpet": "Red Carpet",
+  "tab.drama": "Drama", "tab.new": "New", "tab.popular": "Hot", "tab.music": "Music", "tab.reality": "Reality", "tab.redCarpet": "Red Carpet",
   "shorts.list": "List", "shorts.saved": "Saved", "shorts.share": "Share", "shorts.copied": "Copied!", "shorts.sound": "Sound", "shorts.soundOn": "On", "shorts.soundOff": "Off",
   "horizontal.widescreen": "Widescreen", "horizontal.episodes": "episodes", "horizontal.play": "Play", "horizontal.pause": "Pause",
   "profile.guest": "Guest", "profile.signIn": "Sign In", "profile.signInPrompt": "Sign in to sync your library and purchases",
