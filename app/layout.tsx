@@ -9,6 +9,7 @@ import CartDrawer from "@/components/CartDrawer";
 import { LangProvider } from "@/components/LangProvider";
 import ServiceWorker from "@/components/ServiceWorker";
 import ContentTranslator from "@/components/ContentTranslator";
+import AskVerza from "@/components/AskVerza";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
@@ -122,6 +123,7 @@ export default function RootLayout({
           </div>
 
           <CartDrawer />
+          <AskVerza />
         </LangProvider>
         </CartProvider>
         <Analytics />
