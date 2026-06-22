@@ -269,6 +269,36 @@ export default function MePage() {
         </svg>
       </Link>
 
+      {/* ---- Creator Program ---- */}
+      <SectionLabel>Creator</SectionLabel>
+      <Link
+        href="/studio"
+        className="flex items-center gap-4 rounded-xl p-4 mb-2 no-underline"
+        style={{
+          background: "linear-gradient(135deg, rgba(224,17,95,0.12), rgba(139,92,246,0.12))",
+          border: "1px solid rgba(224,17,95,0.25)",
+        }}
+      >
+        <div
+          className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0"
+          style={{ background: "linear-gradient(135deg, #E0115F, #8B5CF6)" }}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polygon points="23 7 16 12 23 17 23 7" />
+            <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+          </svg>
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-bold" style={{ color: T.text }}>Create Your Channel</p>
+          <p className="text-xs mt-0.5" style={{ color: T.textDim }}>
+            Upload content, set pricing, earn from subscribers
+          </p>
+        </div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T.accent} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M9 18l6-6-6-6" />
+        </svg>
+      </Link>
+
       {/* ---- VIP Subscription ---- */}
       <SectionLabel>Subscription</SectionLabel>
       <VipCard />

@@ -60,6 +60,50 @@ function ChannelsContent() {
 
   return (
     <div className="flex flex-col gap-5">
+      {/* Creator CTA */}
+      <div
+        className="rounded-xl overflow-hidden"
+        style={{
+          background: "linear-gradient(135deg, rgba(224,17,95,0.12), rgba(139,92,246,0.12))",
+          border: "1px solid rgba(224,17,95,0.25)",
+        }}
+      >
+        <div className="p-5">
+          <div className="flex items-center gap-3 mb-3">
+            <div
+              className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0"
+              style={{ background: "linear-gradient(135deg, #E0115F, #8B5CF6)" }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-base font-bold" style={{ color: "#fff" }}>Create Your Channel</h3>
+              <p className="text-[11px] font-medium" style={{ color: "rgba(224,17,95,0.9)" }}>Early creators get the biggest advantage</p>
+            </div>
+          </div>
+          <p className="text-[13px] leading-relaxed mb-4" style={{ color: "rgba(255,255,255,0.7)" }}>
+            Make your own channel, upload vertical or horizontal content, set your subscription pricing, and earn directly from subscribers. Most platforms pay creators pennies for views. Verza TV is different.
+          </p>
+          <Link
+            href="/studio"
+            className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-bold no-underline transition-transform active:scale-[0.97]"
+            style={{
+              background: "linear-gradient(135deg, #E0115F, #8B5CF6)",
+              color: "#fff",
+              boxShadow: "0 0 24px rgba(224,17,95,0.25)",
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="23 7 16 12 23 17 23 7" />
+              <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+            </svg>
+            Start Creating
+          </Link>
+        </div>
+      </div>
+
       {sortedChannels.map((channelName) => {
         const series = getSeriesByChannel(channelName);
         const meta = CHANNEL_META[channelName];
