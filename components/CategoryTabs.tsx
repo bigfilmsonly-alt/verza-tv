@@ -22,8 +22,8 @@ export default function CategoryTabs({ active, onSelect, tabs }: CategoryTabsPro
   const items = tabs || BROWSE_TABS;
   const { t } = useTranslation();
   return (
-    <div className="px-2 pt-2 pb-1">
-      <div className="flex items-center justify-between">
+    <div className="overflow-x-auto no-scrollbar" style={{ WebkitOverflowScrolling: "touch" }}>
+      <div className="flex items-center gap-5 px-4 py-2">
         {items.map((tab) => {
           const isActive = tab.key === active;
           const translationKey = TAB_KEYS[tab.key];
@@ -32,25 +32,14 @@ export default function CategoryTabs({ active, onSelect, tabs }: CategoryTabsPro
             <button
               key={tab.key}
               onClick={() => onSelect(tab.key)}
-              className="relative px-1 py-2 border-0 cursor-pointer bg-transparent transition-opacity"
-              style={{ opacity: isActive ? 1 : 0.45 }}
+              className="border-0 cursor-pointer bg-transparent whitespace-nowrap flex-shrink-0 p-0"
             >
               <span
-                className="text-[13px] font-extrabold tracking-wide whitespace-nowrap"
-                style={{ color: "#FFFFFF" }}
+                className="text-[17px] font-black uppercase tracking-wide"
+                style={{ color: isActive ? "#FFFFFF" : "rgba(255,255,255,0.35)" }}
               >
                 {label}
               </span>
-              {isActive && (
-                <div
-                  className="absolute bottom-0 left-1/2 -translate-x-1/2 rounded-full"
-                  style={{
-                    width: "60%",
-                    height: 2.5,
-                    background: "#E0115F",
-                  }}
-                />
-              )}
             </button>
           );
         })}

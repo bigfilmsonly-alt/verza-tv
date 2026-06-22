@@ -8,12 +8,11 @@ import SearchButton from "@/components/SearchButton";
 export default function Header() {
   return (
     <header
-      className="sticky top-0 z-40 flex items-center justify-between px-3 py-1.5"
+      className="sticky top-0 z-40 flex items-center justify-between px-3 py-1"
       style={{
-        background: "rgba(7, 7, 14, 0.92)",
+        background: "rgba(7, 7, 14, 0.95)",
         backdropFilter: "blur(16px)",
         WebkitBackdropFilter: "blur(16px)",
-        borderBottom: "1px solid rgba(224, 17, 95, 0.15)",
       }}
     >
       {/* Left — language dropdown */}
