@@ -289,9 +289,9 @@ export default function MePage() {
           </svg>
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold" style={{ color: T.text }}>Create Your Channel</p>
+          <p className="text-sm font-bold" style={{ color: T.text }}>Apply to Become a Creator</p>
           <p className="text-xs mt-0.5" style={{ color: T.textDim }}>
-            Upload content, set pricing, earn from subscribers
+            Exclusive VIP — earn directly from subscribers
           </p>
         </div>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T.accent} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">

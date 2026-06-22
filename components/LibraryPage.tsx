@@ -79,8 +79,8 @@ function ChannelsContent() {
               </svg>
             </div>
             <div>
-              <h3 className="text-base font-bold" style={{ color: "#fff" }}>Create Your Channel</h3>
-              <p className="text-[11px] font-medium" style={{ color: "rgba(224,17,95,0.9)" }}>Early creators get the biggest advantage</p>
+              <h3 className="text-base font-bold" style={{ color: "#fff" }}>Apply to Become a Creator</h3>
+              <p className="text-[11px] font-bold uppercase tracking-wider" style={{ color: "rgba(224,17,95,0.9)" }}>Exclusive VIP</p>
             </div>
           </div>
           <p className="text-[13px] leading-relaxed mb-4" style={{ color: "rgba(255,255,255,0.7)" }}>
@@ -99,7 +99,7 @@ function ChannelsContent() {
               <polygon points="23 7 16 12 23 17 23 7" />
               <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
             </svg>
-            Start Creating
+            Apply Now
           </Link>
         </div>
       </div>
