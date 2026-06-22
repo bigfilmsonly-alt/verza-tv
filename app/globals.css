@@ -574,6 +574,25 @@ img {
   scroll-behavior: smooth;
 }
 
+/* ---- Immersive episode player: hide all chrome ---- */
+
+.episode-immersive {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: #000;
+  overflow: hidden;
+}
+
+/* When immersive player is present, hide header, footer, bottom nav */
+.episode-immersive ~ *,
+:has(.episode-immersive) header,
+:has(.episode-immersive) footer,
+:has(.episode-immersive) .bottom-nav,
+:has(.episode-immersive) .iphone-nav-dock {
+  display: none !important;
+}
+
 /* ---- Admin layout: bypass consumer chrome ---- */
 .admin-layout {
   position: fixed;

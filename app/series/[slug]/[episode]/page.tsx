@@ -130,7 +130,7 @@ export default async function EpisodePage({ params, searchParams }: Props) {
 
   return (
     <>
-      {/* ---- JSON-LD ---- */}
+      {/* ---- JSON-LD (hidden, SEO only) ---- */}
       <JsonLd
         data={[
           episodeSchema(
@@ -171,47 +171,42 @@ export default async function EpisodePage({ params, searchParams }: Props) {
         ]}
       />
 
-      {/* ---- Episode Header ---- */}
-      <div className="px-4 pt-4 pb-2">
-        {/* Back link */}
+      {/* ---- Immersive full-screen player (ReelShort-style) ---- */}
+      <div className="episode-immersive">
+        {isFree ? (
+          <Player
+            posterUrl={series.posterUrl}
+            title={ep.title}
+            episodeNumber={ep.number}
+            durationS={ep.durationS}
+            seriesSlug={series.slug}
+            playbackId={mux?.playbackId}
+            totalEpisodes={series.episodeCount}
+            freeEpisodes={series.freeEpisodes}
+          />
+        ) : (
+          <CoinPaywall
+            posterUrl={series.posterUrl}
+            unlockCoins={ep.unlockCoins}
+            seasonPassCoins={series.seasonPassCoins}
+            seriesSlug={series.slug}
+            episodeNumber={ep.number}
+          />
+        )}
+
+        {/* Overlay: back button (top-left) */}
         <Link
           href={`/series/${series.slug}`}
-          className="inline-flex items-center gap-1 text-xs font-medium no-underline mb-3"
-          style={{ color: T.textDim }}
+          className="absolute top-3 left-3 z-30 w-9 h-9 rounded-full flex items-center justify-center no-underline"
+          style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(8px)" }}
         >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="15 18 9 12 15 6" />
           </svg>
-          {series.title}
         </Link>
 
-        {/* Episode title */}
-        <h1
-          className="text-xl font-bold leading-tight mb-1"
-          style={{ color: T.text }}
-        >
-          {ep.title}
-        </h1>
-
-        {/* Meta line + info button */}
-        <div className="flex items-center gap-3 mb-4">
-          <p
-            className="text-sm flex-1"
-            style={{ color: T.textDim }}
-          >
-            Episode {ep.number} of {series.episodeCount}
-            <span style={{ color: T.textMute }}> &middot; </span>
-            {formatDuration(ep.durationS)}
-          </p>
+        {/* Overlay: info button (top-right) */}
+        <div className="absolute top-3 right-3 z-30">
           <SeriesInfoButton
             series={series}
             seriesDetail={SERIES_DETAIL[series.slug]}
@@ -219,41 +214,26 @@ export default async function EpisodePage({ params, searchParams }: Props) {
             totalEpisodes={series.episodeCount}
           />
         </div>
+
+        {/* Overlay: episode info + navigator (bottom) */}
+        <div className="absolute bottom-0 left-0 right-0 z-30">
+          <div className="px-4 pb-3 pt-10" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.8), transparent)" }}>
+            <p className="text-xs font-semibold mb-0.5" style={{ color: "rgba(255,255,255,0.6)" }}>{series.title}</p>
+            <p className="text-sm font-bold mb-2" style={{ color: "#fff" }}>
+              Episode {ep.number} of {series.episodeCount}
+              <span style={{ color: "rgba(255,255,255,0.4)" }}> &middot; </span>
+              {formatDuration(ep.durationS)}
+            </p>
+            <EpisodeDropdown
+              seriesSlug={series.slug}
+              episodes={episodes.map((e) => ({ number: e.number, title: e.title }))}
+              currentEpisode={ep.number}
+              freeEpisodes={series.freeEpisodes}
+              totalEpisodes={series.episodeCount}
+            />
+          </div>
+        </div>
       </div>
-
-      {/* ---- Player / Paywall ---- */}
-      {isFree ? (
-        <Player
-          posterUrl={series.posterUrl}
-          title={ep.title}
-          episodeNumber={ep.number}
-          durationS={ep.durationS}
-          seriesSlug={series.slug}
-          playbackId={mux?.playbackId}
-          totalEpisodes={series.episodeCount}
-          freeEpisodes={series.freeEpisodes}
-        />
-      ) : (
-        <CoinPaywall
-          posterUrl={series.posterUrl}
-          unlockCoins={ep.unlockCoins}
-          seasonPassCoins={series.seasonPassCoins}
-          seriesSlug={series.slug}
-          episodeNumber={ep.number}
-        />
-      )}
-
-      {/* ---- Episode Dropdown (prev / selector / next) ---- */}
-      <EpisodeDropdown
-        seriesSlug={series.slug}
-        episodes={episodes.map((e) => ({ number: e.number, title: e.title }))}
-        currentEpisode={ep.number}
-        freeEpisodes={series.freeEpisodes}
-        totalEpisodes={series.episodeCount}
-      />
-
-      {/* Bottom spacer for BottomNav */}
-      <div className="h-8" />
     </>
   );
 }

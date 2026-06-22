@@ -385,11 +385,11 @@ export default function Player({
   /* ---- Render: real video player --------------------------------- */
 
   return (
-    <div className="mx-4">
-      {/* Player container -- 9:16 vertical */}
+    <div>
+      {/* Player container -- full-screen vertical */}
       <div
-        className="relative rounded-2xl overflow-hidden select-none"
-        style={{ aspectRatio: "9 / 16", background: "#07070E" }}
+        className="relative overflow-hidden select-none"
+        style={{ width: "100%", height: "100dvh", background: "#07070E" }}
         onClick={handleTap}
       >
         {/* Video element -- ALWAYS rendered, hidden behind poster until started */}
@@ -649,29 +649,6 @@ export default function Player({
             )}
           </button>
         )}
-      </div>
-
-      {/* Episode info bar */}
-      <div
-        className="flex items-center justify-between rounded-b-xl px-4 py-3 -mt-1"
-        style={{
-          background: T.surface,
-          borderLeft: `1px solid ${T.line}`,
-          borderRight: `1px solid ${T.line}`,
-          borderBottom: `1px solid ${T.line}`,
-        }}
-      >
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold truncate" style={{ color: T.text }}>
-            {title}
-          </p>
-          <p className="text-xs" style={{ color: T.textMute }}>
-            Episode {episodeNumber}
-          </p>
-        </div>
-        <span className="text-xs font-medium flex-shrink-0 ml-3" style={{ color: T.textDim }}>
-          {formatDuration(durationS)}
-        </span>
       </div>
 
       {/* ---- Unlock Popup (shows after last free episode ends) ---- */}
