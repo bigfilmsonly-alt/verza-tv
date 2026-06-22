@@ -7,7 +7,8 @@ import { sendWelcomeEmail } from "@/lib/email";
 export async function signInAction(formData: FormData) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
-  const next = (formData.get("next") as string) || "/";
+  const rawNext = (formData.get("next") as string) || "/";
+  const next = rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/";
 
   if (!email || !password) {
     return redirect("/sign-in?error=missing_fields");
@@ -55,7 +56,8 @@ export async function signUpAction(formData: FormData) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
   const displayName = formData.get("displayName") as string;
-  const next = (formData.get("next") as string) || "/";
+  const rawNext = (formData.get("next") as string) || "/";
+  const next = rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/";
 
   if (!email || !password) {
     return redirect("/sign-up?error=missing_fields");

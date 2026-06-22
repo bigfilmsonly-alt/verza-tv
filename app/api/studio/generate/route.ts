@@ -1,6 +1,6 @@
 export async function POST() {
   return Response.json(
-    { error: "Studio coming in Phase 5" },
+    { error: "Not available" },
     { status: 501 }
   );
 }

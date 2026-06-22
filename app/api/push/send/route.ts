@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
   // Gate: require internal API key
   const authHeader = req.headers.get("x-push-api-key");
   const apiKey = process.env.PUSH_API_KEY;
-  if (apiKey && authHeader !== apiKey) {
+  if (!apiKey || authHeader !== apiKey) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 

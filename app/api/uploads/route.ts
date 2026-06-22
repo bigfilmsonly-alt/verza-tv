@@ -1,6 +1,6 @@
 export async function POST() {
   return Response.json(
-    { error: "Upload pipeline coming in Phase 6" },
+    { error: "Not available" },
     { status: 501 }
   );
 }

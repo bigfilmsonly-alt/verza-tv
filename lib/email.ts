@@ -4,6 +4,16 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 const FROM = "Verza TV <noreply@verzatv.com>";
 
+/** Escape HTML special characters to prevent XSS in email templates */
+function esc(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 /* Team members — notified on signups, purchases, and form submissions */
 const TEAM_EMAILS = [
   "alan@storageblue.com",
@@ -24,7 +34,7 @@ async function notifyTeam(subject: string, body: string) {
     html: `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 560px; margin: 0 auto; background: #07070E; color: #F5F4F8; padding: 32px 24px; border-radius: 16px;">
         <img src="https://www.verzatv.com/logo.png" alt="Verza TV" width="120" style="display: block; margin: 0 auto 20px;" />
-        <h2 style="font-size: 18px; text-align: center; margin: 0 0 16px; color: #E0115F;">${subject}</h2>
+        <h2 style="font-size: 18px; text-align: center; margin: 0 0 16px; color: #E0115F;">${esc(subject)}</h2>
         ${body}
         <p style="font-size: 11px; color: #6B6B7B; text-align: center; margin-top: 24px;">
           Verza TV Internal Notification
@@ -44,7 +54,7 @@ export async function sendWelcomeEmail(email: string, name: string) {
     html: `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 500px; margin: 0 auto; background: #07070E; color: #F5F4F8; padding: 40px 24px; border-radius: 16px;">
         <img src="https://www.verzatv.com/logo.png" alt="Verza TV" width="140" style="display: block; margin: 0 auto 24px;" />
-        <h1 style="font-size: 22px; text-align: center; margin: 0 0 16px;">Welcome, ${name}!</h1>
+        <h1 style="font-size: 22px; text-align: center; margin: 0 0 16px;">Welcome, ${esc(name)}!</h1>
         <p style="font-size: 14px; color: #A0A0B0; text-align: center; line-height: 1.6; margin: 0 0 24px;">
           You're in. Start streaming 76+ original micro-dramas, reality shows, and more — the first 5 episodes of every series are free.
         </p>
@@ -63,8 +73,8 @@ export async function sendWelcomeEmail(email: string, name: string) {
   // Notify the team
   const teamNotify = notifyTeam("New User Signup", `
     <table style="width: 100%; font-size: 14px; color: #A0A0B0;">
-      <tr><td style="padding: 6px 0; color: #6B6B7B;">Name</td><td style="padding: 6px 0; font-weight: 600; color: #F5F4F8;">${name}</td></tr>
-      <tr><td style="padding: 6px 0; color: #6B6B7B;">Email</td><td style="padding: 6px 0; font-weight: 600; color: #F5F4F8;">${email}</td></tr>
+      <tr><td style="padding: 6px 0; color: #6B6B7B;">Name</td><td style="padding: 6px 0; font-weight: 600; color: #F5F4F8;">${esc(name)}</td></tr>
+      <tr><td style="padding: 6px 0; color: #6B6B7B;">Email</td><td style="padding: 6px 0; font-weight: 600; color: #F5F4F8;">${esc(email)}</td></tr>
       <tr><td style="padding: 6px 0; color: #6B6B7B;">Time</td><td style="padding: 6px 0;">${new Date().toLocaleString("en-US", { timeZone: "America/New_York" })} ET</td></tr>
     </table>
   `);
@@ -99,7 +109,7 @@ export async function sendPurchaseConfirmation(
     : `
         <h1 style="font-size: 22px; text-align: center; margin: 0 0 16px;">Order Confirmed!</h1>
         <p style="font-size: 14px; color: #A0A0B0; text-align: center; line-height: 1.6; margin: 0 0 8px;">
-          Thanks for your purchase, ${name}. Total: ${details.amount}.
+          Thanks for your purchase, ${esc(name)}. Total: ${details.amount}.
         </p>
         ${details.items ? `<ul style="color: #A0A0B0; font-size: 13px; padding-left: 20px;">${details.items.map((i) => `<li>${i}</li>`).join("")}</ul>` : ""}
         <p style="font-size: 12px; color: #6B6B7B; text-align: center; margin-top: 16px;">
@@ -130,8 +140,8 @@ export async function sendPurchaseConfirmation(
 
   const teamNotify = notifyTeam(teamSubject, `
     <table style="width: 100%; font-size: 14px; color: #A0A0B0;">
-      <tr><td style="padding: 6px 0; color: #6B6B7B;">Customer</td><td style="padding: 6px 0; font-weight: 600; color: #F5F4F8;">${name}</td></tr>
-      <tr><td style="padding: 6px 0; color: #6B6B7B;">Email</td><td style="padding: 6px 0; font-weight: 600; color: #F5F4F8;">${email}</td></tr>
+      <tr><td style="padding: 6px 0; color: #6B6B7B;">Customer</td><td style="padding: 6px 0; font-weight: 600; color: #F5F4F8;">${esc(name)}</td></tr>
+      <tr><td style="padding: 6px 0; color: #6B6B7B;">Email</td><td style="padding: 6px 0; font-weight: 600; color: #F5F4F8;">${esc(email)}</td></tr>
       <tr><td style="padding: 6px 0; color: #6B6B7B;">Type</td><td style="padding: 6px 0; font-weight: 600; color: #E0115F;">${type === "series_unlock" ? "Series Unlock" : "Merch Purchase"}</td></tr>
       ${details.seriesTitle ? `<tr><td style="padding: 6px 0; color: #6B6B7B;">Series</td><td style="padding: 6px 0;">${details.seriesTitle}</td></tr>` : ""}
       <tr><td style="padding: 6px 0; color: #6B6B7B;">Amount</td><td style="padding: 6px 0; font-weight: 700; color: #22c55e;">${details.amount}</td></tr>
