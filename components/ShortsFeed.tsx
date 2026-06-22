@@ -86,28 +86,21 @@ function ShortVideo({ playbackId, isActive, muted }: {
     if (!vid) return;
 
     let cancelled = false;
-    let unmuteTimer: ReturnType<typeof setTimeout> | null = null;
     const hlsUrl = `https://stream.mux.com/${playbackId}.m3u8`;
 
     function tryPlay() {
       if (cancelled || !vid) return;
-      vid.muted = mutedRef.current;
+      // Always start muted for autoplay compliance, then unmute if preference allows
+      vid.muted = true;
       vid.play()
-        .then(() => { if (!cancelled) setAutoplayFailed(false); })
-        .catch(() => {
+        .then(() => {
           if (cancelled) return;
-          vid.muted = true;
-          vid.play()
-            .then(() => {
-              if (cancelled) return;
-              setAutoplayFailed(false);
-              unmuteTimer = setTimeout(() => {
-                if (!cancelled && vid && !mutedRef.current) vid.muted = false;
-              }, 100);
-            })
-            .catch(() => {
-              if (!cancelled) setAutoplayFailed(true);
-            });
+          setAutoplayFailed(false);
+          // Restore user's mute preference after successful autoplay
+          if (!mutedRef.current) vid.muted = false;
+        })
+        .catch(() => {
+          if (!cancelled) setAutoplayFailed(true);
         });
     }
 
@@ -119,7 +112,7 @@ function ShortVideo({ playbackId, isActive, muted }: {
 
       if (vid.canPlayType("application/vnd.apple.mpegurl")) {
         vid.src = hlsUrl;
-        tryPlay();
+        vid.addEventListener("loadeddata", () => { if (!cancelled) tryPlay(); }, { once: true });
         return;
       }
 
@@ -147,7 +140,6 @@ function ShortVideo({ playbackId, isActive, muted }: {
 
     return () => {
       cancelled = true;
-      if (unmuteTimer) clearTimeout(unmuteTimer);
       vid.removeEventListener("playing", onPlaying);
       if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
       vid.muted = true; // Silence immediately before pause
