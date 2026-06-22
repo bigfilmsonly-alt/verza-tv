@@ -576,6 +576,7 @@ img {
 
 /* ---- Immersive episode player: hide all chrome ---- */
 
+/* Mobile: fill the viewport */
 .episode-immersive {
   position: fixed;
   inset: 0;
@@ -588,9 +589,24 @@ img {
 .episode-immersive ~ *,
 :has(.episode-immersive) header,
 :has(.episode-immersive) footer,
-:has(.episode-immersive) .bottom-nav,
-:has(.episode-immersive) .iphone-nav-dock {
+:has(.episode-immersive) .bottom-nav {
   display: none !important;
+}
+
+/* Desktop: constrain inside the iPhone frame */
+@media (min-width: 520px) and (orientation: portrait),
+       (min-width: 520px) and (min-height: 600px) {
+  .episode-immersive {
+    position: absolute;
+    inset: 0;
+    border-radius: 0;
+    --feed-h: 100%;
+  }
+
+  /* Keep the iPhone frame visible, hide its nav dock */
+  :has(.episode-immersive) .iphone-nav-dock {
+    display: none !important;
+  }
 }
 
 /* ---- Admin layout: bypass consumer chrome ---- */

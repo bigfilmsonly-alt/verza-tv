@@ -150,7 +150,7 @@ function EpisodeSlide({
   return (
     <div
       className="relative w-full select-none"
-      style={{ height: "100dvh", background: "#000" }}
+      style={{ height: "var(--feed-h, 100dvh)", background: "#000" }}
       onClick={handleTap}
     >
       {/* Mux thumbnail (shows until video plays) */}
@@ -312,7 +312,7 @@ export default function EpisodeFeed({
         className="no-scrollbar"
         style={{
           width: "100%",
-          height: "100dvh",
+          height: "var(--feed-h, 100dvh)",
           overflowY: "auto",
           overflowX: "hidden",
           scrollSnapType: "y mandatory",
@@ -325,7 +325,7 @@ export default function EpisodeFeed({
             data-index={i}
             style={{
               width: "100%",
-              height: "100dvh",
+              height: "var(--feed-h, 100dvh)",
               scrollSnapAlign: "start",
               scrollSnapStop: "always",
             }}
