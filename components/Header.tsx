@@ -8,7 +8,7 @@ import SearchButton from "@/components/SearchButton";
 export default function Header() {
   return (
     <header
-      className="sticky top-0 z-40 flex items-center justify-between px-3 py-2"
+      className="sticky top-0 z-40 flex items-center justify-between px-3 py-1.5"
       style={{
         background: "rgba(7, 7, 14, 0.92)",
         backdropFilter: "blur(16px)",

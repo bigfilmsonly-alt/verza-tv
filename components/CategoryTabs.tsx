@@ -22,8 +22,8 @@ export default function CategoryTabs({ active, onSelect, tabs }: CategoryTabsPro
   const items = tabs || BROWSE_TABS;
   const { t } = useTranslation();
   return (
-    <div className="px-3 pt-1 pb-1">
-      <div className="flex items-center text-center">
+    <div className="px-2 pt-2 pb-1">
+      <div className="flex items-center justify-between">
         {items.map((tab) => {
           const isActive = tab.key === active;
           const translationKey = TAB_KEYS[tab.key];
@@ -32,10 +32,11 @@ export default function CategoryTabs({ active, onSelect, tabs }: CategoryTabsPro
             <button
               key={tab.key}
               onClick={() => onSelect(tab.key)}
-              className="relative flex-1 py-1.5 border-0 cursor-pointer bg-transparent"
+              className="relative px-1 py-2 border-0 cursor-pointer bg-transparent transition-opacity"
+              style={{ opacity: isActive ? 1 : 0.45 }}
             >
               <span
-                className="text-[10px] font-bold tracking-wider uppercase whitespace-nowrap"
+                className="text-[13px] font-extrabold tracking-wide whitespace-nowrap"
                 style={{ color: "#FFFFFF" }}
               >
                 {label}
@@ -44,9 +45,9 @@ export default function CategoryTabs({ active, onSelect, tabs }: CategoryTabsPro
                 <div
                   className="absolute bottom-0 left-1/2 -translate-x-1/2 rounded-full"
                   style={{
-                    width: "50%",
-                    height: 3,
-                    background: "linear-gradient(90deg, #E0115F, #8B5CF6)",
+                    width: "60%",
+                    height: 2.5,
+                    background: "#E0115F",
                   }}
                 />
               )}

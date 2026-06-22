@@ -7,7 +7,7 @@ export type BrowseCategory = "drama" | "new" | "popular" | "music" | "reality" |
 export const BROWSE_TABS: { key: BrowseCategory; label: string }[] = [
   { key: "drama", label: "Drama" },
   { key: "new", label: "New" },
-  { key: "popular", label: "Popular" },
+  { key: "popular", label: "Hot" },
   { key: "music", label: "Music" },
   { key: "reality", label: "Reality" },
   { key: "red-carpet", label: "Red Carpet" },
