@@ -90,18 +90,21 @@ function ShortVideo({ playbackId, isActive, muted }: {
 
     function tryPlay() {
       if (cancelled || !vid) return;
-      // Always start muted for autoplay compliance, then unmute if preference allows
+      // Must start muted for autoplay to work on mobile browsers
       vid.muted = true;
-      vid.play()
-        .then(() => {
-          if (cancelled) return;
-          setAutoplayFailed(false);
-          // Restore user's mute preference after successful autoplay
-          if (!mutedRef.current) vid.muted = false;
-        })
-        .catch(() => {
-          if (!cancelled) setAutoplayFailed(true);
-        });
+      const playPromise = vid.play();
+      if (playPromise) {
+        playPromise
+          .then(() => {
+            if (cancelled) return;
+            setAutoplayFailed(false);
+            // Unmute after autoplay succeeds if user wants sound
+            if (!mutedRef.current) vid.muted = false;
+          })
+          .catch(() => {
+            if (!cancelled) setAutoplayFailed(true);
+          });
+      }
     }
 
     function onPlaying() { if (!cancelled) { setStarted(true); setAutoplayFailed(false); } }
@@ -110,12 +113,21 @@ function ShortVideo({ playbackId, isActive, muted }: {
     async function attach() {
       if (cancelled || !vid) return;
 
+      // Safari / iOS — native HLS
       if (vid.canPlayType("application/vnd.apple.mpegurl")) {
         vid.src = hlsUrl;
-        vid.addEventListener("loadeddata", () => { if (!cancelled) tryPlay(); }, { once: true });
+        // Try multiple events — iOS can be picky about which fires
+        function onReady() {
+          if (!cancelled) tryPlay();
+        }
+        vid.addEventListener("canplay", onReady, { once: true });
+        vid.addEventListener("loadedmetadata", onReady, { once: true });
+        // Force load to kick off buffering on iOS
+        vid.load();
         return;
       }
 
+      // Chrome / Firefox — hls.js
       const Hls = await getHls();
       if (cancelled || !Hls || !Hls.isSupported() || !vid) return;
 
@@ -161,8 +173,15 @@ function ShortVideo({ playbackId, isActive, muted }: {
   function handleTap() {
     const vid = videoRef.current;
     if (!vid) return;
-    vid.muted = mutedRef.current;
-    vid.play().catch(() => {});
+    // User gesture — can play with sound
+    vid.muted = false;
+    vid.play()
+      .then(() => { setAutoplayFailed(false); })
+      .catch(() => {
+        // Last resort: play muted
+        vid.muted = true;
+        vid.play().catch(() => {});
+      });
   }
 
   return (
@@ -381,10 +400,7 @@ function ShortCard({ series, isActive, isNearActive, muted, setMuted, saved, onT
 export default function ShortsFeed({ series }: { series: Series[] }) {
   const [shuffled, setShuffled] = useState<Series[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [muted, setMuted] = useState(() => {
-    if (typeof window !== "undefined") return localStorage.getItem("verza-muted") !== "false";
-    return true;
-  });
+  const [muted, setMuted] = useState(false);
   const [savedSlugs, setSavedSlugs] = useState<Set<string>>(new Set());
   const containerRef = useRef<HTMLDivElement>(null);
 
