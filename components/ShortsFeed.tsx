@@ -292,7 +292,7 @@ function ShortCard({ series, isActive, isNearActive, muted, setMuted, saved, onT
       />
 
       {/* Top-left: title + episode chip */}
-      <div className="absolute top-14 left-4 z-10" style={{ maxWidth: "65%" }}>
+      <div className="absolute top-4 left-4 z-10" style={{ maxWidth: "65%" }}>
         <h2
           className="text-base font-bold leading-tight mb-1.5"
           style={{ color: "#fff", textShadow: "0 1px 6px rgba(0,0,0,0.8)" }}
@@ -315,7 +315,7 @@ function ShortCard({ series, isActive, isNearActive, muted, setMuted, saved, onT
       {/* Top-right: close */}
       <Link
         href="/"
-        className="absolute top-14 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center no-underline"
+        className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center no-underline"
         style={{ background: "rgba(50,50,50,0.7)", backdropFilter: "blur(4px)" }}
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -461,15 +461,10 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
 
   if (shuffled.length === 0) return null;
 
-  const feedHeight = "calc(100dvh - 72px)";
-
   return (
     <div
+      className="episode-immersive"
       style={{
-        position: "relative",
-        height: feedHeight,
-        marginTop: "-57px",
-        zIndex: 30,
         background: "#000",
       }}
     >
@@ -484,7 +479,7 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
           scrollSnapType: "x mandatory",
           WebkitOverflowScrolling: "touch",
           width: "100%",
-          height: "100%",
+          height: "var(--feed-h, 100dvh)",
         }}
       >
         {shuffled.map((s, i) => (
