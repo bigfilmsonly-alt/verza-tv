@@ -139,41 +139,49 @@ function EpisodeSlide({
     setLoading(false);
   }, [isActive, isNear]);
 
-  /* Step 2: Play/pause based on isActive */
+  /* Step 2: Play/pause based on isActive — with full cleanup */
   useEffect(() => {
     const vid = videoRef.current;
     if (!vid) return;
 
+    let cancelled = false;
+    let unmuteTimer: ReturnType<typeof setTimeout> | null = null;
+
     if (isActive) {
       setLoading(true);
-      // Read current muted from ref (never stale)
       vid.muted = mutedRef.current;
       vid.play()
         .then(() => {
+          if (cancelled) return;
           setPlaying(true);
           setLoading(false);
           trackEpisodeStart(seriesSlug, episode.number);
         })
         .catch(() => {
-          // Autoplay blocked — try muted, then restore preference once playing
+          if (cancelled) return;
           vid.muted = true;
           vid.play()
             .then(() => {
+              if (cancelled) return;
               setPlaying(true);
               setLoading(false);
-              // Restore user preference after autoplay succeeds
-              setTimeout(() => {
-                if (vid && !mutedRef.current) {
-                  vid.muted = false;
-                }
+              unmuteTimer = setTimeout(() => {
+                if (!cancelled && vid && !mutedRef.current) vid.muted = false;
               }, 100);
             })
-            .catch(() => { setLoading(false); });
+            .catch(() => { if (!cancelled) setLoading(false); });
         });
     } else {
+      // Silence immediately, then pause
+      vid.muted = true;
       vid.pause();
       setPlaying(false);
     }
+
+    return () => {
+      cancelled = true;
+      if (unmuteTimer) clearTimeout(unmuteTimer);
+    };
   }, [isActive]);
 
   /* Step 3: Sync muted prop instantly to video element */
@@ -404,6 +412,8 @@ export default function EpisodeFeed({
   const [showHeart, setShowHeart] = useState(false);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const heartTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const activeIndexRef = useRef(activeIndex);
+  activeIndexRef.current = activeIndex;
 
   const activeEp = episodes[activeIndex];
 
@@ -418,16 +428,20 @@ export default function EpisodeFeed({
     }
   }, []);
 
-  /* Auto-advance: scroll to next episode when current ends */
+  /* Auto-advance: pause current, then scroll to next */
   const handleEpisodeEnded = useCallback(() => {
     const container = containerRef.current;
     if (!container) return;
-    const nextIdx = activeIndex + 1;
+    // Pause the current video immediately to prevent audio overlap
+    const currentSlide = container.children[activeIndexRef.current];
+    const currentVid = currentSlide?.querySelector("video");
+    if (currentVid) { currentVid.muted = true; currentVid.pause(); }
+    const nextIdx = activeIndexRef.current + 1;
     if (nextIdx < episodes.length) {
       const target = container.children[nextIdx] as HTMLElement;
       if (target) target.scrollIntoView({ behavior: "smooth" });
     }
-  }, [activeIndex, episodes.length]);
+  }, [episodes.length]);
 
   /* IntersectionObserver for snap detection */
   const observerCallback = useCallback(

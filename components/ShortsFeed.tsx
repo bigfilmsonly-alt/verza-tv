@@ -86,6 +86,7 @@ function ShortVideo({ playbackId, isActive, muted }: {
     if (!vid) return;
 
     let cancelled = false;
+    let unmuteTimer: ReturnType<typeof setTimeout> | null = null;
     const hlsUrl = `https://stream.mux.com/${playbackId}.m3u8`;
 
     function tryPlay() {
@@ -94,20 +95,19 @@ function ShortVideo({ playbackId, isActive, muted }: {
       vid.play()
         .then(() => { if (!cancelled) setAutoplayFailed(false); })
         .catch(() => {
-          if (!cancelled) {
-            vid.muted = true;
-            vid.play()
-              .then(() => {
-                if (!cancelled) setAutoplayFailed(false);
-                // Restore user preference after autoplay succeeds
-                setTimeout(() => {
-                  if (vid && !mutedRef.current) vid.muted = false;
-                }, 100);
-              })
-              .catch(() => {
-                if (!cancelled) setAutoplayFailed(true);
-              });
-          }
+          if (cancelled) return;
+          vid.muted = true;
+          vid.play()
+            .then(() => {
+              if (cancelled) return;
+              setAutoplayFailed(false);
+              unmuteTimer = setTimeout(() => {
+                if (!cancelled && vid && !mutedRef.current) vid.muted = false;
+              }, 100);
+            })
+            .catch(() => {
+              if (!cancelled) setAutoplayFailed(true);
+            });
         });
     }
 
@@ -147,8 +147,10 @@ function ShortVideo({ playbackId, isActive, muted }: {
 
     return () => {
       cancelled = true;
+      if (unmuteTimer) clearTimeout(unmuteTimer);
       vid.removeEventListener("playing", onPlaying);
       if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
+      vid.muted = true; // Silence immediately before pause
       vid.pause();
       vid.removeAttribute("src");
       vid.load();
@@ -176,6 +178,7 @@ function ShortVideo({ playbackId, isActive, muted }: {
       <video
         ref={videoRef}
         playsInline
+        muted
         loop
         preload={isActive ? "auto" : "none"}
         className="absolute inset-0 w-full h-full object-cover"
