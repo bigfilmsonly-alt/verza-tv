@@ -14,6 +14,11 @@ function getHls(): Promise<typeof HlsType | null> {
   return hlsPromise || Promise.resolve(null);
 }
 
+/* ---- Haptic feedback ---- */
+function haptic() {
+  try { navigator.vibrate?.(10); } catch {}
+}
+
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
 /* ------------------------------------------------------------------ */
@@ -45,18 +50,29 @@ function EpisodeSlide({
   seriesSlug,
   posterUrl,
   isActive,
+  isNear,
   muted,
+  onEnded,
+  onProgress,
+  onDoubleTap,
 }: {
   episode: FeedEpisode;
   seriesSlug: string;
   posterUrl: string;
   isActive: boolean;
+  isNear: boolean;
   muted: boolean;
+  onEnded: () => void;
+  onProgress: (pct: number) => void;
+  onDoubleTap: () => void;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<HlsType | null>(null);
   const [playing, setPlaying] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showPause, setShowPause] = useState(false);
+  const pauseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastTap = useRef(0);
 
   const hlsUrl = episode.playbackId
     ? `https://stream.mux.com/${episode.playbackId}.m3u8`
@@ -65,18 +81,19 @@ function EpisodeSlide({
     ? `https://image.mux.com/${episode.playbackId}/thumbnail.jpg?time=2&width=720&height=1280`
     : "";
 
-  /* Attach HLS + autoplay when active */
+  /* Preload + autoplay logic */
   useEffect(() => {
-    if (!isActive || !hlsUrl) return;
+    if (!hlsUrl) return;
+    // Only attach HLS for active or adjacent slides (preload)
+    if (!isActive && !isNear) return;
 
     const vid = videoRef.current;
     if (!vid) return;
 
     let cancelled = false;
-    setLoading(true);
 
     function tryPlay() {
-      if (cancelled || !vid) return;
+      if (cancelled || !vid || !isActive) return;
       const wasMuted = localStorage.getItem("verza-muted") !== "false";
       vid.muted = wasMuted;
       vid.play()
@@ -95,10 +112,15 @@ function EpisodeSlide({
 
     async function attach() {
       if (cancelled || !vid || !hlsUrl) return;
+      if (isActive) setLoading(true);
 
       if (vid.canPlayType("application/vnd.apple.mpegurl")) {
         vid.src = hlsUrl;
-        vid.addEventListener("loadedmetadata", () => tryPlay(), { once: true });
+        if (isActive) {
+          vid.addEventListener("loadedmetadata", () => tryPlay(), { once: true });
+        } else {
+          vid.preload = "auto";
+        }
         return;
       }
 
@@ -109,7 +131,9 @@ function EpisodeSlide({
       hlsRef.current = hls;
       hls.loadSource(hlsUrl);
       hls.attachMedia(vid);
-      hls.on(Hls.Events.MANIFEST_PARSED, () => { if (!cancelled) tryPlay(); });
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        if (!cancelled && isActive) tryPlay();
+      });
       hls.on(Hls.Events.ERROR, (_e: string, data: { type: string; fatal: boolean }) => {
         if (data.fatal && Hls) {
           if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hls.startLoad();
@@ -127,7 +151,7 @@ function EpisodeSlide({
       setPlaying(false);
       setLoading(false);
     };
-  }, [isActive, hlsUrl, episode.number, seriesSlug]);
+  }, [isActive, isNear, hlsUrl, episode.number, seriesSlug]);
 
   /* Sync muted state */
   useEffect(() => {
@@ -135,16 +159,61 @@ function EpisodeSlide({
     if (vid) vid.muted = muted;
   }, [muted]);
 
-  /* Tap to pause/resume */
-  function handleTap() {
+  /* Time update → progress bar + auto-advance on ended */
+  useEffect(() => {
+    if (!isActive) return;
     const vid = videoRef.current;
-    if (!vid || !isActive) return;
-    if (vid.paused) {
-      vid.play().catch(() => {});
-    } else {
-      vid.pause();
+    if (!vid) return;
+
+    function onTime() {
+      if (vid && vid.duration && isFinite(vid.duration)) {
+        onProgress(vid.currentTime / vid.duration);
+      }
     }
-    setPlaying(!vid.paused);
+    function onEnd() {
+      trackEpisodeComplete(seriesSlug, episode.number);
+      onProgress(1);
+      onEnded();
+    }
+
+    vid.addEventListener("timeupdate", onTime);
+    vid.addEventListener("ended", onEnd);
+    return () => {
+      vid.removeEventListener("timeupdate", onTime);
+      vid.removeEventListener("ended", onEnd);
+    };
+  }, [isActive, seriesSlug, episode.number, onEnded, onProgress]);
+
+  /* Tap handler: single tap = pause, double tap = like */
+  function handleTap(e: React.MouseEvent) {
+    e.stopPropagation();
+    const now = Date.now();
+    if (now - lastTap.current < 300) {
+      // Double tap
+      onDoubleTap();
+      lastTap.current = 0;
+      return;
+    }
+    lastTap.current = now;
+
+    setTimeout(() => {
+      if (lastTap.current === 0) return; // was double tap
+      const vid = videoRef.current;
+      if (!vid || !isActive) return;
+
+      if (vid.paused) {
+        vid.play().catch(() => {});
+        setPlaying(true);
+      } else {
+        vid.pause();
+        setPlaying(false);
+      }
+
+      // Show pause/play indicator briefly
+      setShowPause(true);
+      if (pauseTimer.current) clearTimeout(pauseTimer.current);
+      pauseTimer.current = setTimeout(() => setShowPause(false), 800);
+    }, 300);
   }
 
   return (
@@ -153,7 +222,7 @@ function EpisodeSlide({
       style={{ height: "var(--feed-h, 100dvh)", background: "#000" }}
       onClick={handleTap}
     >
-      {/* Mux thumbnail (shows until video plays) */}
+      {/* Mux thumbnail */}
       {thumbUrl && (
         <img
           src={thumbUrl}
@@ -161,7 +230,7 @@ function EpisodeSlide({
           className="absolute inset-0 w-full h-full object-cover"
           style={{
             opacity: playing ? 0 : 1,
-            transition: "opacity 0.3s ease",
+            transition: "opacity 0.5s ease",
             zIndex: 1,
           }}
         />
@@ -181,38 +250,103 @@ function EpisodeSlide({
       <video
         ref={videoRef}
         playsInline
-        preload={isActive ? "auto" : "none"}
+        preload={isNear || isActive ? "auto" : "none"}
         className="absolute inset-0 w-full h-full object-cover"
         style={{
           opacity: playing ? 1 : 0,
-          transition: "opacity 0.3s ease",
+          transition: "opacity 0.5s ease",
           zIndex: 2,
         }}
       />
 
-      {/* Loading spinner */}
+      {/* Loading shimmer */}
       {isActive && loading && (
-        <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-          <div
-            className="w-10 h-10 rounded-full border-2 border-transparent animate-spin"
-            style={{ borderTopColor: "#fff", borderRightColor: "#fff" }}
-          />
-        </div>
-      )}
-
-      {/* Pause icon (brief flash) */}
-      {isActive && !playing && !loading && (
-        <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-          <div
-            className="w-16 h-16 rounded-full flex items-center justify-center"
-            style={{ background: "rgba(0,0,0,0.35)", backdropFilter: "blur(8px)" }}
-          >
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="#fff">
-              <polygon points="8 5 20 12 8 19" />
-            </svg>
+        <div className="absolute inset-0 z-10 pointer-events-none" style={{ background: "rgba(0,0,0,0.2)" }}>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-full" style={{
+              border: "3px solid rgba(255,255,255,0.1)",
+              borderTopColor: "rgba(255,255,255,0.8)",
+              animation: "spin 0.8s linear infinite",
+            }} />
           </div>
         </div>
       )}
+
+      {/* Pause/Play indicator (animated) */}
+      {showPause && (
+        <div
+          className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none"
+          style={{ animation: "fadeOut 0.8s ease forwards" }}
+        >
+          <div
+            className="w-20 h-20 rounded-full flex items-center justify-center"
+            style={{
+              background: "rgba(0,0,0,0.4)",
+              backdropFilter: "blur(16px)",
+              animation: "scaleIn 0.15s ease-out",
+            }}
+          >
+            {playing ? (
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="6" y="4" width="4" height="16" rx="1" />
+                <rect x="14" y="4" width="4" height="16" rx="1" />
+              </svg>
+            ) : (
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="#fff">
+                <polygon points="8 5 20 12 8 19" />
+              </svg>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ================================================================== */
+/*  Heart Animation (double-tap like)                                  */
+/* ================================================================== */
+
+function HeartBurst({ show }: { show: boolean }) {
+  if (!show) return null;
+  return (
+    <div
+      className="absolute inset-0 flex items-center justify-center z-40 pointer-events-none"
+      style={{ animation: "heartBurst 0.8s ease forwards" }}
+    >
+      <svg width="80" height="80" viewBox="0 0 24 24" fill="#E0115F" stroke="none" style={{ filter: "drop-shadow(0 0 20px rgba(224,17,95,0.6))" }}>
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+      </svg>
+    </div>
+  );
+}
+
+/* ================================================================== */
+/*  Episode Transition Toast                                           */
+/* ================================================================== */
+
+function EpisodeToast({ epNumber, show }: { epNumber: number; show: boolean }) {
+  if (!show) return null;
+  return (
+    <div
+      className="absolute top-1/2 left-1/2 z-40 pointer-events-none"
+      style={{
+        transform: "translate(-50%, -50%)",
+        animation: "toastIn 0.6s ease forwards",
+      }}
+    >
+      <div
+        className="px-6 py-3 rounded-2xl"
+        style={{
+          background: "rgba(0,0,0,0.5)",
+          backdropFilter: "blur(20px)",
+          border: "1px solid rgba(255,255,255,0.1)",
+        }}
+      >
+        <p className="text-2xl font-black tracking-wide text-center" style={{ color: "#fff" }}>
+          EP {epNumber}
+        </p>
+      </div>
     </div>
   );
 }
@@ -242,6 +376,11 @@ export default function EpisodeFeed({
   });
   const [showUnlock, setShowUnlock] = useState(false);
   const [unlockLoading, setUnlockLoading] = useState(false);
+  const [epProgress, setEpProgress] = useState(0);
+  const [showToast, setShowToast] = useState(false);
+  const [showHeart, setShowHeart] = useState(false);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const heartTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const activeEp = episodes[activeIndex];
 
@@ -256,6 +395,17 @@ export default function EpisodeFeed({
     }
   }, []);
 
+  /* Auto-advance: scroll to next episode when current ends */
+  const handleEpisodeEnded = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const nextIdx = activeIndex + 1;
+    if (nextIdx < episodes.length) {
+      const target = container.children[nextIdx] as HTMLElement;
+      if (target) target.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [activeIndex, episodes.length]);
+
   /* IntersectionObserver for snap detection */
   const observerCallback = useCallback(
     (entries: IntersectionObserverEntry[]) => {
@@ -263,12 +413,23 @@ export default function EpisodeFeed({
         if (entry.isIntersecting) {
           const idx = Number(entry.target.getAttribute("data-index"));
           if (!Number.isNaN(idx)) {
-            setActiveIndex(idx);
+            setActiveIndex((prev) => {
+              if (prev !== idx) {
+                // Episode changed
+                haptic();
+                setEpProgress(0);
+
+                // Show toast
+                setShowToast(true);
+                if (toastTimer.current) clearTimeout(toastTimer.current);
+                toastTimer.current = setTimeout(() => setShowToast(false), 1200);
+              }
+              return idx;
+            });
+
             const ep = episodes[idx];
-            // Update URL without navigation
             window.history.replaceState(null, "", `/series/${seriesSlug}/${ep.number}`);
 
-            // Show unlock popup if this is the first paid episode
             if (!ep.isFree) {
               trackUnlockPrompt(seriesSlug);
               setShowUnlock(true);
@@ -297,12 +458,15 @@ export default function EpisodeFeed({
     const next = !muted;
     setMuted(next);
     localStorage.setItem("verza-muted", String(next));
+    haptic();
   }
 
-  /* Thin progress bar color */
-  const progressPct = activeEp
-    ? ((activeIndex + 1) / Math.min(episodes.length, totalEpisodes)) * 100
-    : 0;
+  function handleDoubleTap() {
+    setShowHeart(true);
+    haptic();
+    if (heartTimer.current) clearTimeout(heartTimer.current);
+    heartTimer.current = setTimeout(() => setShowHeart(false), 800);
+  }
 
   return (
     <div className="episode-immersive" style={{ background: "#000" }}>
@@ -335,19 +499,29 @@ export default function EpisodeFeed({
               seriesSlug={seriesSlug}
               posterUrl={posterUrl}
               isActive={i === activeIndex}
+              isNear={Math.abs(i - activeIndex) <= 1}
               muted={muted}
+              onEnded={handleEpisodeEnded}
+              onProgress={i === activeIndex ? setEpProgress : () => {}}
+              onDoubleTap={handleDoubleTap}
             />
           </div>
         ))}
       </div>
 
-      {/* ---- Minimal overlays ---- */}
+      {/* ---- Overlays ---- */}
+
+      {/* Episode transition toast */}
+      <EpisodeToast epNumber={activeEp?.number ?? 1} show={showToast} />
+
+      {/* Double-tap heart */}
+      <HeartBurst show={showHeart} />
 
       {/* Back button — top-left */}
       <button
-        onClick={() => router.push(`/series/${seriesSlug}`)}
+        onClick={() => router.push("/")}
         className="absolute top-4 left-4 z-50 w-10 h-10 rounded-full flex items-center justify-center border-0 cursor-pointer"
-        style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(12px)" }}
+        style={{ background: "rgba(0,0,0,0.35)", backdropFilter: "blur(16px)" }}
         aria-label="Back"
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -359,7 +533,7 @@ export default function EpisodeFeed({
       <button
         onClick={toggleMute}
         className="absolute top-4 right-4 z-50 w-10 h-10 rounded-full flex items-center justify-center border-0 cursor-pointer"
-        style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(12px)" }}
+        style={{ background: "rgba(0,0,0,0.35)", backdropFilter: "blur(16px)" }}
         aria-label={muted ? "Unmute" : "Mute"}
       >
         {muted ? (
@@ -376,20 +550,17 @@ export default function EpisodeFeed({
         )}
       </button>
 
-      {/* Episode badge — bottom-left, minimal */}
-      <div
-        className="absolute bottom-6 left-4 z-50 pointer-events-none"
-        style={{ opacity: 0.9 }}
-      >
-        <p className="text-[11px] font-medium mb-0.5" style={{ color: "rgba(255,255,255,0.5)" }}>
+      {/* Episode badge — bottom-left */}
+      <div className="absolute bottom-6 left-4 z-50 pointer-events-none">
+        <p className="text-[10px] font-medium mb-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>
           {seriesTitle}
         </p>
-        <p className="text-sm font-bold" style={{ color: "#fff" }}>
-          EP {activeEp?.number}
+        <p className="text-[13px] font-bold" style={{ color: "rgba(255,255,255,0.85)" }}>
+          EP {activeEp?.number} <span style={{ color: "rgba(255,255,255,0.3)", fontWeight: 400 }}>/ {totalEpisodes}</span>
         </p>
       </div>
 
-      {/* Thin progress rail — very bottom */}
+      {/* Live playback progress bar — very bottom */}
       <div
         className="absolute bottom-0 left-0 right-0 z-50 pointer-events-none"
         style={{ height: 3 }}
@@ -397,34 +568,32 @@ export default function EpisodeFeed({
         <div
           style={{
             height: "100%",
-            width: `${progressPct}%`,
+            width: `${epProgress * 100}%`,
             background: "linear-gradient(90deg, #E0115F, #8B5CF6)",
-            transition: "width 0.4s ease",
+            transition: "width 0.25s linear",
             borderRadius: "0 2px 2px 0",
           }}
         />
       </div>
 
-      {/* ---- Unlock overlay (when scrolling to paid episode) ---- */}
+      {/* ---- Unlock overlay ---- */}
       {showUnlock && (
         <div
           className="absolute inset-0 z-[60] flex items-center justify-center"
-          style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(6px)" }}
+          style={{ background: "rgba(0,0,0,0.8)", backdropFilter: "blur(12px)", animation: "fadeIn 0.3s ease" }}
         >
-          <div className="text-center px-8 max-w-xs">
+          <div className="text-center px-8 max-w-xs" style={{ animation: "scaleIn 0.3s ease" }}>
             <div
               className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5"
-              style={{ background: "rgba(224,17,95,0.15)" }}
+              style={{ background: "rgba(224,17,95,0.12)" }}
             >
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#E0115F" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                 <path d="M7 11V7a5 5 0 0 1 10 0v4" />
               </svg>
             </div>
-            <h3 className="text-xl font-bold mb-2" style={{ color: "#fff" }}>
-              Keep Watching
-            </h3>
-            <p className="text-sm mb-6" style={{ color: "rgba(255,255,255,0.5)" }}>
+            <h3 className="text-xl font-bold mb-2" style={{ color: "#fff" }}>Keep Watching</h3>
+            <p className="text-sm mb-6" style={{ color: "rgba(255,255,255,0.45)" }}>
               Unlock all episodes of {seriesTitle}
             </p>
             <button
@@ -449,7 +618,7 @@ export default function EpisodeFeed({
                 background: "linear-gradient(135deg, #E0115F, #8B5CF6)",
                 color: "#fff",
                 opacity: unlockLoading ? 0.7 : 1,
-                boxShadow: "0 0 30px rgba(224,17,95,0.3)",
+                boxShadow: "0 0 40px rgba(224,17,95,0.3)",
               }}
             >
               {unlockLoading ? "Loading..." : "Unlock Full Series — $4.99"}
@@ -457,7 +626,6 @@ export default function EpisodeFeed({
             <button
               onClick={() => {
                 setShowUnlock(false);
-                // Scroll back to last free episode
                 const container = containerRef.current;
                 if (container) {
                   const lastFreeIdx = episodes.findIndex((e) => !e.isFree) - 1;
@@ -468,13 +636,32 @@ export default function EpisodeFeed({
                 }
               }}
               className="mt-4 text-sm font-medium border-0 bg-transparent cursor-pointer"
-              style={{ color: "rgba(255,255,255,0.4)" }}
+              style={{ color: "rgba(255,255,255,0.35)" }}
             >
               Go Back
             </button>
           </div>
         </div>
       )}
+
+      {/* Animations */}
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeOut { 0% { opacity: 1; } 100% { opacity: 0; } }
+        @keyframes scaleIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes heartBurst {
+          0% { transform: scale(0.3); opacity: 0; }
+          30% { transform: scale(1.2); opacity: 1; }
+          60% { transform: scale(0.95); opacity: 1; }
+          100% { transform: scale(1); opacity: 0; }
+        }
+        @keyframes toastIn {
+          0% { transform: translate(-50%, -50%) scale(0.7); opacity: 0; }
+          20% { transform: translate(-50%, -50%) scale(1.05); opacity: 1; }
+          40% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+          100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+        }
+      `}</style>
     </div>
   );
 }
