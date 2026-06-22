@@ -261,7 +261,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         <section className="mt-4 pb-4 px-3">
           <div className="poster-grid grid grid-cols-3 gap-3">
             {gridItems.map((s) => (
-              <Link key={s.slug} href={`/series/${s.slug}/1`} className="group block no-underline">
+              <Link key={s.slug} href={`/series/${s.slug}/1`} className="group block no-underline min-w-0">
                 <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
                   <Poster src={s.posterUrl} alt={s.title} />
                   <div

@@ -258,6 +258,12 @@ button:focus-visible {
   box-shadow: 0 0 20px rgba(224, 17, 95, 0.08), 0 0 40px rgba(139, 92, 246, 0.05);
 }
 
+/* ---- Poster grid: uniform sizing on all devices ---- */
+
+.poster-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
 /* ---- Mobile-first shell ---- */
 
 .app-shell {
@@ -463,10 +469,7 @@ button:focus-visible {
     aspect-ratio: 4 / 3 !important;
   }
 
-  /* Poster grids: keep 3 columns, use minmax to prevent uneven sizing */
-  .poster-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-  }
+  /* Poster grids: already locked via base rule below */
 
   /* Series hero: constrain height */
   .series-hero {
