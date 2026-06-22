@@ -36,7 +36,10 @@ function HorizontalCard({ video, index }: { video: HorizontalVideo; index: numbe
   const hlsRef = useRef<HlsType | null>(null);
   const [playing, setPlaying] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [videoMuted, setVideoMuted] = useState(true);
+  const [videoMuted, setVideoMuted] = useState(() => {
+    if (typeof window !== "undefined") return localStorage.getItem("verza-muted") !== "false";
+    return true;
+  });
 
   const hlsUrl = `https://stream.mux.com/${video.playbackId}.m3u8`;
   const thumbUrl = `https://image.mux.com/${video.playbackId}/thumbnail.jpg?time=3&width=640&height=360`;
@@ -115,7 +118,6 @@ function HorizontalCard({ video, index }: { video: HorizontalVideo; index: numbe
         <video
           ref={videoRef}
           playsInline
-          muted
           preload="none"
           className="absolute inset-0 w-full h-full object-cover"
           style={{ opacity: playing ? 1 : 0, zIndex: playing ? 1 : 0, background: "#07070E" }}
@@ -183,9 +185,13 @@ function HorizontalCard({ video, index }: { video: HorizontalVideo; index: numbe
         </div>
         <button
           onClick={() => {
-            setVideoMuted((m) => !m);
-            const vid = videoRef.current;
-            if (vid) vid.muted = !vid.muted;
+            setVideoMuted((m) => {
+              const next = !m;
+              localStorage.setItem("verza-muted", String(next));
+              const vid = videoRef.current;
+              if (vid) vid.muted = next;
+              return next;
+            });
           }}
           className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center"
           style={{ background: "rgba(255,255,255,0.08)", border: "none", cursor: "pointer" }}

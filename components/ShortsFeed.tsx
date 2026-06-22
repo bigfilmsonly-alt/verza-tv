@@ -169,7 +169,6 @@ function ShortVideo({ playbackId, isActive, muted }: {
       <video
         ref={videoRef}
         playsInline
-        muted
         loop
         preload={isActive ? "auto" : "none"}
         className="absolute inset-0 w-full h-full object-cover"
@@ -355,7 +354,7 @@ function ShortCard({ series, isActive, isNearActive, muted, setMuted, saved, onT
           </svg>
         </RailButton>
 
-        <RailButton label={muted ? t("shorts.soundOff") : t("shorts.soundOn")} onClick={() => setMuted(!muted)}>
+        <RailButton label={muted ? t("shorts.soundOff") : t("shorts.soundOn")} onClick={() => { const next = !muted; setMuted(next); localStorage.setItem("verza-muted", String(next)); }}>
           {muted ? (
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
@@ -380,7 +379,10 @@ function ShortCard({ series, isActive, isNearActive, muted, setMuted, saved, onT
 export default function ShortsFeed({ series }: { series: Series[] }) {
   const [shuffled, setShuffled] = useState<Series[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [muted, setMuted] = useState(true);
+  const [muted, setMuted] = useState(() => {
+    if (typeof window !== "undefined") return localStorage.getItem("verza-muted") !== "false";
+    return true;
+  });
   const [savedSlugs, setSavedSlugs] = useState<Set<string>>(new Set());
   const containerRef = useRef<HTMLDivElement>(null);
 
