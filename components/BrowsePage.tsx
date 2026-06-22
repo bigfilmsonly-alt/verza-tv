@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import CategoryTabs from "@/components/CategoryTabs";
@@ -49,6 +50,7 @@ interface ContinueItem {
 
 export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
   const { t } = useTranslation();
+  const router = useRouter();
   const activeTabs = BROWSE_TABS;
 
   const [activeTab, setActiveTab] = useState<BrowseCategory>("drama");
@@ -60,6 +62,13 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
   const current = heroSlides[heroIdx % Math.max(heroSlides.length, 1)];
 
   useEffect(() => { setHeroIdx(0); }, [activeTab]);
+
+  // Red Carpet: go straight to full-screen video
+  useEffect(() => {
+    if (activeTab === "red-carpet" && filtered.length > 0) {
+      router.push(`/series/${filtered[0].slug}/1`);
+    }
+  }, [activeTab, filtered, router]);
 
   // Fetch continue watching data
   useEffect(() => {
