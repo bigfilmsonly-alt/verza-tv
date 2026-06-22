@@ -68,6 +68,7 @@ function EpisodeSlide({
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<HlsType | null>(null);
+  const attachedRef = useRef(false);
   const [playing, setPlaying] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPause, setShowPause] = useState(false);
@@ -81,46 +82,22 @@ function EpisodeSlide({
     ? `https://image.mux.com/${episode.playbackId}/thumbnail.jpg?time=2&width=720&height=1280`
     : "";
 
-  /* Preload + autoplay logic */
+  /* Step 1: Attach HLS source (preload for near slides, don't tear down on active change) */
   useEffect(() => {
-    if (!hlsUrl) return;
-    // Only attach HLS for active or adjacent slides (preload)
-    if (!isActive && !isNear) return;
+    if (!hlsUrl || (!isActive && !isNear)) return;
+    if (attachedRef.current) return; // Already attached, don't re-attach
 
     const vid = videoRef.current;
     if (!vid) return;
 
     let cancelled = false;
-
-    function tryPlay() {
-      if (cancelled || !vid || !isActive) return;
-      const wasMuted = localStorage.getItem("verza-muted") !== "false";
-      vid.muted = wasMuted;
-      vid.play()
-        .then(() => {
-          if (!cancelled) { setPlaying(true); setLoading(false); }
-          trackEpisodeStart(seriesSlug, episode.number);
-        })
-        .catch(() => {
-          if (cancelled) return;
-          vid.muted = true;
-          vid.play()
-            .then(() => { if (!cancelled) { setPlaying(true); setLoading(false); } })
-            .catch(() => { if (!cancelled) setLoading(false); });
-        });
-    }
+    attachedRef.current = true;
 
     async function attach() {
       if (cancelled || !vid || !hlsUrl) return;
-      if (isActive) setLoading(true);
 
       if (vid.canPlayType("application/vnd.apple.mpegurl")) {
         vid.src = hlsUrl;
-        if (isActive) {
-          vid.addEventListener("loadedmetadata", () => tryPlay(), { once: true });
-        } else {
-          vid.preload = "auto";
-        }
         return;
       }
 
@@ -131,9 +108,6 @@ function EpisodeSlide({
       hlsRef.current = hls;
       hls.loadSource(hlsUrl);
       hls.attachMedia(vid);
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        if (!cancelled && isActive) tryPlay();
-      });
       hls.on(Hls.Events.ERROR, (_e: string, data: { type: string; fatal: boolean }) => {
         if (data.fatal && Hls) {
           if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hls.startLoad();
@@ -146,18 +120,54 @@ function EpisodeSlide({
 
     return () => {
       cancelled = true;
-      if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
-      if (vid) { vid.pause(); vid.removeAttribute("src"); vid.load(); }
-      setPlaying(false);
-      setLoading(false);
     };
-  }, [isActive, isNear, hlsUrl, episode.number, seriesSlug]);
+  }, [hlsUrl, isActive, isNear]);
 
-  /* Sync muted state */
+  /* Tear down HLS only when slide is far away (not near) */
+  useEffect(() => {
+    if (isActive || isNear) return;
+    // Not near — clean up
+    const vid = videoRef.current;
+    if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
+    if (vid) { vid.pause(); vid.removeAttribute("src"); vid.load(); }
+    attachedRef.current = false;
+    setPlaying(false);
+    setLoading(false);
+  }, [isActive, isNear]);
+
+  /* Step 2: Play/pause based on isActive (separate from attach) */
   useEffect(() => {
     const vid = videoRef.current;
-    if (vid) vid.muted = muted;
-  }, [muted]);
+    if (!vid) return;
+
+    if (isActive) {
+      setLoading(true);
+      // Set muted from prop BEFORE playing (single source of truth)
+      vid.muted = muted;
+      vid.play()
+        .then(() => {
+          setPlaying(true);
+          setLoading(false);
+          trackEpisodeStart(seriesSlug, episode.number);
+        })
+        .catch(() => {
+          // Autoplay blocked — try muted
+          vid.muted = true;
+          vid.play()
+            .then(() => { setPlaying(true); setLoading(false); })
+            .catch(() => { setLoading(false); });
+        });
+    } else {
+      vid.pause();
+      setPlaying(false);
+    }
+  }, [isActive]); // Only depends on isActive, NOT on muted
+
+  /* Step 3: Sync muted prop to video element (only effect that touches muted) */
+  useEffect(() => {
+    const vid = videoRef.current;
+    if (vid && playing) vid.muted = muted;
+  }, [muted, playing]);
 
   /* Time update → progress bar + auto-advance on ended */
   useEffect(() => {
