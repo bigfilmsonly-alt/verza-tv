@@ -32,7 +32,7 @@ export default function CategoryTabs({ active, onSelect, tabs }: CategoryTabsPro
             <button
               key={tab.key}
               onClick={() => onSelect(tab.key)}
-              className="border-0 cursor-pointer bg-transparent whitespace-nowrap flex-shrink-0 p-0"
+              className="relative border-0 cursor-pointer bg-transparent whitespace-nowrap flex-shrink-0 p-0 pb-1.5"
             >
               <span
                 className="text-[17px] font-black uppercase tracking-wide"
@@ -40,6 +40,12 @@ export default function CategoryTabs({ active, onSelect, tabs }: CategoryTabsPro
               >
                 {label}
               </span>
+              {isActive && (
+                <div
+                  className="absolute bottom-0 left-0 right-0 rounded-full"
+                  style={{ height: 3, background: "#E0115F" }}
+                />
+              )}
             </button>
           );
         })}
