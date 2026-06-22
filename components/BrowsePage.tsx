@@ -212,56 +212,30 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
             )}
           </div>
 
-          {/* Title + CTA below the poster */}
-          <div className="px-4 pt-3 pb-1 text-center">
-            <Link href={`/series/${current.slug}/1`} className="no-underline">
-              <h2 className="text-lg font-extrabold leading-tight uppercase tracking-wide" style={{ color: "#FFFFFF" }}>
-                {current.title}
-              </h2>
-            </Link>
-            <p className="mt-1 text-xs" style={{ color: "#6B6B7B" }}>
-              {current.genre} &middot; {current.episodeCount} episodes
-            </p>
-            {heroSlides.length > 1 && (
-              <div className="flex items-center justify-center gap-1.5 mt-2.5">
-                {heroSlides.map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setHeroIdx(i)}
-                    className="p-0 border-0 cursor-pointer"
-                    style={{ background: "none" }}
-                    aria-label={`Slide ${i + 1}`}
-                  >
-                    <div
-                      className="rounded-full"
-                      style={{
-                        width: i === heroIdx % heroSlides.length ? 24 : 6,
-                        height: 6,
-                        background: i === heroIdx % heroSlides.length
-                          ? "linear-gradient(90deg, #E0115F, #8B5CF6)"
-                          : "#6B6B7B",
-                        transition: "width 0.3s",
-                      }}
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
-            <Link
-              href={`/series/${current.slug}/1`}
-              className="inline-flex items-center gap-2 mt-3 px-5 py-2.5 rounded-full text-sm font-bold no-underline transition-transform active:scale-95"
-              style={{
-                background: "linear-gradient(135deg, #E0115F, #8B5CF6)",
-                color: "#fff",
-                boxShadow: "0 0 20px rgba(224, 17, 95, 0.3)",
-              }}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff" stroke="none">
-                <polygon points="6 3 20 12 6 21" />
-              </svg>
-              {t("browse.startWatchingFree")}
-            </Link>
-          </div>
+          {/* Dot indicators overlaid on hero bottom */}
+          {heroSlides.length > 1 && (
+            <div className="flex items-center justify-center gap-1.5 py-2">
+              {heroSlides.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setHeroIdx(i)}
+                  className="p-0 border-0 cursor-pointer"
+                  style={{ background: "none" }}
+                  aria-label={`Slide ${i + 1}`}
+                >
+                  <div
+                    className="rounded-full"
+                    style={{
+                      width: i === heroIdx % heroSlides.length ? 20 : 6,
+                      height: 6,
+                      background: i === heroIdx % heroSlides.length ? "#E0115F" : "rgba(255,255,255,0.3)",
+                      transition: "width 0.3s",
+                    }}
+                  />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
