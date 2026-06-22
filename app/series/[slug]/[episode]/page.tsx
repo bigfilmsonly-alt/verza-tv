@@ -1,16 +1,13 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
 import JsonLd from "@/components/JsonLd";
-import Player from "@/components/Player";
-import CoinPaywall from "@/components/CoinPaywall";
+import EpisodeFeed from "@/components/EpisodeFeed";
+import type { FeedEpisode } from "@/components/EpisodeFeed";
 import {
   SERIES,
   getSeriesBySlug,
   getEpisode,
   getEpisodesForSeries,
-  formatDuration,
 } from "@/lib/catalog";
 import { getPlayback } from "@/lib/mux-map";
 import {
@@ -18,10 +15,6 @@ import {
   episodeSchema,
   breadcrumbSchema,
 } from "@/lib/schemas";
-import { T } from "@/lib/theme";
-import { SERIES_DETAIL } from "@/lib/series-detail";
-import SeriesInfoButton from "@/components/SeriesInfoButton";
-import EpisodeDropdown from "@/components/EpisodeDropdown";
 import { checkVipStatusServer } from "@/lib/vip-server";
 
 /* ------------------------------------------------------------------ */
@@ -95,15 +88,12 @@ export default async function EpisodePage({ params, searchParams }: Props) {
   const ep = getEpisode(slug, epNum);
   if (!ep) notFound();
 
-  const mux = getPlayback(slug, epNum);
-
-  const episodes = getEpisodesForSeries(slug);
   const isVip = await checkVipStatusServer();
 
-  // Check if user has purchased this series (entitlement)
+  // Check entitlement
   let hasEntitlement = false;
   if (unlocked === "true") {
-    hasEntitlement = true; // Just paid via Stripe, redirected back
+    hasEntitlement = true;
   }
   if (!hasEntitlement) {
     try {
@@ -123,14 +113,23 @@ export default async function EpisodePage({ params, searchParams }: Props) {
     } catch {}
   }
 
-  const isFree = ep.number <= series.freeEpisodes || isVip || hasEntitlement;
+  // Build episode list for feed
+  const allEpisodes = getEpisodesForSeries(slug);
+  const feedEpisodes: FeedEpisode[] = allEpisodes.map((e) => {
+    const mux = getPlayback(slug, e.number);
+    return {
+      number: e.number,
+      title: e.title,
+      durationS: e.durationS,
+      playbackId: mux?.playbackId,
+      isFree: e.number <= series.freeEpisodes || isVip || hasEntitlement,
+    };
+  });
 
-  const BASE_URL =
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
+  const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
 
   return (
     <>
-      {/* ---- JSON-LD (hidden, SEO only) ---- */}
       <JsonLd
         data={[
           episodeSchema(
@@ -146,7 +145,9 @@ export default async function EpisodePage({ params, searchParams }: Props) {
               number: ep.number,
               title: ep.title,
               durationS: ep.durationS,
-              thumbUrl: mux ? `https://image.mux.com/${mux.playbackId}/thumbnail.jpg?time=5&width=1080&height=1920` : `${BASE_URL}${series.posterUrl}`,
+              thumbUrl: getPlayback(slug, epNum)
+                ? `https://image.mux.com/${getPlayback(slug, epNum)!.playbackId}/thumbnail.jpg?time=5&width=1080&height=1920`
+                : `${BASE_URL}${series.posterUrl}`,
             },
           ),
           seriesSchema({
@@ -159,81 +160,21 @@ export default async function EpisodePage({ params, searchParams }: Props) {
           }),
           breadcrumbSchema([
             { name: "Home", url: BASE_URL },
-            {
-              name: series.title,
-              url: `${BASE_URL}/series/${series.slug}`,
-            },
-            {
-              name: ep.title,
-              url: `${BASE_URL}/series/${series.slug}/${ep.number}`,
-            },
+            { name: series.title, url: `${BASE_URL}/series/${series.slug}` },
+            { name: ep.title, url: `${BASE_URL}/series/${series.slug}/${ep.number}` },
           ]),
         ]}
       />
 
-      {/* ---- Immersive full-screen player (ReelShort-style) ---- */}
-      <div className="episode-immersive">
-        {isFree ? (
-          <Player
-            posterUrl={series.posterUrl}
-            title={ep.title}
-            episodeNumber={ep.number}
-            durationS={ep.durationS}
-            seriesSlug={series.slug}
-            playbackId={mux?.playbackId}
-            totalEpisodes={series.episodeCount}
-            freeEpisodes={series.freeEpisodes}
-          />
-        ) : (
-          <CoinPaywall
-            posterUrl={series.posterUrl}
-            unlockCoins={ep.unlockCoins}
-            seasonPassCoins={series.seasonPassCoins}
-            seriesSlug={series.slug}
-            episodeNumber={ep.number}
-          />
-        )}
-
-        {/* Overlay: back button (top-left) */}
-        <Link
-          href={`/series/${series.slug}`}
-          className="absolute top-3 left-3 z-30 w-9 h-9 rounded-full flex items-center justify-center no-underline"
-          style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(8px)" }}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
-        </Link>
-
-        {/* Overlay: info button (top-right) */}
-        <div className="absolute top-3 right-3 z-30">
-          <SeriesInfoButton
-            series={series}
-            seriesDetail={SERIES_DETAIL[series.slug]}
-            currentEpisode={ep.number}
-            totalEpisodes={series.episodeCount}
-          />
-        </div>
-
-        {/* Overlay: episode info + navigator (bottom) */}
-        <div className="absolute bottom-0 left-0 right-0 z-30">
-          <div className="px-4 pb-3 pt-10" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.8), transparent)" }}>
-            <p className="text-xs font-semibold mb-0.5" style={{ color: "rgba(255,255,255,0.6)" }}>{series.title}</p>
-            <p className="text-sm font-bold mb-2" style={{ color: "#fff" }}>
-              Episode {ep.number} of {series.episodeCount}
-              <span style={{ color: "rgba(255,255,255,0.4)" }}> &middot; </span>
-              {formatDuration(ep.durationS)}
-            </p>
-            <EpisodeDropdown
-              seriesSlug={series.slug}
-              episodes={episodes.map((e) => ({ number: e.number, title: e.title }))}
-              currentEpisode={ep.number}
-              freeEpisodes={series.freeEpisodes}
-              totalEpisodes={series.episodeCount}
-            />
-          </div>
-        </div>
-      </div>
+      <EpisodeFeed
+        seriesSlug={series.slug}
+        seriesTitle={series.title}
+        posterUrl={series.posterUrl}
+        episodes={feedEpisodes}
+        startEpisode={epNum}
+        freeEpisodes={series.freeEpisodes}
+        totalEpisodes={series.episodeCount}
+      />
     </>
   );
 }
