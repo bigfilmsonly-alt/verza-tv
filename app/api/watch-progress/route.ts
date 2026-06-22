@@ -13,11 +13,40 @@ export async function POST(req: NextRequest) {
     return Response.json({ error: "Not signed in" }, { status: 401 });
   }
 
-  const body = await req.json();
-  const { seriesSlug, episodeNumber, progressSeconds, completed } = body;
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return Response.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
 
-  if (!seriesSlug || !episodeNumber) {
-    return Response.json({ error: "Missing seriesSlug or episodeNumber" }, { status: 400 });
+  const { seriesSlug, episodeNumber, progressSeconds, completed } = body as Record<string, unknown>;
+
+  // --- Input validation ---
+  if (typeof seriesSlug !== "string" || !seriesSlug) {
+    return Response.json({ error: "seriesSlug must be a non-empty string" }, { status: 400 });
+  }
+  if (seriesSlug.length > 100) {
+    return Response.json({ error: "seriesSlug must be at most 100 characters" }, { status: 400 });
+  }
+  if (!/^[a-z0-9-]+$/.test(seriesSlug)) {
+    return Response.json({ error: "seriesSlug must contain only lowercase letters, digits, and hyphens" }, { status: 400 });
+  }
+
+  if (typeof episodeNumber !== "number" || !Number.isInteger(episodeNumber) || episodeNumber < 1 || episodeNumber > 999) {
+    return Response.json({ error: "episodeNumber must be an integer between 1 and 999" }, { status: 400 });
+  }
+
+  if (progressSeconds !== undefined && progressSeconds !== null) {
+    if (typeof progressSeconds !== "number" || !Number.isFinite(progressSeconds) || progressSeconds < 0 || progressSeconds > 36000) {
+      return Response.json({ error: "progressSeconds must be a number between 0 and 36000" }, { status: 400 });
+    }
+  }
+
+  if (completed !== undefined && completed !== null) {
+    if (typeof completed !== "boolean") {
+      return Response.json({ error: "completed must be a boolean" }, { status: 400 });
+    }
   }
 
   const supabase = getServiceClient();

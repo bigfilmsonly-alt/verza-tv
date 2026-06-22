@@ -5,10 +5,28 @@ import { getLiveSeries } from "@/lib/catalog";
 // Provides show recommendations, host commentary, and personalized suggestions
 
 export async function POST(request: NextRequest) {
-  const { prompt, context } = await request.json();
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
 
-  if (!prompt) {
-    return NextResponse.json({ error: "Prompt required" }, { status: 400 });
+  const { prompt, context } = body as Record<string, unknown>;
+
+  // --- Input validation ---
+  if (typeof prompt !== "string" || !prompt.trim()) {
+    return NextResponse.json({ error: "prompt must be a non-empty string" }, { status: 400 });
+  }
+  if (prompt.length > 500) {
+    return NextResponse.json({ error: "prompt must be at most 500 characters" }, { status: 400 });
+  }
+
+  if (context !== undefined && context !== null && typeof context !== "string") {
+    return NextResponse.json({ error: "context must be a string if provided" }, { status: 400 });
+  }
+  if (typeof context === "string" && context.length > 1000) {
+    return NextResponse.json({ error: "context must be at most 1000 characters" }, { status: 400 });
   }
 
   const apiKey = process.env.ANTHROPIC_API_KEY;

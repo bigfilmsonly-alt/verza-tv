@@ -49,11 +49,24 @@ export async function POST(req: NextRequest) {
     return Response.json({ error: "Not signed in" }, { status: 401 });
   }
 
-  const body = await req.json();
-  const { seriesSlug } = body;
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return Response.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
 
-  if (!seriesSlug || typeof seriesSlug !== "string") {
-    return Response.json({ error: "Missing seriesSlug" }, { status: 400 });
+  const { seriesSlug } = body as Record<string, unknown>;
+
+  // --- Input validation ---
+  if (typeof seriesSlug !== "string" || !seriesSlug) {
+    return Response.json({ error: "seriesSlug must be a non-empty string" }, { status: 400 });
+  }
+  if (seriesSlug.length > 100) {
+    return Response.json({ error: "seriesSlug must be at most 100 characters" }, { status: 400 });
+  }
+  if (!/^[a-z0-9-]+$/.test(seriesSlug)) {
+    return Response.json({ error: "seriesSlug must contain only lowercase letters, digits, and hyphens" }, { status: 400 });
   }
 
   const supabase = getServiceClient();
@@ -86,11 +99,24 @@ export async function DELETE(req: NextRequest) {
     return Response.json({ error: "Not signed in" }, { status: 401 });
   }
 
-  const body = await req.json();
-  const { seriesSlug } = body;
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return Response.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
 
-  if (!seriesSlug || typeof seriesSlug !== "string") {
-    return Response.json({ error: "Missing seriesSlug" }, { status: 400 });
+  const { seriesSlug } = body as Record<string, unknown>;
+
+  // --- Input validation ---
+  if (typeof seriesSlug !== "string" || !seriesSlug) {
+    return Response.json({ error: "seriesSlug must be a non-empty string" }, { status: 400 });
+  }
+  if (seriesSlug.length > 100) {
+    return Response.json({ error: "seriesSlug must be at most 100 characters" }, { status: 400 });
+  }
+  if (!/^[a-z0-9-]+$/.test(seriesSlug)) {
+    return Response.json({ error: "seriesSlug must contain only lowercase letters, digits, and hyphens" }, { status: 400 });
   }
 
   const supabase = getServiceClient();

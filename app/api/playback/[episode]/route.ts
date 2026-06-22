@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { FREE_EPISODES } from "@/lib/config";
 import { getPlayback } from "@/lib/mux-map";
 import { checkVipStatus } from "@/lib/vip";
+import { getUser } from "@/lib/auth";
+import { getServiceClient } from "@/lib/supabase/server";
 
 export async function GET(
   request: NextRequest,
@@ -19,7 +21,23 @@ export async function GET(
   const isFree = epNum <= FREE_EPISODES;
   const isVip = await checkVipStatus(request);
 
+  // Check if user has purchased this series
+  let hasPurchased = false;
   if (!isFree && !isVip) {
+    const user = await getUser();
+    if (user) {
+      const supabase = getServiceClient();
+      const { data: ent } = await supabase
+        .from("entitlements")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("series_slug", slug)
+        .maybeSingle();
+      if (ent) hasPurchased = true;
+    }
+  }
+
+  if (!isFree && !isVip && !hasPurchased) {
     return NextResponse.json({
       status: "paywall",
       message: "This episode requires coins to unlock",

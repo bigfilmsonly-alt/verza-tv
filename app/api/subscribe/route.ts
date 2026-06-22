@@ -11,10 +11,31 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
  */
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { plan } = body as { plan: "monthly" | "yearly" };
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return Response.json({ error: "Invalid JSON body" }, { status: 400 });
+    }
 
-    if (!plan || !VIP_PLANS[plan]) {
+    // --- Input validation ---
+    if (typeof body !== "object" || body === null || Array.isArray(body)) {
+      return Response.json({ error: "Request body must be a JSON object" }, { status: 400 });
+    }
+
+    const { plan } = body as Record<string, unknown>;
+
+    if (typeof plan !== "string") {
+      return Response.json({ error: "plan must be a string" }, { status: 400 });
+    }
+    if (plan !== "monthly" && plan !== "yearly") {
+      return Response.json(
+        { error: 'Invalid plan. Must be "monthly" or "yearly".' },
+        { status: 400 },
+      );
+    }
+
+    if (!VIP_PLANS[plan]) {
       return Response.json(
         { error: 'Invalid plan. Must be "monthly" or "yearly".' },
         { status: 400 },

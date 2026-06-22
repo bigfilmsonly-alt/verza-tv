@@ -69,15 +69,26 @@ export async function POST(req: NextRequest) {
 
         // If series unlock, create entitlement
         if (type === "series_unlock" && session.metadata?.seriesSlug) {
-          // Try to find user by email
-          const { data: users } = await supabase.auth.admin.listUsers();
-          const user = users?.users?.find((u) => u.email === email);
+          // Try to find user by stripe_customer_id on profiles table
+          const stripeCustomer =
+            typeof session.customer === "string" ? session.customer : (session.customer as { id: string } | null)?.id ?? null;
 
-          if (user) {
+          let userId: string | null = null;
+
+          if (stripeCustomer) {
+            const { data: profile } = await supabase
+              .from("profiles")
+              .select("id")
+              .eq("stripe_customer_id", stripeCustomer)
+              .maybeSingle();
+            userId = profile?.id ?? null;
+          }
+
+          if (userId) {
             const { error: entErr } = await supabase
               .from("entitlements")
               .upsert({
-                user_id: user.id,
+                user_id: userId,
                 series_slug: session.metadata.seriesSlug,
                 purchase_id: purchase?.id,
               }, { onConflict: "user_id,series_slug" });
@@ -92,7 +103,7 @@ export async function POST(req: NextRequest) {
             const { error: saveErr } = await supabase
               .from("saved_list")
               .upsert({
-                user_id: user.id,
+                user_id: userId,
                 series_slug: session.metadata.seriesSlug,
                 created_at: new Date().toISOString(),
               }, { onConflict: "user_id,series_slug" });
@@ -153,47 +164,50 @@ export async function POST(req: NextRequest) {
         const email =
           !("deleted" in customer && customer.deleted) ? customer.email : null;
 
-        if (email) {
-          const { data: users } = await supabase.auth.admin.listUsers();
-          const user = users?.users?.find((u) => u.email === email);
+        // Look up user by stripe_customer_id in profiles table
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("stripe_customer_id", customerId)
+          .maybeSingle();
+        const userId = profile?.id ?? null;
 
-          if (user) {
-            const periodEnd = sub.items.data[0]?.current_period_end
-              ? new Date(sub.items.data[0].current_period_end * 1000).toISOString()
-              : null;
+        if (userId) {
+          const periodEnd = sub.items.data[0]?.current_period_end
+            ? new Date(sub.items.data[0].current_period_end * 1000).toISOString()
+            : null;
 
-            const { error: profileErr } = await supabase
-              .from("profiles")
-              .update({
-                is_vip: isActive,
-                vip_expires_at: isActive ? periodEnd : null,
-                stripe_customer_id: customerId,
-                stripe_subscription_id: sub.id,
-                updated_at: new Date().toISOString(),
-              })
-              .eq("id", user.id);
+          const { error: profileErr } = await supabase
+            .from("profiles")
+            .update({
+              is_vip: isActive,
+              vip_expires_at: isActive ? periodEnd : null,
+              stripe_customer_id: customerId,
+              stripe_subscription_id: sub.id,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", userId);
 
-            if (profileErr) {
-              console.error("[webhook] Failed to update VIP status:", profileErr);
-            } else {
-              console.log("[webhook] VIP status updated:", email, isActive ? "activated" : "deactivated");
-              emitServerEvent(isActive ? "subscription_started" : "subscription_cancelled", {
-                user_id: user.id,
-                stripe_session_id: sub.id,
-              });
-
-              // Send VIP email to customer + team
-              if (isActive) {
-                const plan = sub.items.data[0]?.price?.recurring?.interval === "year" ? "Yearly ($79.99/yr)" : "Monthly ($9.99/mo)";
-                sendPurchaseConfirmation(email, email.split("@")[0], "series_unlock", {
-                  seriesTitle: `VIP Subscription — ${plan}`,
-                  amount: plan.includes("79") ? "$79.99" : "$9.99",
-                }).catch((e) => console.error("[webhook] VIP email failed:", e));
-              }
-            }
+          if (profileErr) {
+            console.error("[webhook] Failed to update VIP status:", profileErr);
           } else {
-            console.log("[webhook] No user found for customer email:", email);
+            console.log("[webhook] VIP status updated:", email, isActive ? "activated" : "deactivated");
+            emitServerEvent(isActive ? "subscription_started" : "subscription_cancelled", {
+              user_id: userId,
+              stripe_session_id: sub.id,
+            });
+
+            // Send VIP email to customer + team
+            if (isActive) {
+              const plan = sub.items.data[0]?.price?.recurring?.interval === "year" ? "Yearly ($79.99/yr)" : "Monthly ($9.99/mo)";
+              sendPurchaseConfirmation(email!, email!.split("@")[0], "series_unlock", {
+                seriesTitle: `VIP Subscription — ${plan}`,
+                amount: plan.includes("79") ? "$79.99" : "$9.99",
+              }).catch((e) => console.error("[webhook] VIP email failed:", e));
+            }
           }
+        } else {
+          console.log("[webhook] No profile found for stripe customer:", customerId, email);
         }
 
         break;
@@ -211,26 +225,31 @@ export async function POST(req: NextRequest) {
         const email =
           !("deleted" in customer && customer.deleted) ? customer.email : null;
 
-        if (email) {
-          const { data: users } = await supabase.auth.admin.listUsers();
-          const user = users?.users?.find((u) => u.email === email);
+        // Look up user by stripe_customer_id in profiles table
+        const { data: delProfile } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("stripe_customer_id", customerId)
+          .maybeSingle();
+        const delUserId = delProfile?.id ?? null;
 
-          if (user) {
-            const { error: profileErr } = await supabase
-              .from("profiles")
-              .update({
-                is_vip: false,
-                vip_expires_at: null,
-                updated_at: new Date().toISOString(),
-              })
-              .eq("id", user.id);
+        if (delUserId) {
+          const { error: profileErr } = await supabase
+            .from("profiles")
+            .update({
+              is_vip: false,
+              vip_expires_at: null,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", delUserId);
 
-            if (profileErr) {
-              console.error("[webhook] Failed to remove VIP status:", profileErr);
-            } else {
-              console.log("[webhook] VIP removed for:", email);
-            }
+          if (profileErr) {
+            console.error("[webhook] Failed to remove VIP status:", profileErr);
+          } else {
+            console.log("[webhook] VIP removed for:", email);
           }
+        } else {
+          console.log("[webhook] No profile found for stripe customer (delete):", customerId, email);
         }
 
         break;

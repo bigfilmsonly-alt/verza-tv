@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { FREE_EPISODES } from "@/lib/config";
 import { checkVipStatus } from "@/lib/vip";
+import { getUser } from "@/lib/auth";
+import { getServiceClient } from "@/lib/supabase/server";
 
 type EntitlementReason = "free" | "purchased" | "season_pass" | "vip";
 
@@ -47,8 +49,26 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(res);
   }
 
-  // TODO: check season pass and individual episode purchases
-  // when auth is fully wired
+  // Check if user has purchased this series
+  const user = await getUser();
+  if (user) {
+    const supabase = getServiceClient();
+    const { data: ent } = await supabase
+      .from("entitlements")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("series_slug", series)
+      .maybeSingle();
+    if (ent) {
+      const res: EntitlementResponse = {
+        entitled: true,
+        reason: "purchased",
+        series,
+        episode: epNum,
+      };
+      return NextResponse.json(res);
+    }
+  }
 
   // Default: not entitled
   const res: EntitlementResponse = {
