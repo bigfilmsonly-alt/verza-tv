@@ -107,28 +107,16 @@ export default function RootLayout({
         <CartProvider>
         <LangProvider>
           <ContentTranslator />
-          {/* iPhone frame wrapper — visible on desktop only (CSS controlled) */}
-          <div className="iphone-frame">
-            <div className="iphone-screen">
+          {/* Single render — CSS adds iPhone frame on desktop */}
+          <div className="device-frame">
+            <div className="device-screen">
               <div className="app-shell">
                 <Header />
                 <main className="flex-1 pb-16">{children}</main>
                 <Footer />
               </div>
             </div>
-            {/* Bottom nav OUTSIDE the scroll area, pinned to frame bottom */}
-            <div className="iphone-nav-dock">
-              <BottomNav />
-            </div>
-{/* home indicator removed */}
-          </div>
-
-          {/* Mobile: no frame, direct render */}
-          <div className="mobile-only">
-            <div className="app-shell">
-              <Header />
-              <main className="flex-1 pb-16">{children}</main>
-              <Footer />
+            <div className="device-nav-dock">
               <BottomNav />
             </div>
           </div>

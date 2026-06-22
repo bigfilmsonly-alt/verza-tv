@@ -69,7 +69,8 @@ function EpisodeSlide({
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<HlsType | null>(null);
   const attachedRef = useRef(false);
-  const mutedRef = useRef(muted); // Always-current muted value for async callbacks
+  const mutedRef = useRef(muted);
+  const [sourceReady, setSourceReady] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPause, setShowPause] = useState(false);
@@ -102,6 +103,7 @@ function EpisodeSlide({
 
       if (vid.canPlayType("application/vnd.apple.mpegurl")) {
         vid.src = hlsUrl;
+        vid.addEventListener("loadedmetadata", () => { if (!cancelled) setSourceReady(true); }, { once: true });
         return;
       }
 
@@ -112,6 +114,7 @@ function EpisodeSlide({
       hlsRef.current = hls;
       hls.loadSource(hlsUrl);
       hls.attachMedia(vid);
+      hls.on(Hls.Events.MANIFEST_PARSED, () => { if (!cancelled) setSourceReady(true); });
       hls.on(Hls.Events.ERROR, (_e: string, data: { type: string; fatal: boolean }) => {
         if (data.fatal && Hls) {
           if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hls.startLoad();
@@ -135,19 +138,19 @@ function EpisodeSlide({
     if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
     if (vid) { vid.pause(); vid.removeAttribute("src"); vid.load(); }
     attachedRef.current = false;
+    setSourceReady(false);
     setPlaying(false);
     setLoading(false);
   }, [isActive, isNear]);
 
-  /* Step 2: Play/pause based on isActive — with full cleanup */
+  /* Step 2: Play only when source is ready AND slide is active */
   useEffect(() => {
     const vid = videoRef.current;
     if (!vid) return;
 
     let cancelled = false;
-    let unmuteTimer: ReturnType<typeof setTimeout> | null = null;
 
-    if (isActive) {
+    if (isActive && sourceReady) {
       setLoading(true);
       vid.muted = mutedRef.current;
       vid.play()
@@ -159,30 +162,24 @@ function EpisodeSlide({
         })
         .catch(() => {
           if (cancelled) return;
+          // Autoplay with sound blocked — play muted, stay muted
           vid.muted = true;
           vid.play()
             .then(() => {
               if (cancelled) return;
               setPlaying(true);
               setLoading(false);
-              unmuteTimer = setTimeout(() => {
-                if (!cancelled && vid && !mutedRef.current) vid.muted = false;
-              }, 100);
             })
             .catch(() => { if (!cancelled) setLoading(false); });
         });
-    } else {
-      // Silence immediately, then pause
+    } else if (!isActive) {
       vid.muted = true;
       vid.pause();
       setPlaying(false);
     }
 
-    return () => {
-      cancelled = true;
-      if (unmuteTimer) clearTimeout(unmuteTimer);
-    };
-  }, [isActive]);
+    return () => { cancelled = true; };
+  }, [isActive, sourceReady]);
 
   /* Step 3: Sync muted prop instantly to video element */
   useEffect(() => {
@@ -281,6 +278,7 @@ function EpisodeSlide({
       <video
         ref={videoRef}
         playsInline
+        muted
         preload={isNear || isActive ? "auto" : "none"}
         className="absolute inset-0 w-full h-full object-cover"
         style={{
