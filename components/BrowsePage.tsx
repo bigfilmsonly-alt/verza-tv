@@ -70,6 +70,13 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
     }
   }, [activeTab, filtered, router]);
 
+  // Reality: show widescreen content (Storage Pirates)
+  useEffect(() => {
+    if (activeTab === "reality") {
+      router.push("/horizontal");
+    }
+  }, [activeTab, router]);
+
   // Fetch continue watching data
   useEffect(() => {
     fetch("/api/watch-progress")

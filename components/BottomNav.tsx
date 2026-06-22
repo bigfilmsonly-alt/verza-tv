@@ -34,16 +34,6 @@ const tabs: Tab[] = [
     ),
   },
   {
-    label: "Widescreen",
-    href: "/horizontal",
-    icon: (c) => (
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="1" y="5" width="22" height="14" rx="2" />
-        <polygon points="10 9 15 12 10 15 10 9" fill={c} stroke="none" />
-      </svg>
-    ),
-  },
-  {
     label: "Shop",
     href: "/shop",
     icon: (c) => (
@@ -104,7 +94,7 @@ export default function BottomNav() {
           const color = active ? ACTIVE : INACTIVE;
           const labelMap: Record<string, string> = {
             "Discover": t("nav.discover"), "Shorts": t("nav.shorts"),
-            "Widescreen": t("nav.widescreen"), "Shop": t("nav.shop"),
+            "Shop": t("nav.shop"),
             "Library": t("nav.library"), "Profile": t("nav.profile"),
           };
 
