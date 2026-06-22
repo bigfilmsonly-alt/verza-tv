@@ -69,11 +69,15 @@ function EpisodeSlide({
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<HlsType | null>(null);
   const attachedRef = useRef(false);
+  const mutedRef = useRef(muted); // Always-current muted value for async callbacks
   const [playing, setPlaying] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPause, setShowPause] = useState(false);
   const pauseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastTap = useRef(0);
+
+  // Keep ref in sync with prop
+  useEffect(() => { mutedRef.current = muted; }, [muted]);
 
   const hlsUrl = episode.playbackId
     ? `https://stream.mux.com/${episode.playbackId}.m3u8`
@@ -135,15 +139,15 @@ function EpisodeSlide({
     setLoading(false);
   }, [isActive, isNear]);
 
-  /* Step 2: Play/pause based on isActive (separate from attach) */
+  /* Step 2: Play/pause based on isActive */
   useEffect(() => {
     const vid = videoRef.current;
     if (!vid) return;
 
     if (isActive) {
       setLoading(true);
-      // Set muted from prop BEFORE playing (single source of truth)
-      vid.muted = muted;
+      // Read current muted from ref (never stale)
+      vid.muted = mutedRef.current;
       vid.play()
         .then(() => {
           setPlaying(true);
@@ -151,23 +155,32 @@ function EpisodeSlide({
           trackEpisodeStart(seriesSlug, episode.number);
         })
         .catch(() => {
-          // Autoplay blocked — try muted
+          // Autoplay blocked — try muted, then restore preference once playing
           vid.muted = true;
           vid.play()
-            .then(() => { setPlaying(true); setLoading(false); })
+            .then(() => {
+              setPlaying(true);
+              setLoading(false);
+              // Restore user preference after autoplay succeeds
+              setTimeout(() => {
+                if (vid && !mutedRef.current) {
+                  vid.muted = false;
+                }
+              }, 100);
+            })
             .catch(() => { setLoading(false); });
         });
     } else {
       vid.pause();
       setPlaying(false);
     }
-  }, [isActive]); // Only depends on isActive, NOT on muted
+  }, [isActive]);
 
-  /* Step 3: Sync muted prop to video element (only effect that touches muted) */
+  /* Step 3: Sync muted prop instantly to video element */
   useEffect(() => {
     const vid = videoRef.current;
-    if (vid && playing) vid.muted = muted;
-  }, [muted, playing]);
+    if (vid) vid.muted = muted;
+  }, [muted]);
 
   /* Time update → progress bar + auto-advance on ended */
   useEffect(() => {

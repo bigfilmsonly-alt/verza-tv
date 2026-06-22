@@ -92,6 +92,7 @@ function HorizontalCard({ video, index }: { video: HorizontalVideo; index: numbe
       await attachHls();
       const vid = videoRef.current;
       if (!vid) return;
+      vid.muted = videoMuted;
       try {
         await vid.play();
         setPlaying(true);
@@ -102,6 +103,8 @@ function HorizontalCard({ video, index }: { video: HorizontalVideo; index: numbe
           await vid.play();
           setPlaying(true);
           setLoading(false);
+          // Restore preference after autoplay succeeds
+          setTimeout(() => { if (vid && !videoMuted) vid.muted = false; }, 100);
         } catch {
           setLoading(false);
         }

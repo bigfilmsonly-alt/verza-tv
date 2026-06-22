@@ -71,8 +71,12 @@ function ShortVideo({ playbackId, isActive, muted }: {
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<HlsType | null>(null);
+  const mutedRef = useRef(muted);
   const [started, setStarted] = useState(false);
   const [autoplayFailed, setAutoplayFailed] = useState(false);
+
+  // Keep ref in sync
+  useEffect(() => { mutedRef.current = muted; }, [muted]);
 
   /* Only run when isActive — cleanup tears down everything */
   useEffect(() => {
@@ -86,16 +90,20 @@ function ShortVideo({ playbackId, isActive, muted }: {
 
     function tryPlay() {
       if (cancelled || !vid) return;
-      /* First attempt: use current muted preference */
-      vid.muted = muted;
+      vid.muted = mutedRef.current;
       vid.play()
         .then(() => { if (!cancelled) setAutoplayFailed(false); })
         .catch(() => {
           if (!cancelled) {
-            /* Autoplay with sound blocked — fall back to muted */
             vid.muted = true;
             vid.play()
-              .then(() => { if (!cancelled) setAutoplayFailed(false); })
+              .then(() => {
+                if (!cancelled) setAutoplayFailed(false);
+                // Restore user preference after autoplay succeeds
+                setTimeout(() => {
+                  if (vid && !mutedRef.current) vid.muted = false;
+                }, 100);
+              })
               .catch(() => {
                 if (!cancelled) setAutoplayFailed(true);
               });
@@ -109,14 +117,12 @@ function ShortVideo({ playbackId, isActive, muted }: {
     async function attach() {
       if (cancelled || !vid) return;
 
-      /* Safari / iOS — native HLS */
       if (vid.canPlayType("application/vnd.apple.mpegurl")) {
         vid.src = hlsUrl;
         tryPlay();
         return;
       }
 
-      /* Chrome / Firefox — hls.js */
       const Hls = await getHls();
       if (cancelled || !Hls || !Hls.isSupported() || !vid) return;
 
@@ -151,6 +157,7 @@ function ShortVideo({ playbackId, isActive, muted }: {
     };
   }, [isActive, playbackId]);
 
+  // Sync muted prop to video element instantly
   useEffect(() => {
     const vid = videoRef.current;
     if (vid) vid.muted = muted;
@@ -160,7 +167,7 @@ function ShortVideo({ playbackId, isActive, muted }: {
   function handleTap() {
     const vid = videoRef.current;
     if (!vid) return;
-    vid.muted = true;
+    vid.muted = mutedRef.current;
     vid.play().catch(() => {});
   }
 
