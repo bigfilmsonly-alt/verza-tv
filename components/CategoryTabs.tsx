@@ -36,7 +36,7 @@ export default function CategoryTabs({ active, onSelect, tabs }: CategoryTabsPro
             >
               <span
                 className="text-[17px] font-black uppercase tracking-wide"
-                style={{ color: "#FFFFFF" }}
+                style={{ color: isActive ? "#E0115F" : "rgba(255,255,255,0.5)" }}
               >
                 {label}
               </span>
