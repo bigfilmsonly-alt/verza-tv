@@ -49,6 +49,7 @@ function Poster({ src, alt }: { src: string; alt: string }) {
       fill
       sizes="(max-width: 440px) 33vw, 146px"
       className="object-cover"
+      style={{ objectPosition: "top" }}
     />
   );
 }
