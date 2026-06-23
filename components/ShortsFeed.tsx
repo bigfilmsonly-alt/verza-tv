@@ -10,7 +10,7 @@ import { T } from "@/lib/theme";
 import { MUX_MAP } from "@/lib/mux-map";
 import { useTranslation } from "@/components/LangProvider";
 
-/* ---- Load hls.js once (dynamic import with typeof window guard — iOS Safari fix) ---- */
+/* ---- Load hls.js once ---- */
 let hlsPromise: Promise<typeof HlsType | null> | null = null;
 function getHls(): Promise<typeof HlsType | null> {
   if (!hlsPromise && typeof window !== "undefined") {
@@ -64,177 +64,10 @@ function RailButton({ children, label, onClick }: {
 }
 
 /* ================================================================== */
-/*  ShortVideo — auto-plays when isActive, tears down when not         */
+/*  ShortCard — one slide (lightweight, NO video element)              */
 /* ================================================================== */
-function ShortVideo({ playbackId, isActive, muted }: {
-  playbackId: string; isActive: boolean; muted: boolean;
-}) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const hlsRef = useRef<HlsType | null>(null);
-  const mutedRef = useRef(muted);
-  const [started, setStarted] = useState(false);
-  const [autoplayFailed, setAutoplayFailed] = useState(false);
-
-  // Keep ref in sync
-  useEffect(() => { mutedRef.current = muted; }, [muted]);
-
-  /* Attach HLS and play on mount — component only exists when active */
-  useEffect(() => {
-    const vid = videoRef.current;
-    if (!vid) return;
-
-    let cancelled = false;
-    let retryTimer: ReturnType<typeof setTimeout> | null = null;
-    const hlsUrl = `https://stream.mux.com/${playbackId}.m3u8`;
-
-    function tryPlay() {
-      if (cancelled || !vid) return;
-      vid.muted = true;
-      const p = vid.play();
-      if (p) {
-        p.then(() => {
-          if (cancelled) return;
-          setAutoplayFailed(false);
-          if (!mutedRef.current) vid.muted = false;
-        }).catch(() => {
-          if (!cancelled) setAutoplayFailed(true);
-        });
-      }
-    }
-
-    function onPlaying() {
-      if (!cancelled) { setStarted(true); setAutoplayFailed(false); }
-    }
-    vid.addEventListener("playing", onPlaying);
-
-    // Give iOS time to release the previous video's decoder
-    // Use requestAnimationFrame + setTimeout for proper frame timing
-    const startTimer = setTimeout(() => {
-      if (cancelled || !vid) return;
-
-      // Safari / iOS — native HLS
-      if (vid.canPlayType("application/vnd.apple.mpegurl")) {
-        vid.src = hlsUrl;
-        vid.addEventListener("canplay", () => { if (!cancelled) tryPlay(); }, { once: true });
-        vid.addEventListener("loadedmetadata", () => { if (!cancelled) tryPlay(); }, { once: true });
-        vid.load();
-
-        // Safety retry: if video hasn't started after 2s, try again
-        retryTimer = setTimeout(() => {
-          if (!cancelled && vid && !vid.currentTime) {
-            vid.load();
-            tryPlay();
-          }
-        }, 2000);
-        return;
-      }
-
-      // Chrome / Firefox — hls.js
-      getHls().then((Hls) => {
-        if (cancelled || !Hls || !Hls.isSupported() || !vid) return;
-        const hls = new Hls({ maxBufferLength: 15, enableWorker: true });
-        hlsRef.current = hls;
-        hls.loadSource(hlsUrl);
-        hls.attachMedia(vid);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => { if (!cancelled) tryPlay(); });
-        hls.on(Hls.Events.ERROR, (_e: string, data: { type: string; fatal: boolean }) => {
-          if (data.fatal && Hls) {
-            if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hls.startLoad();
-            else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
-          }
-        });
-
-        // Safety retry for hls.js too
-        retryTimer = setTimeout(() => {
-          if (!cancelled && vid && !vid.currentTime) tryPlay();
-        }, 2000);
-      });
-    }, 100);
-
-    return () => {
-      cancelled = true;
-      clearTimeout(startTimer);
-      if (retryTimer) clearTimeout(retryTimer);
-      vid.removeEventListener("playing", onPlaying);
-      if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
-      vid.muted = true;
-      vid.pause();
-      vid.removeAttribute("src");
-      vid.load();
-      setStarted(false);
-      setAutoplayFailed(false);
-    };
-  }, [playbackId]);
-
-  // Sync muted prop to video element instantly
-  useEffect(() => {
-    const vid = videoRef.current;
-    if (vid) vid.muted = muted;
-  }, [muted]);
-
-  /* Fallback: tap to play if autoplay was blocked */
-  function handleTap() {
-    const vid = videoRef.current;
-    if (!vid) return;
-    // User gesture — can play with sound
-    vid.muted = false;
-    vid.play()
-      .then(() => { setAutoplayFailed(false); })
-      .catch(() => {
-        // Last resort: play muted
-        vid.muted = true;
-        vid.play().catch(() => {});
-      });
-  }
-
-  return (
-    <>
-      <video
-        ref={videoRef}
-        playsInline
-        muted
-        loop
-        preload="auto"
-        className="absolute inset-0 w-full h-full object-cover"
-        style={{
-          background: "#000",
-          opacity: started ? 1 : 0,
-          zIndex: started ? 2 : 0,
-          transition: "opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
-          willChange: "opacity",
-        }}
-      />
-      {/* Tap-to-play fallback if autoplay was blocked */}
-      {isActive && autoplayFailed && !started && (
-        <button
-          onClick={handleTap}
-          className="absolute inset-0 z-10 flex items-center justify-center"
-          style={{ background: "transparent", border: "none", cursor: "pointer" }}
-          aria-label="Tap to play"
-        >
-          <div
-            className="w-16 h-16 rounded-full flex items-center justify-center"
-            style={{
-              background: "rgba(0,0,0,0.5)",
-              backdropFilter: "blur(6px)",
-              border: "2px solid rgba(255,255,255,0.3)",
-            }}
-          >
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="#fff">
-              <path d="M8 5.14v13.72a1 1 0 0 0 1.5.86l11.04-6.86a1 1 0 0 0 0-1.72L9.5 4.28A1 1 0 0 0 8 5.14z" />
-            </svg>
-          </div>
-        </button>
-      )}
-    </>
-  );
-}
-
-/* ================================================================== */
-/*  ShortCard — one slide in the horizontal carousel                   */
-/* ================================================================== */
-function ShortCard({ series, isActive, isNearActive, muted, setMuted, saved, onToggleSave }: {
-  series: Series; isActive: boolean; isNearActive: boolean;
+function ShortCard({ series, isActive, muted, setMuted, saved, onToggleSave }: {
+  series: Series; isActive: boolean;
   muted: boolean; setMuted: (m: boolean) => void;
   saved: boolean; onToggleSave: (slug: string) => void;
 }) {
@@ -243,7 +76,6 @@ function ShortCard({ series, isActive, isNearActive, muted, setMuted, saved, onT
   const [showCopied, setShowCopied] = useState(false);
   const likeCount = pseudoCount(series.slug, 1, 50);
   const epNum = pseudoCount(series.slug, 1, 5);
-  const playbackId = MUX_MAP[series.slug]?.[0]?.playbackId ?? null;
 
   const shareUrl = typeof window !== "undefined"
     ? `${window.location.origin}/series/${series.slug}`
@@ -251,44 +83,19 @@ function ShortCard({ series, isActive, isNearActive, muted, setMuted, saved, onT
 
   function handleShare() {
     if (typeof navigator !== "undefined" && navigator.share) {
-      navigator.share({
-        title: series.title,
-        text: `Watch "${series.title}" on Verza TV`,
-        url: shareUrl,
-      }).catch(() => {});
+      navigator.share({ title: series.title, text: `Watch "${series.title}" on Verza TV`, url: shareUrl }).catch(() => {});
     } else {
-      navigator.clipboard.writeText(shareUrl).then(() => {
-        setShowCopied(true);
-        setTimeout(() => setShowCopied(false), 2000);
-      }).catch(() => {});
+      navigator.clipboard.writeText(shareUrl).then(() => { setShowCopied(true); setTimeout(() => setShowCopied(false), 2000); }).catch(() => {});
     }
-  }
-
-  function handleSave() {
-    onToggleSave(series.slug);
   }
 
   return (
     <div
       className="relative flex-shrink-0 overflow-hidden"
-      style={{
-        width: "100%",
-        height: "100%",
-        background: "#07070E",
-      }}
+      style={{ width: "100%", height: "100%", background: "#000" }}
     >
-      {/* Video — ONLY rendered for the active card (1 video element max) */}
-      {isActive && playbackId && (
-        <ShortVideo
-          key={playbackId}
-          playbackId={playbackId}
-          isActive={true}
-          muted={muted}
-        />
-      )}
-
-      {/* Thumbnail — poster image behind video */}
-      {series.posterUrl ? (
+      {/* Poster — always visible behind the shared video player */}
+      {series.posterUrl && (
         <Image
           src={series.posterUrl}
           alt={series.title}
@@ -297,63 +104,31 @@ function ShortCard({ series, isActive, isNearActive, muted, setMuted, saved, onT
           sizes="100vw"
           priority={isActive}
         />
-      ) : playbackId ? (
-        <img
-          src={`https://image.mux.com/${playbackId}/thumbnail.jpg?time=3&width=720&height=1280`}
-          alt={series.title}
-          className="absolute inset-0 w-full h-full object-cover"
-          loading="lazy"
-        />
-      ) : null}
-
-      {!playbackId && series.posterUrl && (
-        <Image
-          src={series.posterUrl}
-          alt={series.title}
-          fill
-          className="absolute inset-0 object-cover"
-          sizes="100vw"
-        />
       )}
 
       {/* Vignette */}
       <div
         className="absolute inset-0 pointer-events-none"
-        style={{
-          background: "linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 15%, transparent 70%, rgba(0,0,0,0.3) 100%)",
-        }}
+        style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 15%, transparent 70%, rgba(0,0,0,0.3) 100%)" }}
       />
 
       {/* Top-left: title + episode chip */}
       <div className="absolute top-4 left-4 z-10" style={{ maxWidth: "65%" }}>
-        <h2
-          className="text-base font-bold leading-tight mb-1.5"
-          style={{ color: "#fff", textShadow: "0 1px 6px rgba(0,0,0,0.8)" }}
-        >
+        <h2 className="text-base font-bold leading-tight mb-1.5" style={{ color: "#fff", textShadow: "0 1px 6px rgba(0,0,0,0.8)" }}>
           {series.title}
         </h2>
-        <div
-          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full"
-          style={{ background: "rgba(50,50,50,0.7)", backdropFilter: "blur(4px)" }}
-        >
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full" style={{ background: "rgba(50,50,50,0.7)", backdropFilter: "blur(4px)" }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <polygon points="12 2 2 7 12 12 22 7 12 2" />
-            <polyline points="2 17 12 22 22 17" />
-            <polyline points="2 12 12 17 22 12" />
+            <polygon points="12 2 2 7 12 12 22 7 12 2" /><polyline points="2 17 12 22 22 17" /><polyline points="2 12 12 17 22 12" />
           </svg>
           <span className="text-xs font-semibold" style={{ color: "#fff" }}>EP.{epNum} S1</span>
         </div>
       </div>
 
       {/* Top-right: close */}
-      <Link
-        href="/"
-        className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center no-underline"
-        style={{ background: "rgba(50,50,50,0.7)", backdropFilter: "blur(4px)" }}
-      >
+      <Link href="/" className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center no-underline" style={{ background: "rgba(50,50,50,0.7)", backdropFilter: "blur(4px)" }}>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <line x1="18" y1="6" x2="6" y2="18" />
-          <line x1="6" y1="6" x2="18" y2="18" />
+          <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
         </svg>
       </Link>
 
@@ -361,9 +136,7 @@ function ShortCard({ series, isActive, isNearActive, muted, setMuted, saved, onT
       <div className="absolute right-3 flex flex-col items-center gap-4 z-10" style={{ top: "28%" }}>
         <Link href={`/series/${series.slug}`} className="block no-underline">
           <div className="relative w-12 h-16 rounded-lg overflow-hidden" style={{ border: "2px solid rgba(255,255,255,0.4)" }}>
-            {series.posterUrl && (
-              <Image src={series.posterUrl} alt={series.title} fill className="object-cover" sizes="48px" />
-            )}
+            {series.posterUrl && <Image src={series.posterUrl} alt={series.title} fill className="object-cover" sizes="48px" />}
           </div>
         </Link>
 
@@ -373,31 +146,27 @@ function ShortCard({ series, isActive, isNearActive, muted, setMuted, saved, onT
           </svg>
         </RailButton>
 
-        <RailButton label={saved ? t("shorts.saved") : t("shorts.list")} onClick={handleSave}>
+        <RailButton label={saved ? "Saved" : "List"} onClick={() => onToggleSave(series.slug)}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill={saved ? T.accent : "none"} stroke={saved ? T.accent : "#fff"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
           </svg>
         </RailButton>
 
-        <RailButton label={showCopied ? t("shorts.copied") : t("shorts.share")} onClick={handleShare}>
+        <RailButton label={showCopied ? "Copied!" : "Share"} onClick={handleShare}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={showCopied ? T.accent : "#fff"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
-            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
           </svg>
         </RailButton>
 
-        <RailButton label={muted ? t("shorts.soundOff") : t("shorts.soundOn")} onClick={() => { const next = !muted; setMuted(next); localStorage.setItem("verza-muted", String(next)); }}>
+        <RailButton label={muted ? "Off" : "On"} onClick={() => { const next = !muted; setMuted(next); localStorage.setItem("verza-muted", String(next)); }}>
           {muted ? (
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-              <line x1="23" y1="9" x2="17" y2="15" /><line x1="17" y1="9" x2="23" y2="15" />
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" /><line x1="23" y1="9" x2="17" y2="15" /><line x1="17" y1="9" x2="23" y2="15" />
             </svg>
           ) : (
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-              <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-              <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" /><path d="M19.07 4.93a10 10 0 0 1 0 14.14" /><path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
             </svg>
           )}
         </RailButton>
@@ -407,7 +176,7 @@ function ShortCard({ series, isActive, isNearActive, muted, setMuted, saved, onT
 }
 
 /* ================================================================== */
-/*  ShortsFeed — horizontal carousel with left/right arrows            */
+/*  ShortsFeed — SINGLE persistent video element, source swapping      */
 /* ================================================================== */
 export default function ShortsFeed({ series }: { series: Series[] }) {
   const [shuffled, setShuffled] = useState<Series[]>([]);
@@ -416,45 +185,37 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
   const [savedSlugs, setSavedSlugs] = useState<Set<string>>(new Set());
   const containerRef = useRef<HTMLDivElement>(null);
 
-  /* Fetch saved list on mount — API + localStorage fallback */
+  // THE single video element — never destroyed, source swapped
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const hlsRef = useRef<HlsType | null>(null);
+  const currentPlaybackIdRef = useRef<string | null>(null);
+  const mutedRef = useRef(muted);
+  useEffect(() => { mutedRef.current = muted; }, [muted]);
+
+  /* Fetch saved list */
   useEffect(() => {
-    // Load from localStorage first (works for guests)
     try {
       const local = localStorage.getItem("verza-saved");
       if (local) setSavedSlugs(new Set(JSON.parse(local)));
     } catch {}
-
-    // Then try API (works for signed-in users)
-    fetch("/api/saved-list")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.items && data.items.length > 0) {
-          const slugs = data.items.map((i: { seriesSlug: string }) => i.seriesSlug);
-          setSavedSlugs(new Set(slugs));
-          localStorage.setItem("verza-saved", JSON.stringify(slugs));
-        }
-      })
-      .catch(() => {});
+    fetch("/api/saved-list").then((r) => r.json()).then((data) => {
+      if (data.items?.length > 0) {
+        const slugs = data.items.map((i: { seriesSlug: string }) => i.seriesSlug);
+        setSavedSlugs(new Set(slugs));
+        localStorage.setItem("verza-saved", JSON.stringify(slugs));
+      }
+    }).catch(() => {});
   }, []);
 
-  /* Toggle save/unsave — saves to both API + localStorage */
   const handleToggleSave = useCallback((slug: string) => {
-    const isSaved = savedSlugs.has(slug);
-
-    // Optimistic update
     setSavedSlugs((prev) => {
       const next = new Set(prev);
-      if (isSaved) next.delete(slug);
-      else next.add(slug);
-      // Persist to localStorage (always works, even for guests)
+      if (prev.has(slug)) next.delete(slug); else next.add(slug);
       localStorage.setItem("verza-saved", JSON.stringify([...next]));
       return next;
     });
-
-    // Also persist to API (works if signed in)
-    const method = isSaved ? "DELETE" : "POST";
     fetch("/api/saved-list", {
-      method,
+      method: savedSlugs.has(slug) ? "DELETE" : "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ seriesSlug: slug }),
     }).catch(() => {});
@@ -462,11 +223,81 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
 
   useEffect(() => {
     const withMux = series.filter((s) => MUX_MAP[s.slug]?.length > 0);
-    // Limit to 15 cards — keeps DOM light, prevents iOS memory pressure
     setShuffled(shuffleArray(withMux).slice(0, 15));
   }, [series]);
 
-  /* Horizontal IntersectionObserver */
+  /* ---- SINGLE PLAYER: swap source when activeIndex changes ---- */
+  useEffect(() => {
+    const vid = videoRef.current;
+    if (!vid || shuffled.length === 0) return;
+
+    const activeSeries = shuffled[activeIndex];
+    if (!activeSeries) return;
+    const playbackId = MUX_MAP[activeSeries.slug]?.[0]?.playbackId;
+    if (!playbackId) return;
+
+    // Skip if already playing this source
+    if (currentPlaybackIdRef.current === playbackId) return;
+    currentPlaybackIdRef.current = playbackId;
+
+    const hlsUrl = `https://stream.mux.com/${playbackId}.m3u8`;
+    let cancelled = false;
+
+    // Destroy previous HLS instance (but keep the SAME video element)
+    if (hlsRef.current) {
+      hlsRef.current.destroy();
+      hlsRef.current = null;
+    }
+
+    // Pause and clear previous source
+    vid.pause();
+    vid.removeAttribute("src");
+
+    function doPlay() {
+      if (cancelled || !vid) return;
+      vid.muted = true;
+      const p = vid.play();
+      if (p) {
+        p.then(() => {
+          if (!cancelled && !mutedRef.current) vid.muted = false;
+        }).catch(() => {});
+      }
+    }
+
+    // Safari / iOS — native HLS
+    if (vid.canPlayType("application/vnd.apple.mpegurl")) {
+      vid.src = hlsUrl;
+      vid.addEventListener("canplay", () => { if (!cancelled) doPlay(); }, { once: true });
+      vid.load();
+      return () => { cancelled = true; };
+    }
+
+    // Chrome / Firefox — hls.js
+    getHls().then((Hls) => {
+      if (cancelled || !Hls || !Hls.isSupported() || !vid) return;
+      const hls = new Hls({ maxBufferLength: 15, enableWorker: true });
+      hlsRef.current = hls;
+      hls.loadSource(hlsUrl);
+      hls.attachMedia(vid);
+      hls.on(Hls.Events.MANIFEST_PARSED, () => { if (!cancelled) doPlay(); });
+      hls.on(Hls.Events.ERROR, (_e: string, data: { type: string; fatal: boolean }) => {
+        if (data.fatal && Hls) {
+          if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hls.startLoad();
+          else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
+        }
+      });
+    });
+
+    return () => { cancelled = true; };
+  }, [activeIndex, shuffled]);
+
+  /* Sync muted */
+  useEffect(() => {
+    const vid = videoRef.current;
+    if (vid) vid.muted = muted;
+  }, [muted]);
+
+  /* IntersectionObserver — stable, created once */
   const observerCallback = useCallback(
     (entries: IntersectionObserverEntry[]) => {
       for (const entry of entries) {
@@ -493,12 +324,18 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
   if (shuffled.length === 0) return null;
 
   return (
-    <div
-      className="episode-immersive"
-      style={{
-        background: "#000",
-      }}
-    >
+    <div className="episode-immersive" style={{ background: "#000" }}>
+      {/* THE single persistent video element — positioned over the active card */}
+      <video
+        ref={videoRef}
+        playsInline
+        muted
+        loop
+        preload="auto"
+        className="absolute inset-0 w-full h-full object-cover"
+        style={{ zIndex: 3, background: "#000" }}
+      />
+
       {/* Horizontal scroll container */}
       <div
         ref={containerRef}
@@ -511,13 +348,14 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
           scrollBehavior: "auto",
           width: "100%",
           height: "var(--feed-h, 100dvh)",
+          position: "relative",
+          zIndex: 4,
         }}
       >
         {shuffled.map((s, i) => (
           <div
             key={s.slug}
             data-index={i}
-            className="short-card"
             style={{
               flex: "0 0 100%",
               width: "100%",
@@ -529,7 +367,6 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
             <ShortCard
               series={s}
               isActive={i === activeIndex}
-              isNearActive={Math.abs(i - activeIndex) <= 1}
               muted={muted}
               setMuted={setMuted}
               saved={savedSlugs.has(s.slug)}
@@ -544,7 +381,7 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
         className="absolute z-30 flex items-center gap-1.5"
         style={{ bottom: 16, left: "50%", transform: "translateX(-50%)" }}
       >
-        {shuffled.slice(0, Math.min(shuffled.length, 20)).map((_, i) => (
+        {shuffled.slice(0, Math.min(shuffled.length, 15)).map((_, i) => (
           <div
             key={i}
             className="rounded-full transition-all duration-200"
