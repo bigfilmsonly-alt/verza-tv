@@ -87,10 +87,10 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
 
   // Reality show data (posters may not exist yet — uses styled placeholders)
   const realityShows = [
-    { title: "Storage Pirates", poster: "/posters/storage-pirates.jpg", href: "/horizontal" },
-    { title: "The Vertical Tea", poster: "/posters/the-vertical-tea.png", href: null },
-    { title: "Sugar Babies", poster: "/posters/sugar-babies.jpg", href: null },
-    { title: "Buy/Sell Miami", poster: "/posters/buy-sell-miami.png", href: null },
+    { title: "Storage Pirates", poster: "/posters/storage-pirates.jpg" },
+    { title: "The Vertical Tea", poster: "/posters/the-vertical-tea.png" },
+    { title: "Sugar Babies", poster: "/posters/sugar-babies.jpg" },
+    { title: "Buy/Sell Miami", poster: "/posters/buy-sell-miami.png" },
   ];
 
   // Fetch continue watching data
@@ -221,17 +221,9 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         return (
           <div>
             <div className="relative">
-              {currentShow.href ? (
-                <Link href={currentShow.href} className="block">
-                  <div className="relative w-full overflow-hidden" style={{ aspectRatio: "2 / 3", background: "#000" }}>
-                    <Image src={currentShow.poster} alt={currentShow.title} fill priority sizes="100vw" className="object-cover" style={{ objectPosition: "top" }} />
-                  </div>
-                </Link>
-              ) : (
-                <div className="relative w-full overflow-hidden" style={{ aspectRatio: "2 / 3", background: "#000" }}>
-                  <Image src={currentShow.poster} alt={currentShow.title} fill priority sizes="100vw" className="object-cover" style={{ objectPosition: "top" }} />
-                </div>
-              )}
+              <div className="relative w-full overflow-hidden" style={{ aspectRatio: "2 / 3", background: "#000" }}>
+                <Image src={currentShow.poster} alt={currentShow.title} fill priority sizes="100vw" className="object-cover" style={{ objectPosition: "top" }} />
+              </div>
 
               {/* Bottom gradient */}
               <div className="absolute bottom-0 left-0 right-0 pointer-events-none" style={{ height: 80, background: "linear-gradient(to top, #07070E, transparent)", zIndex: 5 }} />
