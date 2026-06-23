@@ -102,7 +102,7 @@ export default function BottomNav() {
             <Link
               key={tab.href}
               href={tab.href}
-              className="relative flex flex-col items-center justify-center gap-1 flex-1 no-underline"
+              className="relative flex flex-col items-center justify-center gap-1 flex-1 no-underline transition-transform active:scale-95"
               style={{ WebkitTapHighlightColor: "transparent" }}
             >
               {active && (
@@ -116,7 +116,11 @@ export default function BottomNav() {
                   }}
                 />
               )}
-              {tab.icon(color)}
+              <span
+                style={active ? { filter: "drop-shadow(0 0 6px rgba(224,17,95,0.5))" } : undefined}
+              >
+                {tab.icon(color)}
+              </span>
               <span
                 className="text-[11px] font-medium leading-none"
                 style={{ color }}

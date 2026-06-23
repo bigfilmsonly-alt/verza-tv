@@ -322,6 +322,12 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               </div>
             </Link>
 
+            {/* Bottom gradient fade */}
+            <div
+              className="absolute bottom-0 left-0 right-0 pointer-events-none"
+              style={{ height: 80, background: "linear-gradient(to top, #07070E, transparent)", zIndex: 5 }}
+            />
+
             {heroSlides.length > 1 && (
               <>
                 <button
@@ -360,7 +366,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                     style={{
                       width: i === heroIdx % heroSlides.length ? 20 : 6,
                       height: 6,
-                      background: i === heroIdx % heroSlides.length ? "#E0115F" : "rgba(255,255,255,0.3)",
+                      background: i === heroIdx % heroSlides.length ? "linear-gradient(90deg, #E0115F, #8B5CF6)" : "rgba(255,255,255,0.4)",
                       transition: "width 0.3s",
                     }}
                   />
@@ -376,7 +382,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         <section className="mt-4 pb-4 px-3">
           <div className="poster-grid grid grid-cols-3 gap-1.5">
             {gridItems.map((s) => (
-              <Link key={s.slug} href={`/series/${s.slug}/1`} className="group block no-underline min-w-0">
+              <Link key={s.slug} href={`/series/${s.slug}/1`} className="group block no-underline min-w-0 transition-transform active:scale-[0.97]">
                 <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
                   <Poster src={s.posterUrl} alt={s.title} />
                   {s.popularRank && s.popularRank <= 5 && <Badge type="trending" />}
@@ -410,7 +416,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         <h2 className="text-sm font-semibold uppercase tracking-wider mb-3 px-1" style={{ color: "#8A8A9A" }}>{t("browse.allShows")}</h2>
         <div className="poster-grid grid grid-cols-3 gap-1.5">
           {liveSeries.map((s) => (
-            <Link key={s.slug} href={`/series/${s.slug}/1`} className="group block no-underline min-w-0">
+            <Link key={s.slug} href={`/series/${s.slug}/1`} className="group block no-underline min-w-0 transition-transform active:scale-[0.97]">
               <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
                 <Poster src={s.posterUrl} alt={s.title} />
                 {s.popularRank && s.popularRank <= 6 && <Badge type="trending" />}

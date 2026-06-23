@@ -589,7 +589,7 @@ export default function EpisodeFeed({
       <button
         onClick={() => router.push("/")}
         className="absolute top-4 left-4 z-50 w-10 h-10 rounded-full flex items-center justify-center border-0 cursor-pointer"
-        style={{ background: "rgba(0,0,0,0.35)", backdropFilter: "blur(16px)" }}
+        style={{ background: "rgba(0,0,0,0.35)", backdropFilter: "blur(20px)" }}
         aria-label="Back"
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -601,7 +601,7 @@ export default function EpisodeFeed({
       <button
         onClick={toggleMute}
         className="absolute top-4 right-4 z-50 w-10 h-10 rounded-full flex items-center justify-center border-0 cursor-pointer"
-        style={{ background: "rgba(0,0,0,0.35)", backdropFilter: "blur(16px)" }}
+        style={{ background: "rgba(0,0,0,0.35)", backdropFilter: "blur(20px)" }}
         aria-label={muted ? "Unmute" : "Mute"}
       >
         {muted ? (
@@ -620,18 +620,20 @@ export default function EpisodeFeed({
 
       {/* Episode badge — bottom-left */}
       <div className="absolute bottom-6 left-4 z-50 pointer-events-none">
-        <p className="text-[10px] font-medium mb-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>
-          {seriesTitle}
-        </p>
-        <p className="text-[13px] font-bold" style={{ color: "rgba(255,255,255,0.85)" }}>
-          EP {activeEp?.number} <span style={{ color: "rgba(255,255,255,0.3)", fontWeight: 400 }}>/ {totalEpisodes}</span>
-        </p>
+        <div style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(12px)", borderRadius: 12, padding: "6px 10px" }}>
+          <p className="text-[10px] font-medium mb-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>
+            {seriesTitle}
+          </p>
+          <p className="text-[13px] font-bold" style={{ color: "rgba(255,255,255,0.85)" }}>
+            EP {activeEp?.number} <span style={{ color: "rgba(255,255,255,0.3)", fontWeight: 400 }}>/ {totalEpisodes}</span>
+          </p>
+        </div>
       </div>
 
       {/* Live playback progress bar — very bottom */}
       <div
         className="absolute bottom-0 left-0 right-0 z-50 pointer-events-none"
-        style={{ height: 3 }}
+        style={{ height: 4 }}
       >
         <div
           style={{
@@ -640,6 +642,7 @@ export default function EpisodeFeed({
             background: "linear-gradient(90deg, #E0115F, #8B5CF6)",
             transition: "width 0.25s linear",
             borderRadius: "0 2px 2px 0",
+            boxShadow: "0 0 8px rgba(224,17,95,0.3)",
           }}
         />
       </div>
@@ -681,7 +684,7 @@ export default function EpisodeFeed({
                 }
               }}
               disabled={unlockLoading}
-              className="w-full py-4 rounded-2xl text-base font-bold border-0 cursor-pointer transition-transform active:scale-[0.97]"
+              className="glow-pulse w-full py-4 rounded-2xl text-base font-bold border-0 cursor-pointer transition-transform active:scale-[0.97]"
               style={{
                 background: "linear-gradient(135deg, #E0115F, #8B5CF6)",
                 color: "#fff",

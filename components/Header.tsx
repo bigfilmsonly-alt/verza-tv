@@ -13,6 +13,7 @@ export default function Header() {
         background: "rgba(7, 7, 14, 0.95)",
         backdropFilter: "blur(16px)",
         WebkitBackdropFilter: "blur(16px)",
+        boxShadow: "0 1px 8px rgba(0,0,0,0.3)",
       }}
     >
       {/* Left — language dropdown */}

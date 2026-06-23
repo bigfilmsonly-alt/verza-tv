@@ -12,7 +12,7 @@ type LibraryTab = "channels" | "my-list";
 /* ---- Poster thumbnail ---- */
 function PosterThumb({ series }: { series: Series }) {
   return (
-    <Link href={`/series/${series.slug}/1`} className="flex-shrink-0 no-underline group">
+    <Link href={`/series/${series.slug}/1`} className="flex-shrink-0 no-underline group transition-transform active:scale-[0.97]">
       <div className="w-[100px] h-[150px] rounded-lg overflow-hidden relative" style={{ background: T.raised }}>
         {series.posterUrl ? (
           <Image src={series.posterUrl} alt={series.title} fill sizes="100px" className="object-cover transition-transform group-hover:scale-105" />
@@ -88,7 +88,7 @@ function ChannelsContent() {
           </p>
           <Link
             href="/studio"
-            className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-bold no-underline transition-transform active:scale-[0.97]"
+            className="glow-pulse flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-bold no-underline transition-transform active:scale-[0.97]"
             style={{
               background: "linear-gradient(135deg, #E0115F, #8B5CF6)",
               color: "#fff",
@@ -258,7 +258,7 @@ function MyListContent() {
     <div className="flex flex-col gap-3">
       {items.map((item) => (
         <div key={item.seriesSlug} className="flex gap-3 rounded-xl overflow-hidden" style={{ background: T.surface, border: `1px solid ${T.line}` }}>
-          <Link href={`/series/${item.seriesSlug}/1`} className="flex-shrink-0 no-underline">
+          <Link href={`/series/${item.seriesSlug}/1`} className="flex-shrink-0 no-underline transition-transform active:scale-[0.97]">
             <div className="w-[72px] h-[108px] relative">
               {item.posterUrl ? (
                 <Image src={item.posterUrl} alt={item.seriesTitle} fill sizes="72px" className="object-cover" />

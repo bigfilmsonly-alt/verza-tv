@@ -36,7 +36,7 @@ export default function ShopPage() {
           <Link
             key={product.id}
             href={`/shop/${product.slug}`}
-            className="rounded-xl overflow-hidden no-underline transition-transform active:scale-95 hover:scale-[1.02]"
+            className="rounded-xl overflow-hidden no-underline transition-transform active:scale-[0.97] hover:scale-[1.02]"
             style={{ background: T.surface, border: `1px solid ${T.line}` }}
           >
             {/* Product Image */}
