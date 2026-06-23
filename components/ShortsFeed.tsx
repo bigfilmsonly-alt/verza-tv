@@ -475,7 +475,7 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
     });
     container.querySelectorAll("[data-index]").forEach((card) => observer.observe(card));
     return () => observer.disconnect();
-  }, [shuffled, observerCallback]);
+  }, [shuffled, observerCallback, activeIndex]);
 
   if (shuffled.length === 0) return null;
 
@@ -500,7 +500,14 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
           height: "var(--feed-h, 100dvh)",
         }}
       >
-        {shuffled.map((s, i) => (
+        {/* Left spacer for virtualized window */}
+        {activeIndex > 2 && (
+          <div style={{ flex: `0 0 ${(activeIndex - 2) * 100}%`, width: `${(activeIndex - 2) * 100}%` }} />
+        )}
+
+        {shuffled.slice(Math.max(0, activeIndex - 2), Math.min(shuffled.length, activeIndex + 3)).map((s, wi) => {
+          const i = Math.max(0, activeIndex - 2) + wi;
+          return (
           <div
             key={s.slug}
             data-index={i}
@@ -523,7 +530,13 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
               onToggleSave={handleToggleSave}
             />
           </div>
-        ))}
+          );
+        })}
+
+        {/* Right spacer for virtualized window */}
+        {activeIndex + 3 < shuffled.length && (
+          <div style={{ flex: `0 0 ${(shuffled.length - activeIndex - 3) * 100}%`, width: `${(shuffled.length - activeIndex - 3) * 100}%` }} />
+        )}
       </div>
 
       {/* Dot indicators */}
