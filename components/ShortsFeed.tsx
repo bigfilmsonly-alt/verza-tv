@@ -78,12 +78,13 @@ function ShortVideo({ playbackId, isActive, muted }: {
   // Keep ref in sync
   useEffect(() => { mutedRef.current = muted; }, [muted]);
 
-  /* Attach HLS and play on mount (component only mounts when active) */
+  /* Attach HLS and play on mount — component only exists when active */
   useEffect(() => {
     const vid = videoRef.current;
     if (!vid) return;
 
     let cancelled = false;
+    let retryTimer: ReturnType<typeof setTimeout> | null = null;
     const hlsUrl = `https://stream.mux.com/${playbackId}.m3u8`;
 
     function tryPlay() {
@@ -101,22 +102,33 @@ function ShortVideo({ playbackId, isActive, muted }: {
       }
     }
 
-    function onPlaying() { if (!cancelled) { setStarted(true); setAutoplayFailed(false); } }
+    function onPlaying() {
+      if (!cancelled) { setStarted(true); setAutoplayFailed(false); }
+    }
     vid.addEventListener("playing", onPlaying);
 
-    // Small delay to let iOS release previous decoder
+    // Give iOS 100ms to release the previous video's decoder
     const startTimer = setTimeout(() => {
       if (cancelled || !vid) return;
 
+      // Safari / iOS — native HLS
       if (vid.canPlayType("application/vnd.apple.mpegurl")) {
         vid.src = hlsUrl;
-        function onReady() { if (!cancelled) tryPlay(); }
-        vid.addEventListener("canplay", onReady, { once: true });
-        vid.addEventListener("loadedmetadata", onReady, { once: true });
+        vid.addEventListener("canplay", () => { if (!cancelled) tryPlay(); }, { once: true });
+        vid.addEventListener("loadedmetadata", () => { if (!cancelled) tryPlay(); }, { once: true });
         vid.load();
+
+        // Safety retry: if video hasn't started after 2s, try again
+        retryTimer = setTimeout(() => {
+          if (!cancelled && vid && !vid.currentTime) {
+            vid.load();
+            tryPlay();
+          }
+        }, 2000);
         return;
       }
 
+      // Chrome / Firefox — hls.js
       getHls().then((Hls) => {
         if (cancelled || !Hls || !Hls.isSupported() || !vid) return;
         const hls = new Hls({ maxBufferLength: 15, enableWorker: true });
@@ -130,12 +142,18 @@ function ShortVideo({ playbackId, isActive, muted }: {
             else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
           }
         });
+
+        // Safety retry for hls.js too
+        retryTimer = setTimeout(() => {
+          if (!cancelled && vid && !vid.currentTime) tryPlay();
+        }, 2000);
       });
-    }, 50); // 50ms lets iOS release the previous decoder
+    }, 100);
 
     return () => {
       cancelled = true;
       clearTimeout(startTimer);
+      if (retryTimer) clearTimeout(retryTimer);
       vid.removeEventListener("playing", onPlaying);
       if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
       vid.muted = true;
@@ -175,7 +193,7 @@ function ShortVideo({ playbackId, isActive, muted }: {
         playsInline
         muted
         loop
-        preload={isActive ? "auto" : "none"}
+        preload="auto"
         className="absolute inset-0 w-full h-full object-cover"
         style={{
           background: "#000",
