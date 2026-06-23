@@ -322,34 +322,7 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
   return (
     <div className="episode-immersive" style={{ background: "#000" }}>
       {/* Splash screen — Verza TV logo on black */}
-      {showSplash && (
-        <div
-          className="absolute inset-0 flex items-center justify-center"
-          style={{
-            zIndex: 50,
-            background: "#000",
-            animation: "fadeOut 0.5s ease 1s forwards",
-          }}
-        >
-          <div style={{ animation: "scaleIn 0.4s ease" }}>
-            <img
-              src="/logo.png"
-              alt="Verza TV"
-              width={160}
-              height={50}
-              style={{ filter: "brightness(1.2)" }}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Verza TV logo — visible on black before video loads */}
-      <div
-        className="absolute inset-0 flex items-center justify-center pointer-events-none"
-        style={{ zIndex: 1 }}
-      >
-        <img src="/logo.png" alt="" width={120} height={37} style={{ opacity: 0.5 }} />
-      </div>
+      {/* Video starts immediately — no splash */}
 
       {/* THE single persistent video element */}
       <video

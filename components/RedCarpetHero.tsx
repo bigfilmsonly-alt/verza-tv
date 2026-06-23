@@ -101,13 +101,6 @@ export default function RedCarpetHero({ playbackIds }: RedCarpetHeroProps) {
 
   return (
     <div className="absolute inset-0">
-      {/* Logo on black before video loads */}
-      <div
-        className="absolute inset-0 flex items-center justify-center pointer-events-none"
-        style={{ zIndex: 1, opacity: playing ? 0 : 1, transition: "opacity 0.5s ease" }}
-      >
-        <img src="/logo.png" alt="" width={100} height={31} style={{ opacity: 0.5 }} />
-      </div>
       <video
         ref={videoRef}
         playsInline
