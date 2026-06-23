@@ -919,6 +919,17 @@ export const catalog: Series[] = [
     posterUrl: "/posters/im-obsessed-with-my-boss-2.png",
     freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: 0, status: "coming_soon",
   },
+  {
+    slug: "too-much-junk",
+    title: "Too Much Junk",
+    logline: "When the music stops, the secrets start. A rising artist discovers the industry runs on lies — and her biggest hit is built on one.",
+    genre: "Music · Drama",
+    channel: "Verza Originals",
+    categories: ["music"],
+    episodeCount: 0,
+    posterUrl: "/posters/too-much-junk.png",
+    freeEpisodes: 0, coinPerEpisode: 49, seasonPassCoins: 0, status: "live",
+  },
 ];
 
 /* ---- Episode type ---- */
