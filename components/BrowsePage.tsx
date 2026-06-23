@@ -104,7 +104,8 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
     setHeroIdx((i) => (i + 1) % heroSlides.length);
   }, [heroSlides.length]);
 
-  const gridItems = filtered.slice(heroSlides.length);
+  // Show ALL filtered series in the grid (not just the ones after the hero)
+  const gridItems = filtered;
 
   return (
     <div>
