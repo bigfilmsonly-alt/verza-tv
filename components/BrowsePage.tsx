@@ -29,7 +29,6 @@ function Poster({ src, alt }: { src: string; alt: string }) {
       fill
       sizes="(max-width: 440px) 33vw, 146px"
       className="object-cover"
-      style={{ filter: "saturate(1.35) contrast(1.1) brightness(1.06)" }}
     />
   );
 }
@@ -118,7 +117,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               <Link key={item.seriesSlug} href={`/series/${item.seriesSlug}/${item.episodeNumber}`} className="group block no-underline flex-shrink-0 snap-start" style={{ width: 120 }}>
                 <div className="relative overflow-hidden rounded-lg" style={{ width: 120, aspectRatio: "2 / 3" }}>
                   {item.posterUrl && (
-                    <Image src={item.posterUrl} alt={item.seriesTitle} fill sizes="120px" className="object-cover" style={{ filter: "saturate(1.35) contrast(1.1) brightness(1.06)" }} />
+                    <Image src={item.posterUrl} alt={item.seriesTitle} fill sizes="120px" className="object-cover" />
                   )}
                   {/* Progress bar */}
                   <div className="absolute bottom-0 left-0 right-0 h-1" style={{ background: "rgba(0,0,0,0.5)" }}>
@@ -138,8 +137,8 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </section>
       )}
 
-      {/* Coming Soon — for empty categories (Music, Reality, Red Carpet) */}
-      {filtered.length === 0 && (
+      {/* Coming Soon — for empty categories (skip Reality since it redirects to /horizontal) */}
+      {filtered.length === 0 && activeTab !== "reality" && (
         <section className="px-4 py-8">
           <div
             className="rounded-2xl py-16 flex flex-col items-center justify-center gap-4 text-center"
@@ -184,7 +183,6 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                     priority
                     sizes="100vw"
                     className="object-cover"
-                    style={{ filter: "saturate(1.4) contrast(1.1) brightness(1.05)" }}
                   />
                 ) : activeTab !== "red-carpet" && (
                   <div

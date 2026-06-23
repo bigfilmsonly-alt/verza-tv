@@ -114,7 +114,13 @@ function EpisodeSlide({
       const Hls = await getHls();
       if (cancelled || !Hls || !Hls.isSupported() || !vid) return;
 
-      const hls = new Hls({ maxBufferLength: 15, enableWorker: true });
+      const hls = new Hls({
+        maxBufferLength: 15,
+        enableWorker: true,
+        startLevel: -1,
+        capLevelToPlayerSize: false,
+        maxLoadingDelay: 2,
+      });
       hlsRef.current = hls;
       hls.loadSource(hlsUrl);
       hls.attachMedia(vid);
@@ -269,7 +275,7 @@ function EpisodeSlide({
           className="absolute inset-0 w-full h-full object-cover"
           style={{
             opacity: playing ? 0 : 1,
-            transition: "opacity 0.5s ease",
+            transition: "opacity 0.3s ease",
             zIndex: 1,
           }}
         />
@@ -294,7 +300,7 @@ function EpisodeSlide({
         className="absolute inset-0 w-full h-full object-cover"
         style={{
           opacity: playing ? 1 : 0,
-          transition: "opacity 0.5s ease",
+          transition: "opacity 0.3s ease",
           zIndex: 2,
         }}
       />
