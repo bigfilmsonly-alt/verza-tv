@@ -172,42 +172,20 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </section>
       )}
 
-      {/* Music tab — Too Much Junk with real poster */}
+      {/* Music tab — same grid layout as Drama */}
       {activeTab === "music" && (
-        <section className="px-3 pt-4 pb-8">
-          <div
-            className="relative overflow-hidden rounded-2xl"
-            style={{
-              aspectRatio: "2 / 3",
-              boxShadow: "0 0 60px rgba(224,17,95,0.08), 0 0 120px rgba(139,92,246,0.05)",
-            }}
-          >
-            <Image
-              src="/posters/too-much-junk.jpg"
-              alt="Too Much Junk"
-              fill
-              sizes="100vw"
-              className="object-cover"
-              priority
-            />
-            {/* Bottom gradient */}
-            <div className="absolute inset-x-0 bottom-0 h-1/3 pointer-events-none" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.8), transparent)" }} />
-            {/* Coming Soon badge */}
-            <div className="absolute bottom-4 left-4 right-4">
-              <span
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider"
-                style={{ background: "rgba(139,92,246,0.3)", color: "#A78BFA", backdropFilter: "blur(8px)" }}
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
-                </svg>
-                Coming Soon
-              </span>
-            </div>
-          </div>
-          <div style={{ height: 36 }}>
-            <p className="mt-2 text-sm font-bold" style={{ color: "#F5F4F8" }}>Too Much Junk</p>
-            <p className="text-[11px]" style={{ color: "#6B6B7B" }}>Music · Drama · StorageBlue TV</p>
+        <section className="mt-4 pb-4 px-3">
+          <div className="poster-grid grid grid-cols-3 gap-1.5">
+            <Link href="/series/too-much-junk" className="group block no-underline min-w-0 transition-transform active:scale-[0.97]">
+              <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
+                <Image src="/posters/too-much-junk.jpg" alt="Too Much Junk" fill sizes="(max-width: 440px) 33vw, 146px" className="object-cover" />
+                <Badge type="new" />
+              </div>
+              <div style={{ height: 36 }}>
+                <p className="mt-1.5 text-[11px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>Too Much Junk</p>
+                <p className="text-[10px] mt-0.5 line-clamp-1" style={{ color: "#6B6B7B" }}>Music · Drama</p>
+              </div>
+            </Link>
           </div>
         </section>
       )}
@@ -233,57 +211,34 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </section>
       )}
 
-      {/* Reality tab — premium hero cards */}
+      {/* Reality tab — same grid layout as Drama */}
       {activeTab === "reality" && (
-        <section className="px-3 pt-4 pb-4">
-          <div className="flex flex-col gap-3">
+        <section className="mt-4 pb-4 px-3">
+          <div className="poster-grid grid grid-cols-3 gap-1.5">
             {realityShows.map((show) => {
-              const inner = (
-                <div
-                  key={show.title}
-                  className="relative overflow-hidden rounded-2xl"
-                  style={{
-                    aspectRatio: show.href ? "16 / 9" : "21 / 9",
-                    background: "linear-gradient(135deg, #12121C 0%, #0A0A14 100%)",
-                    border: "1px solid rgba(224,17,95,0.15)",
-                    boxShadow: show.href ? "0 0 40px rgba(224,17,95,0.06)" : "none",
-                  }}
-                >
-                  {/* Accent glow */}
-                  <div className="absolute top-0 right-0 w-1/2 h-full pointer-events-none" style={{ background: "radial-gradient(ellipse at right, rgba(224,17,95,0.08), transparent 70%)" }} />
-
-                  <div className="absolute inset-0 flex items-center px-5">
-                    {/* Poster image */}
-                    <Image
-                      src={show.poster}
-                      alt={show.title}
-                      fill
-                      sizes="100vw"
-                      className="object-cover"
-                    />
-                    {/* Gradient overlay */}
-                    <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(0,0,0,0.7) 0%, transparent 60%)" }} />
-                    {/* Text overlay */}
-                    <div className="absolute inset-0 flex items-center px-5">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-base font-black uppercase tracking-wide" style={{ color: "#fff", textShadow: "0 1px 4px rgba(0,0,0,0.8)" }}>{show.title}</h3>
-                        {show.href ? (
-                          <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.8)" }}>Watch Now</p>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide mt-1 px-2 py-0.5 rounded-full" style={{ background: "rgba(139,92,246,0.3)", color: "#A78BFA" }}>
-                            Coming Soon
-                          </span>
-                        )}
+              const card = (
+                <div className="group block no-underline min-w-0 transition-transform active:scale-[0.97]">
+                  <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
+                    <Image src={show.poster} alt={show.title} fill sizes="(max-width: 440px) 33vw, 146px" className="object-cover" />
+                    {!show.href && (
+                      <div className="absolute top-1.5 left-1.5 z-10 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider" style={{ background: "#8B5CF6", color: "#fff" }}>
+                        Coming Soon
+                      </div>
+                    )}
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10" style={{ background: "rgba(0,0,0,0.3)" }}>
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: "rgba(224, 17, 95, 0.85)", backdropFilter: "blur(4px)" }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff" stroke="none"><polygon points="8 5 20 12 8 19" /></svg>
                       </div>
                     </div>
                   </div>
+                  <div style={{ height: 36 }}>
+                    <p className="mt-1.5 text-[11px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>{show.title}</p>
+                    <p className="text-[10px] mt-0.5 line-clamp-1" style={{ color: "#6B6B7B" }}>Reality</p>
+                  </div>
                 </div>
               );
-
-              if (show.href) {
-                return <Link key={show.title} href={show.href} className="block no-underline">{inner}</Link>;
-              }
-              return <div key={show.title}>{inner}</div>;
+              if (show.href) return <Link key={show.title} href={show.href} className="block no-underline">{card}</Link>;
+              return <div key={show.title}>{card}</div>;
             })}
           </div>
 
