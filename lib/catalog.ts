@@ -73,7 +73,7 @@ export const catalog: Series[] = [
     popularRank: 6,
     episodeCount: 58,
     posterUrl: "/posters/the-dumb-billionaire-heiress-in-love.png",
-    freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(58), status: "live",
+    freeEpisodes: 58, coinPerEpisode: 0, seasonPassCoins: 0, status: "live",
   },
   {
     slug: "do-not-deceive-me",
