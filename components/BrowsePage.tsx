@@ -187,7 +187,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
       )}
 
       {/* Coming Soon — for empty categories (skip Reality and Music since they show inline) */}
-      {filtered.length === 0 && activeTab !== "reality" && activeTab !== "music" && (
+      {filtered.length === 0 && activeTab !== "reality" && activeTab !== "music" && activeTab !== "red-carpet" && (
         <section className="px-4 py-8">
           <div
             className="rounded-2xl py-16 flex flex-col items-center justify-center gap-4 text-center"
