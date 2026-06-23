@@ -630,6 +630,28 @@ export default function EpisodeFeed({
         )}
       </button>
 
+      {/* Fullscreen button — below mute */}
+      <button
+        onClick={() => {
+          // Find the active video element and request fullscreen
+          const vids = document.querySelectorAll("video");
+          for (const v of vids) {
+            if (!v.paused) {
+              if (v.requestFullscreen) v.requestFullscreen();
+              else if ((v as any).webkitEnterFullscreen) (v as any).webkitEnterFullscreen();
+              break;
+            }
+          }
+        }}
+        className="absolute top-16 right-4 z-50 w-10 h-10 rounded-full flex items-center justify-center border-0 cursor-pointer"
+        style={{ background: "rgba(0,0,0,0.35)", backdropFilter: "blur(20px)" }}
+        aria-label="Fullscreen"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M8 3H5a2 2 0 0 0-2 2v3" /><path d="M21 8V5a2 2 0 0 0-2-2h-3" /><path d="M3 16v3a2 2 0 0 0 2 2h3" /><path d="M16 21h3a2 2 0 0 0 2-2v-3" />
+        </svg>
+      </button>
+
       {/* Episode badge — bottom-left */}
       <div className="absolute bottom-6 left-4 z-50 pointer-events-none">
         <div style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(12px)", borderRadius: 12, padding: "6px 10px" }}>
