@@ -343,6 +343,14 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
         </div>
       )}
 
+      {/* Verza TV logo — visible on black before video loads */}
+      <div
+        className="absolute inset-0 flex items-center justify-center pointer-events-none"
+        style={{ zIndex: 1 }}
+      >
+        <img src="/logo.png" alt="" width={120} height={37} style={{ opacity: 0.5 }} />
+      </div>
+
       {/* THE single persistent video element */}
       <video
         ref={videoRef}

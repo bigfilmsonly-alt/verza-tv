@@ -265,6 +265,18 @@ function EpisodeSlide({
       style={{ height: "var(--feed-h, 100dvh)", background: "#000" }}
       onClick={handleTap}
     >
+      {/* Verza TV logo — shows on black before video/thumbnail loads */}
+      <div
+        className="absolute inset-0 flex items-center justify-center pointer-events-none"
+        style={{
+          zIndex: 0,
+          opacity: playing ? 0 : 1,
+          transition: "opacity 0.4s ease",
+        }}
+      >
+        <img src="/logo.png" alt="" width={120} height={37} style={{ opacity: 0.6 }} />
+      </div>
+
       {/* Mux thumbnail — cinematic scale settle on play */}
       {thumbUrl && (
         <img
