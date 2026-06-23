@@ -76,6 +76,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
   const [heroIdx, setHeroIdx] = useState(0);
   const [continueWatching, setContinueWatching] = useState<ContinueItem[]>([]);
   const [showSplash, setShowSplash] = useState<string | null>(null);
+  const [showTMJVideo, setShowTMJVideo] = useState(false);
 
   const filtered = tabData[activeTab] ?? [];
   const heroSlides = filtered.slice(0, 4);
@@ -171,24 +172,58 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </section>
       )}
 
-      {/* Music tab — full hero poster like Drama homepage */}
+      {/* Music tab — Too Much Junk poster → taps to video */}
       {activeTab === "music" && (
         <div>
           <div className="relative">
-            <div className="relative w-full overflow-hidden" style={{ aspectRatio: "2 / 3", background: "#07070E" }}>
-              <Image
-                src="/posters/too-much-junk.jpg"
-                alt="Too Much Junk"
-                fill
-                priority
-                sizes="100vw"
-                className="object-contain"
-                style={{ objectPosition: "top" }}
-              />
-            </div>
-            {/* Bottom gradient fade */}
+            <button
+              onClick={() => setShowTMJVideo(true)}
+              className="block w-full border-0 cursor-pointer p-0 transition-transform active:scale-[0.97]"
+              style={{ background: "none" }}
+            >
+              <div className="relative w-full overflow-hidden" style={{ aspectRatio: "2 / 3", background: "#000" }}>
+                <Image
+                  src="/posters/too-much-junk.jpg"
+                  alt="Too Much Junk"
+                  fill
+                  priority
+                  sizes="100vw"
+                  className="object-contain"
+                  style={{ objectPosition: "top" }}
+                />
+              </div>
+            </button>
             <div className="absolute bottom-0 left-0 right-0 pointer-events-none" style={{ height: 80, background: "linear-gradient(to top, #07070E, transparent)", zIndex: 5 }} />
           </div>
+        </div>
+      )}
+
+      {/* Too Much Junk — full-screen Vimeo player */}
+      {showTMJVideo && (
+        <div
+          className="fixed inset-0 flex items-center justify-center"
+          style={{ zIndex: 100, background: "#000" }}
+        >
+          <button
+            onClick={() => setShowTMJVideo(false)}
+            className="absolute top-4 right-4 z-50 w-10 h-10 rounded-full flex items-center justify-center border-0 cursor-pointer"
+            style={{ background: "rgba(255,255,255,0.15)", backdropFilter: "blur(12px)" }}
+            aria-label="Close"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+          <div style={{ position: "relative", width: "100%", height: "100%" }}>
+            <iframe
+              src="https://player.vimeo.com/video/809977840?autoplay=1&loop=1&muted=0&badge=0&autopause=0&player_id=0&app_id=58479"
+              frameBorder="0"
+              allow="autoplay; fullscreen; picture-in-picture"
+              style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }}
+              title="TOO MUCH JUNK"
+            />
+          </div>
+          <script src="https://player.vimeo.com/api/player.js" async />
         </div>
       )}
 
