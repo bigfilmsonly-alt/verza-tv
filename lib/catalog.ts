@@ -46,6 +46,21 @@ function sp(eps: number) {
 
 export const catalog: Series[] = [
   /* ================================================================ */
+  /*  #1 HIGHEST CONVERTING — first hero slide on Discover              */
+  /* ================================================================ */
+  {
+    slug: "the-mistress-trap",
+    title: "The Mistress Trap",
+    logline: "She set a honeytrap to catch her husband cheating. She didn't expect the other woman to be her best friend.",
+    genre: "Drama · Betrayal",
+    channel: "Verza Originals",
+    categories: ["drama", "popular"],
+    popularRank: 1,
+    episodeCount: 48,
+    posterUrl: "/posters/mistress-trap.png",
+    freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(48), status: "live",
+  },
+  /* ================================================================ */
   /*  DRAMA TAB                                                        */
   /* ================================================================ */
   {
@@ -589,18 +604,7 @@ export const catalog: Series[] = [
   /* ================================================================ */
   /*  POPULAR TAB (ranked 1-6)                                         */
   /* ================================================================ */
-  {
-    slug: "the-mistress-trap",
-    title: "The Mistress Trap",
-    logline: "She set a honeytrap to catch her husband cheating. She didn't expect the other woman to be her best friend.",
-    genre: "Drama \u00b7 Betrayal",
-    channel: "Verza Originals",
-    categories: ["popular"],
-    popularRank: 1,
-    episodeCount: 48,
-    posterUrl: "/posters/mistress-trap.png",
-    freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(48), status: "live",
-  },
+  /* The Mistress Trap moved to top of catalog — see first entry */
   /* The Blackthornes (rank 2), Destined to Be (rank 3), Do Not Deceive Me (rank 4), Undercovered Heart (rank 5), The Dumb Billionaire Heiress (rank 6) are in Drama above */
   {
     slug: "camouflage",
