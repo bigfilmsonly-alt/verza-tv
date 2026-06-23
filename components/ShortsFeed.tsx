@@ -78,10 +78,8 @@ function ShortVideo({ playbackId, isActive, muted }: {
   // Keep ref in sync
   useEffect(() => { mutedRef.current = muted; }, [muted]);
 
-  /* Only run when isActive — cleanup tears down everything */
+  /* Attach HLS and play on mount (component only mounts when active) */
   useEffect(() => {
-    if (!isActive) return;
-
     const vid = videoRef.current;
     if (!vid) return;
 
@@ -90,78 +88,64 @@ function ShortVideo({ playbackId, isActive, muted }: {
 
     function tryPlay() {
       if (cancelled || !vid) return;
-      // Must start muted for autoplay to work on mobile browsers
       vid.muted = true;
-      const playPromise = vid.play();
-      if (playPromise) {
-        playPromise
-          .then(() => {
-            if (cancelled) return;
-            setAutoplayFailed(false);
-            // Unmute after autoplay succeeds if user wants sound
-            if (!mutedRef.current) vid.muted = false;
-          })
-          .catch(() => {
-            if (!cancelled) setAutoplayFailed(true);
-          });
+      const p = vid.play();
+      if (p) {
+        p.then(() => {
+          if (cancelled) return;
+          setAutoplayFailed(false);
+          if (!mutedRef.current) vid.muted = false;
+        }).catch(() => {
+          if (!cancelled) setAutoplayFailed(true);
+        });
       }
     }
 
     function onPlaying() { if (!cancelled) { setStarted(true); setAutoplayFailed(false); } }
     vid.addEventListener("playing", onPlaying);
 
-    async function attach() {
+    // Small delay to let iOS release previous decoder
+    const startTimer = setTimeout(() => {
       if (cancelled || !vid) return;
 
-      // Safari / iOS — native HLS
       if (vid.canPlayType("application/vnd.apple.mpegurl")) {
         vid.src = hlsUrl;
-        // Try multiple events — iOS can be picky about which fires
-        function onReady() {
-          if (!cancelled) tryPlay();
-        }
+        function onReady() { if (!cancelled) tryPlay(); }
         vid.addEventListener("canplay", onReady, { once: true });
         vid.addEventListener("loadedmetadata", onReady, { once: true });
-        // Force load to kick off buffering on iOS
         vid.load();
         return;
       }
 
-      // Chrome / Firefox — hls.js
-      const Hls = await getHls();
-      if (cancelled || !Hls || !Hls.isSupported() || !vid) return;
-
-      const hls = new Hls({ maxBufferLength: 30, enableWorker: true });
-      hlsRef.current = hls;
-      hls.loadSource(hlsUrl);
-      hls.attachMedia(vid);
-
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        if (!cancelled) tryPlay();
+      getHls().then((Hls) => {
+        if (cancelled || !Hls || !Hls.isSupported() || !vid) return;
+        const hls = new Hls({ maxBufferLength: 15, enableWorker: true });
+        hlsRef.current = hls;
+        hls.loadSource(hlsUrl);
+        hls.attachMedia(vid);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => { if (!cancelled) tryPlay(); });
+        hls.on(Hls.Events.ERROR, (_e: string, data: { type: string; fatal: boolean }) => {
+          if (data.fatal && Hls) {
+            if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hls.startLoad();
+            else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
+          }
+        });
       });
-
-      hls.on(Hls.Events.ERROR, (_e: string, data: { type: string; details: string; fatal: boolean }) => {
-        if (data.fatal && hls && Hls) {
-          if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hls.startLoad();
-          else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
-        }
-      });
-    }
-
-    attach();
+    }, 50); // 50ms lets iOS release the previous decoder
 
     return () => {
       cancelled = true;
+      clearTimeout(startTimer);
       vid.removeEventListener("playing", onPlaying);
       if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
-      vid.muted = true; // Silence immediately before pause
+      vid.muted = true;
       vid.pause();
       vid.removeAttribute("src");
       vid.load();
       setStarted(false);
       setAutoplayFailed(false);
     };
-  }, [isActive, playbackId]);
+  }, [playbackId]);
 
   // Sync muted prop to video element instantly
   useEffect(() => {
@@ -274,12 +258,12 @@ function ShortCard({ series, isActive, isNearActive, muted, setMuted, saved, onT
         background: "#07070E",
       }}
     >
-      {/* Video — only rendered for active ± 1 cards */}
-      {isNearActive && playbackId && (
+      {/* Video — ONLY rendered for the active card (1 video element max) */}
+      {isActive && playbackId && (
         <ShortVideo
           key={playbackId}
           playbackId={playbackId}
-          isActive={isActive}
+          isActive={true}
           muted={muted}
         />
       )}
