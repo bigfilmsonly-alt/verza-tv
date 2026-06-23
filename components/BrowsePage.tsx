@@ -172,22 +172,25 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </section>
       )}
 
-      {/* Music tab — same grid layout as Drama */}
+      {/* Music tab — full hero poster like Drama homepage */}
       {activeTab === "music" && (
-        <section className="mt-4 pb-4 px-3">
-          <div className="poster-grid grid grid-cols-3 gap-1.5">
-            <Link href="/series/too-much-junk" className="group block no-underline min-w-0 transition-transform active:scale-[0.97]">
-              <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
-                <Image src="/posters/too-much-junk.jpg" alt="Too Much Junk" fill sizes="(max-width: 440px) 33vw, 146px" className="object-cover" />
-                <Badge type="new" />
-              </div>
-              <div style={{ height: 36 }}>
-                <p className="mt-1.5 text-[11px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>Too Much Junk</p>
-                <p className="text-[10px] mt-0.5 line-clamp-1" style={{ color: "#6B6B7B" }}>Music · Drama</p>
-              </div>
-            </Link>
+        <div>
+          <div className="relative">
+            <div className="relative w-full overflow-hidden" style={{ aspectRatio: "2 / 3", background: "#07070E" }}>
+              <Image
+                src="/posters/too-much-junk.jpg"
+                alt="Too Much Junk"
+                fill
+                priority
+                sizes="100vw"
+                className="object-contain"
+                style={{ objectPosition: "top" }}
+              />
+            </div>
+            {/* Bottom gradient fade */}
+            <div className="absolute bottom-0 left-0 right-0 pointer-events-none" style={{ height: 80, background: "linear-gradient(to top, #07070E, transparent)", zIndex: 5 }} />
           </div>
-        </section>
+        </div>
       )}
 
       {/* Coming Soon — for empty categories (skip Reality and Music since they show inline) */}
