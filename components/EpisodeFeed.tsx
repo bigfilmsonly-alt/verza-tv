@@ -275,7 +275,7 @@ function EpisodeSlide({
           className="absolute inset-0 w-full h-full object-cover"
           style={{
             opacity: playing ? 0 : 1,
-            transition: "opacity 0.3s ease",
+            transition: "opacity 0.15s ease",
             zIndex: 1,
           }}
         />
@@ -300,23 +300,12 @@ function EpisodeSlide({
         className="absolute inset-0 w-full h-full object-cover"
         style={{
           opacity: playing ? 1 : 0,
-          transition: "opacity 0.3s ease",
+          transition: "opacity 0.15s ease",
           zIndex: 2,
         }}
       />
 
-      {/* Loading shimmer */}
-      {isActive && loading && (
-        <div className="absolute inset-0 z-10 pointer-events-none" style={{ background: "rgba(0,0,0,0.2)" }}>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-12 h-12 rounded-full" style={{
-              border: "3px solid rgba(255,255,255,0.1)",
-              borderTopColor: "rgba(255,255,255,0.8)",
-              animation: "spin 0.8s linear infinite",
-            }} />
-          </div>
-        </div>
-      )}
+      {/* No spinner — poster holds until video plays */}
 
       {/* Pause/Play indicator (animated) */}
       {showPause && (

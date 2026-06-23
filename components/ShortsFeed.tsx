@@ -197,7 +197,7 @@ function ShortVideo({ playbackId, isActive, muted }: {
           background: "#07070E",
           opacity: started ? 1 : 0,
           zIndex: started ? 2 : 0,
-          transition: "opacity 0.2s ease",
+          transition: "opacity 0.15s ease",
         }}
       />
       {/* Tap-to-play fallback if autoplay was blocked */}
