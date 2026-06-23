@@ -213,43 +213,68 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </section>
       )}
 
-      {/* Reality tab — same grid layout as Drama */}
-      {activeTab === "reality" && (
-        <section className="mt-4 pb-4 px-3">
-          <div className="poster-grid grid grid-cols-3 gap-1.5">
-            {realityShows.map((show) => {
-              const card = (
-                <div className="group block no-underline min-w-0 transition-transform active:scale-[0.97]">
-                  <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
-                    <Image src={show.poster} alt={show.title} fill sizes="(max-width: 440px) 33vw, 146px" className="object-cover" />
-                    {!show.href && (
-                      <div className="absolute top-1.5 left-1.5 z-10 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider" style={{ background: "#8B5CF6", color: "#fff" }}>
-                        Coming Soon
-                      </div>
-                    )}
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10" style={{ background: "rgba(0,0,0,0.3)" }}>
-                      <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: "rgba(224, 17, 95, 0.85)", backdropFilter: "blur(4px)" }}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff" stroke="none"><polygon points="8 5 20 12 8 19" /></svg>
-                      </div>
-                    </div>
+      {/* Reality tab — full-width hero slideshow */}
+      {activeTab === "reality" && (() => {
+        const realityIdx = heroIdx % realityShows.length;
+        const currentShow = realityShows[realityIdx];
+        return (
+          <div>
+            <div className="relative">
+              {currentShow.href ? (
+                <Link href={currentShow.href} className="block">
+                  <div className="relative w-full overflow-hidden" style={{ aspectRatio: "2 / 3", background: "#000" }}>
+                    <Image src={currentShow.poster} alt={currentShow.title} fill priority sizes="100vw" className="object-cover" style={{ objectPosition: "top" }} />
                   </div>
-                  <div style={{ height: 36 }}>
-                    <p className="mt-1.5 text-[11px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>{show.title}</p>
-                    <p className="text-[10px] mt-0.5 line-clamp-1" style={{ color: "#6B6B7B" }}>Reality</p>
-                  </div>
+                </Link>
+              ) : (
+                <div className="relative w-full overflow-hidden" style={{ aspectRatio: "2 / 3", background: "#000" }}>
+                  <Image src={currentShow.poster} alt={currentShow.title} fill priority sizes="100vw" className="object-cover" style={{ objectPosition: "top" }} />
                 </div>
-              );
-              if (show.href) return <Link key={show.title} href={show.href} className="block no-underline">{card}</Link>;
-              return <div key={show.title}>{card}</div>;
-            })}
-          </div>
+              )}
 
-          {/* Storage Pirates widescreen episodes */}
-          <div className="mt-6">
-            <HorizontalFeed />
+              {/* Bottom gradient */}
+              <div className="absolute bottom-0 left-0 right-0 pointer-events-none" style={{ height: 80, background: "linear-gradient(to top, #07070E, transparent)", zIndex: 5 }} />
+
+              {/* Arrows */}
+              <button
+                onClick={() => setHeroIdx((i) => (i === 0 ? realityShows.length - 1 : i - 1))}
+                className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center border-0 cursor-pointer z-10"
+                style={{ background: "rgba(7,7,14,0.55)", color: "#fff", backdropFilter: "blur(6px)" }}
+                aria-label="Previous"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
+              </button>
+              <button
+                onClick={() => setHeroIdx((i) => (i + 1) % realityShows.length)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center border-0 cursor-pointer z-10"
+                style={{ background: "rgba(7,7,14,0.55)", color: "#fff", backdropFilter: "blur(6px)" }}
+                aria-label="Next"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
+              </button>
+            </div>
+
+            {/* Dot indicators */}
+            <div className="flex items-center justify-center gap-1.5 py-2">
+              {realityShows.map((_, i) => (
+                <button key={i} onClick={() => setHeroIdx(i)} className="p-0 border-0 cursor-pointer" style={{ background: "none" }} aria-label={`Slide ${i + 1}`}>
+                  <div className="rounded-full" style={{
+                    width: i === realityIdx ? 20 : 6,
+                    height: 6,
+                    background: i === realityIdx ? "linear-gradient(90deg, #E0115F, #8B5CF6)" : "rgba(255,255,255,0.4)",
+                    transition: "width 0.3s",
+                  }} />
+                </button>
+              ))}
+            </div>
+
+            {/* Storage Pirates widescreen episodes */}
+            <div className="px-3">
+              <HorizontalFeed />
+            </div>
           </div>
-        </section>
-      )}
+        );
+      })()}
 
       {/* Red Carpet tab — The Carpet poster → taps to video instantly */}
       {activeTab === "red-carpet" && (
