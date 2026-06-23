@@ -261,8 +261,8 @@ function EpisodeSlide({
 
   return (
     <div
-      className="relative w-full select-none"
-      style={{ height: "var(--feed-h, 100dvh)", background: "#000" }}
+      className="relative w-full select-none overflow-hidden"
+      style={{ height: "var(--feed-h, 100dvh)", background: "#000", margin: 0, padding: 0 }}
       onClick={handleTap}
     >
       {/* Verza TV logo — shows on black before video/thumbnail loads */}
@@ -535,7 +535,7 @@ export default function EpisodeFeed({
   }
 
   return (
-    <div className="episode-immersive" style={{ background: "#000" }}>
+    <div className="episode-immersive" style={{ background: "#000", overflow: "hidden" }}>
       {/* Vertical snap-scroll container */}
       <div
         ref={containerRef}
@@ -546,7 +546,7 @@ export default function EpisodeFeed({
           overflowY: "auto",
           overflowX: "hidden",
           scrollSnapType: "y mandatory",
-          WebkitOverflowScrolling: "touch",
+          scrollbarWidth: "none",
         }}
       >
         {/* Top spacer for episodes above the window */}
