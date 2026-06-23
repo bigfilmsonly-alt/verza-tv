@@ -252,43 +252,26 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </section>
       )}
 
-      {/* Red Carpet tab — poster grid like Reality */}
+      {/* Red Carpet tab — The Carpet poster → taps to Dumb Billionaire Heiress video */}
       {activeTab === "red-carpet" && (
-        <section className="mt-4 pb-4 px-3">
-          <div className="poster-grid grid grid-cols-3 gap-1.5">
-            {/* The Carpet — coming soon */}
-            <div className="group block no-underline min-w-0">
-              <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
-                <Image src="/posters/the-carpet.png" alt="The Carpet" fill sizes="(max-width: 440px) 33vw, 146px" className="object-cover" />
-                <div className="absolute top-1.5 left-1.5 z-10 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider" style={{ background: "#8B5CF6", color: "#fff" }}>
-                  Coming Soon
-                </div>
+        <div>
+          <div className="relative">
+            <Link href="/series/the-dumb-billionaire-heiress-in-love/1" className="block">
+              <div className="relative w-full overflow-hidden" style={{ aspectRatio: "2 / 3", background: "#000" }}>
+                <Image
+                  src="/posters/the-carpet.png"
+                  alt="The Carpet"
+                  fill
+                  priority
+                  sizes="100vw"
+                  className="object-contain"
+                  style={{ objectPosition: "top" }}
+                />
               </div>
-              <div style={{ height: 36 }}>
-                <p className="mt-1.5 text-[11px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>The Carpet</p>
-                <p className="text-[10px] mt-0.5 line-clamp-1" style={{ color: "#6B6B7B" }}>Red Carpet · Reality</p>
-              </div>
-            </div>
-            {/* The Dumb Billionaire Heiress — playable */}
-            {filtered.map((s) => (
-              <Link key={s.slug} href={`/series/${s.slug}/1`} className="group block no-underline min-w-0 transition-transform active:scale-[0.97]">
-                <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
-                  <Poster src={s.posterUrl} alt={s.title} />
-                  <Badge type="trending" />
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10" style={{ background: "rgba(0,0,0,0.3)" }}>
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: "rgba(224, 17, 95, 0.85)", backdropFilter: "blur(4px)" }}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff" stroke="none"><polygon points="8 5 20 12 8 19" /></svg>
-                    </div>
-                  </div>
-                </div>
-                <div style={{ height: 36 }}>
-                  <p className="mt-1.5 text-[11px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>{s.title}</p>
-                  <p className="text-[10px] mt-0.5 line-clamp-1" style={{ color: "#6B6B7B" }}>{s.genre}</p>
-                </div>
-              </Link>
-            ))}
+            </Link>
+            <div className="absolute bottom-0 left-0 right-0 pointer-events-none" style={{ height: 80, background: "linear-gradient(to top, #07070E, transparent)", zIndex: 5 }} />
           </div>
-        </section>
+        </div>
       )}
 
       {/* Hero Slideshow — only when category has content (not Reality or Red Carpet) */}
