@@ -393,8 +393,8 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </div>
       )}
 
-      {/* Tab Row — 3-column grid */}
-      {gridItems.length > 0 && (
+      {/* Tab Row — 3-column grid (not on Music/Reality/Red Carpet — they have custom sections) */}
+      {gridItems.length > 0 && activeTab !== "music" && activeTab !== "reality" && activeTab !== "red-carpet" && (
         <section className="mt-4 pb-4 px-3">
           <div className="poster-grid grid grid-cols-3 gap-1.5">
             {gridItems.map((s) => (
