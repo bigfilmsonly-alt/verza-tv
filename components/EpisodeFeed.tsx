@@ -84,7 +84,7 @@ function EpisodeSlide({
     ? `https://stream.mux.com/${episode.playbackId}.m3u8`
     : null;
   const thumbUrl = episode.playbackId
-    ? `https://image.mux.com/${episode.playbackId}/thumbnail.jpg?time=2&width=720&height=1280`
+    ? `https://image.mux.com/${episode.playbackId}/thumbnail.jpg?time=0&width=720&height=1280`
     : "";
 
   /* Step 1: Attach HLS source (preload for near slides, don't tear down on active change) */
@@ -170,6 +170,8 @@ function EpisodeSlide({
       setLoading(true);
       // ALWAYS start muted — iOS requires this for autoplay
       vid.muted = true;
+      // Reset to start — prevents jump if video was pre-buffered at a random position
+      vid.currentTime = 0;
       const playPromise = vid.play();
       if (playPromise) {
         playPromise
@@ -276,7 +278,7 @@ function EpisodeSlide({
           style={{
             opacity: playing ? 0 : 1,
             transform: playing ? "scale(1)" : "scale(1.04)",
-            transition: "opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
+            transition: "opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
             willChange: "opacity, transform",
             zIndex: 1,
           }}
@@ -292,7 +294,7 @@ function EpisodeSlide({
           style={{
             opacity: playing ? 0 : 1,
             transform: playing ? "scale(1)" : "scale(1.04)",
-            transition: "opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
+            transition: "opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
             willChange: "opacity, transform",
             filter: "brightness(0.5)",
             zIndex: 1,

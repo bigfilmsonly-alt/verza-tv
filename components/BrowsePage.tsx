@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import CategoryTabs from "@/components/CategoryTabs";
@@ -63,7 +62,6 @@ interface ContinueItem {
 
 export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
   const { t } = useTranslation();
-  const router = useRouter();
   const activeTabs = BROWSE_TABS;
 
   const [activeTab, setActiveTab] = useState<BrowseCategory>("drama");
@@ -76,19 +74,13 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
 
   useEffect(() => { setHeroIdx(0); }, [activeTab]);
 
-  // Red Carpet: go straight to full-screen video
-  useEffect(() => {
-    if (activeTab === "red-carpet" && filtered.length > 0) {
-      router.push(`/series/${filtered[0].slug}/1`);
-    }
-  }, [activeTab, filtered, router]);
-
-  // Reality: show widescreen content (Storage Pirates)
-  useEffect(() => {
-    if (activeTab === "reality") {
-      router.push("/horizontal");
-    }
-  }, [activeTab, router]);
+  // Reality show data (posters may not exist yet — uses styled placeholders)
+  const realityShows = [
+    { title: "Storage Pirates", poster: "/posters/storage-pirates.png", href: "/horizontal" },
+    { title: "The Vertical Tea", poster: "/posters/the-vertical-tea.png", href: null },
+    { title: "Sugar Babies", poster: "/posters/sugar-babies.png", href: null },
+    { title: "Buy/Sell Miami", poster: "/posters/buy-sell-miami.png", href: null },
+  ];
 
   // Fetch continue watching data
   useEffect(() => {
@@ -151,7 +143,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </section>
       )}
 
-      {/* Coming Soon — for empty categories (skip Reality since it redirects to /horizontal) */}
+      {/* Coming Soon — for empty categories (skip Reality since it shows inline) */}
       {filtered.length === 0 && activeTab !== "reality" && (
         <section className="px-4 py-8">
           <div
@@ -172,8 +164,61 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </section>
       )}
 
+      {/* Reality tab — inline poster grid */}
+      {activeTab === "reality" && (
+        <section className="mt-4 pb-4 px-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wider mb-3 px-1" style={{ color: "#8A8A9A" }}>Reality Shows</h2>
+          <div className="poster-grid grid grid-cols-2 gap-2">
+            {realityShows.map((show) => {
+              const card = (
+                <div key={show.title} className="group block no-underline min-w-0">
+                  <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
+                    {/* Styled placeholder card — replace with <Image> once poster files exist */}
+                    <div
+                      className="absolute inset-0 flex flex-col items-center justify-center text-center px-3 gap-2"
+                      style={{ background: "linear-gradient(135deg, #1A1A26 0%, #12121C 100%)", border: "1px solid rgba(224,17,95,0.15)" }}
+                    >
+                      <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: "rgba(224,17,95,0.15)" }}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E0115F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polygon points="5 3 19 12 5 21 5 3" />
+                        </svg>
+                      </div>
+                      <p className="text-xs font-bold leading-tight" style={{ color: "#F5F4F8" }}>{show.title}</p>
+                      {!show.href && (
+                        <span className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full" style={{ background: "rgba(139,92,246,0.2)", color: "#A78BFA" }}>
+                          Coming Soon
+                        </span>
+                      )}
+                    </div>
+                    {/* Hover play overlay */}
+                    <div
+                      className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
+                      style={{ background: "rgba(0,0,0,0.3)" }}
+                    >
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: "rgba(224,17,95,0.85)", backdropFilter: "blur(4px)" }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff" stroke="none">
+                          <polygon points="8 5 20 12 8 19" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ height: 36 }}>
+                    <p className="mt-1.5 text-[11px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>{show.title}</p>
+                    <p className="text-[10px] mt-0.5" style={{ color: "#6B6B7B" }}>Reality</p>
+                  </div>
+                </div>
+              );
+              if (show.href) {
+                return <Link key={show.title} href={show.href} className="block no-underline">{card}</Link>;
+              }
+              return <div key={show.title}>{card}</div>;
+            })}
+          </div>
+        </section>
+      )}
+
       {/* Hero Slideshow — only when category has content */}
-      {current && (
+      {current && activeTab !== "reality" && (
         <div>
           {/* Poster image — clean, no text overlay */}
           <div className="relative">
