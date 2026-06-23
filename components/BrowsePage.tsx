@@ -298,6 +298,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                     priority
                     sizes="100vw"
                     className="object-cover"
+                    style={{ objectPosition: "top" }}
                   />
                 ) : (
                   <div
