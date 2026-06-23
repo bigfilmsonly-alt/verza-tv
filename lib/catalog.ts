@@ -928,7 +928,7 @@ export const catalog: Series[] = [
     categories: ["music"],
     episodeCount: 0,
     posterUrl: "/posters/too-much-junk.png",
-    freeEpisodes: 0, coinPerEpisode: 49, seasonPassCoins: 0, status: "live",
+    freeEpisodes: 0, coinPerEpisode: 49, seasonPassCoins: 0, status: "coming_soon",
   },
 ];
 

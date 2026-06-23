@@ -144,8 +144,38 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </section>
       )}
 
-      {/* Coming Soon — for empty categories (skip Reality since it shows inline) */}
-      {filtered.length === 0 && activeTab !== "reality" && (
+      {/* Music tab — Too Much Junk coming soon */}
+      {activeTab === "music" && (
+        <section className="mt-4 pb-4 px-3">
+          <div className="poster-grid grid grid-cols-2 gap-2">
+            <div className="block no-underline min-w-0">
+              <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
+                <div
+                  className="absolute inset-0 flex flex-col items-center justify-center text-center px-3 gap-3"
+                  style={{ background: "linear-gradient(135deg, #1A1A26 0%, #12121C 100%)", border: "1px solid rgba(224,17,95,0.15)" }}
+                >
+                  <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: "rgba(224,17,95,0.15)" }}>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#E0115F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" />
+                    </svg>
+                  </div>
+                  <p className="text-sm font-bold leading-tight" style={{ color: "#F5F4F8" }}>Too Much Junk</p>
+                  <span className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full" style={{ background: "rgba(139,92,246,0.2)", color: "#A78BFA" }}>
+                    Coming Soon
+                  </span>
+                </div>
+              </div>
+              <div style={{ height: 36 }}>
+                <p className="mt-1.5 text-[11px] font-semibold leading-tight" style={{ color: "#F5F4F8" }}>Too Much Junk</p>
+                <p className="text-[10px] mt-0.5" style={{ color: "#6B6B7B" }}>Music · Drama</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Coming Soon — for empty categories (skip Reality and Music since they show inline) */}
+      {filtered.length === 0 && activeTab !== "reality" && activeTab !== "music" && (
         <section className="px-4 py-8">
           <div
             className="rounded-2xl py-16 flex flex-col items-center justify-center gap-4 text-center"
