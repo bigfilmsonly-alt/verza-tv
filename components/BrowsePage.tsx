@@ -346,6 +346,8 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
             <Link key={s.slug} href={`/series/${s.slug}/1`} className="group block no-underline min-w-0">
               <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
                 <Poster src={s.posterUrl} alt={s.title} />
+                {s.popularRank && s.popularRank <= 6 && <Badge type="trending" />}
+                {!s.popularRank && s.categories.includes("new") && <Badge type="new" />}
                 <div
                   className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
                   style={{ background: "rgba(0,0,0,0.3)" }}
