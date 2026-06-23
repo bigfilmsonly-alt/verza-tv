@@ -114,7 +114,7 @@ function EpisodeSlide({
       const Hls = await getHls();
       if (cancelled || !Hls || !Hls.isSupported() || !vid) return;
 
-      const hls = new Hls({ maxBufferLength: 60, enableWorker: true });
+      const hls = new Hls({ maxBufferLength: 15, enableWorker: true });
       hlsRef.current = hls;
       hls.loadSource(hlsUrl);
       hls.attachMedia(vid);
@@ -131,6 +131,12 @@ function EpisodeSlide({
 
     return () => {
       cancelled = true;
+      // Destroy on unmount (virtualization removes elements from DOM)
+      if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
+      const v = videoRef.current;
+      if (v) { v.pause(); v.removeAttribute("src"); v.load(); }
+      attachedRef.current = false;
+      setSourceReady(false);
     };
   }, [hlsUrl, isActive, isNear]);
 
@@ -420,6 +426,11 @@ export default function EpisodeFeed({
 
   const activeEp = episodes[activeIndex];
 
+  // Virtual window: only render 5 slides max (active ± 2)
+  const WINDOW = 2;
+  const windowStart = Math.max(0, activeIndex - WINDOW);
+  const windowEnd = Math.min(episodes.length - 1, activeIndex + WINDOW);
+
   /* Scroll to start episode on mount */
   useEffect(() => {
     const container = containerRef.current;
@@ -492,7 +503,7 @@ export default function EpisodeFeed({
     });
     container.querySelectorAll("[data-index]").forEach((el) => observer.observe(el));
     return () => observer.disconnect();
-  }, [episodes, observerCallback]);
+  }, [episodes, observerCallback, windowStart, windowEnd]);
 
   function toggleMute() {
     const next = !muted;
@@ -523,30 +534,44 @@ export default function EpisodeFeed({
           WebkitOverflowScrolling: "touch",
         }}
       >
-        {episodes.map((ep, i) => (
-          <div
-            key={ep.number}
-            data-index={i}
-            style={{
-              width: "100%",
-              height: "var(--feed-h, 100dvh)",
-              scrollSnapAlign: "start",
-              scrollSnapStop: "always",
-            }}
-          >
-            <EpisodeSlide
-              episode={ep}
-              seriesSlug={seriesSlug}
-              posterUrl={posterUrl}
-              isActive={i === activeIndex}
-              isNear={Math.abs(i - activeIndex) <= 1}
-              muted={muted}
-              onEnded={handleEpisodeEnded}
-              onProgress={i === activeIndex ? setEpProgress : () => {}}
-              onDoubleTap={handleDoubleTap}
-            />
-          </div>
-        ))}
+        {/* Top spacer for episodes above the window */}
+        {windowStart > 0 && (
+          <div style={{ height: `calc(var(--feed-h, 100dvh) * ${windowStart})`, flexShrink: 0 }} />
+        )}
+
+        {/* Only render visible window (max 5 slides) */}
+        {episodes.slice(windowStart, windowEnd + 1).map((ep, wi) => {
+          const i = windowStart + wi;
+          return (
+            <div
+              key={ep.number}
+              data-index={i}
+              style={{
+                width: "100%",
+                height: "var(--feed-h, 100dvh)",
+                scrollSnapAlign: "start",
+                scrollSnapStop: "always",
+              }}
+            >
+              <EpisodeSlide
+                episode={ep}
+                seriesSlug={seriesSlug}
+                posterUrl={posterUrl}
+                isActive={i === activeIndex}
+                isNear={Math.abs(i - activeIndex) <= 1}
+                muted={muted}
+                onEnded={handleEpisodeEnded}
+                onProgress={i === activeIndex ? setEpProgress : () => {}}
+                onDoubleTap={handleDoubleTap}
+              />
+            </div>
+          );
+        })}
+
+        {/* Bottom spacer for episodes below the window */}
+        {windowEnd < episodes.length - 1 && (
+          <div style={{ height: `calc(var(--feed-h, 100dvh) * ${episodes.length - 1 - windowEnd})`, flexShrink: 0 }} />
+        )}
       </div>
 
       {/* ---- Overlays ---- */}
