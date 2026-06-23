@@ -8,6 +8,7 @@ import { useTranslation } from "@/components/LangProvider";
 import { BROWSE_TABS, getSeriesByCategory, type Series, type BrowseCategory } from "@/lib/catalog";
 import PosterSkeleton from "@/components/PosterSkeleton";
 import HeroVideo from "@/components/HeroVideo";
+import RedCarpetHero from "@/components/RedCarpetHero";
 import HorizontalFeed from "@/components/HorizontalFeed";
 import { MUX_MAP } from "@/lib/mux-map";
 
@@ -321,10 +322,10 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                 className="relative w-full overflow-hidden"
                 style={{ aspectRatio: "2 / 3", background: "#07070E" }}
               >
-                {/* Red Carpet: looping video, no poster */}
+                {/* Red Carpet: plays episodes 1-5 sequentially */}
                 {activeTab === "red-carpet" && (() => {
-                  const heroMux = MUX_MAP[current.slug]?.[0]?.playbackId;
-                  return heroMux ? <HeroVideo key={`rc-${current.slug}`} playbackId={heroMux} /> : null;
+                  const eps = MUX_MAP[current.slug]?.slice(0, 5).map((e) => e.playbackId) ?? [];
+                  return eps.length > 0 ? <RedCarpetHero key={`rc-${current.slug}`} playbackIds={eps} /> : null;
                 })()}
 
                 {/* All other tabs: poster slideshow */}
