@@ -77,14 +77,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
 
   useEffect(() => { setHeroIdx(0); }, [activeTab]);
 
-  // Splash screen for Red Carpet tab
-  useEffect(() => {
-    if (activeTab === "red-carpet") {
-      setShowSplash("red-carpet");
-      const t = setTimeout(() => setShowSplash(null), 1500);
-      return () => clearTimeout(t);
-    }
-  }, [activeTab]);
+  // No splash on Red Carpet — poster shows instantly
 
   // Reality show data (posters may not exist yet — uses styled placeholders)
   const realityShows = [
