@@ -8,6 +8,7 @@ import { useTranslation } from "@/components/LangProvider";
 import { BROWSE_TABS, getSeriesByCategory, type Series, type BrowseCategory } from "@/lib/catalog";
 import PosterSkeleton from "@/components/PosterSkeleton";
 import HeroVideo from "@/components/HeroVideo";
+import HorizontalFeed from "@/components/HorizontalFeed";
 import { MUX_MAP } from "@/lib/mux-map";
 
 function Badge({ type }: { type: "trending" | "new" }) {
@@ -245,6 +246,8 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               return <div key={show.title}>{card}</div>;
             })}
           </div>
+          {/* Storage Pirates widescreen episodes */}
+          <HorizontalFeed />
         </section>
       )}
 
