@@ -145,31 +145,48 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </section>
       )}
 
-      {/* Music tab — Too Much Junk coming soon */}
+      {/* Music tab — premium hero card */}
       {activeTab === "music" && (
-        <section className="mt-4 pb-4 px-3">
-          <div className="poster-grid grid grid-cols-2 gap-2">
-            <div className="block no-underline min-w-0">
-              <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
-                <div
-                  className="absolute inset-0 flex flex-col items-center justify-center text-center px-3 gap-3"
-                  style={{ background: "linear-gradient(135deg, #1A1A26 0%, #12121C 100%)", border: "1px solid rgba(224,17,95,0.15)" }}
-                >
-                  <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: "rgba(224,17,95,0.15)" }}>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#E0115F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" />
-                    </svg>
-                  </div>
-                  <p className="text-sm font-bold leading-tight" style={{ color: "#F5F4F8" }}>Too Much Junk</p>
-                  <span className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full" style={{ background: "rgba(139,92,246,0.2)", color: "#A78BFA" }}>
-                    Coming Soon
-                  </span>
-                </div>
+        <section className="px-3 pt-4 pb-8">
+          <div
+            className="relative overflow-hidden rounded-2xl"
+            style={{
+              aspectRatio: "3 / 4",
+              background: "linear-gradient(160deg, #1A0A1E 0%, #0D0612 40%, #07070E 100%)",
+              border: "1px solid rgba(224,17,95,0.2)",
+              boxShadow: "0 0 60px rgba(224,17,95,0.08), 0 0 120px rgba(139,92,246,0.05)",
+            }}
+          >
+            {/* Glow accent */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-1/3 pointer-events-none" style={{ background: "radial-gradient(ellipse, rgba(224,17,95,0.12), transparent 70%)" }} />
+
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-8">
+              {/* Music icon */}
+              <div
+                className="w-20 h-20 rounded-full flex items-center justify-center mb-6"
+                style={{ background: "linear-gradient(135deg, rgba(224,17,95,0.2), rgba(139,92,246,0.2))", border: "1px solid rgba(224,17,95,0.3)" }}
+              >
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#E0115F" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" />
+                </svg>
               </div>
-              <div style={{ height: 36 }}>
-                <p className="mt-1.5 text-[11px] font-semibold leading-tight" style={{ color: "#F5F4F8" }}>Too Much Junk</p>
-                <p className="text-[10px] mt-0.5" style={{ color: "#6B6B7B" }}>Music · Drama</p>
-              </div>
+
+              <h2 className="text-2xl font-black uppercase tracking-wider mb-2" style={{ color: "#fff" }}>Too Much Junk</h2>
+              <p className="text-sm leading-relaxed mb-5 max-w-[260px]" style={{ color: "rgba(255,255,255,0.5)" }}>
+                When the music stops, the secrets start. A rising artist discovers the industry runs on lies.
+              </p>
+
+              <span
+                className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider"
+                style={{ background: "linear-gradient(135deg, rgba(224,17,95,0.2), rgba(139,92,246,0.2))", color: "#A78BFA", border: "1px solid rgba(139,92,246,0.3)" }}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+                </svg>
+                Coming Soon
+              </span>
+
+              <p className="text-[10px] mt-4" style={{ color: "rgba(255,255,255,0.25)" }}>Music · Drama · Verza Original</p>
             </div>
           </div>
         </section>
@@ -196,58 +213,75 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </section>
       )}
 
-      {/* Reality tab — inline poster grid */}
+      {/* Reality tab — premium hero cards */}
       {activeTab === "reality" && (
-        <section className="mt-4 pb-4 px-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wider mb-3 px-1" style={{ color: "#8A8A9A" }}>Reality Shows</h2>
-          <div className="poster-grid grid grid-cols-2 gap-2">
+        <section className="px-3 pt-4 pb-4">
+          <div className="flex flex-col gap-3">
             {realityShows.map((show) => {
-              const card = (
-                <div key={show.title} className="group block no-underline min-w-0">
-                  <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
-                    {/* Styled placeholder card — replace with <Image> once poster files exist */}
+              const inner = (
+                <div
+                  key={show.title}
+                  className="relative overflow-hidden rounded-2xl"
+                  style={{
+                    aspectRatio: show.href ? "16 / 9" : "21 / 9",
+                    background: "linear-gradient(135deg, #12121C 0%, #0A0A14 100%)",
+                    border: "1px solid rgba(224,17,95,0.15)",
+                    boxShadow: show.href ? "0 0 40px rgba(224,17,95,0.06)" : "none",
+                  }}
+                >
+                  {/* Accent glow */}
+                  <div className="absolute top-0 right-0 w-1/2 h-full pointer-events-none" style={{ background: "radial-gradient(ellipse at right, rgba(224,17,95,0.08), transparent 70%)" }} />
+
+                  <div className="absolute inset-0 flex items-center px-5">
+                    {/* Icon */}
                     <div
-                      className="absolute inset-0 flex flex-col items-center justify-center text-center px-3 gap-2"
-                      style={{ background: "linear-gradient(135deg, #1A1A26 0%, #12121C 100%)", border: "1px solid rgba(224,17,95,0.15)" }}
+                      className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 mr-4"
+                      style={{ background: show.href ? "linear-gradient(135deg, #E0115F, #8B5CF6)" : "rgba(255,255,255,0.06)" }}
                     >
-                      <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: "rgba(224,17,95,0.15)" }}>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E0115F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <polygon points="5 3 19 12 5 21 5 3" />
+                      {show.href ? (
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff" stroke="none">
+                          <polygon points="8 5 20 12 8 19" />
                         </svg>
-                      </div>
-                      <p className="text-xs font-bold leading-tight" style={{ color: "#F5F4F8" }}>{show.title}</p>
-                      {!show.href && (
-                        <span className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full" style={{ background: "rgba(139,92,246,0.2)", color: "#A78BFA" }}>
+                      ) : (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="1" y="5" width="22" height="14" rx="2" /><polygon points="10 9 15 12 10 15" fill="rgba(255,255,255,0.4)" stroke="none" />
+                        </svg>
+                      )}
+                    </div>
+
+                    {/* Text */}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-base font-black uppercase tracking-wide" style={{ color: "#fff" }}>{show.title}</h3>
+                      {show.href ? (
+                        <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.5)" }}>Watch Now · Reality</p>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide mt-1 px-2 py-0.5 rounded-full" style={{ background: "rgba(139,92,246,0.15)", color: "#A78BFA" }}>
                           Coming Soon
                         </span>
                       )}
                     </div>
-                    {/* Hover play overlay */}
-                    <div
-                      className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
-                      style={{ background: "rgba(0,0,0,0.3)" }}
-                    >
-                      <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: "rgba(224,17,95,0.85)", backdropFilter: "blur(4px)" }}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff" stroke="none">
-                          <polygon points="8 5 20 12 8 19" />
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-                  <div style={{ height: 36 }}>
-                    <p className="mt-1.5 text-[11px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>{show.title}</p>
-                    <p className="text-[10px] mt-0.5" style={{ color: "#6B6B7B" }}>Reality</p>
+
+                    {/* Arrow for playable */}
+                    {show.href && (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+                        <path d="M9 18l6-6-6-6" />
+                      </svg>
+                    )}
                   </div>
                 </div>
               );
+
               if (show.href) {
-                return <Link key={show.title} href={show.href} className="block no-underline">{card}</Link>;
+                return <Link key={show.title} href={show.href} className="block no-underline">{inner}</Link>;
               }
-              return <div key={show.title}>{card}</div>;
+              return <div key={show.title}>{inner}</div>;
             })}
           </div>
+
           {/* Storage Pirates widescreen episodes */}
-          <HorizontalFeed />
+          <div className="mt-6">
+            <HorizontalFeed />
+          </div>
         </section>
       )}
 
