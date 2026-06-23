@@ -337,8 +337,8 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </section>
       )}
 
-      {/* All Shows — 3-column grid */}
-      <section className="pb-8 px-3">
+      {/* All Shows — only on Drama tab */}
+      {activeTab === "drama" && <section className="pb-8 px-3">
         <h2 className="text-sm font-semibold uppercase tracking-wider mb-3 px-1" style={{ color: "#8A8A9A" }}>{t("browse.allShows")}</h2>
         <div className="poster-grid grid grid-cols-3 gap-1.5">
           {liveSeries.map((s) => (
@@ -366,7 +366,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
             </Link>
           ))}
         </div>
-      </section>
+      </section>}
     </div>
   );
 }
