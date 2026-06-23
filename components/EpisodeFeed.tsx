@@ -103,11 +103,9 @@ function EpisodeSlide({
 
       if (vid.canPlayType("application/vnd.apple.mpegurl")) {
         vid.src = hlsUrl;
-        // Listen for BOTH events — iOS is inconsistent about which fires
-        function onReady() { if (!cancelled) setSourceReady(true); }
-        vid.addEventListener("canplay", onReady, { once: true });
-        vid.addEventListener("loadedmetadata", onReady, { once: true });
-        vid.load(); // Force iOS Safari to start buffering
+        vid.load();
+        // Set sourceReady immediately — Safari will queue play() until data arrives
+        if (!cancelled) setSourceReady(true);
         return;
       }
 
@@ -124,7 +122,9 @@ function EpisodeSlide({
       hlsRef.current = hls;
       hls.loadSource(hlsUrl);
       hls.attachMedia(vid);
-      hls.on(Hls.Events.MANIFEST_PARSED, () => { if (!cancelled) setSourceReady(true); });
+      // Set sourceReady immediately — play() will queue until manifest parsed
+      if (!cancelled) setSourceReady(true);
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {});
       hls.on(Hls.Events.ERROR, (_e: string, data: { type: string; fatal: boolean }) => {
         if (data.fatal && Hls) {
           if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hls.startLoad();
@@ -167,10 +167,8 @@ function EpisodeSlide({
     let cancelled = false;
 
     if (isActive && sourceReady) {
-      setLoading(true);
       // ALWAYS start muted — iOS requires this for autoplay
       vid.muted = true;
-      // Reset to start — prevents jump if video was pre-buffered at a random position
       vid.currentTime = 0;
       const playPromise = vid.play();
       if (playPromise) {
@@ -178,17 +176,15 @@ function EpisodeSlide({
           .then(() => {
             if (cancelled) return;
             setPlaying(true);
-            setLoading(false);
             // Unmute AFTER successful play if user wants sound
             if (!mutedRef.current) vid.muted = false;
             trackEpisodeStart(seriesSlug, episode.number);
           })
           .catch(() => {
-            // Play failed even muted — clear loading, show tap-to-play
-            if (!cancelled) setLoading(false);
+            // Play failed even muted — do nothing, poster holds
           });
       } else {
-        // play() returned undefined (rare) — clear loading
+        // play() returned undefined (rare)
         setLoading(false);
       }
     } else if (!isActive) {
