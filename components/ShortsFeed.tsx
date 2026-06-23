@@ -92,19 +92,9 @@ function ShortCard({ series, isActive, muted, setMuted, saved, onToggleSave }: {
   return (
     <div
       className="relative flex-shrink-0 overflow-hidden"
-      style={{ width: "100%", height: "100%", background: "#000" }}
+      style={{ width: "100%", height: "100%", background: "transparent" }}
     >
-      {/* Poster — always visible behind the shared video player */}
-      {series.posterUrl && (
-        <Image
-          src={series.posterUrl}
-          alt={series.title}
-          fill
-          className="absolute inset-0 object-cover"
-          sizes="100vw"
-          priority={isActive}
-        />
-      )}
+      {/* No poster — video plays directly through from the persistent element below */}
 
       {/* Vignette */}
       <div
@@ -325,7 +315,7 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
 
   return (
     <div className="episode-immersive" style={{ background: "#000" }}>
-      {/* THE single persistent video element — positioned over the active card */}
+      {/* THE single persistent video element */}
       <video
         ref={videoRef}
         playsInline
@@ -333,23 +323,40 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
         loop
         preload="auto"
         className="absolute inset-0 w-full h-full object-cover"
-        style={{ zIndex: 3, background: "#000" }}
+        style={{ zIndex: 2, background: "#000", pointerEvents: "none" }}
       />
 
-      {/* Horizontal scroll container */}
+      {/* Overlay UI — above the video, receives touch events */}
+      <div
+        className="absolute inset-0"
+        style={{ zIndex: 3, pointerEvents: "none" }}
+      >
+        {/* Active card overlays (title, buttons) */}
+        {shuffled[activeIndex] && (
+          <div style={{ pointerEvents: "auto", width: "100%", height: "100%", position: "relative" }}>
+            <ShortCard
+              series={shuffled[activeIndex]}
+              isActive={true}
+              muted={muted}
+              setMuted={setMuted}
+              saved={savedSlugs.has(shuffled[activeIndex].slug)}
+              onToggleSave={handleToggleSave}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Swipe detection layer — transparent, receives horizontal swipe */}
       <div
         ref={containerRef}
-        className="no-scrollbar"
+        className="absolute inset-0 no-scrollbar"
         style={{
           display: "flex",
           overflowX: "auto",
           overflowY: "hidden",
           scrollSnapType: "x mandatory",
           scrollBehavior: "auto",
-          width: "100%",
-          height: "var(--feed-h, 100dvh)",
-          position: "relative",
-          zIndex: 4,
+          zIndex: 5,
         }}
       >
         {shuffled.map((s, i) => (
@@ -361,18 +368,8 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
               width: "100%",
               height: "100%",
               scrollSnapAlign: "center",
-              position: "relative",
             }}
-          >
-            <ShortCard
-              series={s}
-              isActive={i === activeIndex}
-              muted={muted}
-              setMuted={setMuted}
-              saved={savedSlugs.has(s.slug)}
-              onToggleSave={handleToggleSave}
-            />
-          </div>
+          />
         ))}
       </div>
 
