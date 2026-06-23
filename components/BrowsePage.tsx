@@ -68,12 +68,22 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
   const [activeTab, setActiveTab] = useState<BrowseCategory>("drama");
   const [heroIdx, setHeroIdx] = useState(0);
   const [continueWatching, setContinueWatching] = useState<ContinueItem[]>([]);
+  const [showSplash, setShowSplash] = useState<string | null>(null);
 
   const filtered = tabData[activeTab] ?? [];
   const heroSlides = filtered.slice(0, 4);
   const current = heroSlides[heroIdx % Math.max(heroSlides.length, 1)];
 
   useEffect(() => { setHeroIdx(0); }, [activeTab]);
+
+  // Splash screen for Red Carpet tab
+  useEffect(() => {
+    if (activeTab === "red-carpet") {
+      setShowSplash("red-carpet");
+      const t = setTimeout(() => setShowSplash(null), 1500);
+      return () => clearTimeout(t);
+    }
+  }, [activeTab]);
 
   // Reality show data (posters may not exist yet — uses styled placeholders)
   const realityShows = [
@@ -110,7 +120,23 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
 
   return (
     <div>
-      {/* Category tabs — two rows */}
+      {/* Splash screen — Verza TV logo on black */}
+      {showSplash && (
+        <div
+          className="fixed inset-0 flex items-center justify-center"
+          style={{
+            zIndex: 100,
+            background: "#000",
+            animation: "fadeOut 0.5s ease 1s forwards",
+          }}
+        >
+          <div style={{ animation: "scaleIn 0.4s ease" }}>
+            <img src="/logo.png" alt="Verza TV" width={160} height={50} style={{ filter: "brightness(1.2)" }} />
+          </div>
+        </div>
+      )}
+
+      {/* Category tabs */}
       <CategoryTabs active={activeTab} onSelect={setActiveTab} tabs={activeTabs} />
 
       {/* Continue Watching row */}
