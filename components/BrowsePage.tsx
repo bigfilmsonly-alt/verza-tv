@@ -307,7 +307,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
       )}
 
       {/* Hero Slideshow — only when category has content (not Reality or Red Carpet) */}
-      {current && activeTab !== "reality" && activeTab !== "red-carpet" && (
+      {current && activeTab !== "reality" && activeTab !== "red-carpet" && activeTab !== "music" && (
         <div>
           {/* Poster image — clean, no text overlay */}
           <div className="relative">
