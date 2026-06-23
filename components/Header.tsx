@@ -24,9 +24,9 @@ export default function Header() {
         <Image
           src="/logo.png"
           alt="Verza TV"
-          width={120}
-          height={37}
-          className="object-contain brightness-125"
+          width={150}
+          height={40}
+          className="object-contain"
           priority
         />
       </Link>

@@ -131,7 +131,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
           }}
         >
           <div style={{ animation: "scaleIn 0.4s ease" }}>
-            <img src="/logo.png" alt="Verza TV" width={160} height={50} style={{ filter: "brightness(1.2)" }} />
+            <img src="/logo.png" alt="Verza TV" width={200} height={55} />
           </div>
         </div>
       )}
