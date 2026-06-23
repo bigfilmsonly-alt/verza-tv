@@ -11,6 +11,20 @@ import PosterSkeleton from "@/components/PosterSkeleton";
 import HeroVideo from "@/components/HeroVideo";
 import { MUX_MAP } from "@/lib/mux-map";
 
+function Badge({ type }: { type: "trending" | "new" }) {
+  return (
+    <div
+      className="absolute top-1.5 left-1.5 z-10 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider"
+      style={{
+        background: type === "trending" ? "#E0115F" : "#8B5CF6",
+        color: "#fff",
+      }}
+    >
+      {type === "trending" ? "Trending" : "New"}
+    </div>
+  );
+}
+
 function Poster({ src, alt }: { src: string; alt: string }) {
   if (!src) {
     return (
@@ -252,6 +266,8 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               <Link key={s.slug} href={`/series/${s.slug}/1`} className="group block no-underline min-w-0">
                 <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
                   <Poster src={s.posterUrl} alt={s.title} />
+                  {s.popularRank && s.popularRank <= 5 && <Badge type="trending" />}
+                  {!s.popularRank && s.categories.includes("new") && <Badge type="new" />}
                   <div
                     className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
                     style={{ background: "rgba(0,0,0,0.3)" }}
