@@ -103,7 +103,11 @@ function EpisodeSlide({
 
       if (vid.canPlayType("application/vnd.apple.mpegurl")) {
         vid.src = hlsUrl;
-        vid.addEventListener("loadedmetadata", () => { if (!cancelled) setSourceReady(true); }, { once: true });
+        // Listen for BOTH events — iOS is inconsistent about which fires
+        function onReady() { if (!cancelled) setSourceReady(true); }
+        vid.addEventListener("canplay", onReady, { once: true });
+        vid.addEventListener("loadedmetadata", onReady, { once: true });
+        vid.load(); // Force iOS Safari to start buffering
         return;
       }
 
@@ -152,26 +156,27 @@ function EpisodeSlide({
 
     if (isActive && sourceReady) {
       setLoading(true);
-      vid.muted = mutedRef.current;
-      vid.play()
-        .then(() => {
-          if (cancelled) return;
-          setPlaying(true);
-          setLoading(false);
-          trackEpisodeStart(seriesSlug, episode.number);
-        })
-        .catch(() => {
-          if (cancelled) return;
-          // Autoplay with sound blocked — play muted, stay muted
-          vid.muted = true;
-          vid.play()
-            .then(() => {
-              if (cancelled) return;
-              setPlaying(true);
-              setLoading(false);
-            })
-            .catch(() => { if (!cancelled) setLoading(false); });
-        });
+      // ALWAYS start muted — iOS requires this for autoplay
+      vid.muted = true;
+      const playPromise = vid.play();
+      if (playPromise) {
+        playPromise
+          .then(() => {
+            if (cancelled) return;
+            setPlaying(true);
+            setLoading(false);
+            // Unmute AFTER successful play if user wants sound
+            if (!mutedRef.current) vid.muted = false;
+            trackEpisodeStart(seriesSlug, episode.number);
+          })
+          .catch(() => {
+            // Play failed even muted — clear loading, show tap-to-play
+            if (!cancelled) setLoading(false);
+          });
+      } else {
+        // play() returned undefined (rare) — clear loading
+        setLoading(false);
+      }
     } else if (!isActive) {
       vid.muted = true;
       vid.pause();
