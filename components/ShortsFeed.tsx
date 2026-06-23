@@ -194,10 +194,11 @@ function ShortVideo({ playbackId, isActive, muted }: {
         preload={isActive ? "auto" : "none"}
         className="absolute inset-0 w-full h-full object-cover"
         style={{
-          background: "#07070E",
+          background: "#000",
           opacity: started ? 1 : 0,
           zIndex: started ? 2 : 0,
-          transition: "opacity 0.15s ease",
+          transition: "opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
+          willChange: "opacity",
         }}
       />
       {/* Tap-to-play fallback if autoplay was blocked */}
@@ -289,7 +290,6 @@ function ShortCard({ series, isActive, isNearActive, muted, setMuted, saved, onT
           src={`https://image.mux.com/${playbackId}/thumbnail.jpg?time=3&width=720&height=1280`}
           alt={series.title}
           className="absolute inset-0 w-full h-full object-cover"
-          style={{ filter: "saturate(1.3) contrast(1.08) brightness(1.04)" }}
           loading="lazy"
         />
       )}

@@ -267,7 +267,7 @@ function EpisodeSlide({
       style={{ height: "var(--feed-h, 100dvh)", background: "#000" }}
       onClick={handleTap}
     >
-      {/* Mux thumbnail */}
+      {/* Mux thumbnail — cinematic scale settle on play */}
       {thumbUrl && (
         <img
           src={thumbUrl}
@@ -275,7 +275,9 @@ function EpisodeSlide({
           className="absolute inset-0 w-full h-full object-cover"
           style={{
             opacity: playing ? 0 : 1,
-            transition: "opacity 0.15s ease",
+            transform: playing ? "scale(1)" : "scale(1.04)",
+            transition: "opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
+            willChange: "opacity, transform",
             zIndex: 1,
           }}
         />
@@ -287,11 +289,18 @@ function EpisodeSlide({
           src={posterUrl}
           alt=""
           className="absolute inset-0 w-full h-full object-cover"
-          style={{ filter: "brightness(0.5)", zIndex: 1 }}
+          style={{
+            opacity: playing ? 0 : 1,
+            transform: playing ? "scale(1)" : "scale(1.04)",
+            transition: "opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
+            willChange: "opacity, transform",
+            filter: "brightness(0.5)",
+            zIndex: 1,
+          }}
         />
       )}
 
-      {/* Video */}
+      {/* Video — fades in as poster settles */}
       <video
         ref={videoRef}
         playsInline
@@ -300,7 +309,8 @@ function EpisodeSlide({
         className="absolute inset-0 w-full h-full object-cover"
         style={{
           opacity: playing ? 1 : 0,
-          transition: "opacity 0.15s ease",
+          transition: "opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+          willChange: "opacity",
           zIndex: 2,
         }}
       />

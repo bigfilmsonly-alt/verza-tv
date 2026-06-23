@@ -213,6 +213,12 @@ body {
     opacity: 1;
     transform: none;
   }
+
+  /* Disable cinematic scale on video open */
+  video, img {
+    transition: opacity 0.1s ease !important;
+    transform: none !important;
+  }
 }
 
 /* ---- Bottom nav positioning (CSS so desktop frame can override) ---- */
