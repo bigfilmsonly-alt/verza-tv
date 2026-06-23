@@ -103,7 +103,7 @@ function ShortCard({ series, isActive, muted, setMuted, saved, onToggleSave }: {
       />
 
       {/* Top-left: title + episode chip */}
-      <div className="absolute top-4 left-4 z-10" style={{ maxWidth: "65%" }}>
+      <div className="absolute top-4 left-4 z-40" style={{ maxWidth: "65%" }}>
         <h2 className="text-base font-bold leading-tight mb-1.5" style={{ color: "#fff", textShadow: "0 1px 6px rgba(0,0,0,0.8)" }}>
           {series.title}
         </h2>
@@ -115,15 +115,15 @@ function ShortCard({ series, isActive, muted, setMuted, saved, onToggleSave }: {
         </div>
       </div>
 
-      {/* Top-right: close */}
-      <Link href="/" className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center no-underline" style={{ background: "rgba(50,50,50,0.7)", backdropFilter: "blur(4px)" }}>
+      {/* Top-right: close — z-40 to be above swipe layer (z-5) */}
+      <Link href="/" className="absolute top-4 right-4 z-40 w-10 h-10 rounded-full flex items-center justify-center no-underline" style={{ background: "rgba(50,50,50,0.7)", backdropFilter: "blur(4px)" }}>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
         </svg>
       </Link>
 
       {/* Right rail */}
-      <div className="absolute right-3 flex flex-col items-center gap-4 z-10" style={{ top: "28%" }}>
+      <div className="absolute right-3 flex flex-col items-center gap-4 z-40" style={{ top: "28%" }}>
         <Link href={`/series/${series.slug}`} className="block no-underline">
           <div className="relative w-12 h-16 rounded-lg overflow-hidden" style={{ border: "2px solid rgba(255,255,255,0.4)" }}>
             {series.posterUrl && <Image src={series.posterUrl} alt={series.title} fill className="object-cover" sizes="48px" />}
