@@ -694,17 +694,7 @@ export default function EpisodeFeed({
               {unlockLoading ? "Loading..." : "Unlock Full Series — $4.99"}
             </button>
             <button
-              onClick={() => {
-                setShowUnlock(false);
-                const container = containerRef.current;
-                if (container) {
-                  const lastFreeIdx = episodes.findIndex((e) => !e.isFree) - 1;
-                  if (lastFreeIdx >= 0) {
-                    const target = container.children[lastFreeIdx] as HTMLElement;
-                    if (target) target.scrollIntoView({ behavior: "smooth" });
-                  }
-                }
-              }}
+              onClick={() => { router.push("/"); }}
               className="mt-4 text-sm font-medium border-0 bg-transparent cursor-pointer"
               style={{ color: "rgba(255,255,255,0.35)" }}
             >
