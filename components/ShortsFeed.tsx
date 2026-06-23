@@ -107,7 +107,8 @@ function ShortVideo({ playbackId, isActive, muted }: {
     }
     vid.addEventListener("playing", onPlaying);
 
-    // Give iOS 100ms to release the previous video's decoder
+    // Give iOS time to release the previous video's decoder
+    // Use requestAnimationFrame + setTimeout for proper frame timing
     const startTimer = setTimeout(() => {
       if (cancelled || !vid) return;
 
@@ -286,15 +287,24 @@ function ShortCard({ series, isActive, isNearActive, muted, setMuted, saved, onT
         />
       )}
 
-      {/* Thumbnail — always behind video */}
-      {playbackId && (
+      {/* Thumbnail — poster image behind video */}
+      {series.posterUrl ? (
+        <Image
+          src={series.posterUrl}
+          alt={series.title}
+          fill
+          className="absolute inset-0 object-cover"
+          sizes="100vw"
+          priority={isActive}
+        />
+      ) : playbackId ? (
         <img
           src={`https://image.mux.com/${playbackId}/thumbnail.jpg?time=3&width=720&height=1280`}
           alt={series.title}
           className="absolute inset-0 w-full h-full object-cover"
           loading="lazy"
         />
-      )}
+      ) : null}
 
       {!playbackId && series.posterUrl && (
         <Image
@@ -452,7 +462,8 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
 
   useEffect(() => {
     const withMux = series.filter((s) => MUX_MAP[s.slug]?.length > 0);
-    setShuffled(shuffleArray(withMux));
+    // Limit to 15 cards — keeps DOM light, prevents iOS memory pressure
+    setShuffled(shuffleArray(withMux).slice(0, 15));
   }, [series]);
 
   /* Horizontal IntersectionObserver */
@@ -497,7 +508,7 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
           overflowX: "auto",
           overflowY: "hidden",
           scrollSnapType: "x mandatory",
-          WebkitOverflowScrolling: "touch",
+          scrollBehavior: "auto",
           width: "100%",
           height: "var(--feed-h, 100dvh)",
         }}
