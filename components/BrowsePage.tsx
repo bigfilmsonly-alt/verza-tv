@@ -88,9 +88,9 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
 
   // Reality show data (posters may not exist yet — uses styled placeholders)
   const realityShows = [
-    { title: "Storage Pirates", poster: "/posters/storage-pirates.png", href: "/horizontal" },
+    { title: "Storage Pirates", poster: "/posters/storage-pirates.jpg", href: "/horizontal" },
     { title: "The Vertical Tea", poster: "/posters/the-vertical-tea.png", href: null },
-    { title: "Sugar Babies", poster: "/posters/sugar-babies.png", href: null },
+    { title: "Sugar Babies", poster: "/posters/sugar-babies.jpg", href: null },
     { title: "Buy/Sell Miami", poster: "/posters/buy-sell-miami.png", href: null },
   ];
 
@@ -172,49 +172,42 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </section>
       )}
 
-      {/* Music tab — premium hero card */}
+      {/* Music tab — Too Much Junk with real poster */}
       {activeTab === "music" && (
         <section className="px-3 pt-4 pb-8">
           <div
             className="relative overflow-hidden rounded-2xl"
             style={{
-              aspectRatio: "3 / 4",
-              background: "linear-gradient(160deg, #1A0A1E 0%, #0D0612 40%, #07070E 100%)",
-              border: "1px solid rgba(224,17,95,0.2)",
+              aspectRatio: "2 / 3",
               boxShadow: "0 0 60px rgba(224,17,95,0.08), 0 0 120px rgba(139,92,246,0.05)",
             }}
           >
-            {/* Glow accent */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-1/3 pointer-events-none" style={{ background: "radial-gradient(ellipse, rgba(224,17,95,0.12), transparent 70%)" }} />
-
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-8">
-              {/* Music icon */}
-              <div
-                className="w-20 h-20 rounded-full flex items-center justify-center mb-6"
-                style={{ background: "linear-gradient(135deg, rgba(224,17,95,0.2), rgba(139,92,246,0.2))", border: "1px solid rgba(224,17,95,0.3)" }}
-              >
-                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#E0115F" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" />
-                </svg>
-              </div>
-
-              <h2 className="text-2xl font-black uppercase tracking-wider mb-2" style={{ color: "#fff" }}>Too Much Junk</h2>
-              <p className="text-sm leading-relaxed mb-5 max-w-[260px]" style={{ color: "rgba(255,255,255,0.5)" }}>
-                When the music stops, the secrets start. A rising artist discovers the industry runs on lies.
-              </p>
-
+            <Image
+              src="/posters/too-much-junk.jpg"
+              alt="Too Much Junk"
+              fill
+              sizes="100vw"
+              className="object-cover"
+              priority
+            />
+            {/* Bottom gradient */}
+            <div className="absolute inset-x-0 bottom-0 h-1/3 pointer-events-none" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.8), transparent)" }} />
+            {/* Coming Soon badge */}
+            <div className="absolute bottom-4 left-4 right-4">
               <span
-                className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider"
-                style={{ background: "linear-gradient(135deg, rgba(224,17,95,0.2), rgba(139,92,246,0.2))", color: "#A78BFA", border: "1px solid rgba(139,92,246,0.3)" }}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider"
+                style={{ background: "rgba(139,92,246,0.3)", color: "#A78BFA", backdropFilter: "blur(8px)" }}
               >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
                 </svg>
                 Coming Soon
               </span>
-
-              <p className="text-[10px] mt-4" style={{ color: "rgba(255,255,255,0.25)" }}>Music · Drama · Verza Original</p>
             </div>
+          </div>
+          <div style={{ height: 36 }}>
+            <p className="mt-2 text-sm font-bold" style={{ color: "#F5F4F8" }}>Too Much Junk</p>
+            <p className="text-[11px]" style={{ color: "#6B6B7B" }}>Music · Drama · StorageBlue TV</p>
           </div>
         </section>
       )}
@@ -260,40 +253,29 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                   <div className="absolute top-0 right-0 w-1/2 h-full pointer-events-none" style={{ background: "radial-gradient(ellipse at right, rgba(224,17,95,0.08), transparent 70%)" }} />
 
                   <div className="absolute inset-0 flex items-center px-5">
-                    {/* Icon */}
-                    <div
-                      className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 mr-4"
-                      style={{ background: show.href ? "linear-gradient(135deg, #E0115F, #8B5CF6)" : "rgba(255,255,255,0.06)" }}
-                    >
-                      {show.href ? (
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff" stroke="none">
-                          <polygon points="8 5 20 12 8 19" />
-                        </svg>
-                      ) : (
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                          <rect x="1" y="5" width="22" height="14" rx="2" /><polygon points="10 9 15 12 10 15" fill="rgba(255,255,255,0.4)" stroke="none" />
-                        </svg>
-                      )}
+                    {/* Poster image */}
+                    <Image
+                      src={show.poster}
+                      alt={show.title}
+                      fill
+                      sizes="100vw"
+                      className="object-cover"
+                    />
+                    {/* Gradient overlay */}
+                    <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(0,0,0,0.7) 0%, transparent 60%)" }} />
+                    {/* Text overlay */}
+                    <div className="absolute inset-0 flex items-center px-5">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-base font-black uppercase tracking-wide" style={{ color: "#fff", textShadow: "0 1px 4px rgba(0,0,0,0.8)" }}>{show.title}</h3>
+                        {show.href ? (
+                          <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.8)" }}>Watch Now</p>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide mt-1 px-2 py-0.5 rounded-full" style={{ background: "rgba(139,92,246,0.3)", color: "#A78BFA" }}>
+                            Coming Soon
+                          </span>
+                        )}
+                      </div>
                     </div>
-
-                    {/* Text */}
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-base font-black uppercase tracking-wide" style={{ color: "#fff" }}>{show.title}</h3>
-                      {show.href ? (
-                        <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.5)" }}>Watch Now · Reality</p>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide mt-1 px-2 py-0.5 rounded-full" style={{ background: "rgba(139,92,246,0.15)", color: "#A78BFA" }}>
-                          Coming Soon
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Arrow for playable */}
-                    {show.href && (
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
-                        <path d="M9 18l6-6-6-6" />
-                      </svg>
-                    )}
                   </div>
                 </div>
               );
