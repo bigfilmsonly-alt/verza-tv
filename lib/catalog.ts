@@ -930,9 +930,9 @@ export const catalog: Series[] = [
     genre: "Music · Drama",
     channel: "Verza Originals",
     categories: ["music"],
-    episodeCount: 0,
+    episodeCount: 1,
     posterUrl: "/posters/too-much-junk.jpg",
-    freeEpisodes: 0, coinPerEpisode: 49, seasonPassCoins: 0, status: "coming_soon",
+    freeEpisodes: 1, coinPerEpisode: 0, seasonPassCoins: 0, status: "live",
   },
   {
     slug: "the-carpet",

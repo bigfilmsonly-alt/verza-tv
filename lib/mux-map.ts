@@ -4305,6 +4305,9 @@ export const MUX_MAP: Record<string, MuxEpisode[]> = {
     { episode: 49, playbackId: "NpsH02NQ1sN7LEfM6gc02RcZj2F72EXiQXjMFXKxA9Ejg", duration: 77 },
     { episode: 50, playbackId: "obx00Dr6ptCGt6nOF024TfugvFyQmcUv5qzJq2pYibWTs", duration: 51 },
   ],
+  "too-much-junk": [
+    { episode: 1, playbackId: "qBqc00XczuKuzZgxuYnhHmyVXyLm9HC8raqELT01ItzWg", duration: 187 },
+  ],
 };
 
 /** Get playback ID for a specific episode */
