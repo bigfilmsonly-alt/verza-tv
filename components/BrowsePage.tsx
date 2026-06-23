@@ -12,6 +12,11 @@ import RedCarpetHero from "@/components/RedCarpetHero";
 import HorizontalFeed from "@/components/HorizontalFeed";
 import { MUX_MAP } from "@/lib/mux-map";
 
+// Eagerly preload hls.js so it's cached before user taps a video
+if (typeof window !== "undefined") {
+  import("hls.js").catch(() => {});
+}
+
 function Badge({ type }: { type: "trending" | "new" }) {
   return (
     <div
@@ -245,11 +250,18 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </section>
       )}
 
-      {/* Red Carpet tab — The Carpet poster → taps to Dumb Billionaire Heiress video */}
+      {/* Red Carpet tab — The Carpet poster → taps to video instantly */}
       {activeTab === "red-carpet" && (
         <div>
+          {/* Preload the HLS stream so video starts instantly on tap */}
+          {(() => {
+            const rcId = MUX_MAP["the-dumb-billionaire-heiress-in-love"]?.[0]?.playbackId;
+            return rcId ? (
+              <link rel="preload" href={`https://stream.mux.com/${rcId}.m3u8`} as="fetch" crossOrigin="anonymous" />
+            ) : null;
+          })()}
           <div className="relative">
-            <Link href="/series/the-dumb-billionaire-heiress-in-love/1" className="block">
+            <Link href="/series/the-dumb-billionaire-heiress-in-love/1" prefetch={true} className="block">
               <div className="relative w-full overflow-hidden" style={{ aspectRatio: "2 / 3", background: "#000" }}>
                 <Image
                   src="/posters/the-carpet.png"
