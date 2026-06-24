@@ -87,10 +87,10 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
 
   // Reality show data (posters may not exist yet — uses styled placeholders)
   const realityShows = [
-    { title: "Storage Pirates", poster: "/posters/storage-pirates.jpg" },
-    { title: "The Vertical Tea", poster: "/posters/the-vertical-tea.png" },
     { title: "Sugar Babies", poster: "/posters/sugar-babies.jpg" },
     { title: "Buy/Sell Miami", poster: "/posters/buy-sell-miami.png" },
+    { title: "The Vertical Tea", poster: "/posters/the-vertical-tea.png" },
+    { title: "Storage Pirates", poster: "/posters/storage-pirates.jpg" },
   ];
 
   // Fetch continue watching data
