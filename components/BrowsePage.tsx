@@ -260,6 +260,23 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               ))}
             </div>
 
+            {/* All Reality posters */}
+            <section className="mt-2 pb-4 px-3">
+              <div className="poster-grid grid grid-cols-3 gap-1.5">
+                {realityShows.map((show) => (
+                  <div key={show.title} className="block no-underline min-w-0">
+                    <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
+                      <Image src={show.poster} alt={show.title} fill sizes="(max-width: 440px) 33vw, 146px" className="object-cover" />
+                    </div>
+                    <div style={{ height: 36 }}>
+                      <p className="mt-1.5 text-[11px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>{show.title}</p>
+                      <p className="text-[10px] mt-0.5" style={{ color: "#6B6B7B" }}>Reality</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
             {/* Storage Pirates widescreen episodes */}
             <div className="px-3">
               <HorizontalFeed />
