@@ -100,11 +100,13 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
       .catch(() => {});
   }, []);
 
+  // Auto-rotate hero slideshow (works for Drama/New/Hot AND Reality)
+  const slideCount = activeTab === "reality" ? realityShows.length : heroSlides.length;
   useEffect(() => {
-    if (heroSlides.length <= 1) return;
-    const t = setInterval(() => setHeroIdx((i) => (i + 1) % heroSlides.length), 5000);
+    if (slideCount <= 1) return;
+    const t = setInterval(() => setHeroIdx((i) => (i + 1) % slideCount), 4000);
     return () => clearInterval(t);
-  }, [heroSlides.length]);
+  }, [slideCount]);
 
   const goPrev = useCallback(() => {
     setHeroIdx((i) => (i === 0 ? heroSlides.length - 1 : i - 1));
