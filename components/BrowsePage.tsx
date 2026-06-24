@@ -49,7 +49,6 @@ function Poster({ src, alt }: { src: string; alt: string }) {
       fill
       sizes="(max-width: 440px) 33vw, 146px"
       className="object-cover"
-      style={{ objectPosition: "top" }}
     />
   );
 }
@@ -222,7 +221,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
           <div>
             <div className="relative">
               <div className="relative w-full overflow-hidden" style={{ aspectRatio: "2 / 3", background: "#000" }}>
-                <Image src={currentShow.poster} alt={currentShow.title} fill priority sizes="100vw" className="object-cover" style={{ objectPosition: "top" }} />
+                <Image src={currentShow.poster} alt={currentShow.title} fill priority sizes="100vw" className="object-contain" />
               </div>
 
               {/* Bottom gradient */}
@@ -308,7 +307,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                 className="relative w-full overflow-hidden"
                 style={{ aspectRatio: "2 / 3", background: "#07070E" }}
               >
-                {/* Poster slideshow */}
+                {/* Poster slideshow — full image visible, no cropping */}
                 {current.posterUrl ? (
                   <Image
                     src={current.posterUrl}
@@ -316,8 +315,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                     fill
                     priority
                     sizes="100vw"
-                    className="object-cover"
-                    style={{ objectPosition: "top" }}
+                    className="object-contain"
                   />
                 ) : (
                   <div
