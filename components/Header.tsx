@@ -27,7 +27,6 @@ export default function Header() {
           width={150}
           height={40}
           className="object-contain"
-          style={{ mixBlendMode: "screen" }}
           priority
         />
       </Link>
