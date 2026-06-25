@@ -402,6 +402,20 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </div>
       )}
 
+      {/* Sponsored Ad Ribbon #1 */}
+      <a
+        href="https://www.storageblue.com"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block mx-3 my-3 rounded-lg overflow-hidden transition-transform active:scale-[0.98]"
+        style={{ background: "#0A0A14", border: "1px solid rgba(255,255,255,0.06)" }}
+      >
+        <div className="flex items-center justify-center py-2.5 px-4 gap-2">
+          <span className="text-[9px] uppercase tracking-widest font-medium" style={{ color: "rgba(255,255,255,0.3)" }}>Sponsored</span>
+          <img src="/ads/storageblue-logo.png" alt="StorageBlue" height={22} style={{ height: 22, objectFit: "contain" }} />
+        </div>
+      </a>
+
       {/* Tab Row — 3-column grid (not on Music/Reality/Red Carpet — they have custom sections) */}
       {gridItems.length > 0 && activeTab !== "music" && activeTab !== "reality" && activeTab !== "red-carpet" && (
         <section className="mt-4 pb-4 px-3">
@@ -468,6 +482,20 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
           ))}
         </div>
       </section>}
+
+      {/* Sponsored Ad Ribbon #2 */}
+      <a
+        href="https://www.storageblue.com"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block mx-3 mb-4 rounded-lg overflow-hidden transition-transform active:scale-[0.98]"
+        style={{ background: "#0A0A14", border: "1px solid rgba(255,255,255,0.06)" }}
+      >
+        <div className="flex items-center justify-center py-2.5 px-4 gap-2">
+          <span className="text-[9px] uppercase tracking-widest font-medium" style={{ color: "rgba(255,255,255,0.3)" }}>Sponsored</span>
+          <img src="/ads/storageblue-logo.png" alt="StorageBlue" height={22} style={{ height: 22, objectFit: "contain" }} />
+        </div>
+      </a>
     </div>
   );
 }
