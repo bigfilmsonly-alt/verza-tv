@@ -412,7 +412,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
       >
         <div className="flex items-center justify-center py-2.5 px-4 gap-2">
           <span className="text-[9px] uppercase tracking-widest font-medium" style={{ color: "rgba(255,255,255,0.3)" }}>Sponsored</span>
-          <img src="/ads/storageblue-logo.png" alt="StorageBlue" height={22} style={{ height: 22, objectFit: "contain" }} />
+          <img src="/ads/storageblue-logo.png" alt="StorageBlue" height={28} style={{ height: 28, objectFit: "contain" }} />
         </div>
       </a>
 
@@ -493,7 +493,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
       >
         <div className="flex items-center justify-center py-2.5 px-4 gap-2">
           <span className="text-[9px] uppercase tracking-widest font-medium" style={{ color: "rgba(255,255,255,0.3)" }}>Sponsored</span>
-          <img src="/ads/storageblue-logo.png" alt="StorageBlue" height={22} style={{ height: 22, objectFit: "contain" }} />
+          <img src="/ads/storageblue-logo.png" alt="StorageBlue" height={28} style={{ height: 28, objectFit: "contain" }} />
         </div>
       </a>
     </div>
