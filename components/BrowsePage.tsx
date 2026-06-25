@@ -407,12 +407,16 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         href="https://www.storageblue.com"
         target="_blank"
         rel="noopener noreferrer"
-        className="block mx-3 my-3 rounded-lg overflow-hidden transition-transform active:scale-[0.98]"
-        style={{ background: "#0A0A14", border: "1px solid rgba(255,255,255,0.06)" }}
+        className="block mx-3 my-4 rounded-xl overflow-hidden transition-transform active:scale-[0.98]"
+        style={{
+          background: "linear-gradient(135deg, rgba(10,10,20,0.95), rgba(15,15,25,0.95))",
+          border: "1px solid rgba(100,180,220,0.12)",
+          boxShadow: "0 0 20px rgba(100,180,220,0.04)",
+        }}
       >
-        <div className="flex items-center justify-center py-2.5 px-4 gap-2">
-          <span className="text-[9px] uppercase tracking-widest font-medium" style={{ color: "rgba(255,255,255,0.3)" }}>Sponsored</span>
-          <img src="/ads/storageblue-logo.png" alt="StorageBlue" height={28} style={{ height: 28, objectFit: "contain" }} />
+        <div className="flex flex-col items-center justify-center py-4 px-6">
+          <span className="text-[8px] uppercase tracking-[0.2em] font-medium mb-2" style={{ color: "rgba(255,255,255,0.25)" }}>Sponsored</span>
+          <img src="/ads/storageblue-logo.png" alt="StorageBlue" height={36} style={{ height: 36, objectFit: "contain" }} />
         </div>
       </a>
 
