@@ -489,8 +489,8 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </div>
       </section>}
 
-      {/* Sponsored Ad Ribbon #2 — hidden on Red Carpet */}
-      {activeTab !== "red-carpet" && <a
+      {/* Sponsored Ad Ribbon #2 — only on Drama (below All Shows grid) */}
+      {activeTab === "drama" && <a
         href="https://www.storageblue.com"
         target="_blank"
         rel="noopener noreferrer"
