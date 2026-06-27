@@ -138,8 +138,18 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </div>
       )}
 
-      {/* Category tabs */}
-      <CategoryTabs active={activeTab} onSelect={setActiveTab} tabs={activeTabs} />
+      {/* Category tabs — sticky directly under the header so they stay visible while scrolling */}
+      <div
+        className="sticky z-30"
+        style={{
+          top: 48,
+          background: "rgba(7, 7, 14, 0.95)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+        }}
+      >
+        <CategoryTabs active={activeTab} onSelect={setActiveTab} tabs={activeTabs} />
+      </div>
 
       {/* Continue Watching row */}
       {continueWatching.length > 0 && (
@@ -348,9 +358,9 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
             <Link href={`/series/${current.slug}/1`} className="block">
               <div
                 className="relative w-full overflow-hidden"
-                style={{ aspectRatio: "2 / 3", background: "#07070E" }}
+                style={{ aspectRatio: "1080 / 1660", background: "#07070E" }}
               >
-                {/* Poster slideshow — edge to edge, uniform size across all slides */}
+                {/* Poster slideshow — cropped to end right under the VERZA TV logo (black footer trimmed) */}
                 {current.posterUrl ? (
                   <Image
                     src={current.posterUrl}
@@ -358,7 +368,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                     fill
                     priority
                     sizes="100vw"
-                    className="object-cover"
+                    className="object-cover object-top"
                   />
                 ) : (
                   <div
@@ -395,7 +405,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
 
           {/* Dot indicators overlaid on hero bottom */}
           {heroSlides.length > 1 && (
-            <div className="flex items-center justify-center gap-1.5 py-0.5">
+            <div className="flex items-center justify-center gap-1.5 pt-1 pb-0.5">
               {heroSlides.map((_, i) => (
                 <button
                   key={i}
@@ -426,7 +436,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
           href="https://www.storageblue.com"
           target="_blank"
           rel="noopener noreferrer"
-          className="block mx-3 mt-1 mb-4 rounded-xl overflow-hidden transition-transform active:scale-[0.98]"
+          className="block mx-3 mt-0 mb-4 rounded-xl overflow-hidden transition-transform active:scale-[0.98]"
           style={{
             background: "linear-gradient(135deg, rgba(10,10,20,0.95), rgba(15,15,25,0.95))",
             border: "1px solid rgba(100,180,220,0.12)",
