@@ -371,12 +371,6 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               </div>
             </Link>
 
-            {/* Bottom gradient fade */}
-            <div
-              className="absolute bottom-0 left-0 right-0 pointer-events-none"
-              style={{ height: 80, background: "linear-gradient(to top, #07070E, transparent)", zIndex: 5 }}
-            />
-
             {heroSlides.length > 1 && (
               <>
                 <button
@@ -401,7 +395,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
 
           {/* Dot indicators overlaid on hero bottom */}
           {heroSlides.length > 1 && (
-            <div className="flex items-center justify-center gap-1.5 py-1">
+            <div className="flex items-center justify-center gap-1.5 py-0.5">
               {heroSlides.map((_, i) => (
                 <button
                   key={i}
