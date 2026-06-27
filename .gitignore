@@ -45,3 +45,6 @@ public/posters-backup-*/
 
 # Script output
 scripts/out/
+
+# Supabase CLI temp
+supabase/.temp/

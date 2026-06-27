@@ -77,7 +77,8 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
   const [showSplash, setShowSplash] = useState<string | null>(null);
 
   const filtered = tabData[activeTab] ?? [];
-  const heroSlides = filtered.slice(0, 4);
+  // The Mistress Trap flyer isn't full-bleed like the other posters, so keep it out of the hero slideshow
+  const heroSlides = filtered.filter((s) => s.slug !== "the-mistress-trap").slice(0, 4);
   const current = heroSlides[heroIdx % Math.max(heroSlides.length, 1)];
 
   useEffect(() => { setHeroIdx(0); }, [activeTab]);
@@ -297,22 +298,45 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               <link rel="preload" href={`https://stream.mux.com/${rcId}.m3u8`} as="fetch" crossOrigin="anonymous" />
             ) : null;
           })()}
-          <div className="relative">
-            <Link href="/series/the-dumb-billionaire-heiress-in-love/1" prefetch={true} className="block">
-              <div className="relative w-full overflow-hidden" style={{ aspectRatio: "2 / 3", background: "#000" }}>
-                <Image
-                  src="/posters/the-carpet.png"
-                  alt="The Carpet"
-                  fill
-                  priority
-                  sizes="100vw"
-                  className="object-contain"
-                  style={{ objectPosition: "top" }}
-                />
-              </div>
-            </Link>
-            <div className="absolute bottom-0 left-0 right-0 pointer-events-none" style={{ height: 80, background: "linear-gradient(to top, #07070E, transparent)", zIndex: 5 }} />
-          </div>
+          {/* All red carpet videos — laid out like the drama grid, each loops its own footage */}
+          <section className="pt-4 pb-8 px-3">
+            <h2 className="text-sm font-semibold uppercase tracking-wider mb-3 px-1" style={{ color: "#8A8A9A" }}>Red Carpet Events</h2>
+            <div className="grid grid-cols-3 gap-1.5">
+              {(MUX_MAP["the-dumb-billionaire-heiress-in-love"] ?? []).map((ev) => (
+                <Link
+                  key={ev.episode}
+                  href={`/series/the-dumb-billionaire-heiress-in-love/${ev.episode}`}
+                  prefetch={false}
+                  className="group block no-underline min-w-0 transition-transform active:scale-[0.97]"
+                >
+                  <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3", background: "#000" }}>
+                    <img
+                      src={`https://image.mux.com/${ev.playbackId}/animated.webp?width=240&fps=15&start=0&end=4`}
+                      alt={`The Carpet — Event ${ev.episode}`}
+                      loading="lazy"
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                    <div
+                      className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
+                      style={{ background: "rgba(0,0,0,0.3)" }}
+                    >
+                      <div
+                        className="w-10 h-10 rounded-full flex items-center justify-center"
+                        style={{ background: "rgba(224, 17, 95, 0.85)", backdropFilter: "blur(4px)" }}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff" stroke="none">
+                          <polygon points="8 5 20 12 8 19" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ height: 28 }}>
+                    <p className="mt-1.5 text-[11px] font-semibold leading-tight line-clamp-1" style={{ color: "#F5F4F8" }}>The Carpet — Event {ev.episode}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
         </div>
       )}
 
@@ -326,7 +350,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                 className="relative w-full overflow-hidden"
                 style={{ aspectRatio: "2 / 3", background: "#07070E" }}
               >
-                {/* Poster slideshow — full image visible, no cropping */}
+                {/* Poster slideshow — edge to edge, uniform size across all slides */}
                 {current.posterUrl ? (
                   <Image
                     src={current.posterUrl}
@@ -334,7 +358,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                     fill
                     priority
                     sizes="100vw"
-                    className="object-contain"
+                    className="object-cover"
                   />
                 ) : (
                   <div
@@ -377,7 +401,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
 
           {/* Dot indicators overlaid on hero bottom */}
           {heroSlides.length > 1 && (
-            <div className="flex items-center justify-center gap-1.5 py-2">
+            <div className="flex items-center justify-center gap-1.5 py-1">
               {heroSlides.map((_, i) => (
                 <button
                   key={i}
@@ -408,16 +432,15 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
           href="https://www.storageblue.com"
           target="_blank"
           rel="noopener noreferrer"
-          className="block mx-3 my-4 rounded-xl overflow-hidden transition-transform active:scale-[0.98]"
+          className="block mx-3 mt-1 mb-4 rounded-xl overflow-hidden transition-transform active:scale-[0.98]"
           style={{
             background: "linear-gradient(135deg, rgba(10,10,20,0.95), rgba(15,15,25,0.95))",
             border: "1px solid rgba(100,180,220,0.12)",
             boxShadow: "0 0 20px rgba(100,180,220,0.04)",
           }}
         >
-          <div className="flex flex-col items-center justify-center py-4 px-6">
-            <span className="text-[8px] uppercase tracking-[0.2em] font-medium mb-2" style={{ color: "rgba(255,255,255,0.25)" }}>Sponsored</span>
-            <img src="/ads/storageblue-logo.png" alt="StorageBlue" height={36} style={{ height: 36, objectFit: "contain" }} />
+          <div className="flex items-center justify-center py-2.5 px-6">
+            <img src="/ads/storageblue-logo.png" alt="StorageBlue" style={{ height: 52, objectFit: "contain" }} />
           </div>
         </a>
       )}
@@ -501,9 +524,8 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
           boxShadow: "0 0 20px rgba(100,180,220,0.04)",
         }}
       >
-        <div className="flex flex-col items-center justify-center py-4 px-6">
-          <span className="text-[8px] uppercase tracking-[0.2em] font-medium mb-2" style={{ color: "rgba(255,255,255,0.25)" }}>Sponsored</span>
-          <img src="/ads/storageblue-logo.png" alt="StorageBlue" height={36} style={{ height: 36, objectFit: "contain" }} />
+        <div className="flex items-center justify-center py-2.5 px-6">
+          <img src="/ads/storageblue-logo.png" alt="StorageBlue" style={{ height: 52, objectFit: "contain" }} />
         </div>
       </a>}
     </div>
