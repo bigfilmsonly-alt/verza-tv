@@ -312,7 +312,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               href="https://www.storageblue.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="block mx-3 mb-4 rounded-xl overflow-hidden transition-transform active:scale-[0.98]"
+              className="block mx-3 mt-5 mb-1 rounded-xl overflow-hidden transition-transform active:scale-[0.98]"
               style={{
                 background: "linear-gradient(135deg, rgba(10,10,20,0.95), rgba(15,15,25,0.95))",
                 border: "1px solid rgba(100,180,220,0.12)",
