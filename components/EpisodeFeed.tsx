@@ -39,6 +39,10 @@ interface EpisodeFeedProps {
   startEpisode: number;
   freeEpisodes: number;
   totalEpisodes: number;
+  /** Horizontal left/right swipe instead of vertical (used for red carpet events) */
+  horizontal?: boolean;
+  /** Where the back button navigates (defaults to home) */
+  backHref?: string;
 }
 
 /* ================================================================== */
@@ -406,6 +410,8 @@ export default function EpisodeFeed({
   startEpisode,
   freeEpisodes,
   totalEpisodes,
+  horizontal = false,
+  backHref = "/",
 }: EpisodeFeedProps) {
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -524,22 +530,41 @@ export default function EpisodeFeed({
 
   return (
     <div className="episode-immersive" style={{ background: "#000", overflow: "hidden" }}>
-      {/* Vertical snap-scroll container */}
+      {/* Snap-scroll container — vertical by default, horizontal for red carpet */}
       <div
         ref={containerRef}
         className="no-scrollbar"
-        style={{
-          width: "100%",
-          height: "var(--feed-h, 100dvh)",
-          overflowY: "auto",
-          overflowX: "hidden",
-          scrollSnapType: "y mandatory",
-          scrollbarWidth: "none",
-        }}
+        style={
+          horizontal
+            ? {
+                display: "flex",
+                flexDirection: "row",
+                width: "100%",
+                height: "var(--feed-h, 100dvh)",
+                overflowX: "auto",
+                overflowY: "hidden",
+                scrollSnapType: "x mandatory",
+                scrollbarWidth: "none",
+              }
+            : {
+                width: "100%",
+                height: "var(--feed-h, 100dvh)",
+                overflowY: "auto",
+                overflowX: "hidden",
+                scrollSnapType: "y mandatory",
+                scrollbarWidth: "none",
+              }
+        }
       >
-        {/* Top spacer for episodes above the window */}
+        {/* Leading spacer for episodes before the window */}
         {windowStart > 0 && (
-          <div style={{ height: `calc(var(--feed-h, 100dvh) * ${windowStart})`, flexShrink: 0 }} />
+          <div
+            style={
+              horizontal
+                ? { width: `calc(100% * ${windowStart})`, flexShrink: 0 }
+                : { height: `calc(var(--feed-h, 100dvh) * ${windowStart})`, flexShrink: 0 }
+            }
+          />
         )}
 
         {/* Only render visible window (max 5 slides) */}
@@ -549,12 +574,22 @@ export default function EpisodeFeed({
             <div
               key={ep.number}
               data-index={i}
-              style={{
-                width: "100%",
-                height: "var(--feed-h, 100dvh)",
-                scrollSnapAlign: "start",
-                scrollSnapStop: "always",
-              }}
+              style={
+                horizontal
+                  ? {
+                      flex: "0 0 100%",
+                      width: "100%",
+                      height: "var(--feed-h, 100dvh)",
+                      scrollSnapAlign: "start",
+                      scrollSnapStop: "always",
+                    }
+                  : {
+                      width: "100%",
+                      height: "var(--feed-h, 100dvh)",
+                      scrollSnapAlign: "start",
+                      scrollSnapStop: "always",
+                    }
+              }
             >
               <EpisodeSlide
                 episode={ep}
@@ -571,9 +606,15 @@ export default function EpisodeFeed({
           );
         })}
 
-        {/* Bottom spacer for episodes below the window */}
+        {/* Trailing spacer for episodes after the window */}
         {windowEnd < episodes.length - 1 && (
-          <div style={{ height: `calc(var(--feed-h, 100dvh) * ${episodes.length - 1 - windowEnd})`, flexShrink: 0 }} />
+          <div
+            style={
+              horizontal
+                ? { width: `calc(100% * ${episodes.length - 1 - windowEnd})`, flexShrink: 0 }
+                : { height: `calc(var(--feed-h, 100dvh) * ${episodes.length - 1 - windowEnd})`, flexShrink: 0 }
+            }
+          />
         )}
       </div>
 
@@ -587,7 +628,7 @@ export default function EpisodeFeed({
 
       {/* Back button — top-left */}
       <button
-        onClick={() => router.push("/")}
+        onClick={() => router.push(backHref)}
         className="absolute top-4 left-4 z-50 w-10 h-10 rounded-full flex items-center justify-center border-0 cursor-pointer"
         style={{ background: "rgba(0,0,0,0.35)", backdropFilter: "blur(20px)" }}
         aria-label="Back"
@@ -717,7 +758,7 @@ export default function EpisodeFeed({
               {unlockLoading ? "Loading..." : "Unlock Full Series — $4.99"}
             </button>
             <button
-              onClick={() => { router.push("/"); }}
+              onClick={() => { router.push(backHref); }}
               className="mt-4 text-sm font-medium border-0 bg-transparent cursor-pointer"
               style={{ color: "rgba(255,255,255,0.35)" }}
             >

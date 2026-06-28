@@ -128,6 +128,9 @@ export default async function EpisodePage({ params, searchParams }: Props) {
 
   const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
 
+  // Red carpet events use horizontal swipe and return to the red carpet layout
+  const isRedCarpet = slug === "the-dumb-billionaire-heiress-in-love";
+
   return (
     <>
       <JsonLd
@@ -174,6 +177,8 @@ export default async function EpisodePage({ params, searchParams }: Props) {
         startEpisode={epNum}
         freeEpisodes={series.freeEpisodes}
         totalEpisodes={series.episodeCount}
+        horizontal={isRedCarpet}
+        backHref={isRedCarpet ? "/?tab=red-carpet" : "/"}
       />
     </>
   );

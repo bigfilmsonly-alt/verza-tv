@@ -83,6 +83,14 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
 
   useEffect(() => { setHeroIdx(0); }, [activeTab]);
 
+  // Honor a ?tab= query param on mount (e.g. returning from a red carpet event)
+  useEffect(() => {
+    const tab = new URLSearchParams(window.location.search).get("tab");
+    if (tab && BROWSE_TABS.some((t) => t.key === tab)) {
+      setActiveTab(tab as BrowseCategory);
+    }
+  }, []);
+
   // No splash on Red Carpet — poster shows instantly
 
   // Reality show data (posters may not exist yet — uses styled placeholders)
@@ -310,7 +318,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
           })()}
           {/* All red carpet videos — laid out like the drama grid, each loops its own footage */}
           <section className="pt-4 pb-8 px-3">
-            <h2 className="text-sm font-semibold uppercase tracking-wider mb-3 px-1" style={{ color: "#8A8A9A" }}>Red Carpet Events</h2>
+            <h2 className="text-sm font-semibold uppercase tracking-wider mb-3 text-center" style={{ color: "#8A8A9A" }}>Red Carpet</h2>
             <div className="grid grid-cols-3 gap-1.5">
               {(MUX_MAP["the-dumb-billionaire-heiress-in-love"] ?? []).map((ev) => (
                 <Link
@@ -358,9 +366,9 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
             <Link href={`/series/${current.slug}/1`} className="block">
               <div
                 className="relative w-full overflow-hidden"
-                style={{ aspectRatio: "1080 / 1660", background: "#07070E" }}
+                style={{ aspectRatio: "1080 / 1920", background: "#07070E" }}
               >
-                {/* Poster slideshow — cropped to end right under the VERZA TV logo (black footer trimmed) */}
+                {/* Poster slideshow — full 9:16 flyer so the whole VERZA TV logo + title fits, nothing cropped */}
                 {current.posterUrl ? (
                   <Image
                     src={current.posterUrl}
@@ -368,7 +376,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                     fill
                     priority
                     sizes="100vw"
-                    className="object-cover object-top"
+                    className="object-contain"
                   />
                 ) : (
                   <div
