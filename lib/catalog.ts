@@ -927,6 +927,8 @@ export const catalog: Series[] = [
     slug: "too-much-junk",
     title: "Too Much Junk",
     logline: "When the music stops, the secrets start. A rising artist discovers the industry runs on lies — and her biggest hit is built on one.",
+    // TODO(content): confirm genre with Alan — label reads "Music · Drama" but the
+    // actual episode may be reality/comedy. Update genre + Music tab framing to match.
     genre: "Music · Drama",
     channel: "Verza Originals",
     categories: ["music"],

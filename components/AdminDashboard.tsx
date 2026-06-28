@@ -53,6 +53,11 @@ interface Stats {
     newInPeriod: number;
     activeVips: number;
   };
+  monetization: {
+    payingUsers: number;
+    arppuCents: number;
+    freeToPaidRate: number;
+  };
   content: {
     seriesUnlocks: Record<string, number>;
     topSeriesByRevenue: Record<string, number>;
@@ -384,6 +389,33 @@ export default function AdminDashboard() {
           label="AOV"
           value={fmt(stats.purchases.aovCents)}
           sub={`${stats.purchases.conversionRate}% conversion`}
+        />
+      </div>
+
+      {/* ---- Monetization KPIs (ARPPU + free->paid) ---- */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        <StatCard
+          label="Paying Users"
+          value={fmtK(stats.monetization.payingUsers)}
+          sub={`of ${fmtK(stats.users.total)} total`}
+          color={T.gold}
+        />
+        <StatCard
+          label="ARPPU"
+          value={fmt(stats.monetization.arppuCents)}
+          sub="Avg revenue / paying user"
+          color={T.gold}
+        />
+        <StatCard
+          label="Free → Paid"
+          value={`${stats.monetization.freeToPaidRate}%`}
+          sub="Conversion to any purchase"
+          color={T.success}
+        />
+        <StatCard
+          label="LTV (proxy)"
+          value={fmt(stats.monetization.arppuCents)}
+          sub="ARPPU — refine w/ retention"
         />
       </div>
 

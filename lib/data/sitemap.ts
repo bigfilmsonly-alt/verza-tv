@@ -10,6 +10,7 @@ import { GUIDES } from "@/lib/data/guides";
 import { COMPARISONS } from "@/lib/data/compare";
 import { ALAN_SUBPAGES } from "@/lib/data/alan";
 import { getApprovedGenreHubs } from "@/lib/content/genres";
+import { getLiveSeries } from "@/lib/catalog";
 
 export interface SitemapLink {
   label: string;
@@ -24,7 +25,70 @@ export interface SitemapSection {
   links: SitemapLink[];
 }
 
+export interface ShowGenreGroup {
+  title: string;
+  count: number;
+  links: SitemapLink[];
+}
+
 const approvedGenres = getApprovedGenreHubs();
+
+/* ------------------------------------------------------------------ */
+/*  Every live show, bucketed into one primary genre group.            */
+/*  Buckets are evaluated in order; first keyword match wins, so each   */
+/*  series appears exactly once and group counts sum to the live total. */
+/* ------------------------------------------------------------------ */
+
+const GENRE_BUCKETS: { title: string; terms: string[] }[] = [
+  { title: "Revenge & Betrayal", terms: ["revenge", "betray"] },
+  {
+    title: "Billionaire & Power",
+    terms: ["billionaire", "ceo", "dynasty", "rags-to-riches", "contract marriage"],
+  },
+  { title: "Mafia & Crime", terms: ["mafia", "crime", "spy"] },
+  { title: "Mystery & Gothic", terms: ["mystery", "gothic"] },
+  { title: "Thriller & Suspense", terms: ["thriller", "suspense", "psychological"] },
+  {
+    title: "Forbidden & Dark Romance",
+    terms: ["forbidden", "dark", "steamy", "obsession", "possessive", "deception", "escort"],
+  },
+  { title: "Office Romance", terms: ["office"] },
+  { title: "Family Drama", terms: ["family"] },
+  { title: "Reality & Red Carpet", terms: ["reality", "red carpet"] },
+  { title: "Music", terms: ["music"] },
+  { title: "Sci-Fi & Supernatural", terms: ["sci-fi", "supernatural"] },
+];
+
+const FALLBACK_GROUP = "Romance & Drama";
+
+export function showsByGenre(): ShowGenreGroup[] {
+  const live = getLiveSeries();
+  const order = [...GENRE_BUCKETS.map((b) => b.title), FALLBACK_GROUP];
+  const groups = new Map<string, SitemapLink[]>(order.map((t) => [t, []]));
+
+  for (const s of live) {
+    const g = s.genre.toLowerCase();
+    const bucket = GENRE_BUCKETS.find((b) => b.terms.some((term) => g.includes(term)));
+    groups.get(bucket ? bucket.title : FALLBACK_GROUP)!.push({
+      label: s.title,
+      href: `/series/${s.slug}`,
+    });
+  }
+
+  return order
+    .map((title) => ({
+      title,
+      count: groups.get(title)!.length,
+      links: groups.get(title)!.sort((a, b) => a.label.localeCompare(b.label)),
+    }))
+    .filter((grp) => grp.count > 0);
+}
+
+export const SHOW_GENRE_GROUPS: ShowGenreGroup[] = showsByGenre();
+export const TOTAL_LIVE_SHOWS: number = SHOW_GENRE_GROUPS.reduce(
+  (sum, g) => sum + g.count,
+  0,
+);
 
 /* ------------------------------------------------------------------ */
 /*  Curated sections — drive the footer dropdown + the HTML /sitemap.   */

@@ -94,6 +94,13 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} h-full antialiased`} style={{ background: "#07070E" }}>
       <head>
+        {/* Connection warming — pay down DNS+TLS to Mux before anyone taps play */}
+        <link rel="preconnect" href="https://stream.mux.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://image.mux.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://litix.io" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://stream.mux.com" />
+        <link rel="dns-prefetch" href="https://image.mux.com" />
+        <link rel="dns-prefetch" href="https://litix.io" />
         <Script src="https://www.googletagmanager.com/gtag/js?id=G-HY8HNR5DQD" strategy="afterInteractive" />
         <Script id="ga4" strategy="afterInteractive">{`
           window.dataLayer = window.dataLayer || [];

@@ -219,6 +219,25 @@ export async function GET(req: NextRequest) {
       ? Number(((completedPurchases.length / totalUsers) * 100).toFixed(2))
       : 0;
 
+    // Unique paying users (by buyer email in purchase metadata) + VIPs.
+    // Server-verified: these rows only exist after a Stripe webhook.
+    const payingEmails = new Set<string>();
+    for (const p of completedPurchases) {
+      const email = (p.metadata as Record<string, string>)?.email;
+      if (email) payingEmails.add(email.toLowerCase());
+    }
+    const payingUsers = Math.max(payingEmails.size, activeVips);
+
+    // ARPPU — average revenue per paying user (lifetime within range).
+    const arppuCents = payingUsers > 0
+      ? Math.round(totalRevenueCents / payingUsers)
+      : 0;
+
+    // Free -> paid conversion: paying users / total users.
+    const freeToPaidRate = totalUsers > 0
+      ? Number(((payingUsers / totalUsers) * 100).toFixed(2))
+      : 0;
+
     // Refunds
     const refunds = purchases.filter((p) => p.status === "refunded");
 
@@ -258,6 +277,11 @@ export async function GET(req: NextRequest) {
         total: totalUsers,
         newInPeriod: newUsers,
         activeVips,
+      },
+      monetization: {
+        payingUsers,
+        arppuCents,
+        freeToPaidRate,
       },
       content: {
         seriesUnlocks: seriesUnlocksBySlug,

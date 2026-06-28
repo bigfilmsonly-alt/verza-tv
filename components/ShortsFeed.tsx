@@ -9,6 +9,7 @@ import type { Series } from "@/lib/catalog";
 import { T } from "@/lib/theme";
 import { MUX_MAP } from "@/lib/mux-map";
 import { useTranslation } from "@/components/LangProvider";
+import { createTtffTracker } from "@/lib/perf/ttff";
 
 /* ---- Load hls.js once ---- */
 let hlsPromise: Promise<typeof HlsType | null> | null = null;
@@ -181,6 +182,9 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
   const mutedRef = useRef(muted);
   useEffect(() => { mutedRef.current = muted; }, [muted]);
 
+  // Manifests/posters we've already warmed (so we can flag preload hits).
+  const warmedRef = useRef<Set<string>>(new Set());
+
   /* Fetch saved list */
   useEffect(() => {
     try {
@@ -232,6 +236,14 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
     const hlsUrl = `https://stream.mux.com/${playbackId}.m3u8`;
     let cancelled = false;
 
+    // ---- TTFF measurement: mark intent now, commit on first 'playing' ----
+    const tracker = createTtffTracker(playbackId, warmedRef.current.has(hlsUrl));
+    tracker.markIntent();
+    const onPlaying = () => tracker.commit(vid.videoHeight || null);
+    const onWaiting = () => tracker.markRebuffer();
+    vid.addEventListener("playing", onPlaying, { once: true });
+    vid.addEventListener("waiting", onWaiting);
+
     // Destroy previous HLS instance (but keep the SAME video element)
     if (hlsRef.current) {
       hlsRef.current.destroy();
@@ -253,12 +265,31 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
       }
     }
 
+    // ---- Warm the NEXT clip (cap: next 1) — manifest + poster ----------
+    const next = shuffled[activeIndex + 1];
+    const nextId = next ? MUX_MAP[next.slug]?.[0]?.playbackId : undefined;
+    if (nextId) {
+      const nextUrl = `https://stream.mux.com/${nextId}.m3u8`;
+      if (!warmedRef.current.has(nextUrl)) {
+        warmedRef.current.add(nextUrl);
+        fetch(nextUrl, { mode: "cors" }).catch(() => {});
+        const img = new window.Image();
+        img.src = `https://image.mux.com/${nextId}/thumbnail.jpg?time=2&width=480`;
+      }
+    }
+
+    const cleanup = () => {
+      cancelled = true;
+      vid.removeEventListener("playing", onPlaying);
+      vid.removeEventListener("waiting", onWaiting);
+    };
+
     // Safari / iOS — native HLS
     if (vid.canPlayType("application/vnd.apple.mpegurl")) {
       vid.src = hlsUrl;
       vid.addEventListener("canplay", () => { if (!cancelled) doPlay(); }, { once: true });
       vid.load();
-      return () => { cancelled = true; };
+      return cleanup;
     }
 
     // Chrome / Firefox — hls.js
@@ -277,7 +308,7 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
       });
     });
 
-    return () => { cancelled = true; };
+    return cleanup;
   }, [activeIndex, shuffled]);
 
   /* Sync muted */

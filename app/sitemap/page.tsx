@@ -4,7 +4,7 @@ import { breadcrumbSchema } from "@/lib/schemas";
 import JsonLd from "@/components/JsonLd";
 import { T } from "@/lib/theme";
 import { BRAND } from "@/lib/config";
-import { SITEMAP_SECTIONS, SITEMAP_FULL } from "@/lib/data/sitemap";
+import { SITEMAP_SECTIONS, SITEMAP_FULL, SHOW_GENRE_GROUPS, TOTAL_LIVE_SHOWS } from "@/lib/data/sitemap";
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
 
@@ -96,6 +96,45 @@ export default function HtmlSitemapPage() {
                   </li>
                 ))}
               </ul>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* All shows, grouped by genre */}
+      <section className="px-4 pt-8 pb-2">
+        <h2 className="text-lg font-bold mb-1" style={{ color: T.text }}>
+          All Shows by Genre
+        </h2>
+        <p className="text-xs mb-5" style={{ color: T.textMute }}>
+          Every one of our {TOTAL_LIVE_SHOWS} live originals, grouped by genre.
+        </p>
+        <div className="flex flex-col gap-7">
+          {SHOW_GENRE_GROUPS.map((group) => (
+            <div key={group.title}>
+              <h3
+                className="text-xs font-semibold uppercase tracking-wider mb-3"
+                style={{ color: T.textMute }}
+              >
+                {group.title}{" "}
+                <span style={{ color: T.textDim }}>({group.count})</span>
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {group.links.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="text-xs font-medium px-3 py-1.5 rounded-full no-underline"
+                    style={{
+                      background: `${T.accent}15`,
+                      color: T.accent,
+                      border: `1px solid ${T.accent}30`,
+                    }}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
             </div>
           ))}
         </div>

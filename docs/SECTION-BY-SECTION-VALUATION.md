@@ -1,7 +1,7 @@
 # VERZA TV — SECTION-BY-SECTION VALUATION
 
 **What Every Piece of This App Is Worth**
-**Date:** June 22, 2026
+**Date:** June 27, 2026 (updated)
 
 ---
 
@@ -313,6 +313,54 @@ You cannot ship to the App Store or Google Play without these. You cannot proces
 
 ---
 
+## SECTION 20: AI INTEGRATION (CLAUDE)
+
+**Files:** AskVerza.tsx (512 lines), CreatorAITools.tsx (436 lines), api/ai-host/route.ts (386 lines)
+**What it does:** Two AI products powered by Claude. **Ask Verza** — a floating chatbot on every page with full platform knowledge (all 76 series, pricing, features, how-to). **Creator AI Studio** — script generator, logline writer, social copy generator, and episode-description writer for creators. The API is multi-mode (chat, creator, seo, marketing, moderate) with a full platform system prompt and content moderation.
+
+| | |
+|--|--|
+| Lines of code | 1,334 |
+| Build cost | $20,000–$35,000 |
+| Time to build from scratch | 2–4 weeks |
+| Strategic value | **Support deflection + creator force-multiplier** |
+
+The chatbot answers buyer questions at the moment of intent (deflecting support cost and lifting conversion). The Creator Studio lowers the barrier to publishing — a creator can go from idea to a full episode pitch in minutes, which directly feeds the 80%-rev-share platform model.
+
+---
+
+## SECTION 21: SITEMAP & INTERNAL LINKING SYSTEM
+
+**Files:** lib/data/sitemap.ts (356 lines), FooterSitemap.tsx (239 lines), app/sitemap/page.tsx (179 lines), sitemaps/pages.xml route
+**What it does:** A single data-driven sitemap registry (one source of truth) that powers three surfaces: a footer **bottom-sheet** dropdown that keeps the header and nav fixed so users never get lost, a crawlable HTML `/sitemap` page, and the XML sitemap. All 76 live shows are auto-bucketed into 11 genre groups with live counts, plus curated hubs for genres, collections, best-of lists, guides, locations, company and founder pages.
+
+| | |
+|--|--|
+| Lines of code | 774 |
+| Build cost | $6,000–$10,000 |
+| Time to build from scratch | 1 week |
+| Strategic value | **Crawl depth + internal link equity = compounding SEO** |
+
+Internal linking is how Google discovers and ranks the 900+ programmatic pages. This registry guarantees every show, genre, and hub is reachable in two clicks and one crawl hop — the difference between pages that rank and pages that sit unindexed.
+
+---
+
+## SECTION 22: VIDEO PERFORMANCE ENGINE
+
+**Files:** lib/perf/ttff.ts (116 lines), lib/perf/seed.ts (44 lines), PerfHarness.tsx (153 lines), app/dev/perf route, layout.tsx connection warming
+**What it does:** A performance layer bolted onto the custom hls.js players. **Connection warming** (preconnect/dns-prefetch to Mux) pays down DNS+TLS before the first tap. **Next-item prefetch** warms the next clip's manifest + poster in the Shorts feed, and episode N+1 in the series player — but only for *free* episodes, so the paywall is never leaked. **TTFF measurement** records tap→first-frame time, preload hit/miss, rebuffers, and active rendition into a ring buffer, surfaced in a gated `/dev/perf` harness running against public seed streams.
+
+| | |
+|--|--|
+| Lines of code | 327 |
+| Build cost | $8,000–$14,000 |
+| Time to build from scratch | 1–2 weeks |
+| Strategic value | **Lower time-to-first-frame = higher watch-through** |
+
+Time-to-first-frame is the single biggest driver of drop-off in short-form video — the metric ReelShort spent years and millions tuning. Warming connections and prefetching the next item makes web playback feel native, and the measurement harness means we can prove it instead of guessing.
+
+---
+
 ## TOTAL VALUATION — SECTION BY SECTION
 
 | # | Section | Lines | Build Cost | Strategic Value |
@@ -336,8 +384,11 @@ You cannot ship to the App Store or Google Play without these. You cannot proces
 | 17 | Clip Engine | 400 | $5K–$8K | Viral distribution |
 | 18 | Legal Pages | 1,564 | $5K–$8K | Compliance |
 | 19 | Poster Art & Assets | 181 files | $15K–$38K | Brand identity |
+| 20 | AI Integration (Claude) | 1,334 | $20K–$35K | Support + creator multiplier |
+| 21 | Sitemap & Internal Linking | 774 | $6K–$10K | Compounding SEO |
+| 22 | Video Performance Engine | 327 | $8K–$14K | Higher watch-through |
 | | | | | |
-| | **TOTAL** | **25,082 lines + 181 assets** | **$198K–$311K** | |
+| | **TOTAL** | **27,517 lines + 181 assets** | **$232K–$370K** | |
 
 ### Plus Content Library
 
@@ -354,7 +405,7 @@ You cannot ship to the App Store or Google Play without these. You cannot proces
 
 | Valuation Method | Range |
 |-----------------|-------|
-| **Build cost (code + content)** | **$408K–$1,136K** |
+| **Build cost (code + content)** | **$442K–$1,195K** |
 | **Fair market value (operating platform)** | **$3M–$5M** |
 | **Post-marketing (Year 1 revenue multiple)** | **$30M–$80M** |
 | **Strategic acquisition (US market + E! founder)** | **$50M–$100M+** |

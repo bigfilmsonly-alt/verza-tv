@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { T } from "@/lib/theme";
-import { SITEMAP_SECTIONS } from "@/lib/data/sitemap";
+import { SITEMAP_SECTIONS, SHOW_GENRE_GROUPS, TOTAL_LIVE_SHOWS } from "@/lib/data/sitemap";
 
 export default function FooterSitemap() {
   const [open, setOpen] = useState(false);
@@ -99,7 +99,70 @@ export default function FooterSitemap() {
 
             {/* Scrollable section grid */}
             <div className="flex-1 overflow-y-auto px-4 py-4">
-              <div className="grid grid-cols-2 gap-x-4 gap-y-5">
+              {/* All shows, grouped by genre */}
+              <div className="mb-6">
+                <h3
+                  className="mb-3"
+                  style={{
+                    color: T.text,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    letterSpacing: "0.06em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Shows by Genre
+                  <span style={{ color: T.accent, marginLeft: 6 }}>
+                    {TOTAL_LIVE_SHOWS}
+                  </span>
+                </h3>
+                <div className="flex flex-col gap-4">
+                  {SHOW_GENRE_GROUPS.map((group) => (
+                    <div key={group.title}>
+                      <h4
+                        className="mb-1.5"
+                        style={{
+                          color: T.textMute,
+                          fontSize: 10,
+                          fontWeight: 700,
+                          letterSpacing: "0.04em",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        {group.title}{" "}
+                        <span style={{ color: T.textDim, fontWeight: 600 }}>
+                          ({group.count})
+                        </span>
+                      </h4>
+                      <div className="flex flex-wrap gap-1.5">
+                        {group.links.map((link) => (
+                          <Link
+                            key={link.href}
+                            href={link.href}
+                            onClick={close}
+                            className="no-underline"
+                            style={{
+                              color: T.accent,
+                              background: `${T.accent}12`,
+                              border: `1px solid ${T.accent}26`,
+                              borderRadius: 999,
+                              padding: "3px 9px",
+                              fontSize: 10.5,
+                              fontWeight: 500,
+                            }}
+                          >
+                            {link.label}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div
+                className="grid grid-cols-2 gap-x-4 gap-y-5 pt-4"
+                style={{ borderTop: `1px solid ${T.line}` }}>
                 {SITEMAP_SECTIONS.map((section) => (
                   <div key={section.title}>
                     <h3

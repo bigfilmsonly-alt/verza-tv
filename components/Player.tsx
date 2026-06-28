@@ -6,6 +6,7 @@ import type HlsType from "hls.js";
 import { trackEpisodeStart, trackEpisodeComplete, trackUnlockPrompt, trackUnlockClick } from "@/lib/track";
 import { T } from "@/lib/theme";
 import { formatDuration } from "@/lib/catalog";
+import { MUX_MAP } from "@/lib/mux-map";
 
 // Dynamic import — hls.js only needed on Chrome/Firefox, not Safari/iOS
 let HlsModule: typeof HlsType | null = null;
@@ -135,6 +136,19 @@ export default function Player({
     console.error("[Player] HLS not supported in this browser");
     setError("Your browser does not support video playback. Please try Chrome, Safari, or Firefox.");
   }, [hlsUrl]);
+
+  /* ---- Warm episode N+1 manifest — ONLY if it's a free episode ----- */
+  /*  Never prefetch a locked episode's stream (respects the paywall).  */
+
+  useEffect(() => {
+    const nextEp = episodeNumber + 1;
+    if (nextEp > freeEpisodes || nextEp > totalEpisodes) return;
+    const next = MUX_MAP[seriesSlug]?.find((e) => e.episode === nextEp);
+    if (!next?.playbackId) return;
+    fetch(`https://stream.mux.com/${next.playbackId}.m3u8`, { mode: "cors" }).catch(() => {});
+    const img = new window.Image();
+    img.src = `https://image.mux.com/${next.playbackId}/thumbnail.jpg?time=2&width=480`;
+  }, [seriesSlug, episodeNumber, freeEpisodes, totalEpisodes]);
 
   /* ---- Video event listeners (always attached -- video always in DOM) */
 
