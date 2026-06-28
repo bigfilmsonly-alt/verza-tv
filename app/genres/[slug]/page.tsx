@@ -37,15 +37,43 @@ export default async function GenreHubPage({ params }: Props) {
 
   const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
 
-  // Find matching series by genre tags
+  // 1) Strict tag match against the series' genre string + tags array.
   const allSeries = getLiveSeries();
-  const matching = allSeries.filter((s) => {
+  const tagMatches = allSeries.filter((s) => {
     const sGenre = s.genre.toLowerCase();
     const sTags = (s.tags || []).map((t) => t.toLowerCase());
     return genre.tags.some(
       (tag) => sGenre.includes(tag) || sTags.includes(tag),
     );
   });
+
+  // 2) Broad fallback: search title / logline / genre for hub keywords so no
+  //    approved hub renders an empty (doorway) page. Mirrors /genre/[genre].
+  const broadTerms = [
+    ...genre.tags,
+    ...(genre.matchTerms ?? []),
+  ].map((t) => t.toLowerCase());
+  const broadMatches = allSeries.filter(
+    (s) =>
+      !tagMatches.find((m) => m.slug === s.slug) &&
+      broadTerms.some((term) => {
+        const hay = `${s.title} ${s.logline} ${s.genre}`.toLowerCase();
+        return hay.includes(term);
+      }),
+  );
+
+  const matching = [...tagMatches, ...broadMatches];
+
+  // Related hubs for cross-linking (curate by relatedSlugs, fall back to siblings)
+  const relatedHubs = (
+    genre.relatedSlugs && genre.relatedSlugs.length > 0
+      ? genre.relatedSlugs
+          .map((rs) => GENRE_HUBS.find((g) => g.slug === rs))
+          .filter((g): g is (typeof GENRE_HUBS)[number] => Boolean(g))
+      : GENRE_HUBS.filter((g) => g.slug !== slug)
+  )
+    .filter((g) => g.editorialApproved && g.slug !== slug)
+    .slice(0, 6);
 
   return (
     <>
@@ -113,6 +141,40 @@ export default async function GenreHubPage({ params }: Props) {
           <p className="text-sm py-8 text-center" style={{ color: T.textMute }}>
             More {genre.name.toLowerCase()} series coming soon.
           </p>
+        )}
+
+        {relatedHubs.length > 0 && (
+          <div className="mt-10">
+            <h2
+              className="text-sm font-semibold uppercase tracking-wider mb-3"
+              style={{ color: T.textMute }}
+            >
+              Related Genres
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              {relatedHubs.map((g) => (
+                <Link
+                  key={g.slug}
+                  href={`/genres/${g.slug}`}
+                  className="text-xs font-medium px-3 py-1.5 rounded-full no-underline"
+                  style={{
+                    background: `${T.accent}15`,
+                    color: T.accent,
+                    border: `1px solid ${T.accent}30`,
+                  }}
+                >
+                  {g.name}
+                </Link>
+              ))}
+            </div>
+            <Link
+              href="/genres"
+              className="inline-block mt-4 text-xs font-medium underline no-underline"
+              style={{ color: T.textDim }}
+            >
+              Browse all genres
+            </Link>
+          </div>
         )}
       </section>
     </>

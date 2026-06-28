@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { T } from "@/lib/theme";
+import FooterSitemap from "@/components/FooterSitemap";
 
 const socialLinks = [
   {
@@ -135,6 +136,9 @@ export default function Footer() {
             </a>
           ))}
         </div>
+
+        {/* Section 2.5 — Sitemap dropdown */}
+        <FooterSitemap />
 
         {/* Section 3 — Legal Links */}
         <div className="flex flex-wrap justify-center gap-x-4 gap-y-1.5 mb-5">

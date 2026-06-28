@@ -1,3 +1,5 @@
+import { allProgrammaticPaths } from "@/lib/data/sitemap";
+
 export function GET() {
   const baseUrl =
     process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
@@ -18,7 +20,9 @@ export function GET() {
     { loc: "/refund-policy", priority: "0.3", changefreq: "yearly" },
   ];
 
-  const urls = staticPages.map(
+  const allPages = [...staticPages, ...allProgrammaticPaths()];
+
+  const urls = allPages.map(
     (page) => `  <url>
     <loc>${baseUrl}${page.loc}</loc>
     <lastmod>${now}</lastmod>
