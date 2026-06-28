@@ -3,6 +3,7 @@ import Stripe from "stripe";
 import { getServiceClient } from "@/lib/supabase/server";
 import { sendPurchaseConfirmation } from "@/lib/email";
 import { emitServerEvent } from "@/lib/analytics";
+import { persistEvent } from "@/lib/analytics/persist";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
@@ -57,14 +58,17 @@ export async function POST(req: NextRequest) {
           console.error("[webhook] Failed to record purchase:", purchaseErr);
         } else {
           console.log("[webhook] Purchase recorded:", purchase?.id);
-          emitServerEvent("purchase_completed", {
+          const purchaseProps = {
             revenue_cents: session.amount_total || 0,
             currency: session.currency || "usd",
             purchase_type: type || "merch",
             show_id: session.metadata?.seriesSlug,
             stripe_session_id: session.id,
             user_id: email || undefined,
-          });
+          };
+          emitServerEvent("purchase_completed", purchaseProps);
+          // Server-verified revenue row in the event stream.
+          await persistEvent("purchase_completed", purchaseProps);
         }
 
         // If series unlock, create entitlement
@@ -192,10 +196,10 @@ export async function POST(req: NextRequest) {
             console.error("[webhook] Failed to update VIP status:", profileErr);
           } else {
             console.log("[webhook] VIP status updated:", email, isActive ? "activated" : "deactivated");
-            emitServerEvent(isActive ? "subscription_started" : "subscription_cancelled", {
-              user_id: userId,
-              stripe_session_id: sub.id,
-            });
+            const subEvent = isActive ? "subscription_started" : "subscription_cancelled";
+            const subProps = { user_id: userId, stripe_session_id: sub.id };
+            emitServerEvent(subEvent, subProps);
+            await persistEvent(subEvent, subProps);
 
             // Send VIP email to customer + team
             if (isActive) {

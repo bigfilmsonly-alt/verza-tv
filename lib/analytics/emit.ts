@@ -48,6 +48,43 @@ declare global {
   }
 }
 
+const ANON_ID_KEY = "verza_anon_id";
+
+/** Stable per-browser anonymous id for funnel/retention joins. */
+function getAnonId(): string | undefined {
+  if (typeof window === "undefined") return undefined;
+  try {
+    let id = localStorage.getItem(ANON_ID_KEY);
+    if (!id) {
+      id = (crypto.randomUUID?.() ?? `anon_${Date.now()}_${Math.random().toString(36).slice(2)}`);
+      localStorage.setItem(ANON_ID_KEY, id);
+    }
+    return id;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Fire-and-forget persistence to our own sink (analytics_events table). */
+function persistToSink(event: AnalyticsEvent, props: EventProperties) {
+  if (typeof window === "undefined") return;
+  // Revenue truth comes from the Stripe webhook, never the client.
+  if (isServerOnlyEvent(event)) return;
+  try {
+    const payload = JSON.stringify({ event, props: { anon_id: getAnonId(), ...props } });
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon("/api/events", new Blob([payload], { type: "application/json" }));
+    } else {
+      fetch("/api/events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: payload,
+        keepalive: true,
+      }).catch(() => {});
+    }
+  } catch {}
+}
+
 function emitClient(event: AnalyticsEvent, props: EventProperties) {
   if (typeof window === "undefined") return;
 
@@ -66,6 +103,9 @@ function emitClient(event: AnalyticsEvent, props: EventProperties) {
         .va("event", { name: event, ...props });
     }
   } catch {}
+
+  // Our own event stream (Supabase analytics_events)
+  persistToSink(event, props);
 }
 
 /* ------------------------------------------------------------------ */
