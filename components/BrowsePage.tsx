@@ -366,9 +366,9 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
             <Link href={`/series/${current.slug}/1`} className="block">
               <div
                 className="relative w-full overflow-hidden"
-                style={{ aspectRatio: "1080 / 1920", background: "#07070E" }}
+                style={{ aspectRatio: "1080 / 1660", background: "#07070E" }}
               >
-                {/* Poster slideshow — full 9:16 flyer so the whole VERZA TV logo + title fits, nothing cropped */}
+                {/* Poster slideshow — cropped to end right under the VERZA TV logo (black footer trimmed) */}
                 {current.posterUrl ? (
                   <Image
                     src={current.posterUrl}
@@ -376,7 +376,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                     fill
                     priority
                     sizes="100vw"
-                    className="object-contain"
+                    className="object-cover object-top"
                   />
                 ) : (
                   <div
