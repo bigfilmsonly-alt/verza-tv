@@ -433,6 +433,24 @@ export default function EpisodeFeed({
   const activeIndexRef = useRef(activeIndex);
   activeIndexRef.current = activeIndex;
 
+  /* Track whether we arrived here via in-app navigation so Back returns to
+     the exact page the user was last looking at (not a hardcoded home). */
+  const canGoBackRef = useRef(false);
+  useEffect(() => {
+    canGoBackRef.current =
+      window.history.length > 1 &&
+      (document.referrer === "" ||
+        document.referrer.startsWith(window.location.origin));
+  }, []);
+
+  const handleBack = useCallback(() => {
+    // Pause any playing video first to avoid audio bleeding into the next view
+    const vids = document.querySelectorAll("video");
+    vids.forEach((v) => { v.muted = true; v.pause(); });
+    if (canGoBackRef.current) router.back();
+    else router.push(backHref);
+  }, [router, backHref]);
+
   const activeEp = episodes[activeIndex];
 
   // Virtual window: only render 5 slides max (active ± 2)
@@ -628,7 +646,7 @@ export default function EpisodeFeed({
 
       {/* Back button — top-left */}
       <button
-        onClick={() => router.push(backHref)}
+        onClick={handleBack}
         className="absolute top-4 left-4 z-50 w-10 h-10 rounded-full flex items-center justify-center border-0 cursor-pointer"
         style={{ background: "rgba(0,0,0,0.35)", backdropFilter: "blur(20px)" }}
         aria-label="Back"
@@ -758,7 +776,7 @@ export default function EpisodeFeed({
               {unlockLoading ? "Loading..." : "Unlock Full Series — $4.99"}
             </button>
             <button
-              onClick={() => { router.push(backHref); }}
+              onClick={handleBack}
               className="mt-4 text-sm font-medium border-0 bg-transparent cursor-pointer"
               style={{ color: "rgba(255,255,255,0.35)" }}
             >

@@ -91,6 +91,15 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
     }
   }, []);
 
+  // Keep the URL in sync with the active tab so the browser Back button
+  // returns the user to whatever section they were last browsing.
+  useEffect(() => {
+    const url = activeTab === "drama" ? "/" : `/?tab=${activeTab}`;
+    if (window.location.pathname + window.location.search !== url) {
+      window.history.replaceState(null, "", url);
+    }
+  }, [activeTab]);
+
   // No splash on Red Carpet — poster shows instantly
 
   // Reality show data (posters may not exist yet — uses styled placeholders)
