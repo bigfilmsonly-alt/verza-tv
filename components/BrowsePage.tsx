@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Fragment } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import CategoryTabs from "@/components/CategoryTabs";
@@ -293,17 +293,25 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
             {/* All Reality posters */}
             <section className="mt-2 pb-4 px-3">
               <div className="poster-grid grid grid-cols-3 gap-1.5">
-                {realityShows.map((show) => (
-                  <div key={show.title} className="block no-underline min-w-0">
-                    <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
-                      <Image src={show.poster} alt={show.title} fill sizes="(max-width: 440px) 33vw, 146px" className="object-cover" />
-                    </div>
-                    <div style={{ height: 36 }}>
-                      <p className="mt-1.5 text-[11px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>{show.title}</p>
-                      <p className="text-[10px] mt-0.5" style={{ color: "#6B6B7B" }}>Reality</p>
-                    </div>
-                  </div>
-                ))}
+                {realityShows.map((show, i) => {
+                  // Center a lone last poster (e.g. Storage Pirates) under the
+                  // middle column by inserting an empty spacer cell before it.
+                  const isLoneLast = i === realityShows.length - 1 && realityShows.length % 3 === 1;
+                  return (
+                    <Fragment key={show.title}>
+                      {isLoneLast && <div aria-hidden className="min-w-0" />}
+                      <div className="block no-underline min-w-0">
+                        <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
+                          <Image src={show.poster} alt={show.title} fill sizes="(max-width: 440px) 33vw, 146px" className="object-cover" />
+                        </div>
+                        <div style={{ height: 36 }}>
+                          <p className="mt-1.5 text-[11px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>{show.title}</p>
+                          <p className="text-[10px] mt-0.5" style={{ color: "#6B6B7B" }}>Reality</p>
+                        </div>
+                      </div>
+                    </Fragment>
+                  );
+                })}
               </div>
             </section>
 
