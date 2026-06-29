@@ -4,6 +4,7 @@ import { useRef, useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import type HlsType from "hls.js";
 import { trackEpisodeStart, trackEpisodeComplete, trackUnlockPrompt, trackUnlockClick } from "@/lib/track";
+import { emit } from "@/lib/analytics";
 
 /* ---- Load hls.js once ---- */
 let hlsPromise: Promise<typeof HlsType | null> | null = null;
@@ -510,6 +511,7 @@ export default function EpisodeFeed({
 
             if (!ep.isFree) {
               trackUnlockPrompt(seriesSlug);
+              emit("paywall_viewed", { show_id: seriesSlug, episode_number: ep.number, plan_type: "series_unlock", surface: "episode_feed" });
               setShowUnlock(true);
             } else {
               setShowUnlock(false);
@@ -752,6 +754,7 @@ export default function EpisodeFeed({
               onClick={async () => {
                 setUnlockLoading(true);
                 trackUnlockClick(seriesSlug);
+                emit("checkout_started", { show_id: seriesSlug, plan_type: "series_unlock", surface: "episode_feed" });
                 try {
                   const res = await fetch("/api/unlock", {
                     method: "POST",

@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
 import type HlsType from "hls.js";
 import { trackEpisodeStart, trackEpisodeComplete, trackUnlockPrompt, trackUnlockClick } from "@/lib/track";
+import { emit } from "@/lib/analytics";
 import { T } from "@/lib/theme";
 import { formatDuration } from "@/lib/catalog";
 import { MUX_MAP } from "@/lib/mux-map";
@@ -213,6 +214,7 @@ export default function Player({
       if (episodeNumber >= freeEpisodes) {
         /* Last free episode just ended — show unlock popup */
         trackUnlockPrompt(seriesSlug);
+        emit("paywall_viewed", { show_id: seriesSlug, episode_number: episodeNumber, plan_type: "series_unlock", surface: "player_unlock_popup" });
         setShowUnlockPopup(true);
       } else if (episodeNumber < totalEpisodes) {
         /* Auto-advance to next episode */
@@ -707,6 +709,7 @@ export default function Player({
                 onClick={async () => {
                   setUnlockLoading(true);
                   trackUnlockClick(seriesSlug);
+                  emit("checkout_started", { show_id: seriesSlug, episode_number: episodeNumber, plan_type: "series_unlock", surface: "player_unlock_popup" });
                   try {
                     const res = await fetch("/api/unlock", {
                       method: "POST",

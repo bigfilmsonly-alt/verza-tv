@@ -58,6 +58,30 @@ interface Stats {
     arppuCents: number;
     freeToPaidRate: number;
   };
+  funnel?: {
+    eventsTableReady: boolean;
+    steps: {
+      paywallViews: number;
+      checkoutStarted: number;
+      purchaseCompleted: number;
+      subscriptionStarted: number;
+      subscriptionRenewed: number;
+      conversions: number;
+    };
+    conversion: {
+      paywallToCheckoutPct: number;
+      checkoutToPurchasePct: number;
+      paywallToPurchasePct: number;
+    };
+    revenue: {
+      seriesUnlockCents: number;
+      vipCents: number;
+      otherCents: number;
+      grossCents: number;
+      refundCents: number;
+      netCents: number;
+    };
+  };
   content: {
     seriesUnlocks: Record<string, number>;
     topSeriesByRevenue: Record<string, number>;
@@ -616,6 +640,100 @@ export default function AdminDashboard() {
           </table>
         </div>
       </section>
+
+      {/* ---- Paywall → Purchase Funnel (server-verified) ---- */}
+      {stats.funnel && (
+        <section
+          className="rounded-xl p-4 mb-6"
+          style={{ background: T.surface, border: `1px solid ${T.line}` }}
+        >
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-bold" style={{ color: T.text }}>
+              Paywall → Checkout → Purchase
+            </h2>
+            {!stats.funnel.eventsTableReady && (
+              <span className="text-xs" style={{ color: T.gold }}>
+                Run migration 004 to populate
+              </span>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-2 mb-4">
+            {[
+              { label: "Paywall hits", value: stats.funnel.steps.paywallViews, rate: null as string | null },
+              {
+                label: "Checkout started",
+                value: stats.funnel.steps.checkoutStarted,
+                rate: `${stats.funnel.conversion.paywallToCheckoutPct}% of paywall`,
+              },
+              {
+                label: "Purchase completed",
+                value: stats.funnel.steps.conversions,
+                rate: `${stats.funnel.conversion.checkoutToPurchasePct}% of checkout · ${stats.funnel.conversion.paywallToPurchasePct}% of paywall`,
+              },
+            ].map((step, i) => {
+              const max = Math.max(stats.funnel!.steps.paywallViews, 1);
+              const widthPct = (step.value / max) * 100;
+              return (
+                <div key={step.label} className="flex items-center gap-3">
+                  <span
+                    className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+                    style={{ background: T.accent, color: "#fff" }}
+                  >
+                    {i + 1}
+                  </span>
+                  <div className="flex-1">
+                    <div className="flex justify-between mb-1">
+                      <span className="text-xs" style={{ color: T.textDim }}>
+                        {step.label}
+                      </span>
+                      <span className="text-xs font-medium" style={{ color: T.text }}>
+                        {fmtK(step.value)}
+                        {step.rate ? ` · ${step.rate}` : ""}
+                      </span>
+                    </div>
+                    <div className="h-2 rounded-full overflow-hidden" style={{ background: T.raised }}>
+                      <div
+                        className="h-full rounded-full"
+                        style={{
+                          width: `${Math.max(widthPct, 1)}%`,
+                          background: `linear-gradient(90deg, ${T.accent}, #8B5CF6)`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Server-verified revenue by product, net of refunds */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <StatCard
+              label="Series Unlocks"
+              value={fmt(stats.funnel.revenue.seriesUnlockCents)}
+              color={T.accent}
+            />
+            <StatCard
+              label="VIP"
+              value={fmt(stats.funnel.revenue.vipCents)}
+              sub={`${stats.funnel.steps.subscriptionStarted} new · ${stats.funnel.steps.subscriptionRenewed} renewals`}
+              color={T.gold}
+            />
+            <StatCard
+              label="Refunds"
+              value={fmt(stats.funnel.revenue.refundCents)}
+              color={T.textDim}
+            />
+            <StatCard
+              label="Net Revenue"
+              value={fmt(stats.funnel.revenue.netCents)}
+              sub={`Gross ${fmt(stats.funnel.revenue.grossCents)}`}
+              color={T.success}
+            />
+          </div>
+        </section>
+      )}
 
       {/* ---- Funnel ---- */}
       <section

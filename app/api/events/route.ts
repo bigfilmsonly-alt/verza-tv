@@ -28,6 +28,7 @@ const ALLOWED: AnalyticsEvent[] = [
   "play_progress",
   "paywall_viewed",
   "purchase_started",
+  "checkout_started",
 ];
 
 const MAX_STRING_LEN = 512;

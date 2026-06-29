@@ -26,10 +26,12 @@ export type AnalyticsEvent =
   // Monetization
   | "paywall_viewed"
   | "purchase_started"
+  | "checkout_started"     // Client: tapped buy, redirected to Stripe (no revenue)
   | "purchase_completed"   // Server-side only (Stripe webhook)
   | "subscription_started" // Server-side only (Stripe webhook)
   | "subscription_renewed" // Server-side only (Stripe webhook)
-  | "subscription_cancelled"; // Server-side only (Stripe webhook)
+  | "subscription_cancelled" // Server-side only (Stripe webhook)
+  | "refund";              // Server-side only (Stripe webhook), negative revenue
 
 /* ------------------------------------------------------------------ */
 /*  Event Properties                                                   */
@@ -60,6 +62,8 @@ export interface EventProperties {
   currency?: string;
   stripe_session_id?: string;
   purchase_type?: string;
+  plan_type?: "series_unlock" | "vip_monthly" | "vip_yearly";
+  surface?: string;
 
   // Engagement
   duration_seconds?: number;
@@ -85,6 +89,7 @@ export const SERVER_ONLY_EVENTS: AnalyticsEvent[] = [
   "subscription_started",
   "subscription_renewed",
   "subscription_cancelled",
+  "refund",
 ];
 
 export function isServerOnlyEvent(event: AnalyticsEvent): boolean {

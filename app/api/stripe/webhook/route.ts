@@ -62,7 +62,12 @@ export async function POST(req: NextRequest) {
             revenue_cents: session.amount_total || 0,
             currency: session.currency || "usd",
             purchase_type: type || "merch",
-            show_id: session.metadata?.seriesSlug,
+            plan_type: session.metadata?.plan_type as
+              | "series_unlock"
+              | "vip_monthly"
+              | "vip_yearly"
+              | undefined,
+            show_id: session.metadata?.show_id || session.metadata?.seriesSlug,
             stripe_session_id: session.id,
             user_id: email || undefined,
           };
@@ -196,10 +201,18 @@ export async function POST(req: NextRequest) {
             console.error("[webhook] Failed to update VIP status:", profileErr);
           } else {
             console.log("[webhook] VIP status updated:", email, isActive ? "activated" : "deactivated");
-            const subEvent = isActive ? "subscription_started" : "subscription_cancelled";
-            const subProps = { user_id: userId, stripe_session_id: sub.id };
-            emitServerEvent(subEvent, subProps);
-            await persistEvent(subEvent, subProps);
+            const planType =
+              sub.items.data[0]?.price?.recurring?.interval === "year" ? "vip_yearly" : "vip_monthly";
+            if (isActive) {
+              // Activation logged here; the revenue-bearing subscription_started
+              // row is written from invoice.payment_succeeded so the dollar
+              // amount is Stripe-verified and never double-counted.
+              emitServerEvent("subscription_started", { user_id: userId, plan_type: planType, stripe_session_id: sub.id });
+            } else {
+              const subProps = { user_id: userId, plan_type: planType, stripe_session_id: sub.id } as const;
+              emitServerEvent("subscription_cancelled", subProps);
+              await persistEvent("subscription_cancelled", subProps);
+            }
 
             // Send VIP email to customer + team
             if (isActive) {
@@ -304,6 +317,35 @@ export async function POST(req: NextRequest) {
               },
             });
           }
+
+          // Server-verified subscription revenue row. The paid invoice is the
+          // single source of truth for VIP dollars (the subscription.created
+          // event is logged without revenue to avoid double-counting).
+          // billing_reason distinguishes first purchase from renewal.
+          const isFirstPayment = invoice.billing_reason === "subscription_create";
+          const subEvent = isFirstPayment ? "subscription_started" : "subscription_renewed";
+          // $79.99/yr vs $9.99/mo — infer plan from the verified amount.
+          const planType = (invoice.amount_paid || 0) >= 5000 ? "vip_yearly" : "vip_monthly";
+
+          let invUserId: string | null = null;
+          if (customerId) {
+            const { data: invProfile } = await supabase
+              .from("profiles")
+              .select("id")
+              .eq("stripe_customer_id", customerId)
+              .maybeSingle();
+            invUserId = invProfile?.id ?? null;
+          }
+
+          const subRevenueProps = {
+            revenue_cents: invoice.amount_paid || 0,
+            currency: invoice.currency || "usd",
+            plan_type: planType as "vip_monthly" | "vip_yearly",
+            stripe_session_id: subId,
+            user_id: invUserId || email || undefined,
+          };
+          emitServerEvent(subEvent, subRevenueProps);
+          await persistEvent(subEvent, subRevenueProps);
         }
 
         break;
@@ -316,6 +358,30 @@ export async function POST(req: NextRequest) {
           invoice.id,
           invoice.customer_email,
         );
+        break;
+      }
+
+      /* -------------------------------------------------------------- */
+      /*  Refunds — negative revenue so net stays accurate               */
+      /* -------------------------------------------------------------- */
+      case "charge.refunded": {
+        const charge = event.data.object as Stripe.Charge;
+        const refundedCents = charge.amount_refunded || 0;
+        if (refundedCents > 0) {
+          const customerId =
+            typeof charge.customer === "string" ? charge.customer : charge.customer?.id ?? null;
+          const refundProps = {
+            revenue_cents: -refundedCents, // negative — reduces net revenue
+            currency: charge.currency || "usd",
+            stripe_session_id: charge.payment_intent
+              ? (typeof charge.payment_intent === "string" ? charge.payment_intent : charge.payment_intent.id)
+              : charge.id,
+            user_id: charge.billing_details?.email || customerId || undefined,
+          };
+          emitServerEvent("refund", refundProps);
+          await persistEvent("refund", refundProps);
+          console.log("[webhook] Refund recorded:", charge.id, `-$${(refundedCents / 100).toFixed(2)}`);
+        }
         break;
       }
 

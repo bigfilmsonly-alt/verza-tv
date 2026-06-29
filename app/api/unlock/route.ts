@@ -45,7 +45,9 @@ export async function POST(req: NextRequest) {
       ],
       metadata: {
         type: "series_unlock",
+        plan_type: "series_unlock",
         seriesSlug: series.slug,
+        show_id: series.slug,
         episodeCount: String(series.episodeCount),
       },
       success_url: `${siteUrl}/series/${series.slug}/6?unlocked=true`,

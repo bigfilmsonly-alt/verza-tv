@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { T } from "@/lib/theme";
+import { emit } from "@/lib/analytics";
 
 interface VipCardProps {
   isVip?: boolean;
@@ -17,6 +18,12 @@ export default function VipCard({ isVip = false, vipExpiresAt }: VipCardProps) {
     setError(null);
 
     try {
+      // Intent signal — tapped subscribe, heading to Stripe (no revenue from client).
+      emit("checkout_started", {
+        plan_type: plan === "yearly" ? "vip_yearly" : "vip_monthly",
+        surface: "vip_card",
+      });
+
       const res = await fetch("/api/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

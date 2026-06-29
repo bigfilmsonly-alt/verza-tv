@@ -72,6 +72,7 @@ export async function POST(req: NextRequest) {
       metadata: {
         type: "vip_subscription",
         plan,
+        plan_type: plan === "yearly" ? "vip_yearly" : "vip_monthly",
       },
       success_url: `${siteUrl}/me?vip=true`,
       cancel_url: `${siteUrl}/me`,

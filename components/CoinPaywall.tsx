@@ -5,6 +5,7 @@ import Image from "next/image";
 import { T } from "@/lib/theme";
 import { useTranslation } from "@/components/LangProvider";
 import { createBrowserClient } from "@supabase/ssr";
+import { emit } from "@/lib/analytics";
 
 interface CoinPaywallProps {
   posterUrl: string;
@@ -37,6 +38,14 @@ export default function CoinPaywall({
         window.location.href = `/sign-in?next=/series/${seriesSlug}/${episodeNumber}`;
         return;
       }
+
+      // Intent signal — tapped buy, heading to Stripe (no revenue from client).
+      emit("checkout_started", {
+        show_id: seriesSlug,
+        episode_number: episodeNumber,
+        plan_type: "series_unlock",
+        surface: "coin_paywall",
+      });
 
       const res = await fetch("/api/unlock", {
         method: "POST",

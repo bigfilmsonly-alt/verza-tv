@@ -52,6 +52,7 @@ export async function GET(req: NextRequest) {
       savedResult,
       stripeBalance,
       stripeCharges,
+      eventsResult,
     ] = await Promise.all([
       // Purchases
       supabase
@@ -95,6 +96,13 @@ export async function GET(req: NextRequest) {
         created: { gte: Math.floor(since.getTime() / 1000) },
         limit: 100,
       }).catch(() => null),
+
+      // Analytics event stream — funnel (paywall -> checkout -> purchase) and
+      // server-verified revenue by plan. No-ops to [] if migration not yet run.
+      supabase
+        .from("analytics_events")
+        .select("event, revenue_cents, props")
+        .gte("created_at", sinceISO),
     ]);
 
     // Process purchases
@@ -241,6 +249,56 @@ export async function GET(req: NextRequest) {
     // Refunds
     const refunds = purchases.filter((p) => p.status === "refunded");
 
+    /* ---------------------------------------------------------------- */
+    /*  Analytics funnel + server-verified revenue (analytics_events)    */
+    /* ---------------------------------------------------------------- */
+    // If migration 004 hasn't been run, eventsResult.data is null → all zeros.
+    const events = (eventsResult.data || []) as {
+      event: string;
+      revenue_cents: number | null;
+      props: Record<string, unknown> | null;
+    }[];
+    const eventsTableReady = !eventsResult.error;
+
+    const eventCount = (name: string) => events.filter((e) => e.event === name).length;
+
+    // Funnel steps. paywall_viewed is the unlock-prompt impression.
+    const paywallViews = eventCount("paywall_viewed");
+    const checkoutStarted = eventCount("checkout_started");
+    const purchaseCompleted = eventCount("purchase_completed");
+    const subscriptionStarted = eventCount("subscription_started");
+    const subscriptionRenewed = eventCount("subscription_renewed");
+    // A conversion = any first-time paid action driven by the paywall.
+    const conversions = purchaseCompleted + subscriptionStarted;
+
+    const pct = (num: number, den: number) =>
+      den > 0 ? Number(((num / den) * 100).toFixed(1)) : 0;
+
+    // Revenue from server-verified rows only, split by product.
+    const planTypeOf = (e: { props: Record<string, unknown> | null }) =>
+      String(e.props?.plan_type ?? e.props?.purchase_type ?? "");
+    const isVipPlan = (pt: string) => pt === "vip_monthly" || pt === "vip_yearly";
+
+    let seriesUnlockRevenue = 0;
+    let vipRevenue = 0;
+    let otherRevenue = 0;
+    let refundRevenue = 0; // negative
+    for (const e of events) {
+      const cents = e.revenue_cents || 0;
+      if (e.event === "refund") {
+        refundRevenue += cents; // already negative
+      } else if (e.event === "purchase_completed") {
+        const pt = planTypeOf(e);
+        if (pt === "series_unlock") seriesUnlockRevenue += cents;
+        else if (isVipPlan(pt)) vipRevenue += cents;
+        else otherRevenue += cents;
+      } else if (e.event === "subscription_started" || e.event === "subscription_renewed") {
+        vipRevenue += cents;
+      }
+    }
+    const grossRevenue = seriesUnlockRevenue + vipRevenue + otherRevenue;
+    const netRevenue = grossRevenue + refundRevenue;
+
     return Response.json({
       range,
       generatedAt: new Date().toISOString(),
@@ -282,6 +340,31 @@ export async function GET(req: NextRequest) {
         payingUsers,
         arppuCents,
         freeToPaidRate,
+      },
+      funnel: {
+        // True if migration 004 has been applied; false → counts are all zero.
+        eventsTableReady,
+        steps: {
+          paywallViews,
+          checkoutStarted,
+          purchaseCompleted,
+          subscriptionStarted,
+          subscriptionRenewed,
+          conversions,
+        },
+        conversion: {
+          paywallToCheckoutPct: pct(checkoutStarted, paywallViews),
+          checkoutToPurchasePct: pct(conversions, checkoutStarted),
+          paywallToPurchasePct: pct(conversions, paywallViews),
+        },
+        revenue: {
+          seriesUnlockCents: seriesUnlockRevenue,
+          vipCents: vipRevenue,
+          otherCents: otherRevenue,
+          grossCents: grossRevenue,
+          refundCents: refundRevenue,
+          netCents: netRevenue,
+        },
       },
       content: {
         seriesUnlocks: seriesUnlocksBySlug,
