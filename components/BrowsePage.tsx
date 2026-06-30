@@ -591,22 +591,6 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </section>
       )}
 
-      {/* Sponsored Ad Ribbon #2 — only on Drama */}
-      {activeTab === "drama" && <a
-        href="https://www.storageblue.com"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="block mx-3 my-4 rounded-xl overflow-hidden transition-transform active:scale-[0.98]"
-        style={{
-          background: "linear-gradient(135deg, rgba(10,10,20,0.95), rgba(15,15,25,0.95))",
-          border: "1px solid rgba(100,180,220,0.12)",
-          boxShadow: "0 0 20px rgba(100,180,220,0.04)",
-        }}
-      >
-        <div className="flex items-center justify-center py-2.5 px-6">
-          <img src="/ads/storageblue-logo.png" alt="StorageBlue" style={{ height: 52, objectFit: "contain" }} />
-        </div>
-      </a>}
     </div>
   );
 }
