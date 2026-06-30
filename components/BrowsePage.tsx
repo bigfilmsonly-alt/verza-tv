@@ -11,6 +11,7 @@ import HeroVideo from "@/components/HeroVideo";
 import RedCarpetHero from "@/components/RedCarpetHero";
 import HorizontalFeed from "@/components/HorizontalFeed";
 import { MUX_MAP } from "@/lib/mux-map";
+import { emit } from "@/lib/analytics";
 
 // Eagerly preload hls.js so it's cached before user taps a video
 if (typeof window !== "undefined") {
@@ -104,17 +105,41 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
   // Drama shows the whole library; other tabs show their own set. Hot stays
   // ranked, everything else is shuffled fresh each load for variety.
   const filtered = useMemo(() => {
-    const base = activeTab === "drama" ? liveSeries : tabData[activeTab] ?? [];
+    // Too Much Junk is a Music-tab exclusive — keep it out of the Drama library entirely.
+    const base =
+      activeTab === "drama"
+        ? liveSeries.filter((s) => s.slug !== "too-much-junk")
+        : tabData[activeTab] ?? [];
     if (shuffleSeed === 0 || activeTab === "popular") return base;
     return shuffleWithSeed(base, shuffleSeed + activeTab.length);
   }, [activeTab, tabData, liveSeries, shuffleSeed]);
-  // The Mistress Trap and Too Much Junk flyers aren't full-bleed like the other posters, so keep them out of the hero slideshow
+  // The Mistress Trap flyer isn't full-bleed like the other posters, so keep it out of the hero slideshow
   const heroSlides = filtered
-    .filter((s) => s.slug !== "the-mistress-trap" && s.slug !== "too-much-junk")
+    .filter((s) => s.slug !== "the-mistress-trap")
     .slice(0, 4);
   const current = heroSlides[heroIdx % Math.max(heroSlides.length, 1)];
 
   useEffect(() => { setHeroIdx(0); }, [activeTab]);
+
+  // Summer Sale badge → start a $2 Stripe checkout for the featured movie in view.
+  const [saleLoading, setSaleLoading] = useState(false);
+  const startSummerSale = useCallback(async (slug: string) => {
+    if (saleLoading) return;
+    setSaleLoading(true);
+    try {
+      emit("checkout_started", { show_id: slug, plan_type: "series_unlock", surface: "summer_sale_badge" });
+      const res = await fetch("/api/unlock", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ seriesSlug: slug }),
+      });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+      else setSaleLoading(false);
+    } catch {
+      setSaleLoading(false);
+    }
+  }, [saleLoading]);
 
   // Honor a ?tab= query param on mount (e.g. returning from a red carpet event)
   useEffect(() => {
@@ -456,11 +481,13 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               </div>
             </Link>
 
-            {/* Summer Sale promo — premium gold-glass badge over the hero */}
-            <Link
-              href="/series"
-              className="absolute top-3 left-1/2 -translate-x-1/2 z-20 no-underline"
-              aria-label="Summer Sale — $2 a movie"
+            {/* Summer Sale promo — premium gold-glass badge → $2 checkout for the featured movie */}
+            <button
+              type="button"
+              onClick={() => current && startSummerSale(current.slug)}
+              disabled={saleLoading}
+              className="absolute top-3 left-1/2 -translate-x-1/2 z-20 border-0 bg-transparent p-0 cursor-pointer disabled:opacity-70"
+              aria-label={`Summer Sale — $2 — unlock ${current?.title ?? "this movie"}`}
             >
               <div
                 className="flex items-center gap-2 pl-2.5 pr-1 py-1 rounded-full"
@@ -512,7 +539,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                   <span className="text-[10px] font-semibold leading-none">a movie</span>
                 </span>
               </div>
-            </Link>
+            </button>
 
             {heroSlides.length > 1 && (
               <>
