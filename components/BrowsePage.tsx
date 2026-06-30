@@ -123,8 +123,8 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
 
   // Summer Sale badge → start a $1.99 Stripe checkout for the featured movie in view.
   const [saleLoading, setSaleLoading] = useState(false);
-  const startSummerSale = useCallback(async (slug: string) => {
-    if (saleLoading) return;
+  const startSummerSale = useCallback(async (slug?: string) => {
+    if (saleLoading || !slug) return;
     setSaleLoading(true);
     try {
       emit("checkout_started", { show_id: slug, plan_type: "series_unlock", surface: "summer_sale_badge" });
@@ -213,7 +213,8 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </div>
       )}
 
-      {/* Category tabs — sticky directly under the header so they stay visible while scrolling */}
+      {/* Summer Sale + Category tabs — sticky directly under the header so they
+          touch it and stay pinned while scrolling */}
       <div
         className="sticky z-30"
         style={{
@@ -223,6 +224,65 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
           WebkitBackdropFilter: "blur(16px)",
         }}
       >
+        {/* Summer Sale promo — premium gold-glass badge → $1.99 checkout */}
+        <div className="flex justify-center pt-1.5 pb-0.5">
+          <button
+            type="button"
+            onClick={() => startSummerSale(current?.slug ?? liveSeries[0]?.slug)}
+            disabled={saleLoading}
+            className="border-0 bg-transparent p-0 cursor-pointer disabled:opacity-70"
+            aria-label={`Summer Sale — $1.99 — unlock ${current?.title ?? "a movie"}`}
+          >
+            <div
+              className="flex items-center gap-2 pl-2.5 pr-1 py-1 rounded-full"
+              style={{
+                background:
+                  "linear-gradient(180deg, rgba(28,24,12,0.72), rgba(10,10,16,0.72))",
+                border: "1px solid rgba(212,175,55,0.65)",
+                boxShadow:
+                  "0 6px 22px rgba(0,0,0,0.5), 0 0 18px rgba(212,175,55,0.22), inset 0 1px 0 rgba(255,255,255,0.1)",
+              }}
+            >
+              {/* sun / sparkle mark */}
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#F5E7B8"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="flex-shrink-0"
+              >
+                <circle cx="12" cy="12" r="4" />
+                <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+              </svg>
+              <span
+                className="text-[10px] font-semibold uppercase"
+                style={{ letterSpacing: "0.2em", color: "#EFE2B6" }}
+              >
+                Summer Sale
+              </span>
+              <span
+                className="self-stretch w-px my-0.5"
+                style={{ background: "rgba(212,175,55,0.4)" }}
+              />
+              <span
+                className="flex items-baseline gap-0.5 px-2.5 py-1 rounded-full whitespace-nowrap"
+                style={{
+                  background: "linear-gradient(180deg, #FBF0CB, #D4AF37)",
+                  color: "#1A1206",
+                  boxShadow:
+                    "inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -1px 0 rgba(120,90,20,0.35)",
+                }}
+              >
+                <span className="text-sm font-extrabold leading-none">$1.99</span>
+                <span className="text-[10px] font-semibold leading-none">a movie</span>
+              </span>
+            </div>
+          </button>
+        </div>
         <CategoryTabs active={activeTab} onSelect={setActiveTab} tabs={activeTabs} />
       </div>
 
@@ -481,65 +541,6 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               </div>
             </Link>
 
-            {/* Summer Sale promo — premium gold-glass badge → $1.99 checkout for the featured movie */}
-            <button
-              type="button"
-              onClick={() => current && startSummerSale(current.slug)}
-              disabled={saleLoading}
-              className="absolute top-3 left-1/2 -translate-x-1/2 z-20 border-0 bg-transparent p-0 cursor-pointer disabled:opacity-70"
-              aria-label={`Summer Sale — $1.99 — unlock ${current?.title ?? "this movie"}`}
-            >
-              <div
-                className="flex items-center gap-2 pl-2.5 pr-1 py-1 rounded-full"
-                style={{
-                  background:
-                    "linear-gradient(180deg, rgba(28,24,12,0.72), rgba(10,10,16,0.72))",
-                  backdropFilter: "blur(16px)",
-                  WebkitBackdropFilter: "blur(16px)",
-                  border: "1px solid rgba(212,175,55,0.65)",
-                  boxShadow:
-                    "0 8px 28px rgba(0,0,0,0.5), 0 0 18px rgba(212,175,55,0.22), inset 0 1px 0 rgba(255,255,255,0.1)",
-                }}
-              >
-                {/* sun / sparkle mark */}
-                <svg
-                  width="13"
-                  height="13"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#F5E7B8"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="flex-shrink-0"
-                >
-                  <circle cx="12" cy="12" r="4" />
-                  <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
-                </svg>
-                <span
-                  className="text-[10px] font-semibold uppercase"
-                  style={{ letterSpacing: "0.2em", color: "#EFE2B6" }}
-                >
-                  Summer Sale
-                </span>
-                <span
-                  className="self-stretch w-px my-0.5"
-                  style={{ background: "rgba(212,175,55,0.4)" }}
-                />
-                <span
-                  className="flex items-baseline gap-0.5 px-2.5 py-1 rounded-full whitespace-nowrap"
-                  style={{
-                    background: "linear-gradient(180deg, #FBF0CB, #D4AF37)",
-                    color: "#1A1206",
-                    boxShadow:
-                      "inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -1px 0 rgba(120,90,20,0.35)",
-                  }}
-                >
-                  <span className="text-sm font-extrabold leading-none">$1.99</span>
-                  <span className="text-[10px] font-semibold leading-none">a movie</span>
-                </span>
-              </div>
-            </button>
 
             {heroSlides.length > 1 && (
               <>
