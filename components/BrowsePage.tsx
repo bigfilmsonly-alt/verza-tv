@@ -423,6 +423,36 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               </div>
             </Link>
 
+            {/* Summer Sale promo — bright, attention-grabbing badge over the hero */}
+            <Link
+              href="/series"
+              className="absolute top-3 left-1/2 -translate-x-1/2 z-20 no-underline animate-pulse"
+              aria-label="Summer Sale — unlock any series for $2"
+            >
+              <div
+                className="flex items-center gap-2 px-4 py-2 rounded-full"
+                style={{
+                  background: "linear-gradient(90deg, #FFD200, #FF8A00, #FF2D55)",
+                  boxShadow: "0 0 22px rgba(255,170,0,0.9), 0 0 8px rgba(255,45,85,0.7)",
+                  border: "1.5px solid rgba(255,255,255,0.85)",
+                }}
+              >
+                <span className="text-base">☀️</span>
+                <span
+                  className="text-sm font-extrabold uppercase tracking-wide"
+                  style={{ color: "#0A0A0A", textShadow: "0 1px 0 rgba(255,255,255,0.35)" }}
+                >
+                  Summer Sale
+                </span>
+                <span
+                  className="text-sm font-black px-2 py-0.5 rounded-full"
+                  style={{ background: "#0A0A0A", color: "#FFD200" }}
+                >
+                  $2
+                </span>
+              </div>
+            </Link>
+
             {heroSlides.length > 1 && (
               <>
                 <button
