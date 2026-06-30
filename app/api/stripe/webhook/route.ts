@@ -76,8 +76,48 @@ export async function POST(req: NextRequest) {
           await persistEvent("purchase_completed", purchaseProps);
         }
 
-        // If series unlock, create entitlement
-        if (type === "series_unlock" && session.metadata?.seriesSlug) {
+        // Creator title unlock — write the server-verified split ledger row.
+        // The gross is taken from Stripe (amount_total); the creator/platform
+        // split is computed here from the creator's payout_split. Clients can
+        // never reach this code path, so the money figures are trustworthy.
+        if (type === "creator_unlock" && session.metadata?.content_id) {
+          const contentId = session.metadata.content_id;
+          const creatorId = session.metadata.creator_id || null;
+          const gross = session.amount_total || 0;
+
+          // Pull the split from the creator row (default 80% if missing).
+          let split = 0.8;
+          if (creatorId) {
+            const { data: cr } = await supabase
+              .from("creators")
+              .select("payout_split")
+              .eq("id", creatorId)
+              .maybeSingle();
+            if (cr?.payout_split != null) split = Number(cr.payout_split);
+          }
+          const creatorCents = Math.round(gross * split);
+          const platformCents = gross - creatorCents;
+
+          const { error: saleErr } = await supabase.from("creator_sales").insert({
+            content_id: contentId,
+            creator_id: creatorId,
+            buyer_email: email || null,
+            stripe_session_id: session.id,
+            amount_cents: gross,
+            creator_cents: creatorCents,
+            platform_cents: platformCents,
+            currency: session.currency || "usd",
+            status: "completed",
+          });
+          if (saleErr) console.error("[webhook] Failed to record creator sale:", saleErr);
+          else console.log("[webhook] Creator sale recorded:", contentId, `$${(gross / 100).toFixed(2)}`);
+        }
+
+        // If series or creator unlock, create entitlement (keyed by slug).
+        if (
+          (type === "series_unlock" || type === "creator_unlock") &&
+          session.metadata?.seriesSlug
+        ) {
           // Try to find user by stripe_customer_id on profiles table
           const stripeCustomer =
             typeof session.customer === "string" ? session.customer : (session.customer as { id: string } | null)?.id ?? null;

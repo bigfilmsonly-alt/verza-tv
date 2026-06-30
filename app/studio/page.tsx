@@ -1,18 +1,18 @@
 import type { Metadata } from "next";
 import { BRAND } from "@/lib/config";
-import CreatorApplicationForm from "@/components/CreatorApplicationForm";
+import CreatorDashboard from "@/components/CreatorDashboard";
 import CreatorAITools from "@/components/CreatorAITools";
 
 export const metadata: Metadata = {
-  title: `Apply to Become a Creator | ${BRAND.name}`,
+  title: `Creator Studio | ${BRAND.name}`,
   description:
-    "Exclusive VIP: Apply to become a Verza TV creator. Make your own channel, upload content, set pricing, and earn directly from subscribers. Use AI tools to write scripts, loglines, and more.",
+    "Apply to become a Verza TV creator, upload vertical or horizontal titles, set your price, and earn directly from viewers — keep up to 80% of every sale. Plus AI tools for scripts, loglines, and more.",
 };
 
 export default function StudioPage() {
   return (
     <>
-      <CreatorApplicationForm />
+      <CreatorDashboard />
       <CreatorAITools />
     </>
   );

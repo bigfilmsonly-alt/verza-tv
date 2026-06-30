@@ -153,6 +153,58 @@ export async function sendPurchaseConfirmation(
 }
 
 /* ---- Form submission notification ---- */
+/* ---- Creator review decision (approve / reject a submitted title) ---- */
+export async function sendCreatorDecisionEmail(
+  email: string,
+  opts: { title: string; approved: boolean; reason?: string; slug?: string },
+) {
+  const subject = opts.approved
+    ? `"${opts.title}" is live on Verza TV`
+    : `Update on your Verza TV submission`;
+
+  const body = opts.approved
+    ? `
+        <h1 style="font-size: 22px; text-align: center; margin: 0 0 8px;">You're live!</h1>
+        <p style="font-size: 16px; text-align: center; color: #E0115F; font-weight: 700; margin: 0 0 16px;">${esc(opts.title)}</p>
+        <p style="font-size: 14px; color: #A0A0B0; text-align: center; line-height: 1.6; margin: 0 0 8px;">
+          Your title passed review and is now streaming on Verza TV. Earnings appear in your creator dashboard.
+        </p>
+        ${
+          opts.slug
+            ? `<div style="text-align: center; margin: 24px 0;">
+                 <a href="https://www.verzatv.com/watch/${esc(opts.slug)}" style="display: inline-block; background: linear-gradient(135deg, #E0115F, #8B5CF6); color: #fff; padding: 14px 32px; border-radius: 50px; text-decoration: none; font-weight: 700; font-size: 14px;">View Your Title</a>
+               </div>`
+            : ""
+        }
+      `
+    : `
+        <h1 style="font-size: 22px; text-align: center; margin: 0 0 8px;">Submission needs changes</h1>
+        <p style="font-size: 16px; text-align: center; color: #F5F4F8; font-weight: 700; margin: 0 0 16px;">${esc(opts.title)}</p>
+        <p style="font-size: 14px; color: #A0A0B0; text-align: center; line-height: 1.6; margin: 0 0 8px;">
+          Your title wasn't approved this time${opts.reason ? `:` : "."}
+        </p>
+        ${opts.reason ? `<p style="font-size: 14px; color: #F5F4F8; text-align: center; line-height: 1.6; margin: 0 0 8px; padding: 12px 16px; background: #14141F; border-radius: 12px;">${esc(opts.reason)}</p>` : ""}
+        <p style="font-size: 13px; color: #6B6B7B; text-align: center; line-height: 1.6; margin: 16px 0 0;">
+          Make the changes above and resubmit from your creator dashboard.
+        </p>
+      `;
+
+  return resend.emails.send({
+    from: FROM,
+    to: email,
+    subject,
+    html: `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 500px; margin: 0 auto; background: #07070E; color: #F5F4F8; padding: 40px 24px; border-radius: 16px;">
+        <img src="https://www.verzatv.com/logo.png" alt="Verza TV" width="140" style="display: block; margin: 0 auto 24px;" />
+        ${body}
+        <p style="font-size: 11px; color: #6B6B7B; text-align: center; margin-top: 24px;">
+          &copy; 2026 Verza TV. All rights reserved.
+        </p>
+      </div>
+    `,
+  }).catch((e) => console.error("[email] Creator decision failed:", e));
+}
+
 export async function sendFormNotification(
   formName: string,
   submitterEmail: string,
