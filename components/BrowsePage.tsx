@@ -456,37 +456,60 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               </div>
             </Link>
 
-            {/* Summer Sale promo — refined, high-end glass badge over the hero */}
+            {/* Summer Sale promo — premium gold-glass badge over the hero */}
             <Link
               href="/series"
               className="absolute top-3 left-1/2 -translate-x-1/2 z-20 no-underline"
               aria-label="Summer Sale — $2 a movie"
             >
               <div
-                className="flex items-center gap-2.5 pl-3 pr-1.5 py-1.5 rounded-full"
+                className="flex items-center gap-2 pl-2.5 pr-1 py-1 rounded-full"
                 style={{
-                  background: "rgba(10,10,16,0.55)",
-                  backdropFilter: "blur(14px)",
-                  WebkitBackdropFilter: "blur(14px)",
-                  border: "1px solid rgba(212,175,55,0.55)",
-                  boxShadow: "0 6px 22px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.08)",
+                  background:
+                    "linear-gradient(180deg, rgba(28,24,12,0.72), rgba(10,10,16,0.72))",
+                  backdropFilter: "blur(16px)",
+                  WebkitBackdropFilter: "blur(16px)",
+                  border: "1px solid rgba(212,175,55,0.65)",
+                  boxShadow:
+                    "0 8px 28px rgba(0,0,0,0.5), 0 0 18px rgba(212,175,55,0.22), inset 0 1px 0 rgba(255,255,255,0.1)",
                 }}
               >
+                {/* sun / sparkle mark */}
+                <svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#F5E7B8"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="flex-shrink-0"
+                >
+                  <circle cx="12" cy="12" r="4" />
+                  <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+                </svg>
                 <span
                   className="text-[10px] font-semibold uppercase"
-                  style={{ letterSpacing: "0.18em", color: "#E8D9A8" }}
+                  style={{ letterSpacing: "0.2em", color: "#EFE2B6" }}
                 >
                   Summer Sale
                 </span>
                 <span
-                  className="text-xs font-bold px-2.5 py-1 rounded-full whitespace-nowrap"
+                  className="self-stretch w-px my-0.5"
+                  style={{ background: "rgba(212,175,55,0.4)" }}
+                />
+                <span
+                  className="flex items-baseline gap-0.5 px-2.5 py-1 rounded-full whitespace-nowrap"
                   style={{
-                    background: "linear-gradient(180deg, #F5E7B8, #D4AF37)",
+                    background: "linear-gradient(180deg, #FBF0CB, #D4AF37)",
                     color: "#1A1206",
-                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.6)",
+                    boxShadow:
+                      "inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -1px 0 rgba(120,90,20,0.35)",
                   }}
                 >
-                  $2 a movie
+                  <span className="text-sm font-extrabold leading-none">$2</span>
+                  <span className="text-[10px] font-semibold leading-none">a movie</span>
                 </span>
               </div>
             </Link>
