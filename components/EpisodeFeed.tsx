@@ -429,8 +429,12 @@ export default function EpisodeFeed({
   const [epProgress, setEpProgress] = useState(0);
   const [showToast, setShowToast] = useState(false);
   const [showHeart, setShowHeart] = useState(false);
+  const [liked, setLiked] = useState<Set<number>>(new Set());
+  const [showMore, setShowMore] = useState(false);
+  const [actionToast, setActionToast] = useState<string | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const heartTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const actionToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const activeIndexRef = useRef(activeIndex);
   activeIndexRef.current = activeIndex;
 
@@ -541,11 +545,96 @@ export default function EpisodeFeed({
     haptic();
   }
 
-  function handleDoubleTap() {
+  /* ---- Likes (persisted per series in localStorage) ---- */
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(`verza-liked-${seriesSlug}`);
+      if (raw) setLiked(new Set(JSON.parse(raw) as number[]));
+    } catch {}
+  }, [seriesSlug]);
+
+  const persistLiked = useCallback(
+    (next: Set<number>) => {
+      try {
+        localStorage.setItem(`verza-liked-${seriesSlug}`, JSON.stringify([...next]));
+      } catch {}
+    },
+    [seriesSlug],
+  );
+
+  const isLiked = activeEp ? liked.has(activeEp.number) : false;
+
+  function flashHeart() {
     setShowHeart(true);
-    haptic();
     if (heartTimer.current) clearTimeout(heartTimer.current);
     heartTimer.current = setTimeout(() => setShowHeart(false), 800);
+  }
+
+  function toggleLike() {
+    const n = activeEp?.number;
+    if (n == null) return;
+    setLiked((prev) => {
+      const next = new Set(prev);
+      if (next.has(n)) {
+        next.delete(n);
+      } else {
+        next.add(n);
+        flashHeart();
+      }
+      persistLiked(next);
+      return next;
+    });
+    haptic();
+  }
+
+  function handleDoubleTap() {
+    const n = activeEp?.number;
+    if (n != null) {
+      setLiked((prev) => {
+        if (prev.has(n)) return prev;
+        const next = new Set(prev);
+        next.add(n);
+        persistLiked(next);
+        return next;
+      });
+    }
+    flashHeart();
+    haptic();
+  }
+
+  function popActionToast(msg: string) {
+    setActionToast(msg);
+    if (actionToastTimer.current) clearTimeout(actionToastTimer.current);
+    actionToastTimer.current = setTimeout(() => setActionToast(null), 1800);
+  }
+
+  const shareUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/series/${seriesSlug}/${activeEp?.number ?? 1}`
+      : `https://www.verzatv.com/series/${seriesSlug}/${activeEp?.number ?? 1}`;
+  const shareText = `Watch ${seriesTitle} — EP ${activeEp?.number ?? 1} on Verza TV`;
+
+  async function shareEpisode() {
+    haptic();
+    try {
+      if (typeof navigator !== "undefined" && navigator.share) {
+        await navigator.share({ title: seriesTitle, text: shareText, url: shareUrl });
+        return;
+      }
+    } catch {
+      return; // user cancelled the native sheet
+    }
+    setShowMore(true);
+  }
+
+  async function copyShareLink() {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      popActionToast("Link copied");
+    } catch {
+      popActionToast(shareUrl);
+    }
+    setShowMore(false);
   }
 
   return (
@@ -700,6 +789,146 @@ export default function EpisodeFeed({
           <path d="M8 3H5a2 2 0 0 0-2 2v3" /><path d="M21 8V5a2 2 0 0 0-2-2h-3" /><path d="M3 16v3a2 2 0 0 0 2 2h3" /><path d="M16 21h3a2 2 0 0 0 2-2v-3" />
         </svg>
       </button>
+
+      {/* Social action rail — right side */}
+      <div
+        className="absolute right-3 z-50 flex flex-col items-center gap-5"
+        style={{ top: "50%", transform: "translateY(-50%)" }}
+      >
+        {/* Like */}
+        <button
+          onClick={toggleLike}
+          aria-label={isLiked ? "Unlike" : "Like"}
+          className="flex flex-col items-center gap-1 border-0 bg-transparent cursor-pointer p-0"
+        >
+          <span
+            className="w-11 h-11 rounded-full flex items-center justify-center transition-transform active:scale-90"
+            style={{ background: "rgba(0,0,0,0.35)", backdropFilter: "blur(20px)" }}
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill={isLiked ? "#E0115F" : "none"} stroke={isLiked ? "#E0115F" : "#fff"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+            </svg>
+          </span>
+          <span className="text-[10px] font-semibold" style={{ color: "#fff", textShadow: "0 1px 3px rgba(0,0,0,0.6)" }}>
+            {isLiked ? "Liked" : "Like"}
+          </span>
+        </button>
+
+        {/* Share */}
+        <button
+          onClick={shareEpisode}
+          aria-label="Share"
+          className="flex flex-col items-center gap-1 border-0 bg-transparent cursor-pointer p-0"
+        >
+          <span
+            className="w-11 h-11 rounded-full flex items-center justify-center transition-transform active:scale-90"
+            style={{ background: "rgba(0,0,0,0.35)", backdropFilter: "blur(20px)" }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+            </svg>
+          </span>
+          <span className="text-[10px] font-semibold" style={{ color: "#fff", textShadow: "0 1px 3px rgba(0,0,0,0.6)" }}>
+            Share
+          </span>
+        </button>
+
+        {/* More */}
+        <button
+          onClick={() => { setShowMore(true); haptic(); }}
+          aria-label="More options"
+          className="flex flex-col items-center gap-1 border-0 bg-transparent cursor-pointer p-0"
+        >
+          <span
+            className="w-11 h-11 rounded-full flex items-center justify-center transition-transform active:scale-90"
+            style={{ background: "rgba(0,0,0,0.35)", backdropFilter: "blur(20px)" }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff" stroke="none">
+              <circle cx="12" cy="5" r="1.6" /><circle cx="12" cy="12" r="1.6" /><circle cx="12" cy="19" r="1.6" />
+            </svg>
+          </span>
+          <span className="text-[10px] font-semibold" style={{ color: "#fff", textShadow: "0 1px 3px rgba(0,0,0,0.6)" }}>
+            More
+          </span>
+        </button>
+      </div>
+
+      {/* Action toast (e.g. Link copied) */}
+      {actionToast && (
+        <div
+          className="absolute left-1/2 z-[80] -translate-x-1/2 px-4 py-2 rounded-full"
+          style={{ bottom: 96, background: "rgba(0,0,0,0.72)", backdropFilter: "blur(10px)", animation: "fadeIn 0.2s ease" }}
+        >
+          <span className="text-xs font-semibold" style={{ color: "#fff" }}>{actionToast}</span>
+        </div>
+      )}
+
+      {/* More / share sheet */}
+      {showMore && (
+        <div
+          className="absolute inset-0 z-[70] flex items-end"
+          onClick={() => setShowMore(false)}
+          style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)", animation: "fadeIn 0.2s ease" }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full px-5 pt-3 pb-8"
+            style={{ background: "#12121C", borderTopLeftRadius: 22, borderTopRightRadius: 22, animation: "scaleIn 0.25s ease" }}
+          >
+            <div className="w-10 h-1 rounded-full mx-auto mb-4" style={{ background: "rgba(255,255,255,0.2)" }} />
+            <p className="text-sm font-bold" style={{ color: "#F5F4F8" }}>Share this episode</p>
+            <p className="text-xs mb-4" style={{ color: "rgba(255,255,255,0.45)" }}>
+              {seriesTitle} · EP {activeEp?.number}
+            </p>
+            <div className="grid grid-cols-4 gap-2 mb-1">
+              <a
+                href={`sms:?&body=${encodeURIComponent(`${shareText} ${shareUrl}`)}`}
+                onClick={() => setShowMore(false)}
+                className="flex flex-col items-center gap-1.5 no-underline py-2"
+              >
+                <span className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: "rgba(46,204,113,0.16)" }}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2ECC71" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" /></svg>
+                </span>
+                <span className="text-[10px] font-medium" style={{ color: "#F5F4F8" }}>Messages</span>
+              </a>
+              <a
+                href={`https://wa.me/?text=${encodeURIComponent(`${shareText} ${shareUrl}`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setShowMore(false)}
+                className="flex flex-col items-center gap-1.5 no-underline py-2"
+              >
+                <span className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: "rgba(37,211,102,0.16)" }}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="#25D366" stroke="none"><path d="M17.5 14.4c-.3-.1-1.8-.9-2-1-.3-.1-.5-.1-.7.1-.2.3-.7 1-.9 1.1-.2.2-.3.2-.6.1-.3-.1-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.5-.5c.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.1-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5 4.5.7.3 1.2.5 1.7.6.7.2 1.3.2 1.8.1.6-.1 1.8-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.2-.3-.2-.6-.3zM12 2a10 10 0 0 0-8.6 15l-1.3 4.7L7 20.4A10 10 0 1 0 12 2z" /></svg>
+                </span>
+                <span className="text-[10px] font-medium" style={{ color: "#F5F4F8" }}>WhatsApp</span>
+              </a>
+              <a
+                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setShowMore(false)}
+                className="flex flex-col items-center gap-1.5 no-underline py-2"
+              >
+                <span className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: "rgba(255,255,255,0.08)" }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff" stroke="none"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
+                </span>
+                <span className="text-[10px] font-medium" style={{ color: "#F5F4F8" }}>X</span>
+              </a>
+              <button
+                onClick={copyShareLink}
+                className="flex flex-col items-center gap-1.5 border-0 bg-transparent cursor-pointer py-2"
+              >
+                <span className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: "rgba(139,92,246,0.18)" }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>
+                </span>
+                <span className="text-[10px] font-medium" style={{ color: "#F5F4F8" }}>Copy link</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Episode badge — bottom-left */}
       <div className="absolute bottom-6 left-4 z-50 pointer-events-none">

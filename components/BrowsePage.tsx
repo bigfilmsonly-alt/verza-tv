@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, Fragment } from "react";
+import { useState, useEffect, useCallback, useMemo, Fragment } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import CategoryTabs from "@/components/CategoryTabs";
@@ -15,6 +15,23 @@ import { MUX_MAP } from "@/lib/mux-map";
 // Eagerly preload hls.js so it's cached before user taps a video
 if (typeof window !== "undefined") {
   import("hls.js").catch(() => {});
+}
+
+// Deterministic, seedable shuffle so the order is stable within one page
+// load (won't reshuffle on every re-render) but fresh on each refresh.
+function shuffleWithSeed<T>(arr: T[], seed: number): T[] {
+  const out = arr.slice();
+  let s = seed >>> 0;
+  for (let i = out.length - 1; i > 0; i--) {
+    // mulberry32 PRNG
+    s |= 0; s = (s + 0x6d2b79f5) | 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    const rnd = ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    const j = Math.floor(rnd * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
 }
 
 function Badge({ type }: { type: "trending" | "new" }) {
@@ -76,7 +93,21 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
   const [continueWatching, setContinueWatching] = useState<ContinueItem[]>([]);
   const [showSplash, setShowSplash] = useState<string | null>(null);
 
-  const filtered = tabData[activeTab] ?? [];
+  // Shuffle seed: 0 on the server + first client render (keeps hydration in
+  // sync), then a random value after mount so the catalog order is freshly
+  // randomized on every page load / refresh.
+  const [shuffleSeed, setShuffleSeed] = useState(0);
+  useEffect(() => {
+    setShuffleSeed(Math.floor(Math.random() * 2147483647) + 1);
+  }, []);
+
+  // Drama shows the whole library; other tabs show their own set. Hot stays
+  // ranked, everything else is shuffled fresh each load for variety.
+  const filtered = useMemo(() => {
+    const base = activeTab === "drama" ? liveSeries : tabData[activeTab] ?? [];
+    if (shuffleSeed === 0 || activeTab === "popular") return base;
+    return shuffleWithSeed(base, shuffleSeed + activeTab.length);
+  }, [activeTab, tabData, liveSeries, shuffleSeed]);
   // The Mistress Trap flyer isn't full-bleed like the other posters, so keep it out of the hero slideshow
   const heroSlides = filtered.filter((s) => s.slug !== "the-mistress-trap").slice(0, 4);
   const current = heroSlides[heroIdx % Math.max(heroSlides.length, 1)];
@@ -423,32 +454,37 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               </div>
             </Link>
 
-            {/* Summer Sale promo — bright, attention-grabbing badge over the hero */}
+            {/* Summer Sale promo — refined, high-end glass badge over the hero */}
             <Link
               href="/series"
-              className="absolute top-3 left-1/2 -translate-x-1/2 z-20 no-underline animate-pulse"
+              className="absolute top-3 left-1/2 -translate-x-1/2 z-20 no-underline"
               aria-label="Summer Sale — $2 a movie"
             >
               <div
-                className="flex items-center gap-2 px-4 py-2 rounded-full"
+                className="flex items-center gap-2.5 pl-3 pr-1.5 py-1.5 rounded-full"
                 style={{
-                  background: "linear-gradient(90deg, #FFD200, #FF8A00, #FF2D55)",
-                  boxShadow: "0 0 22px rgba(255,170,0,0.9), 0 0 8px rgba(255,45,85,0.7)",
-                  border: "1.5px solid rgba(255,255,255,0.85)",
+                  background: "rgba(10,10,16,0.55)",
+                  backdropFilter: "blur(14px)",
+                  WebkitBackdropFilter: "blur(14px)",
+                  border: "1px solid rgba(212,175,55,0.55)",
+                  boxShadow: "0 6px 22px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.08)",
                 }}
               >
-                <span className="text-base">☀️</span>
                 <span
-                  className="text-sm font-extrabold uppercase tracking-wide"
-                  style={{ color: "#0A0A0A", textShadow: "0 1px 0 rgba(255,255,255,0.35)" }}
+                  className="text-[10px] font-semibold uppercase"
+                  style={{ letterSpacing: "0.18em", color: "#E8D9A8" }}
                 >
                   Summer Sale
                 </span>
                 <span
-                  className="text-sm font-black px-2 py-0.5 rounded-full whitespace-nowrap"
-                  style={{ background: "#0A0A0A", color: "#FFD200" }}
+                  className="text-xs font-bold px-2.5 py-1 rounded-full whitespace-nowrap"
+                  style={{
+                    background: "linear-gradient(180deg, #F5E7B8, #D4AF37)",
+                    color: "#1A1206",
+                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.6)",
+                  }}
                 >
-                  $2 A MOVIE
+                  $2 a movie
                 </span>
               </div>
             </Link>
@@ -555,40 +591,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </section>
       )}
 
-      {/* All Shows — only on Drama tab */}
-      {activeTab === "drama" && <section className="pb-8 px-3">
-        <h2 className="text-sm font-semibold uppercase tracking-wider mb-3 px-1" style={{ color: "#8A8A9A" }}>{t("browse.allShows")}</h2>
-        <div className="poster-grid grid grid-cols-3 gap-1.5">
-          {liveSeries.map((s) => (
-            <Link key={s.slug} href={`/series/${s.slug}/1`} className="group block no-underline min-w-0 transition-transform active:scale-[0.97]">
-              <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
-                <Poster src={s.posterUrl} alt={s.title} />
-                {s.popularRank && s.popularRank <= 6 && <Badge type="trending" />}
-                {!s.popularRank && s.categories.includes("new") && <Badge type="new" />}
-                <div
-                  className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
-                  style={{ background: "rgba(0,0,0,0.3)" }}
-                >
-                  <div
-                    className="w-10 h-10 rounded-full flex items-center justify-center"
-                    style={{ background: "rgba(224, 17, 95, 0.85)", backdropFilter: "blur(4px)" }}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff" stroke="none">
-                      <polygon points="8 5 20 12 8 19" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-              <div style={{ height: 36 }}>
-                <p className="mt-1.5 text-[11px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>{s.title}</p>
-                <p className="text-[10px] mt-0.5 line-clamp-1" style={{ color: "#6B6B7B" }}>{s.genre}</p>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>}
-
-      {/* Sponsored Ad Ribbon #2 — only on Drama (below All Shows grid) */}
+      {/* Sponsored Ad Ribbon #2 — only on Drama */}
       {activeTab === "drama" && <a
         href="https://www.storageblue.com"
         target="_blank"
