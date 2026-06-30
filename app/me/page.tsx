@@ -261,7 +261,7 @@ export default function MePage() {
             Start Watching
           </p>
           <p className="text-xs mt-0.5" style={{ color: T.textDim }}>
-            First 5 episodes free &middot; $4.99 per series
+            First 5 episodes free &middot; $2 per movie
           </p>
         </div>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={T.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

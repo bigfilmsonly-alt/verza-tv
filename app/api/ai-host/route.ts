@@ -36,7 +36,7 @@ PLATFORM BASICS:
 
 PRICING:
 - First 5 episodes of every series are FREE — no sign-up required
-- Full series unlock: $4.99 one-time (all remaining episodes)
+- Full series unlock: $2 one-time (Summer Sale — all remaining episodes)
 - VIP Monthly: $9.99/month (unlocks ALL 76 series)
 - VIP Yearly: $79.99/year (save 33%)
 - No coins, no tokens, no confusion — simple flat pricing
@@ -347,7 +347,7 @@ function getScriptedResponse(prompt: string): string {
   }
 
   if (lower.includes("price") || lower.includes("cost") || lower.includes("pay") || lower.includes("free") || lower.includes("how much") || lower.includes("subscription")) {
-    return "First 5 episodes of every series are completely FREE — no sign-up needed! To unlock a full series, it's just $4.99 one-time. Or get VIP ($9.99/month or $79.99/year) for unlimited access to all 76 series. No coins, no confusion — just simple flat pricing.";
+    return "First 5 episodes of every series are completely FREE — no sign-up needed! Right now during our Summer Sale, unlock a full series for just $2 one-time. Or get VIP ($9.99/month or $79.99/year) for unlimited access to all 76 series. No coins, no confusion — just simple flat pricing.";
   }
 
   if (lower.includes("creator") || lower.includes("upload") || lower.includes("channel") || lower.includes("make money")) {
@@ -355,7 +355,7 @@ function getScriptedResponse(prompt: string): string {
   }
 
   if (lower.includes("how") && (lower.includes("work") || lower.includes("use") || lower.includes("start"))) {
-    return "It's simple: tap any poster and the video plays instantly, full screen. Swipe up for the next episode. First 5 episodes are free. If you're hooked, unlock the full series for $4.99, or go VIP for $9.99/month to get everything. Sound: tap the speaker icon (top-right) to unmute!";
+    return "It's simple: tap any poster and the video plays instantly, full screen. Swipe up for the next episode. First 5 episodes are free. If you're hooked, unlock the full series for just $2 (Summer Sale), or go VIP for $9.99/month to get everything. Sound: tap the speaker icon (top-right) to unmute!";
   }
 
   if (lower.includes("merch") || lower.includes("shop") || lower.includes("hoodie") || lower.includes("shirt")) {

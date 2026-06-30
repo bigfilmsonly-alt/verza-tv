@@ -776,7 +776,7 @@ export default function EpisodeFeed({
                 boxShadow: "0 0 40px rgba(224,17,95,0.3)",
               }}
             >
-              {unlockLoading ? "Loading..." : "Unlock Full Series — $4.99"}
+              {unlockLoading ? "Loading..." : "Unlock Full Series — $2"}
             </button>
             <button
               onClick={handleBack}

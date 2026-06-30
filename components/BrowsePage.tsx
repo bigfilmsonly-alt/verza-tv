@@ -427,7 +427,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
             <Link
               href="/series"
               className="absolute top-3 left-1/2 -translate-x-1/2 z-20 no-underline animate-pulse"
-              aria-label="Summer Sale — unlock any series for $2"
+              aria-label="Summer Sale — $2 a movie"
             >
               <div
                 className="flex items-center gap-2 px-4 py-2 rounded-full"
@@ -445,10 +445,10 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                   Summer Sale
                 </span>
                 <span
-                  className="text-sm font-black px-2 py-0.5 rounded-full"
+                  className="text-sm font-black px-2 py-0.5 rounded-full whitespace-nowrap"
                   style={{ background: "#0A0A0A", color: "#FFD200" }}
                 >
-                  $2
+                  $2 A MOVIE
                 </span>
               </div>
             </Link>

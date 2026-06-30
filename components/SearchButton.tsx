@@ -12,13 +12,16 @@ export default function SearchButton() {
   const inputRef = useRef<HTMLInputElement>(null);
   const series = getLiveSeries();
 
+  const q = query.trim().toLowerCase();
   const filtered =
-    query.length >= 2
+    q.length >= 2
       ? series.filter(
           (s) =>
-            s.title.toLowerCase().includes(query.toLowerCase()) ||
-            s.logline.toLowerCase().includes(query.toLowerCase()) ||
-            s.genre.toLowerCase().includes(query.toLowerCase()),
+            s.title.toLowerCase().includes(q) ||
+            s.logline.toLowerCase().includes(q) ||
+            s.genre.toLowerCase().includes(q) ||
+            s.channel.toLowerCase().includes(q) ||
+            s.categories.some((c) => c.toLowerCase().includes(q)),
         )
       : [];
 
@@ -71,19 +74,32 @@ export default function SearchButton() {
           </div>
 
           <div className="overflow-y-auto" style={{ maxHeight: "calc(100dvh - 80px)" }}>
-            {filtered.length > 0 && filtered.slice(0, 12).map((s) => (
-              <Link key={s.slug} href={`/series/${s.slug}/1`} className="flex items-center gap-3 px-4 py-3 no-underline" style={{ color: "#F5F4F8", borderBottom: "1px solid rgba(255,255,255,0.05)" }} onClick={() => setOpen(false)}>
-                {s.posterUrl && (
-                  <div className="relative w-10 h-14 rounded overflow-hidden flex-shrink-0">
-                    <Image src={s.posterUrl} alt={s.title} fill sizes="40px" className="object-cover" />
-                  </div>
-                )}
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold truncate">{s.title}</p>
-                  <p className="text-xs truncate" style={{ color: "#6B6B7B" }}>{s.genre} · {s.episodeCount} episodes</p>
+            {filtered.length > 0 && (
+              <>
+                <p className="px-4 pt-1 pb-3 text-xs" style={{ color: "#6B6B7B" }}>
+                  {filtered.length} result{filtered.length === 1 ? "" : "s"} for &ldquo;{query.trim()}&rdquo;
+                </p>
+                <div className="grid grid-cols-3 gap-1.5 px-3 pb-6">
+                  {filtered.map((s) => (
+                    <Link
+                      key={s.slug}
+                      href={`/series/${s.slug}/1`}
+                      className="block no-underline min-w-0 transition-transform active:scale-[0.97]"
+                      style={{ color: "#F5F4F8" }}
+                      onClick={() => setOpen(false)}
+                    >
+                      <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3", background: "#1A1A26" }}>
+                        {s.posterUrl && (
+                          <Image src={s.posterUrl} alt={s.title} fill sizes="(max-width: 440px) 33vw, 146px" className="object-cover" />
+                        )}
+                      </div>
+                      <p className="mt-1.5 text-[11px] font-semibold leading-tight line-clamp-2">{s.title}</p>
+                      <p className="text-[10px] mt-0.5 line-clamp-1" style={{ color: "#6B6B7B" }}>{s.genre}</p>
+                    </Link>
+                  ))}
                 </div>
-              </Link>
-            ))}
+              </>
+            )}
             {query.length >= 2 && filtered.length === 0 && (
               <div className="px-4 py-12 text-center"><p className="text-sm" style={{ color: "#6B6B7B" }}>No results for "{query}"</p></div>
             )}

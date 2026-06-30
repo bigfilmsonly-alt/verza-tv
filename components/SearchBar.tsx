@@ -12,13 +12,16 @@ interface SearchBarProps {
 export default function SearchBar({ series }: SearchBarProps) {
   const [query, setQuery] = useState("");
 
+  const q = query.trim().toLowerCase();
   const filtered =
-    query.length >= 2
+    q.length >= 2
       ? series.filter(
           (s) =>
-            s.title.toLowerCase().includes(query.toLowerCase()) ||
-            s.logline.toLowerCase().includes(query.toLowerCase()) ||
-            s.genre.toLowerCase().includes(query.toLowerCase())
+            s.title.toLowerCase().includes(q) ||
+            s.logline.toLowerCase().includes(q) ||
+            s.genre.toLowerCase().includes(q) ||
+            s.channel.toLowerCase().includes(q) ||
+            s.categories.some((c) => c.toLowerCase().includes(q))
         )
       : [];
 

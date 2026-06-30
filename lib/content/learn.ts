@@ -52,7 +52,7 @@ Production: Every series is produced at Filmology Labs, a $250M production facil
 
 Format: Episodes run 60 to 120 seconds each. A typical series has 60 to 100 episodes, telling a complete story arc. The short episode length makes production efficient while keeping audiences engaged.
 
-Distribution: Episodes are streamed via Mux, delivering adaptive-quality HLS video that adjusts to your connection speed. The first five episodes of every series are free. To continue watching, viewers can unlock the full series for $4.99 or subscribe to VIP for unlimited access to the entire library.
+Distribution: Episodes are streamed via Mux, delivering adaptive-quality HLS video that adjusts to your connection speed. The first five episodes of every series are free. To continue watching, viewers can unlock the full series for $2 (Summer Sale) or subscribe to VIP for unlimited access to the entire library.
 
 Viewing: Series are designed for binge-watching. When one episode ends, the next auto-plays. The vertical format means you never need to rotate your phone — just hold it naturally and watch.`,
     editorialApproved: true,
