@@ -423,8 +423,36 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </div>
       )}
 
-      {/* Hero Slideshow — only when category has content (not Reality or Red Carpet) */}
-      {current && activeTab !== "reality" && activeTab !== "red-carpet" && activeTab !== "music" && (
+      {/* Summer Sale banner — Drama tab (hero poster removed here) */}
+      {activeTab === "drama" && (
+        <div className="px-3 pt-3 pb-1 flex justify-center">
+          <Link href="/series" className="no-underline" aria-label="Summer Sale — $2 a movie">
+            <div
+              className="flex items-center gap-2.5 pl-3 pr-1.5 py-1.5 rounded-full"
+              style={{
+                background: "rgba(10,10,16,0.55)",
+                backdropFilter: "blur(14px)",
+                WebkitBackdropFilter: "blur(14px)",
+                border: "1px solid rgba(212,175,55,0.55)",
+                boxShadow: "0 6px 22px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.08)",
+              }}
+            >
+              <span className="text-[10px] font-semibold uppercase" style={{ letterSpacing: "0.18em", color: "#E8D9A8" }}>
+                Summer Sale
+              </span>
+              <span
+                className="text-xs font-bold px-2.5 py-1 rounded-full whitespace-nowrap"
+                style={{ background: "linear-gradient(180deg, #F5E7B8, #D4AF37)", color: "#1A1206", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.6)" }}
+              >
+                $2 a movie
+              </span>
+            </div>
+          </Link>
+        </div>
+      )}
+
+      {/* Hero Slideshow — only when category has content (not Drama/Reality/Red Carpet/Music) */}
+      {current && activeTab !== "drama" && activeTab !== "reality" && activeTab !== "red-carpet" && activeTab !== "music" && (
         <div>
           {/* Poster image — clean, no text overlay */}
           <div className="relative">
