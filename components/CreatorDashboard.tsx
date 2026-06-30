@@ -298,11 +298,20 @@ function ApprovedDashboard({ me }: { me: Me }) {
     loadContent();
   }, [loadContent]);
 
-  // Poll while anything is uploading/processing so statuses advance live.
+  // Poll while anything is uploading/processing so statuses advance live. The
+  // single-item GET reconciles directly with Mux, so progress continues even
+  // if the webhook is delayed or not yet configured.
   useEffect(() => {
-    const active = items.some((i) => i.status === "uploading" || i.status === "processing");
-    if (!active) return;
-    const t = setInterval(loadContent, 4000);
+    const inProgress = items.filter((i) => i.status === "uploading" || i.status === "processing");
+    if (inProgress.length === 0) return;
+    const t = setInterval(async () => {
+      await Promise.all(
+        inProgress.map((i) =>
+          fetch(`/api/creator/content/${i.id}`, { cache: "no-store" }).catch(() => {}),
+        ),
+      );
+      loadContent();
+    }, 4000);
     return () => clearInterval(t);
   }, [items, loadContent]);
 

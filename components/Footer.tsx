@@ -53,6 +53,7 @@ const socialLinks = [
 ];
 
 const legalLinks = [
+  { label: "Become a Creator", href: "/studio" },
   { label: "Terms of Service", href: "/terms" },
   { label: "Privacy Policy", href: "/privacy" },
   { label: "Refund Policy", href: "/refund-policy" },
