@@ -15,7 +15,7 @@ ${BRAND.name} is the first US-based vertical micro-drama streaming platform. Fou
 - ${liveCount}+ original series: Romance, Thriller, Drama, Reality, Comedy, Mystery, and more
 - Episode format: 60-120 seconds, vertical (9:16), cinema-quality production
 - First ${FREE_EPISODES} episodes of every series are free
-- Full series unlock: $2 one-time payment (Summer Sale)
+- Full series unlock: $1.99 one-time payment (Summer Sale)
 - VIP subscription: $${(VIP_PLANS.monthly.cents / 100).toFixed(2)}/month or $${(VIP_PLANS.yearly.cents / 100).toFixed(2)}/year for unlimited access
 - Powered by Filmology Labs ($250M production facility, 21 soundstages, Paterson NJ)
 
@@ -25,7 +25,7 @@ A micro-drama is a serialized story told in very short episodes (60-120 seconds)
 ## How It Works
 1. Browse ${liveCount}+ series across genres
 2. Watch the first 5 episodes free — no account needed
-3. Unlock the full series for $2 (Summer Sale), or subscribe to VIP for all series
+3. Unlock the full series for $1.99 (Summer Sale), or subscribe to VIP for all series
 4. Episodes auto-play in sequence for binge watching
 
 ## Genres

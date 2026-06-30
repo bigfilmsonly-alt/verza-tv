@@ -105,7 +105,7 @@ export default function CoinPaywall({
             {t("content.unlockPrompt")}
           </p>
 
-          {/* Direct pricing — $2 Summer Sale */}
+          {/* Direct pricing — $1.99 Summer Sale */}
           <button
             onClick={handleUnlock}
             disabled={loading}
@@ -120,7 +120,7 @@ export default function CoinPaywall({
                   <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
                   <line x1="1" y1="10" x2="23" y2="10" />
                 </svg>
-                {t("content.unlockSeries")} — $2
+                {t("content.unlockSeries")} — $1.99
               </>
             )}
           </button>

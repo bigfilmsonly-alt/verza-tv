@@ -6,7 +6,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 /**
  * POST /api/unlock
- * Creates a Stripe Checkout session to unlock a full series for $2 (Summer Sale).
+ * Creates a Stripe Checkout session to unlock a full series for $1.99 (Summer Sale).
  * Body: { seriesSlug: string }
  */
 export async function POST(req: NextRequest) {
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     }
 
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verzatv.com";
-    const priceInCents = 200; // $2 Summer Sale — per movie
+    const priceInCents = 199; // $1.99 Summer Sale — per movie
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",

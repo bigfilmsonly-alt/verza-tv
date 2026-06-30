@@ -15,17 +15,17 @@ const FAQ_ITEMS = [
   {
     question: `Is ${BRAND.name} free?`,
     answer:
-      `The first ${FREE_EPISODES} episodes of every series are completely free. After that, you can unlock the full series for just $2 (Summer Sale) — a one-time payment that gives you access to every episode.`,
+      `The first ${FREE_EPISODES} episodes of every series are completely free. After that, you can unlock the full series for just $1.99 (Summer Sale) — a one-time payment that gives you access to every episode.`,
   },
   {
     question: "How much does it cost to unlock a series?",
     answer:
-      `During our Summer Sale, unlocking a full series costs just $2. This is a one-time payment that gives you access to all episodes in that series — no subscriptions, no hidden fees.`,
+      `During our Summer Sale, unlocking a full series costs just $1.99. This is a one-time payment that gives you access to all episodes in that series — no subscriptions, no hidden fees.`,
   },
   {
     question: "How do I unlock a series?",
     answer:
-      `Watch the first ${FREE_EPISODES} free episodes. When you reach the next episode, you'll see an "Unlock Full Series — $2" button. Tap it, complete the payment, and all episodes are yours.`,
+      `Watch the first ${FREE_EPISODES} free episodes. When you reach the next episode, you'll see an "Unlock Full Series — $1.99" button. Tap it, complete the payment, and all episodes are yours.`,
   },
   {
     question: "What payment methods do you accept?",

@@ -18,7 +18,7 @@ const BRAND_FACTS = [
   { label: "Content Library", value: `${getLiveSeries().length}+ original series at launch` },
   { label: "Episode Format", value: "60-120 seconds, vertical 9:16" },
   { label: "Platforms", value: "Web (iOS and Android coming soon)" },
-  { label: "Monetization", value: "$2 series unlock (Summer Sale) + VIP subscription" },
+  { label: "Monetization", value: "$1.99 series unlock (Summer Sale) + VIP subscription" },
   { label: "Free Episodes", value: "First 5 episodes of every series" },
 ];
 

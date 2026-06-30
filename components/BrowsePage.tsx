@@ -121,7 +121,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
 
   useEffect(() => { setHeroIdx(0); }, [activeTab]);
 
-  // Summer Sale badge → start a $2 Stripe checkout for the featured movie in view.
+  // Summer Sale badge → start a $1.99 Stripe checkout for the featured movie in view.
   const [saleLoading, setSaleLoading] = useState(false);
   const startSummerSale = useCallback(async (slug: string) => {
     if (saleLoading) return;
@@ -481,13 +481,13 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               </div>
             </Link>
 
-            {/* Summer Sale promo — premium gold-glass badge → $2 checkout for the featured movie */}
+            {/* Summer Sale promo — premium gold-glass badge → $1.99 checkout for the featured movie */}
             <button
               type="button"
               onClick={() => current && startSummerSale(current.slug)}
               disabled={saleLoading}
               className="absolute top-3 left-1/2 -translate-x-1/2 z-20 border-0 bg-transparent p-0 cursor-pointer disabled:opacity-70"
-              aria-label={`Summer Sale — $2 — unlock ${current?.title ?? "this movie"}`}
+              aria-label={`Summer Sale — $1.99 — unlock ${current?.title ?? "this movie"}`}
             >
               <div
                 className="flex items-center gap-2 pl-2.5 pr-1 py-1 rounded-full"
@@ -535,7 +535,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                       "inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -1px 0 rgba(120,90,20,0.35)",
                   }}
                 >
-                  <span className="text-sm font-extrabold leading-none">$2</span>
+                  <span className="text-sm font-extrabold leading-none">$1.99</span>
                   <span className="text-[10px] font-semibold leading-none">a movie</span>
                 </span>
               </div>

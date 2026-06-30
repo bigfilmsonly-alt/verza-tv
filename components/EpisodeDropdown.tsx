@@ -147,7 +147,7 @@ export default function EpisodeDropdown({
                 ) : isFree ? (
                   <span className="text-[10px] font-bold flex-shrink-0" style={{ color: T.success }}>FREE</span>
                 ) : ep.number === freeEpisodes + 1 ? (
-                  <span className="text-[10px] font-bold flex-shrink-0" style={{ color: T.accent }}>$2</span>
+                  <span className="text-[10px] font-bold flex-shrink-0" style={{ color: T.accent }}>$1.99</span>
                 ) : (
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={T.textMute} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />

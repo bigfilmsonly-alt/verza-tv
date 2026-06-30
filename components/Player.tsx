@@ -726,7 +726,7 @@ export default function Player({
                 className="w-full py-3.5 rounded-xl text-sm font-bold border-0 cursor-pointer mb-3 transition-transform active:scale-[0.97]"
                 style={{ background: T.accent, color: "#fff", opacity: unlockLoading ? 0.7 : 1 }}
               >
-                {unlockLoading ? "Loading..." : "Unlock Full Series — $2"}
+                {unlockLoading ? "Loading..." : "Unlock Full Series — $1.99"}
               </button>
 
               {/* Replay last free episode */}

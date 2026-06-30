@@ -304,7 +304,7 @@ export default async function SeriesPage({ params }: Props) {
               style={{ color: T.accent }}
             >
               <span className="text-xs font-semibold line-through" style={{ color: T.textMute }}>$4.99</span>
-              $2
+              $1.99
             </span>
           </div>
         </div>
