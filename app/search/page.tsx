@@ -177,7 +177,7 @@ export default async function SearchPage({ searchParams }: Props) {
           {results.map((series) => (
             <Link
               key={series.slug}
-              href={`/series/${series.slug}`}
+              href={`/series/${series.slug}/1`}
               className="group no-underline"
             >
               <div

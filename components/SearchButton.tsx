@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import Image from "next/image";
 import { trackSearch } from "@/lib/track";
@@ -9,9 +10,14 @@ import { seriesMatchesQuery } from "@/lib/search-index";
 
 export default function SearchButton() {
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const series = getLiveSeries();
+
+  // Portal target only exists on the client. Without this guard the overlay
+  // would try to render on the server and crash.
+  useEffect(() => setMounted(true), []);
 
   const q = query.trim();
   const filtered =
@@ -26,7 +32,13 @@ export default function SearchButton() {
     if (!open) return;
     function onKey(e: KeyboardEvent) { if (e.key === "Escape") setOpen(false); }
     document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    // Lock background scroll so the page behind the overlay stays put.
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
   }, [open]);
 
   return (
@@ -43,8 +55,17 @@ export default function SearchButton() {
         </svg>
       </button>
 
-      {open && (
-        <div className="fixed inset-0 z-[100] flex flex-col" style={{ background: "#07070E" }}>
+      {open && mounted && createPortal(
+        /* Rendered via a portal on <body> so the panel escapes the header's
+           backdrop-filter (which otherwise makes it a containing block for
+           position:fixed and clips this overlay to the header on desktop). */
+        <div
+          className="fixed inset-0 z-[9999] flex justify-center"
+          style={{ background: "rgba(3,3,8,0.88)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)" }}
+          onMouseDown={(e) => { if (e.target === e.currentTarget) setOpen(false); }}
+        >
+        {/* Centered column — full width on phones, framed 440px on tablet/desktop */}
+        <div className="flex flex-col w-full h-full" style={{ maxWidth: 440, background: "#07070E", boxShadow: "0 0 60px rgba(0,0,0,0.6)" }}>
           {/* Solid search bar — opaque so NOTHING from the page shows through */}
           <div
             className="flex items-center gap-3 px-4 pt-4 pb-3 flex-shrink-0"
@@ -133,6 +154,8 @@ export default function SearchButton() {
             )}
           </div>
         </div>
+        </div>,
+        document.body
       )}
     </>
   );
