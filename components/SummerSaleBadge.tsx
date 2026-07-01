@@ -43,7 +43,7 @@ export default function SummerSaleBadge() {
     <button
       type="button"
       onClick={startCheckout}
-      disabled={loading}
+      disabled={loading || !featured}
       className="border-0 bg-transparent p-0 cursor-pointer disabled:opacity-70"
       aria-label="Summer Sale — $1.99 a movie"
     >
@@ -52,9 +52,10 @@ export default function SummerSaleBadge() {
         style={{
           background:
             "linear-gradient(180deg, rgba(28,24,12,0.85), rgba(10,10,16,0.85))",
-          border: "1px solid rgba(212,175,55,0.65)",
+          // Thin, bright pure-gold rim with a gold glow.
+          border: "1px solid #FFD700",
           boxShadow:
-            "0 6px 22px rgba(0,0,0,0.5), 0 0 18px rgba(212,175,55,0.22), inset 0 1px 0 rgba(255,255,255,0.1)",
+            "0 6px 22px rgba(0,0,0,0.5), 0 0 16px rgba(255,215,0,0.55), 0 0 4px rgba(255,215,0,0.7), inset 0 1px 0 rgba(255,255,255,0.12)",
         }}
       >
         {/* sun / sparkle mark */}
@@ -80,7 +81,7 @@ export default function SummerSaleBadge() {
         </span>
         <span
           className="self-stretch w-px my-0.5"
-          style={{ background: "rgba(212,175,55,0.4)" }}
+          style={{ background: "rgba(255,215,0,0.6)" }}
         />
         <span
           className="flex items-baseline gap-0.5 px-2.5 py-1 rounded-full whitespace-nowrap"
