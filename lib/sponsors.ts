@@ -25,6 +25,38 @@ export type SponsoredProduct = {
   badge?: string;
 };
 
+/**
+ * Matches a sponsored product against a search query. Every product carries
+ * the shared "tiktok / shop / sponsored" keywords, so searching "tiktok"
+ * returns ALL products; product-specific words (e.g. "projector") narrow it.
+ * Token-based AND matching, case-insensitive, min 2 chars — same rules as the
+ * movie search.
+ */
+export function productMatchesQuery(p: SponsoredProduct, rawQuery: string): boolean {
+  const q = rawQuery.trim().toLowerCase();
+  if (q.length < 2) return false;
+  const haystack = [
+    p.title,
+    p.price,
+    p.badge ?? "",
+    "tiktok",
+    "tiktok shop",
+    "shop",
+    "sponsored",
+    "ad",
+    "product",
+    "products",
+    "deal",
+    "deals",
+  ]
+    .join(" ")
+    .toLowerCase();
+  return q
+    .split(/\s+/)
+    .filter(Boolean)
+    .every((token) => haystack.includes(token));
+}
+
 // Entertainment-aligned, top-selling TikTok Shop categories (movie night,
 // creator gear, cozy binge-watch). Swap in real product image/price/link.
 export const SPONSORED_PRODUCTS: SponsoredProduct[] = [
