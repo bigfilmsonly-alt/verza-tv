@@ -773,7 +773,7 @@ export const catalog: Series[] = [
     channel: "Verza Originals",
     categories: ["drama"],
     episodeCount: 56,
-    posterUrl: "/posters/the-dumb-billionaire-heiress-pt-2.png",
+    posterUrl: "/posters/the-dumb-billionaire-heiress-in-love.png",
     freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(56), status: "live",
   },
   {
