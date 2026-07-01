@@ -11,11 +11,26 @@ import { SPONSORED_PRODUCTS } from "@/lib/sponsors";
 /*  nothing when there are no sponsors, so the layout stays clean.      */
 /* ------------------------------------------------------------------ */
 
-export default function SponsoredProducts() {
+export default function SponsoredProducts({
+  embedded = false,
+  startOffset = 0,
+}: {
+  /** When woven into the poster grid, drop the horizontal padding (the grid
+   *  already provides it) and use symmetric vertical spacing instead. */
+  embedded?: boolean;
+  /** Rotates which product leads each strip so repeated placements down the
+   *  page don't all show the same first card. */
+  startOffset?: number;
+}) {
   if (SPONSORED_PRODUCTS.length === 0) return null;
 
+  // Rotate the product order for this placement.
+  const n = SPONSORED_PRODUCTS.length;
+  const rot = ((startOffset % n) + n) % n;
+  const products = [...SPONSORED_PRODUCTS.slice(rot), ...SPONSORED_PRODUCTS.slice(0, rot)];
+
   return (
-    <section className="mt-0 mb-4 px-3">
+    <section className={embedded ? "my-3" : "mt-0 mb-4 px-3"}>
       {/* Header row — clearly labelled "Sponsored" + TikTok Shop wordmark */}
       <div className="flex items-center justify-between mb-2 px-1">
         <span
@@ -38,7 +53,7 @@ export default function SponsoredProducts() {
         className="flex gap-2.5 overflow-x-auto pb-1"
         style={{ scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }}
       >
-        {SPONSORED_PRODUCTS.map((p) => {
+        {products.map((p) => {
           const [from, to] = p.accent ?? ["#E0115F", "#8B5CF6"];
           return (
             <a

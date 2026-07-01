@@ -552,42 +552,45 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </a>
       )}
 
-      {/* TikTok Shop sponsored products — high-converting spot directly under the
-          hero (below StorageBlue, which stays exactly where it was). Only on the
-          browse-style tabs. */}
-      {(activeTab === "drama" || activeTab === "new" || activeTab === "popular") && (
-        <SponsoredProducts />
-      )}
-
       {/* Tab Row — 3-column grid (not on Music/Reality/Red Carpet — they have custom sections) */}
       {gridItems.length > 0 && activeTab !== "music" && activeTab !== "reality" && activeTab !== "red-carpet" && (
         <section className="mt-4 pb-4 px-3">
           <div className="poster-grid grid grid-cols-3 gap-1.5">
-            {gridItems.map((s) => (
-              <Link key={s.slug} href={`/series/${s.slug}/1`} className="group block no-underline min-w-0 transition-transform active:scale-[0.97]">
-                <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
-                  <Poster src={s.posterUrl} alt={s.title} />
-                  {s.popularRank && s.popularRank <= 5 && <Badge type="trending" />}
-                  {!s.popularRank && s.categories.includes("new") && <Badge type="new" />}
-                  <div
-                    className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
-                    style={{ background: "rgba(0,0,0,0.3)" }}
-                  >
+            {gridItems.map((s, i) => (
+              <Fragment key={s.slug}>
+                <Link href={`/series/${s.slug}/1`} className="group block no-underline min-w-0 transition-transform active:scale-[0.97]">
+                  <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
+                    <Poster src={s.posterUrl} alt={s.title} />
+                    {s.popularRank && s.popularRank <= 5 && <Badge type="trending" />}
+                    {!s.popularRank && s.categories.includes("new") && <Badge type="new" />}
                     <div
-                      className="w-10 h-10 rounded-full flex items-center justify-center"
-                      style={{ background: "rgba(224, 17, 95, 0.85)", backdropFilter: "blur(4px)" }}
+                      className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
+                      style={{ background: "rgba(0,0,0,0.3)" }}
                     >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff" stroke="none">
-                        <polygon points="8 5 20 12 8 19" />
-                      </svg>
+                      <div
+                        className="w-10 h-10 rounded-full flex items-center justify-center"
+                        style={{ background: "rgba(224, 17, 95, 0.85)", backdropFilter: "blur(4px)" }}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff" stroke="none">
+                          <polygon points="8 5 20 12 8 19" />
+                        </svg>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div style={{ height: 36 }}>
-                  <p className="mt-1.5 text-[11px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>{s.title}</p>
-                  <p className="text-[10px] mt-0.5 line-clamp-1" style={{ color: "#6B6B7B" }}>{s.genre}</p>
-                </div>
-              </Link>
+                  <div style={{ height: 36 }}>
+                    <p className="mt-1.5 text-[11px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>{s.title}</p>
+                    <p className="text-[10px] mt-0.5 line-clamp-1" style={{ color: "#6B6B7B" }}>{s.genre}</p>
+                  </div>
+                </Link>
+                {/* TikTok Shop sponsored strip woven evenly into the grid — after
+                    every 6 rows (18 posters), spanning the full width, not on the
+                    last item. StorageBlue stays untouched under the hero. */}
+                {(i + 1) % 18 === 0 && i < gridItems.length - 1 && (
+                  <div className="col-span-3">
+                    <SponsoredProducts embedded startOffset={i} />
+                  </div>
+                )}
+              </Fragment>
             ))}
           </div>
         </section>
