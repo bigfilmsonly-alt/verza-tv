@@ -207,6 +207,18 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         <CategoryTabs active={activeTab} onSelect={setActiveTab} tabs={activeTabs} />
       </div>
 
+      {/* Summer Sale $1.99 ribbon — top-level sticky + zero-height so it pins
+          directly under the tabs bar and stays visible for the ENTIRE page
+          scroll (not just over the hero), without pushing any content down */}
+      <div
+        className="sticky z-20 flex justify-center pointer-events-none"
+        style={{ top: 84, height: 0 }}
+      >
+        <div className="pointer-events-auto mt-1">
+          <SummerSaleBadge />
+        </div>
+      </div>
+
       {/* Continue Watching row */}
       {continueWatching.length > 0 && (
         <section className="pb-4">
@@ -436,17 +448,6 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         <div>
           {/* Poster image — clean, no text overlay */}
           <div className="relative">
-            {/* Summer Sale $1.99 ribbon — sticky + zero-height so it sits at the
-                top of the poster, stays pinned in place while you scroll, and
-                never pushes the poster down */}
-            <div
-              className="sticky z-20 flex justify-center pointer-events-none"
-              style={{ top: 88, height: 0 }}
-            >
-              <div className="pointer-events-auto mt-1">
-                <SummerSaleBadge />
-              </div>
-            </div>
             <Link href={`/series/${current.slug}/1`} className="block">
               <div
                 className="relative w-full overflow-hidden mx-auto"
