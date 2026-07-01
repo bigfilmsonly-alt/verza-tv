@@ -584,10 +584,10 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                   </div>
                 </Link>
                 {/* TikTok Shop sponsored tile — one poster-sized cell woven evenly
-                    into the grid (every 8 posters), cycling through products so
+                    into the grid (every 6 posters), cycling through products so
                     they're spread throughout. StorageBlue stays under the hero. */}
-                {SPONSORED_PRODUCTS.length > 0 && (i + 1) % 8 === 0 && i < gridItems.length - 1 && (
-                  <SponsoredTile product={SPONSORED_PRODUCTS[Math.floor(i / 8) % SPONSORED_PRODUCTS.length]} />
+                {SPONSORED_PRODUCTS.length > 0 && (i + 1) % 6 === 0 && i < gridItems.length - 1 && (
+                  <SponsoredTile product={SPONSORED_PRODUCTS[Math.floor(i / 6) % SPONSORED_PRODUCTS.length]} />
                 )}
               </Fragment>
             ))}
