@@ -60,12 +60,14 @@ export default function SearchButton() {
            backdrop-filter (which otherwise makes it a containing block for
            position:fixed and clips this overlay to the header on desktop). */
         <div
-          className="fixed inset-0 z-[9999] flex justify-center"
-          style={{ background: "rgba(3,3,8,0.88)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)" }}
+          className="fixed inset-0 z-[9999] flex justify-center items-start"
+          style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)" }}
           onMouseDown={(e) => { if (e.target === e.currentTarget) setOpen(false); }}
         >
-        {/* Centered column — full width on phones, framed 440px on tablet/desktop */}
-        <div className="flex flex-col w-full h-full" style={{ maxWidth: 440, background: "#07070E", boxShadow: "0 0 60px rgba(0,0,0,0.6)" }}>
+        {/* Dropdown card — just a search bar, plus a results grid once you type.
+            Auto height (not full-screen) so the dimmed page shows behind it
+            instead of a black takeover. */}
+        <div className="flex flex-col w-full" style={{ maxWidth: 440, maxHeight: "100%", background: "#07070E", boxShadow: "0 12px 40px rgba(0,0,0,0.6)" }}>
           {/* Solid search bar — opaque so NOTHING from the page shows through */}
           <div
             className="flex items-center gap-3 px-4 pt-4 pb-3 flex-shrink-0"
@@ -101,8 +103,11 @@ export default function SearchButton() {
             </button>
           </div>
 
-          {/* Results — own scroll region, solid background */}
-          <div className="flex-1 overflow-y-auto" style={{ background: "#07070E" }}>
+          {/* Results — only shown once there's a query, so an empty search is
+              just the bar over the dimmed page (no black screen). Its own scroll
+              region, capped height, solid background. */}
+          {q.length >= 2 && (
+          <div className="overflow-y-auto" style={{ background: "#07070E", maxHeight: "calc(100vh - 76px)" }}>
             {filtered.length > 0 && (
               <>
                 <p className="px-4 pt-3 pb-2 text-[11px] font-semibold uppercase tracking-wider" style={{ color: "#6B6B7B" }}>
@@ -143,16 +148,11 @@ export default function SearchButton() {
                 </div>
               </>
             )}
-            {query.length >= 2 && filtered.length === 0 && (
-              <div className="px-4 py-16 text-center"><p className="text-sm" style={{ color: "#6B6B7B" }}>No results for &ldquo;{query.trim()}&rdquo;</p></div>
-            )}
-            {query.length < 2 && (
-              <div className="px-4 py-16 text-center">
-                <p className="text-sm" style={{ color: "#8A8A9A" }}>Search {series.length}+ shows</p>
-                <p className="text-xs mt-1.5" style={{ color: "#6B6B7B" }}>Try &ldquo;thriller&rdquo;, &ldquo;revenge&rdquo;, or &ldquo;billionaire&rdquo;</p>
-              </div>
+            {filtered.length === 0 && (
+              <div className="px-4 py-10 text-center"><p className="text-sm" style={{ color: "#6B6B7B" }}>No results for &ldquo;{query.trim()}&rdquo;</p></div>
             )}
           </div>
+          )}
         </div>
         </div>,
         document.body
