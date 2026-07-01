@@ -10,6 +10,7 @@ import PosterSkeleton from "@/components/PosterSkeleton";
 import HeroVideo from "@/components/HeroVideo";
 import RedCarpetHero from "@/components/RedCarpetHero";
 import HorizontalFeed from "@/components/HorizontalFeed";
+import SummerSaleBadge from "@/components/SummerSaleBadge";
 import { MUX_MAP } from "@/lib/mux-map";
 
 // Eagerly preload hls.js so it's cached before user taps a video
@@ -192,12 +193,12 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </div>
       )}
 
-      {/* Category tabs — sticky directly under the header (header is 92px tall on
-          home: 48px logo row + 44px Summer Sale row) so they stay pinned while scrolling */}
+      {/* Category tabs — sticky directly under the single-row header (48px tall)
+          so they stay pinned while scrolling */}
       <div
         className="sticky z-30"
         style={{
-          top: 92,
+          top: 48,
           background: "rgba(7, 7, 14, 0.95)",
           backdropFilter: "blur(16px)",
           WebkitBackdropFilter: "blur(16px)",
@@ -437,8 +438,16 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
           <div className="relative">
             <Link href={`/series/${current.slug}/1`} className="block">
               <div
-                className="relative w-full overflow-hidden"
-                style={{ aspectRatio: "1080 / 1920", background: "#07070E" }}
+                className="relative w-full overflow-hidden mx-auto"
+                style={{
+                  aspectRatio: "1080 / 1920",
+                  // Cap the poster to what fits under the header (48px) + tabs
+                  // (~44px) so the WHOLE 9:16 flyer — including the bottom VERZA
+                  // TV logo — is visible on load without scrolling. object-contain
+                  // keeps it uncropped; on tight phones this adds slim side bars.
+                  maxHeight: "calc(100svh - 96px)",
+                  background: "#07070E",
+                }}
               >
                 {/* Poster slideshow — full 9:16 flyer so the VERZA TV logo (bottom
                     ~12% of every 1080x1920 poster) is never cropped */}
@@ -449,7 +458,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                     fill
                     priority
                     sizes="100vw"
-                    className="object-cover"
+                    className="object-contain"
                   />
                 ) : (
                   <div
@@ -462,6 +471,11 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               </div>
             </Link>
 
+            {/* Summer Sale $1.99 ribbon — overlaid on top of every hero slide so
+                it never pushes the poster down or moves on scroll */}
+            <div className="absolute top-2 left-1/2 -translate-x-1/2 z-20">
+              <SummerSaleBadge />
+            </div>
 
             {heroSlides.length > 1 && (
               <>

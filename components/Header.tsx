@@ -2,15 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import LangDropdown from "@/components/LangDropdown";
 import SearchButton from "@/components/SearchButton";
-import SummerSaleBadge from "@/components/SummerSaleBadge";
 
 export default function Header() {
-  const pathname = usePathname();
-  const isHome = pathname === "/";
-
   return (
     <header
       className="sticky top-0 z-40 flex flex-col"
@@ -21,7 +16,9 @@ export default function Header() {
         boxShadow: "0 1px 8px rgba(0,0,0,0.3)",
       }}
     >
-      {/* Row 1 — language, logo, search */}
+      {/* Single row — language, logo, search. The Summer Sale $1.99 promo is
+          overlaid directly on the hero poster (see BrowsePage) so it never
+          pushes the posters down or moves on scroll. */}
       <div className="flex items-center justify-between px-3 py-1">
         {/* Left — language dropdown */}
         <LangDropdown />
@@ -42,14 +39,6 @@ export default function Header() {
         {/* Right — search */}
         <SearchButton />
       </div>
-
-      {/* Row 2 — Summer Sale promo (home only), part of the same sticky box.
-          Fixed 44px height so the sticky category tabs below can align exactly. */}
-      {isHome && (
-        <div className="flex items-center justify-center" style={{ height: 44 }}>
-          <SummerSaleBadge />
-        </div>
-      )}
     </header>
   );
 }
