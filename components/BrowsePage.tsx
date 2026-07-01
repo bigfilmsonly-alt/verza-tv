@@ -438,9 +438,10 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
             <Link href={`/series/${current.slug}/1`} className="block">
               <div
                 className="relative w-full overflow-hidden"
-                style={{ aspectRatio: "1080 / 1660", background: "#07070E" }}
+                style={{ aspectRatio: "1080 / 1920", background: "#07070E" }}
               >
-                {/* Poster slideshow — cropped to end right under the VERZA TV logo (black footer trimmed) */}
+                {/* Poster slideshow — full 9:16 flyer so the VERZA TV logo (bottom
+                    ~12% of every 1080x1920 poster) is never cropped */}
                 {current.posterUrl ? (
                   <Image
                     src={current.posterUrl}
@@ -448,13 +449,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                     fill
                     priority
                     sizes="100vw"
-                    // Camouflage's key art sits low and gets cropped by object-cover,
-                    // so show it in full with object-contain (rest stay edge-to-edge).
-                    className={
-                      current.slug === "camouflage"
-                        ? "object-contain"
-                        : "object-cover object-top"
-                    }
+                    className="object-cover"
                   />
                 ) : (
                   <div
