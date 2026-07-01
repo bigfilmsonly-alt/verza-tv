@@ -11,7 +11,8 @@ import HeroVideo from "@/components/HeroVideo";
 import RedCarpetHero from "@/components/RedCarpetHero";
 import HorizontalFeed from "@/components/HorizontalFeed";
 import SummerSaleBadge from "@/components/SummerSaleBadge";
-import SponsoredProducts from "@/components/SponsoredProducts";
+import SponsoredTile from "@/components/SponsoredProducts";
+import { SPONSORED_PRODUCTS } from "@/lib/sponsors";
 import { MUX_MAP } from "@/lib/mux-map";
 
 // Eagerly preload hls.js so it's cached before user taps a video
@@ -582,13 +583,11 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                     <p className="text-[10px] mt-0.5 line-clamp-1" style={{ color: "#6B6B7B" }}>{s.genre}</p>
                   </div>
                 </Link>
-                {/* TikTok Shop sponsored strip woven evenly into the grid — after
-                    every 6 rows (18 posters), spanning the full width, not on the
-                    last item. StorageBlue stays untouched under the hero. */}
-                {(i + 1) % 18 === 0 && i < gridItems.length - 1 && (
-                  <div className="col-span-3">
-                    <SponsoredProducts embedded startOffset={i} />
-                  </div>
+                {/* TikTok Shop sponsored tile — one poster-sized cell woven evenly
+                    into the grid (every 8 posters), cycling through products so
+                    they're spread throughout. StorageBlue stays under the hero. */}
+                {SPONSORED_PRODUCTS.length > 0 && (i + 1) % 8 === 0 && i < gridItems.length - 1 && (
+                  <SponsoredTile product={SPONSORED_PRODUCTS[Math.floor(i / 8) % SPONSORED_PRODUCTS.length]} />
                 )}
               </Fragment>
             ))}

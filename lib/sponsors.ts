@@ -25,29 +25,47 @@ export type SponsoredProduct = {
   badge?: string;
 };
 
+// Entertainment-aligned, top-selling TikTok Shop categories (movie night,
+// creator gear, cozy binge-watch). Swap in real product image/price/link.
 export const SPONSORED_PRODUCTS: SponsoredProduct[] = [
   {
-    id: "viral-skincare-set",
-    title: "Viral Vitamin-C Skincare Set",
-    price: "$18.99",
+    id: "mini-movie-projector",
+    title: "Mini HD Movie Projector",
+    price: "$39.99",
     url: "https://www.tiktok.com/shop",
-    accent: ["#FF2D78", "#8B5CF6"],
-    badge: "Trending",
+    accent: ["#8B5CF6", "#3B82F6"],
+    badge: "Movie night",
   },
   {
-    id: "wireless-earbuds",
-    title: "Noise-Cancelling Wireless Earbuds",
+    id: "wireless-earbuds-pro",
+    title: "Wireless Noise-Cancelling Earbuds Pro",
     price: "$24.99",
     url: "https://www.tiktok.com/shop",
     accent: ["#22D3EE", "#3B82F6"],
     badge: "Bestseller",
   },
   {
-    id: "led-strip-lights",
-    title: "Smart RGB LED Strip Lights (50ft)",
-    price: "$15.99",
+    id: "galaxy-star-projector",
+    title: "Galaxy Star Night Projector",
+    price: "$19.99",
+    url: "https://www.tiktok.com/shop",
+    accent: ["#7C3AED", "#EC4899"],
+    badge: "Viral",
+  },
+  {
+    id: "portable-bt-speaker",
+    title: "Portable Bluetooth Speaker",
+    price: "$21.99",
     url: "https://www.tiktok.com/shop",
     accent: ["#F59E0B", "#EF4444"],
+    badge: "Trending",
+  },
+  {
+    id: "led-room-lights",
+    title: "Smart RGB LED Room Lights (50ft)",
+    price: "$15.99",
+    url: "https://www.tiktok.com/shop",
+    accent: ["#EC4899", "#8B5CF6"],
     badge: "Hot deal",
   },
 ];
