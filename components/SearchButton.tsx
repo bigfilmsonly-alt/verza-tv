@@ -44,8 +44,12 @@ export default function SearchButton() {
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-[100]" style={{ background: "rgba(7,7,14,0.95)" }}>
-          <div className="px-4 pt-4 pb-3 flex items-center gap-3">
+        <div className="fixed inset-0 z-[100] flex flex-col" style={{ background: "#07070E" }}>
+          {/* Solid search bar — opaque so NOTHING from the page shows through */}
+          <div
+            className="flex items-center gap-3 px-4 pt-4 pb-3 flex-shrink-0"
+            style={{ background: "#07070E", borderBottom: "1px solid rgba(255,255,255,0.08)" }}
+          >
             {/* Form so pressing Return/Enter (desktop, tablet, mobile) submits
                 without reloading and dismisses the on-screen keyboard. Results
                 also populate live as you type. */}
@@ -76,13 +80,14 @@ export default function SearchButton() {
             </button>
           </div>
 
-          <div className="overflow-y-auto" style={{ maxHeight: "calc(100dvh - 80px)" }}>
+          {/* Results — own scroll region, solid background */}
+          <div className="flex-1 overflow-y-auto" style={{ background: "#07070E" }}>
             {filtered.length > 0 && (
               <>
-                <p className="px-4 pt-1 pb-3 text-xs" style={{ color: "#6B6B7B" }}>
+                <p className="px-4 pt-3 pb-2 text-[11px] font-semibold uppercase tracking-wider" style={{ color: "#6B6B7B" }}>
                   {filtered.length} result{filtered.length === 1 ? "" : "s"} for &ldquo;{query.trim()}&rdquo;
                 </p>
-                <div className="grid grid-cols-3 gap-1.5 px-3 pb-6">
+                <div className="grid grid-cols-3 gap-x-2.5 gap-y-4 px-3 pb-10">
                   {filtered.map((s) => (
                     <Link
                       key={s.slug}
@@ -91,23 +96,40 @@ export default function SearchButton() {
                       style={{ color: "#F5F4F8" }}
                       onClick={() => setOpen(false)}
                     >
-                      <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3", background: "#1A1A26" }}>
+                      <div
+                        className="relative overflow-hidden rounded-xl"
+                        style={{ aspectRatio: "2 / 3", background: "#12121C", boxShadow: "0 4px 14px rgba(0,0,0,0.45)" }}
+                      >
                         {s.posterUrl && (
-                          <Image src={s.posterUrl} alt={s.title} fill sizes="(max-width: 440px) 33vw, 146px" className="object-cover" />
+                          <Image
+                            src={s.posterUrl}
+                            alt={s.title}
+                            fill
+                            quality={90}
+                            sizes="(max-width: 440px) 33vw, 146px"
+                            className="object-cover"
+                          />
                         )}
                       </div>
-                      <p className="mt-1.5 text-[11px] font-semibold leading-tight line-clamp-2">{s.title}</p>
-                      <p className="text-[10px] mt-0.5 line-clamp-1" style={{ color: "#6B6B7B" }}>{s.genre}</p>
+                      {/* Fixed-height caption block so every tile's title + genre
+                          line up on the same baseline — no uneven/overlapping text */}
+                      <div className="mt-2" style={{ height: 46 }}>
+                        <p className="text-[11px] font-semibold leading-snug line-clamp-2">{s.title}</p>
+                        <p className="text-[10px] mt-0.5 line-clamp-1" style={{ color: "#6B6B7B" }}>{s.genre}</p>
+                      </div>
                     </Link>
                   ))}
                 </div>
               </>
             )}
             {query.length >= 2 && filtered.length === 0 && (
-              <div className="px-4 py-12 text-center"><p className="text-sm" style={{ color: "#6B6B7B" }}>No results for "{query}"</p></div>
+              <div className="px-4 py-16 text-center"><p className="text-sm" style={{ color: "#6B6B7B" }}>No results for &ldquo;{query.trim()}&rdquo;</p></div>
             )}
             {query.length < 2 && (
-              <div className="px-4 py-12 text-center"><p className="text-sm" style={{ color: "#6B6B7B" }}>Type to search 76+ shows</p></div>
+              <div className="px-4 py-16 text-center">
+                <p className="text-sm" style={{ color: "#8A8A9A" }}>Search {series.length}+ shows</p>
+                <p className="text-xs mt-1.5" style={{ color: "#6B6B7B" }}>Try &ldquo;thriller&rdquo;, &ldquo;revenge&rdquo;, or &ldquo;billionaire&rdquo;</p>
+              </div>
             )}
           </div>
         </div>
