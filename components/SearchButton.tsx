@@ -61,12 +61,12 @@ export default function SearchButton() {
            position:fixed and clips this overlay to the header on desktop). */
         <div
           className="fixed inset-0 z-[9999] flex justify-center items-start"
-          style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)" }}
+          style={{ background: "transparent" }}
           onMouseDown={(e) => { if (e.target === e.currentTarget) setOpen(false); }}
         >
-        {/* Dropdown card — just a search bar, plus a results grid once you type.
-            Auto height (not full-screen) so the dimmed page shows behind it
-            instead of a black takeover. */}
+        {/* Floating search bar at the top — the page (all the movies) stays fully
+            visible behind it, no dim/blank screen. A results grid drops down only
+            once you type. */}
         <div className="flex flex-col w-full" style={{ maxWidth: 440, maxHeight: "100%", background: "#07070E", boxShadow: "0 12px 40px rgba(0,0,0,0.6)" }}>
           {/* Solid search bar — opaque so NOTHING from the page shows through */}
           <div
