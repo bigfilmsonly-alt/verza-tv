@@ -11,6 +11,7 @@ import HeroVideo from "@/components/HeroVideo";
 import RedCarpetHero from "@/components/RedCarpetHero";
 import HorizontalFeed from "@/components/HorizontalFeed";
 import SummerSaleBadge from "@/components/SummerSaleBadge";
+import SponsoredProducts from "@/components/SponsoredProducts";
 import { MUX_MAP } from "@/lib/mux-map";
 
 // Eagerly preload hls.js so it's cached before user taps a video
@@ -549,6 +550,13 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
             <img src="/ads/storageblue-logo.png" alt="StorageBlue" style={{ height: 52, objectFit: "contain" }} />
           </div>
         </a>
+      )}
+
+      {/* TikTok Shop sponsored products — high-converting spot directly under the
+          hero (below StorageBlue, which stays exactly where it was). Only on the
+          browse-style tabs. */}
+      {(activeTab === "drama" || activeTab === "new" || activeTab === "popular") && (
+        <SponsoredProducts />
       )}
 
       {/* Tab Row — 3-column grid (not on Music/Reality/Red Carpet — they have custom sections) */}
