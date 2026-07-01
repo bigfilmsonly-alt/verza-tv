@@ -436,6 +436,17 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         <div>
           {/* Poster image — clean, no text overlay */}
           <div className="relative">
+            {/* Summer Sale $1.99 ribbon — sticky + zero-height so it sits at the
+                top of the poster, stays pinned in place while you scroll, and
+                never pushes the poster down */}
+            <div
+              className="sticky z-20 flex justify-center pointer-events-none"
+              style={{ top: 88, height: 0 }}
+            >
+              <div className="pointer-events-auto mt-1">
+                <SummerSaleBadge />
+              </div>
+            </div>
             <Link href={`/series/${current.slug}/1`} className="block">
               <div
                 className="relative w-full overflow-hidden mx-auto"
@@ -470,12 +481,6 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                 )}
               </div>
             </Link>
-
-            {/* Summer Sale $1.99 ribbon — overlaid on top of every hero slide so
-                it never pushes the poster down or moves on scroll */}
-            <div className="absolute top-2 left-1/2 -translate-x-1/2 z-20">
-              <SummerSaleBadge />
-            </div>
 
             {heroSlides.length > 1 && (
               <>
