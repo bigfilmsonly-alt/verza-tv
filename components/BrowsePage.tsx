@@ -448,7 +448,13 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                     fill
                     priority
                     sizes="100vw"
-                    className="object-cover object-top"
+                    // Camouflage's key art sits low and gets cropped by object-cover,
+                    // so show it in full with object-contain (rest stay edge-to-edge).
+                    className={
+                      current.slug === "camouflage"
+                        ? "object-contain"
+                        : "object-cover object-top"
+                    }
                   />
                 ) : (
                   <div
