@@ -583,12 +583,17 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                     <p className="text-[10px] mt-0.5 line-clamp-1" style={{ color: "#6B6B7B" }}>{s.genre}</p>
                   </div>
                 </Link>
-                {/* TikTok Shop sponsored tile — one poster-sized cell woven evenly
-                    into the grid (every 6 posters), cycling through products so
-                    they're spread throughout. StorageBlue stays under the hero. */}
-                {SPONSORED_PRODUCTS.length > 0 && (i + 1) % 6 === 0 && i < gridItems.length - 1 && (
-                  <SponsoredTile product={SPONSORED_PRODUCTS[Math.floor(i / 6) % SPONSORED_PRODUCTS.length]} />
-                )}
+                {/* TikTok Shop sponsored ROW — three poster-sized tiles side by
+                    side filling one full grid row, inserted every 12 posters
+                    (4 rows) so it lands cleanly on a row boundary. Products
+                    cycle between blocks. StorageBlue stays under the hero. */}
+                {SPONSORED_PRODUCTS.length > 0 && (i + 1) % 12 === 0 && i < gridItems.length - 1 &&
+                  [0, 1, 2].map((k) => (
+                    <SponsoredTile
+                      key={`ad-${i}-${k}`}
+                      product={SPONSORED_PRODUCTS[(Math.floor(i / 12) * 3 + k) % SPONSORED_PRODUCTS.length]}
+                    />
+                  ))}
               </Fragment>
             ))}
           </div>
