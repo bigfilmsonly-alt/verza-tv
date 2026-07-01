@@ -212,9 +212,9 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
           scroll (not just over the hero), without pushing any content down */}
       <div
         className="sticky z-20 flex justify-center pointer-events-none"
-        style={{ top: 76, height: 0 }}
+        style={{ top: 94, height: 0 }}
       >
-        <div className="pointer-events-auto mt-0.5">
+        <div className="pointer-events-auto mt-0">
           <SummerSaleBadge />
         </div>
       </div>
