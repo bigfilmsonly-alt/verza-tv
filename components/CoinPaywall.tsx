@@ -21,10 +21,12 @@ export default function CoinPaywall({
   episodeNumber,
 }: CoinPaywallProps) {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { t } = useTranslation();
 
   async function handleUnlock() {
     setLoading(true);
+    setError(null);
     try {
       // Check if user is signed in first
       const supabase = createBrowserClient(
@@ -55,9 +57,12 @@ export default function CoinPaywall({
       const data = await res.json();
       if (data.url) {
         window.location.href = data.url;
+        return;
       }
+      setError("Couldn't start checkout. Please try again.");
     } catch (err) {
       console.error("Unlock error:", err);
+      setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -124,6 +129,16 @@ export default function CoinPaywall({
               </>
             )}
           </button>
+
+          {error && (
+            <p
+              className="text-xs text-center mb-3 px-3 py-2 rounded-lg"
+              style={{ color: "#FCA5A5", background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.35)" }}
+              role="alert"
+            >
+              {error}
+            </p>
+          )}
 
           {/* Sale badge */}
           <div

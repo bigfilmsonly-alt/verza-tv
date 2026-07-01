@@ -292,8 +292,8 @@ export default function VipCard({ isVip = false, vipExpiresAt }: VipCardProps) {
 function Spinner() {
   return (
     <div
-      className="w-6 h-6 rounded-full border-2 border-transparent animate-spin my-2"
-      style={{ borderTopColor: T.accent, borderRightColor: T.accent }}
+      className="w-9 h-9 rounded-full border-[3px] border-transparent animate-spin my-2"
+      style={{ borderTopColor: T.accent, borderRightColor: T.accent, borderBottomColor: `${T.accent}44` }}
     />
   );
 }

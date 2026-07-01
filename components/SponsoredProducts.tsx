@@ -52,10 +52,14 @@ export default function SponsoredTile({ product: p }: { product: SponsoredProduc
           {p.price}
         </span>
 
-        {/* Hover "Shop" overlay — mirrors the poster play-button treatment */}
+        {/* "Shop" CTA — always visible on touch devices (no hover), reveals on
+            hover for desktop. Uses a small always-on pill anchored at the bottom
+            so mobile users still get a clear tap target. */}
         <div
-          className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
-          style={{ background: "rgba(0,0,0,0.3)" }}
+          className="absolute inset-x-0 bottom-0 flex items-center justify-center pt-8 pb-2 md:opacity-0 md:group-hover:opacity-100 md:inset-0 md:pb-0 md:pt-0 md:transition-opacity md:duration-300 z-10"
+          style={{
+            background: "linear-gradient(to top, rgba(0,0,0,0.55), transparent)",
+          }}
         >
           <div
             className="px-3 py-1.5 rounded-full text-[11px] font-bold"

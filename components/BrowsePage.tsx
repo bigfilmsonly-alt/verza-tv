@@ -93,6 +93,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
 
   const [activeTab, setActiveTab] = useState<BrowseCategory>("drama");
   const [heroIdx, setHeroIdx] = useState(0);
+  const [heroPaused, setHeroPaused] = useState(false);
   const [continueWatching, setContinueWatching] = useState<ContinueItem[]>([]);
   const [showSplash, setShowSplash] = useState<string | null>(null);
 
@@ -161,10 +162,10 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
   // Auto-rotate hero slideshow (works for Drama/New/Hot AND Reality)
   const slideCount = activeTab === "reality" ? realityShows.length : heroSlides.length;
   useEffect(() => {
-    if (slideCount <= 1) return;
+    if (slideCount <= 1 || heroPaused) return;
     const t = setInterval(() => setHeroIdx((i) => (i + 1) % slideCount), 4000);
     return () => clearInterval(t);
-  }, [slideCount]);
+  }, [slideCount, heroPaused]);
 
   const goPrev = useCallback(() => {
     setHeroIdx((i) => (i === 0 ? heroSlides.length - 1 : i - 1));
@@ -447,7 +448,12 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
 
       {/* Hero Slideshow — shows on Drama/New/Hot (not Reality/Red Carpet/Music) */}
       {current && activeTab !== "reality" && activeTab !== "red-carpet" && activeTab !== "music" && (
-        <div>
+        <div
+          onMouseEnter={() => setHeroPaused(true)}
+          onMouseLeave={() => setHeroPaused(false)}
+          onTouchStart={() => setHeroPaused(true)}
+          onTouchEnd={() => setHeroPaused(false)}
+        >
           {/* Poster image — clean, no text overlay */}
           <div className="relative">
             <Link href={`/series/${current.slug}/1`} className="block">

@@ -11,6 +11,7 @@ import { emit } from "@/lib/analytics";
  */
 export default function SummerSaleBadge() {
   const [loading, setLoading] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   // Most popular live series makes the strongest $1.99 CTA.
   const featured = [...getLiveSeries()].sort(
@@ -20,6 +21,7 @@ export default function SummerSaleBadge() {
   async function startCheckout() {
     if (loading || !featured) return;
     setLoading(true);
+    setFailed(false);
     try {
       emit("checkout_started", {
         show_id: featured.slug,
@@ -33,8 +35,12 @@ export default function SummerSaleBadge() {
       });
       const data = await res.json();
       if (data.url) window.location.href = data.url;
-      else setLoading(false);
+      else {
+        setFailed(true);
+        setLoading(false);
+      }
     } catch {
+      setFailed(true);
       setLoading(false);
     }
   }
@@ -93,7 +99,9 @@ export default function SummerSaleBadge() {
           }}
         >
           <span className="text-sm font-extrabold leading-none">$1.99</span>
-          <span className="text-[10px] font-semibold leading-none">a movie</span>
+          <span className="text-[10px] font-semibold leading-none">
+            {failed ? "tap to retry" : "a movie"}
+          </span>
         </span>
       </div>
     </button>
