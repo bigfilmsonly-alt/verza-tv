@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { catalog, getLiveSeries } from "@/lib/catalog";
+import { seriesMatchesQuery } from "@/lib/search-index";
 import { T } from "@/lib/theme";
 
 /* ------------------------------------------------------------------ */
@@ -38,18 +39,9 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 function searchCatalog(query: string) {
   if (!query || query.length < 2) return [];
 
-  const q = query.toLowerCase();
-
   return catalog
     .filter((s) => s.status === "live")
-    .filter(
-      (s) =>
-        s.title.toLowerCase().includes(q) ||
-        s.genre.toLowerCase().includes(q) ||
-        s.logline.toLowerCase().includes(q) ||
-        (s.tags && s.tags.some((tag) => tag.toLowerCase().includes(q))) ||
-        (s.description && s.description.toLowerCase().includes(q))
-    );
+    .filter((s) => seriesMatchesQuery(s, query));
 }
 
 /* ------------------------------------------------------------------ */

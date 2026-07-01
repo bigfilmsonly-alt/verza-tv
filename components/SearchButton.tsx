@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { trackSearch } from "@/lib/track";
 import { getLiveSeries } from "@/lib/catalog";
+import { seriesMatchesQuery } from "@/lib/search-index";
 
 export default function SearchButton() {
   const [open, setOpen] = useState(false);
@@ -12,18 +13,9 @@ export default function SearchButton() {
   const inputRef = useRef<HTMLInputElement>(null);
   const series = getLiveSeries();
 
-  const q = query.trim().toLowerCase();
+  const q = query.trim();
   const filtered =
-    q.length >= 2
-      ? series.filter(
-          (s) =>
-            s.title.toLowerCase().includes(q) ||
-            s.logline.toLowerCase().includes(q) ||
-            s.genre.toLowerCase().includes(q) ||
-            s.channel.toLowerCase().includes(q) ||
-            s.categories.some((c) => c.toLowerCase().includes(q)),
-        )
-      : [];
+    q.length >= 2 ? series.filter((s) => seriesMatchesQuery(s, q)) : [];
 
   useEffect(() => {
     if (open) setTimeout(() => inputRef.current?.focus(), 100);
@@ -54,20 +46,31 @@ export default function SearchButton() {
       {open && (
         <div className="fixed inset-0 z-[100]" style={{ background: "rgba(7,7,14,0.95)" }}>
           <div className="px-4 pt-4 pb-3 flex items-center gap-3">
-            <div className="relative flex-1">
+            {/* Form so pressing Return/Enter (desktop, tablet, mobile) submits
+                without reloading and dismisses the on-screen keyboard. Results
+                also populate live as you type. */}
+            <form
+              className="relative flex-1"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (q.length >= 2) trackSearch(q, filtered.length);
+                inputRef.current?.blur();
+              }}
+            >
               <svg className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B6B7B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="11" cy="11" r="7" /><line x1="16.65" y1="16.65" x2="21" y2="21" />
               </svg>
               <input
                 ref={inputRef}
                 type="search"
+                enterKeyHint="search"
                 value={query}
-                onChange={(e) => { setQuery(e.target.value); if (e.target.value.length >= 2) trackSearch(e.target.value, filtered.length); }}
-                placeholder="Search shows..."
+                onChange={(e) => { setQuery(e.target.value); if (e.target.value.trim().length >= 2) trackSearch(e.target.value, filtered.length); }}
+                placeholder="Search by show, genre, or keyword..."
                 className="w-full pl-10 pr-4 py-3 rounded-xl text-sm outline-none"
                 style={{ background: "rgba(255,255,255,0.08)", color: "#F5F4F8", border: "1px solid rgba(255,255,255,0.15)" }}
               />
-            </div>
+            </form>
             <button onClick={() => setOpen(false)} className="text-sm font-semibold" style={{ background: "none", border: "none", color: "#E0115F", cursor: "pointer" }}>
               Cancel
             </button>
