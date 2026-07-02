@@ -161,18 +161,33 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
 
   // Auto-rotate hero slideshow (works for Drama/New/Hot AND Reality)
   const slideCount = activeTab === "reality" ? realityShows.length : heroSlides.length;
+
+  // Keep the shared hero index inside the active tab's range at all times. The
+  // same heroIdx drives the poster hero (Drama/New/Hot) and the Reality hero,
+  // whose slide counts can differ — clamping here guarantees the arrows always
+  // land on a valid poster and never on a stale/out-of-range slide.
+  useEffect(() => {
+    if (slideCount > 0 && heroIdx >= slideCount) setHeroIdx(0);
+  }, [slideCount, heroIdx]);
+
   useEffect(() => {
     if (slideCount <= 1 || heroPaused) return;
     const t = setInterval(() => setHeroIdx((i) => (i + 1) % slideCount), 4000);
     return () => clearInterval(t);
   }, [slideCount, heroPaused]);
 
+  // Safe wrap in BOTH directions so the back/next arrows always work regardless
+  // of how many slides the current tab has (never produces a negative index).
   const goPrev = useCallback(() => {
-    setHeroIdx((i) => (i === 0 ? heroSlides.length - 1 : i - 1));
+    const len = heroSlides.length;
+    if (len <= 0) return;
+    setHeroIdx((i) => (((i - 1) % len) + len) % len);
   }, [heroSlides.length]);
 
   const goNext = useCallback(() => {
-    setHeroIdx((i) => (i + 1) % heroSlides.length);
+    const len = heroSlides.length;
+    if (len <= 0) return;
+    setHeroIdx((i) => (((i + 1) % len) + len) % len);
   }, [heroSlides.length]);
 
   // Show ALL filtered series in the grid (not just the ones after the hero)
@@ -313,7 +328,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
 
               {/* Arrows */}
               <button
-                onClick={() => setHeroIdx((i) => (i === 0 ? realityShows.length - 1 : i - 1))}
+                onClick={() => setHeroIdx((i) => (((i - 1) % realityShows.length) + realityShows.length) % realityShows.length)}
                 className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center border-0 cursor-pointer z-10"
                 style={{ background: "rgba(7,7,14,0.55)", color: "#fff", backdropFilter: "blur(6px)" }}
                 aria-label="Previous"
@@ -321,7 +336,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
               </button>
               <button
-                onClick={() => setHeroIdx((i) => (i + 1) % realityShows.length)}
+                onClick={() => setHeroIdx((i) => (((i + 1) % realityShows.length) + realityShows.length) % realityShows.length)}
                 className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center border-0 cursor-pointer z-10"
                 style={{ background: "rgba(7,7,14,0.55)", color: "#fff", backdropFilter: "blur(6px)" }}
                 aria-label="Next"

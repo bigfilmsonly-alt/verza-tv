@@ -432,9 +432,27 @@ export default function EpisodeFeed({
   const [liked, setLiked] = useState<Set<number>>(new Set());
   const [showMore, setShowMore] = useState(false);
   const [actionToast, setActionToast] = useState<string | null>(null);
+  // Right-side action rail (Like/Share/More) shows for 10s on each new video,
+  // then fades out to keep the frame clean. Any tap brings it back for 10s more.
+  const [showActionRail, setShowActionRail] = useState(true);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const heartTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const actionToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const actionRailTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const revealActionRail = useCallback(() => {
+    setShowActionRail(true);
+    if (actionRailTimer.current) clearTimeout(actionRailTimer.current);
+    actionRailTimer.current = setTimeout(() => setShowActionRail(false), 10000);
+  }, []);
+
+  // Show the rail for 10s whenever the active video changes (and on mount).
+  useEffect(() => {
+    revealActionRail();
+    return () => {
+      if (actionRailTimer.current) clearTimeout(actionRailTimer.current);
+    };
+  }, [activeIndex, revealActionRail]);
   const activeIndexRef = useRef(activeIndex);
   activeIndexRef.current = activeIndex;
 
@@ -790,14 +808,20 @@ export default function EpisodeFeed({
         </svg>
       </button>
 
-      {/* Social action rail — right side */}
+      {/* Social action rail — right side. Auto-hides after 10s; taps re-reveal. */}
       <div
         className="absolute right-3 z-50 flex flex-col items-center gap-5"
-        style={{ top: "50%", transform: "translateY(-50%)" }}
+        style={{
+          top: "50%",
+          transform: "translateY(-50%)",
+          opacity: showActionRail ? 1 : 0,
+          pointerEvents: showActionRail ? "auto" : "none",
+          transition: "opacity 0.4s ease",
+        }}
       >
         {/* Like */}
         <button
-          onClick={toggleLike}
+          onClick={() => { revealActionRail(); toggleLike(); }}
           aria-label={isLiked ? "Unlike" : "Like"}
           className="flex flex-col items-center gap-1 border-0 bg-transparent cursor-pointer p-0"
         >
@@ -816,7 +840,7 @@ export default function EpisodeFeed({
 
         {/* Share */}
         <button
-          onClick={shareEpisode}
+          onClick={() => { revealActionRail(); shareEpisode(); }}
           aria-label="Share"
           className="flex flex-col items-center gap-1 border-0 bg-transparent cursor-pointer p-0"
         >
@@ -836,7 +860,7 @@ export default function EpisodeFeed({
 
         {/* More */}
         <button
-          onClick={() => { setShowMore(true); haptic(); }}
+          onClick={() => { revealActionRail(); setShowMore(true); haptic(); }}
           aria-label="More options"
           className="flex flex-col items-center gap-1 border-0 bg-transparent cursor-pointer p-0"
         >
