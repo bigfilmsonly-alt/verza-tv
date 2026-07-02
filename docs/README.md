@@ -13,6 +13,7 @@ in `docs/reference/`; the rest are hand-authored reports and playbooks.
 
 | Doc | What it covers |
 | --- | --- |
+| [DEV-REPORT-CURRENT.md](DEV-REPORT-CURRENT.md) | **Latest pre-share master audit** — snapshot, audit table, fixes, open items, secret sweep, test checklist, RN-migration readiness |
 | [`../README.md`](../README.md) | Repo readme — quick start |
 | [`../AGENTS.md`](../AGENTS.md) | House rules for anyone (human or AI) editing the code |
 | [reference/PROJECT-STRUCTURE.md](reference/PROJECT-STRUCTURE.md) | **(reference)** Full directory map |
