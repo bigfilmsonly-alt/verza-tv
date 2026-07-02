@@ -432,8 +432,8 @@ export default function EpisodeFeed({
   const [liked, setLiked] = useState<Set<number>>(new Set());
   const [showMore, setShowMore] = useState(false);
   const [actionToast, setActionToast] = useState<string | null>(null);
-  // Right-side action rail (Like/Share/More) shows for 10s on each new video,
-  // then fades out to keep the frame clean. Any tap brings it back for 10s more.
+  // Right-side action rail (Like/Share/More) shows for 8s on each new video,
+  // then fades out to keep the frame clean. Any tap brings it back for 8s more.
   const [showActionRail, setShowActionRail] = useState(true);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const heartTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -443,7 +443,7 @@ export default function EpisodeFeed({
   const revealActionRail = useCallback(() => {
     setShowActionRail(true);
     if (actionRailTimer.current) clearTimeout(actionRailTimer.current);
-    actionRailTimer.current = setTimeout(() => setShowActionRail(false), 10000);
+    actionRailTimer.current = setTimeout(() => setShowActionRail(false), 8000);
   }, []);
 
   // Show the rail for 10s whenever the active video changes (and on mount).
