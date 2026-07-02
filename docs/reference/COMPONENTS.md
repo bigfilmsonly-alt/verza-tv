@@ -63,7 +63,6 @@ concern.
 | `CreatorDashboard.tsx` | Apply → pending → approved; Mux XHR-progress upload; content list poll; edit/pricing; earnings. Rendered at `/creator` and `/studio`. |
 | `CreatorAITools.tsx` | AI Studio (script/logline/social/description). |
 | `CreatorWatch.tsx` | Public creator content player (Mux HLS, PPV paywall). |
-| `CreatorApplicationForm.tsx` | Legacy application form (superseded by dashboard). |
 
 ## Admin
 
