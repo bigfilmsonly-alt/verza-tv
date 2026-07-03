@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, Fragment } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef, Fragment } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import CategoryTabs from "@/components/CategoryTabs";
@@ -82,6 +82,21 @@ interface ContinueItem {
   posterUrl: string;
   episodeNumber: number;
   totalEpisodes: number;
+}
+
+// Walk up from a swipe's start element; if any ancestor scrolls horizontally
+// (e.g. the Continue Watching row or a reality carousel) treat the gesture as a
+// row scroll and NOT a tab change, so those rows keep swiping normally.
+function startsInHorizontalScroller(target: EventTarget | null): boolean {
+  let node = target as HTMLElement | null;
+  while (node && node !== document.body) {
+    if (node.scrollWidth > node.clientWidth + 4) {
+      const overflowX = getComputedStyle(node).overflowX;
+      if (overflowX === "auto" || overflowX === "scroll") return true;
+    }
+    node = node.parentElement;
+  }
+  return false;
 }
 
 export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
@@ -187,11 +202,51 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
     setHeroIdx((i) => (((i + 1) % len) + len) % len);
   }, [heroSlides.length]);
 
+  // Horizontal swipe switches the category tab (Drama ⇄ New ⇄ Hot ⇄ Music ⇄
+  // Reality ⇄ Red Carpet), wrapping around at both ends.
+  const swipeStart = useRef<{ x: number; y: number } | null>(null);
+
+  const changeTab = useCallback(
+    (dir: 1 | -1) => {
+      const keys = activeTabs.map((tb) => tb.key);
+      const idx = keys.indexOf(activeTab);
+      if (idx === -1) return;
+      const next = (idx + dir + keys.length) % keys.length;
+      setActiveTab(keys[next]);
+    },
+    [activeTab, activeTabs],
+  );
+
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    if (startsInHorizontalScroller(e.target)) {
+      swipeStart.current = null;
+      return;
+    }
+    const t = e.touches[0];
+    swipeStart.current = { x: t.clientX, y: t.clientY };
+  }, []);
+
+  const onTouchEnd = useCallback(
+    (e: React.TouchEvent) => {
+      const start = swipeStart.current;
+      swipeStart.current = null;
+      if (!start) return;
+      const t = e.changedTouches[0];
+      const dx = t.clientX - start.x;
+      const dy = t.clientY - start.y;
+      // Require a clearly horizontal swipe so vertical scrolling never triggers it.
+      if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+        changeTab(dx < 0 ? 1 : -1);
+      }
+    },
+    [changeTab],
+  );
+
   // Show ALL filtered series in the grid (not just the ones after the hero)
   const gridItems = filtered;
 
   return (
-    <div>
+    <div onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
       {/* Splash screen — VERZA TV logo on black */}
       {showSplash && (
         <div
