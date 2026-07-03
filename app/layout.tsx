@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import { CartProvider } from "@/lib/cart";
 import CartDrawer from "@/components/CartDrawer";
+import InstallPrompt from "@/components/InstallPrompt";
 import { LangProvider } from "@/components/LangProvider";
 import ServiceWorker from "@/components/ServiceWorker";
 import ContentTranslator from "@/components/ContentTranslator";
@@ -139,6 +140,7 @@ export default function RootLayout({
           </div>
 
           <CartDrawer />
+          <InstallPrompt />
         </LangProvider>
         </CartProvider>
         <Analytics />
