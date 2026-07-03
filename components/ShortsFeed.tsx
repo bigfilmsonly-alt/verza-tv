@@ -384,8 +384,8 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
         style={{ zIndex: 2, background: "#000", pointerEvents: "none" }}
       />
 
-      {/* VERZA watermark — top-left corner while playing */}
-      <VideoWatermark videoRef={videoRef} top={12} left={12} size={64} />
+      {/* VERZA logo — fades in as the chrome fades out after the 10s idle timer */}
+      <VideoWatermark visible={!chromeVisible} top={12} left={12} size={64} />
 
       {/* Swipe detection layer — transparent, receives horizontal swipe */}
       <div

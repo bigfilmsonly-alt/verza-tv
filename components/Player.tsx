@@ -573,8 +573,8 @@ export default function Player({
           poster={muxThumb || undefined}
         />
 
-        {/* VERZA watermark — top-left corner while playing */}
-        <VideoWatermark videoRef={videoRef} top={12} left={12} size={66} />
+        {/* VERZA logo — fades in as the controls fade out after the 10s idle timer */}
+        <VideoWatermark visible={started && !showControls} top={12} left={12} size={66} />
 
         {/* Poster overlay before start — uses local poster art for instant display */}
         {!started && posterUrl && (

@@ -385,9 +385,6 @@ function EpisodeSlide({
         }}
       />
 
-      {/* VERZA watermark — top-left, beside the back button, while playing */}
-      <VideoWatermark videoRef={videoRef} top={20} left={62} size={55} />
-
       {/* No spinner — poster holds until video plays */}
 
       {/* Pause/Play indicator (animated) */}
@@ -921,6 +918,9 @@ export default function EpisodeFeed({
           <polyline points="15 18 9 12 15 6" />
         </svg>
       </button>
+
+      {/* VERZA logo — fades in exactly as the back arrow fades out (same spot) */}
+      <VideoWatermark visible={!showActionRail} top={12} left={12} size={44} />
 
       {/* Mute button — top-right */}
       <button
