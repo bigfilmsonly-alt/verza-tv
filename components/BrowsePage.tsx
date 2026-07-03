@@ -301,8 +301,11 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
     drag.current = null;
     if (!d || d.axis !== "x") return;
     const dx = e.clientX - d.x;
-    const flick = Date.now() - d.t < 250 && Math.abs(dx) > 40;
-    const past = Math.abs(dx) > Math.min(110, d.width * 0.22);
+    // Commit on almost any deliberate horizontal move — a quick flick of a dozen
+    // pixels, or a slower drag past a small distance — so a single swipe always
+    // pushes through instead of springing back.
+    const flick = Date.now() - d.t < 400 && Math.abs(dx) > 12;
+    const past = Math.abs(dx) > Math.min(45, d.width * 0.1);
     if (flick || past) {
       setSlideOffset(0, false); // reset before remount so the slide-in is clean
       changeTab(dx < 0 ? 1 : -1);
@@ -334,7 +337,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
       }, 200);
       if (locked) return;
       acc += e.deltaX;
-      if (Math.abs(acc) > 60) {
+      if (Math.abs(acc) > 35) {
         changeTab(acc > 0 ? 1 : -1);
         acc = 0;
         locked = true; // one tab per continuous gesture
