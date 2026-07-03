@@ -51,7 +51,7 @@ export const catalog: Series[] = [
   {
     slug: "the-mistress-trap",
     title: "The Escort They Framed",
-    logline: "She set a honeytrap to catch her husband cheating. She didn't expect the other woman to be her best friend.",
+    logline: "Hired for one night and framed for a murder she didn't commit, an escort becomes a dynasty's perfect scapegoat — until she sets out to burn their flawless lives down.",
     genre: "Drama · Betrayal",
     channel: "Verza Originals",
     categories: ["drama", "popular"],
@@ -66,7 +66,7 @@ export const catalog: Series[] = [
   {
     slug: "the-dumb-billionaire-heiress-in-love",
     title: "A Fortune to Die For",
-    logline: "She plays the fool so no one suspects her billions — until the one man who sees through it all walks into her life.",
+    logline: "A dying matriarch's fortune turns her glittering family into rivals willing to kill. To claim her inheritance — and survive it — one heiress must outplay her own blood.",
     genre: "Romance \u00b7 Comedy",
     channel: "Verza Originals",
     categories: ["drama", "popular"],
@@ -144,7 +144,7 @@ export const catalog: Series[] = [
   {
     slug: "the-blackthornes",
     title: "Two Brothers, One Bride",
-    logline: "Three siblings. One dynasty. The patriarch is dead and his will names none of them — unless they destroy each other first.",
+    logline: "She's engaged to one brother and falling for the other. Caught between two men who'd destroy the family to have her, the bride must choose before the choice is made in blood.",
     genre: "Dynasty \u00b7 Drama",
     channel: "Verza Originals",
     categories: ["drama", "popular"],
@@ -178,7 +178,7 @@ export const catalog: Series[] = [
   {
     slug: "the-day-we-got-married",
     title: "Betrayed at the Altar",
-    logline: "The wedding was perfect. The groom was a stranger. She said yes because the alternative was a bullet.",
+    logline: "She said 'I do' — then found the betrayal waiting at the altar. Now the bride they humiliated is planning a reckoning no one will survive.",
     genre: "Romance \u00b7 Thriller",
     channel: "Verza Originals",
     categories: ["drama", "popular"],
@@ -223,7 +223,7 @@ export const catalog: Series[] = [
   {
     slug: "the-missing-piece",
     title: "Deadly Revelations",
-    logline: "A detective's cold case leads to a love letter addressed to her — written twenty years before she was born.",
+    logline: "A business magnate is dead — ruled an accident, but the headlines hide a murder. As the evidence circles the widow, buried revelations threaten everyone the truth touches.",
     genre: "Mystery romance",
     channel: "Verza Originals",
     categories: ["drama", "popular"],
@@ -290,7 +290,7 @@ export const catalog: Series[] = [
   {
     slug: "im-obsessed-with-my-boss",
     title: "Blackmail Baby",
-    logline: "One elevator kiss with the CEO upends the assistant's careful life.",
+    logline: "One secret, one damning text, and two powerful men who'll do anything to keep her quiet. Trapped in a game of blackmail and desire, she learns some secrets can destroy everything.",
     genre: "Office romance",
     channel: "Verza Originals",
     categories: ["drama", "popular"],
@@ -313,7 +313,7 @@ export const catalog: Series[] = [
   {
     slug: "echo-of-vengeance",
     title: "Revenge in Couture",
-    logline: "She was left for dead on her wedding night. Now she's back — and everyone will pay.",
+    logline: "Betrayed and cast out of the fashion house she built, she returns down the runway in couture — flawless, ruthless, and ready to make the industry that ruined her pay.",
     genre: "Revenge thriller",
     channel: "Verza Originals",
     categories: ["drama", "popular"],
@@ -336,7 +336,7 @@ export const catalog: Series[] = [
   {
     slug: "hidden-agenda",
     title: "The Killer Caregiver",
-    logline: "An undercover journalist infiltrates a powerful family and falls for the son she's investigating.",
+    logline: "The gentle nurse everyone adores has buried more patients than anyone suspects. When a sharp-eyed heir survives her care, he realizes the woman keeping him alive is the one trying to kill him.",
     genre: "Romantic thriller",
     channel: "Verza Originals",
     categories: ["drama", "popular"],
@@ -655,7 +655,7 @@ export const catalog: Series[] = [
   {
     slug: "the-escort",
     title: "The Call Girl Bought by Betrayal",
-    logline: "A law student escorts to pay tuition. Her richest client turns out to be her professor's husband.",
+    logline: "Sold into the escort life by the man she loved, she rises through the city's darkest circles to destroy the ones who bought and betrayed her.",
     genre: "Forbidden drama",
     channel: "Verza Originals",
     categories: ["drama", "popular"],
@@ -793,7 +793,7 @@ export const catalog: Series[] = [
   {
     slug: "the-crown",
     title: "Power and Promises",
-    logline: "A beauty queen discovers the pageant world runs on blackmail — and the crown she won was rigged from the start.",
+    logline: "Two ruthless heirs, one empire, and the woman caught between their promises. In a world where power is the only currency, every vow hides a blade.",
     genre: "Drama \u00b7 Suspense",
     channel: "Verza Originals",
     categories: ["drama", "new", "popular"],

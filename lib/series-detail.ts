@@ -16,7 +16,7 @@ export interface SeriesDetail {
 
 export const SERIES_DETAIL: Record<string, SeriesDetail> = {
   "the-dumb-billionaire-heiress-in-love": {
-    description: "Everyone underestimates Quinn Ashford — the giggling heiress who 'accidentally' inherited the largest media empire on the coast. Behind the pink cashmere and the vacant smile is a mind sharper than any blade in the boardroom. When ruthless fixer Damon Reyes is hired to 'manage' her fortune, he expects an easy mark. He doesn't expect to lose his heart to the one person playing a longer game than his.",
+    description: "When the matriarch of a glittering dynasty falls ill, her fortune turns her elegant family into rivals willing to lie, seduce, and kill to inherit it. Beneath the chandeliers and champagne, alliances shift by the hour. To claim what's hers — and survive her own bloodline — one heiress will have to be smarter and colder than the people who share her name.",
     cast: ["Sienna Marsh", "Theo Calloway", "Priya Anand"],
     tags: ["billionaire", "enemies-to-lovers", "comedy"],
     rating: 9.2, year: 2025, posterMood: "rose",
@@ -58,7 +58,7 @@ export const SERIES_DETAIL: Record<string, SeriesDetail> = {
     rating: 8.5, year: 2025, posterMood: "sunset",
   },
   "the-blackthornes": {
-    description: "Inside the most powerful — and most feared — dynasty in the country, love is a liability and loyalty is currency. The newest Blackthorne bride married into a family that eats its own, and the only way to survive is to become more dangerous than all of them. Power is everything here. Love is the one thing money can't buy, and the one thing that could bring the whole house down.",
+    description: "She's promised to one brother and falling for the other, and neither man is willing to let her go. As the wedding approaches, love curdles into obsession and the family's fortune becomes a weapon. Caught between two men who'd tear the dynasty apart to have her, the bride must choose — before the choice is made in blood.",
     cast: ["Genevieve Blackthorne", "Roman Blackthorne", "Isla Vance"],
     tags: ["dynasty", "billionaire", "power"],
     rating: 9.4, year: 2025, posterMood: "ballroom",
@@ -76,7 +76,7 @@ export const SERIES_DETAIL: Record<string, SeriesDetail> = {
     rating: 8.6, year: 2025, posterMood: "rose",
   },
   "the-day-we-got-married": {
-    description: "Two strangers say 'I do' for all the wrong reasons — a visa, an inheritance, a lie that grows a little bigger every day they keep up the act. They set rules. They drew lines. And one by one, those rules fall, until the hardest thing about a fake marriage turns out to be the real heart underneath it.",
+    description: "The dress was perfect, the church was full, and the vows were a lie. When she discovers that the man she's marrying — and the people she trusted most — set her up to be destroyed on her wedding day, the humiliated bride stops crying and starts planning. One by one, everyone who betrayed her at the altar will learn exactly what she's capable of.",
     cast: ["Eva Lindgren", "Marcus Reign", "Tessa Pryor"],
     tags: ["fake-marriage", "slow-burn", "contract"],
     rating: 9.1, year: 2025, posterMood: "gold",
@@ -100,7 +100,7 @@ export const SERIES_DETAIL: Record<string, SeriesDetail> = {
     rating: 8.4, year: 2025, posterMood: "violet",
   },
   "the-missing-piece": {
-    description: "Drawn into a love she can't explain, she uncovers a secret twin, a staged death, and a conspiracy that reaches deeper than grief. The man she buried may not be gone — and the man who saved her may be the key to everything she was never meant to find.",
+    description: "A powerful business magnate is dead, and the headlines call it a tragic accident. But the deeper the truth is dug up, the clearer it becomes: this was murder, and everyone in his glittering world had a reason. As suspicion closes in on the grieving widow, buried revelations surface that could destroy every life the truth touches.",
     cast: ["Eleanor Voss", "Adam Locke", "Celeste Maru"],
     tags: ["mystery", "twins", "second-chance"],
     rating: 9.3, year: 2025, posterMood: "rose",
@@ -148,7 +148,7 @@ export const SERIES_DETAIL: Record<string, SeriesDetail> = {
     rating: 8.7, year: 2025, posterMood: "noir",
   },
   "the-mistress-trap": {
-    description: "A single invitation turns one woman into the most dangerous person in the room. She walked in as the other woman; she'll walk out holding every secret the family swore to bury. Everyone thinks they're using her. By the end, they'll learn she let them.",
+    description: "Hired for a single night, she wakes to a dead body and her face on every screen — the perfect scapegoat for a powerful family's darkest secret. Framed for a murder she didn't commit, the escort refuses to take the fall. To clear her name she'll have to unravel the dynasty that set her up and burn their flawless reputations to the ground.",
     cast: ["Scarlett Vega", "Andre Lockhart", "Bianca Reyes"],
     tags: ["betrayal", "scandal", "revenge"],
     rating: 9.2, year: 2025, posterMood: "blood",
@@ -178,7 +178,7 @@ export const SERIES_DETAIL: Record<string, SeriesDetail> = {
     rating: 8.9, year: 2025, posterMood: "blood",
   },
   "the-escort": {
-    description: "The deeper she pretends, the more real it gets. And the more she learns that the high-society family she was paid to charm is hiding something far more dangerous than romance. One weekend becomes a trap she'll have to outsmart to walk away from — if she still wants to.",
+    description: "Sold into the escort life by the one man she believed loved her, she trades her name for survival in the city's most dangerous circles. Every client, every secret, and every debt brings her closer to the people who bought and betrayed her — and she intends to make them pay in full. Behind the red dress is a woman with nothing left to lose.",
     cast: ["Eden Cross", "Lucian Hale", "Margot Devereux"],
     tags: ["fake-relationship", "high-society", "secrets"],
     rating: 8.6, year: 2025, posterMood: "violet",
@@ -229,7 +229,7 @@ export const SERIES_DETAIL: Record<string, SeriesDetail> = {
     rating: 9.1, year: 2025, posterMood: "gold",
   },
   "im-obsessed-with-my-boss": {
-    description: "One elevator. One kiss. One career she'll never get back if anyone finds out. The CEO she's supposed to report to is the man she can't stop thinking about — and he's not making it easy to forget.",
+    description: "One secret. One damning message. Two powerful men who will do anything to keep her silent. Trapped in a spiral of blackmail, desire, and lies, she plays a game where every move has consequences — and learns that some secrets don't just ruin reputations, they destroy everything. Love was never supposed to be this dangerous.",
     cast: ["Mina Park", "Alexander Cross", "Jenna Liu"],
     tags: ["office-romance", "forbidden", "obsession"],
     rating: 8.5, year: 2025, posterMood: "noir",
@@ -241,7 +241,7 @@ export const SERIES_DETAIL: Record<string, SeriesDetail> = {
     rating: 8.6, year: 2025, posterMood: "sunset",
   },
   "echo-of-vengeance": {
-    description: "Left for dead on her wedding night, she survived what no one expected — and spent every day since becoming someone they should fear. Now she's back, beautiful and unrecognizable, and everyone who betrayed her is about to learn that love was their beginning, but revenge is their destiny.",
+    description: "Betrayed by the people she trusted and cast out of the fashion empire she built with her own hands, she vanishes from the spotlight — but not for long. She returns down the runway in flawless couture: colder, sharper, and impossible to ignore. One collection at a time, she'll dismantle the industry that ruined her and make every rival pay for the throne they stole.",
     cast: ["Aria Voss", "Kane Blackwell", "Lyra Chen"],
     tags: ["revenge", "comeback", "thriller"],
     rating: 9.0, year: 2025, posterMood: "blood",
@@ -253,7 +253,7 @@ export const SERIES_DETAIL: Record<string, SeriesDetail> = {
     rating: 8.5, year: 2025, posterMood: "violet",
   },
   "hidden-agenda": {
-    description: "An investigative journalist goes undercover inside a powerful family, searching for the story that will make her career. She didn't plan on falling for the eldest son — the one whose secrets could destroy them both.",
+    description: "She's the nurse every family prays for — patient, gentle, endlessly kind. She's also buried more of her patients than anyone will ever count. When a sharp-eyed young heir survives her care and begins to notice the pattern, he realizes the woman keeping him alive is the same one quietly trying to kill him. Now staying awake might be the only thing that saves his life.",
     cast: ["Nora Vasquez", "Ian Blackwell", "Tomas Reyes"],
     tags: ["undercover", "forbidden", "thriller"],
     rating: 8.6, year: 2025, posterMood: "noir",
@@ -403,7 +403,7 @@ export const SERIES_DETAIL: Record<string, SeriesDetail> = {
     rating: 8.7, year: 2025, posterMood: "violet",
   },
   "the-crown": {
-    description: "A beauty queen discovers the pageant world runs on blackmail — and the crown she won was rigged from the start. Behind the smiles and the sashes is a empire of secrets, and she's about to tear it all down.",
+    description: "Two ruthless heirs. One empire worth killing for. And a woman standing between them, holding promises that could crown a king or bury one. In a world where loyalty is bought and every vow hides a blade, she'll have to decide who to trust before the wrong choice costs her everything.",
     cast: ["Bianca Love", "Judge Harrison", "Maya Sterling"],
     tags: ["pageant", "scandal", "drama"],
     rating: 8.4, year: 2025, posterMood: "gold",
