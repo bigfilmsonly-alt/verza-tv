@@ -40,7 +40,7 @@ export async function generateStaticParams() {
 
 type Props = {
   params: Promise<{ slug: string; episode: string }>;
-  searchParams: Promise<{ unlocked?: string }>;
+  searchParams: Promise<{ unlocked?: string; t?: string }>;
 };
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string; episode: string }> }): Promise<Metadata> {
@@ -79,9 +79,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function EpisodePage({ params, searchParams }: Props) {
   const { slug, episode: epStr } = await params;
-  const { unlocked } = await searchParams;
+  const { unlocked, t } = await searchParams;
   const series = getSeriesBySlug(slug);
   const epNum = parseInt(epStr, 10);
+  const startPositionS = Math.max(0, Math.floor(Number(t) || 0));
 
   if (!series) notFound();
 
@@ -175,6 +176,7 @@ export default async function EpisodePage({ params, searchParams }: Props) {
         posterUrl={series.posterUrl}
         episodes={feedEpisodes}
         startEpisode={epNum}
+        startPositionS={startPositionS}
         freeEpisodes={series.freeEpisodes}
         totalEpisodes={series.episodeCount}
         horizontal={isRedCarpet}

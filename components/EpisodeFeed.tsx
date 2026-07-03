@@ -6,6 +6,13 @@ import type HlsType from "hls.js";
 import { trackEpisodeStart, trackEpisodeComplete, trackUnlockPrompt, trackUnlockClick } from "@/lib/track";
 import { emit } from "@/lib/analytics";
 import VideoWatermark from "@/components/VideoWatermark";
+import {
+  saveLastWatching,
+  notifyResume,
+  clearResumeNotification,
+  maybeRequestResumePermission,
+  type ResumeItem,
+} from "@/lib/resume";
 
 /* ---- Load hls.js once ---- */
 let hlsPromise: Promise<typeof HlsType | null> | null = null;
@@ -39,6 +46,8 @@ interface EpisodeFeedProps {
   posterUrl: string;
   episodes: FeedEpisode[];
   startEpisode: number;
+  /** Seconds to resume the STARTING episode at (Continue Watching). */
+  startPositionS?: number;
   freeEpisodes: number;
   totalEpisodes: number;
   /** Horizontal left/right swipe instead of vertical (used for red carpet events) */
@@ -58,10 +67,14 @@ function EpisodeSlide({
   isActive,
   isNear,
   muted,
+  resumePositionS,
+  isResumeTarget,
   onEnded,
   onProgress,
+  onPosition,
   onDoubleTap,
   onReveal,
+  onFirstPlayGesture,
 }: {
   episode: FeedEpisode;
   seriesSlug: string;
@@ -69,10 +82,18 @@ function EpisodeSlide({
   isActive: boolean;
   isNear: boolean;
   muted: boolean;
+  /** Seconds to seek to on the starting episode's first activation (resume). */
+  resumePositionS: number;
+  /** True only for the episode that is the Continue Watching resume target. */
+  isResumeTarget: boolean;
   onEnded: () => void;
   onProgress: (pct: number) => void;
+  /** Report the active video's current time (seconds) up to the parent. */
+  onPosition: (positionS: number) => void;
   onDoubleTap: () => void;
   onReveal: () => void;
+  /** Fired once on a genuine play tap so we can ask for notification permission. */
+  onFirstPlayGesture: () => void;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<HlsType | null>(null);
@@ -84,6 +105,8 @@ function EpisodeSlide({
   const [showPause, setShowPause] = useState(false);
   const pauseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastTap = useRef(0);
+  const lastSavedRef = useRef(0);
+  const resumeSeekedRef = useRef(false);
 
   // Keep ref in sync with prop
   useEffect(() => { mutedRef.current = muted; }, [muted]);
@@ -177,7 +200,22 @@ function EpisodeSlide({
     if (isActive && sourceReady) {
       // ALWAYS start muted — iOS requires this for autoplay
       vid.muted = true;
-      vid.currentTime = 0;
+      // Continue Watching: on the resume-target episode's FIRST activation,
+      // seek to the saved position instead of resetting to 0. Every other
+      // episode (and any later replay of this one) starts at 0.
+      const dur = vid.duration;
+      const durKnown = isFinite(dur) && dur > 0;
+      if (
+        isResumeTarget &&
+        !resumeSeekedRef.current &&
+        resumePositionS > 2 &&
+        (!durKnown || resumePositionS < dur)
+      ) {
+        resumeSeekedRef.current = true;
+        try { vid.currentTime = resumePositionS; } catch { vid.currentTime = 0; }
+      } else {
+        vid.currentTime = 0;
+      }
       const playPromise = vid.play();
       if (playPromise) {
         playPromise
@@ -217,13 +255,36 @@ function EpisodeSlide({
     if (!vid) return;
 
     function onTime() {
-      if (vid && vid.duration && isFinite(vid.duration)) {
+      if (!vid) return;
+      if (vid.duration && isFinite(vid.duration)) {
         onProgress(vid.currentTime / vid.duration);
+      }
+      // Surface the live position to the parent (re-engagement reminder reads it).
+      onPosition(vid.currentTime);
+      // Throttled server save (~every 10s) while genuinely watching.
+      const now = Date.now();
+      if (now - lastSavedRef.current > 10000 && vid.currentTime > 5) {
+        lastSavedRef.current = now;
+        fetch("/api/watch-progress", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            seriesSlug,
+            episodeNumber: episode.number,
+            progressSeconds: Math.floor(vid.currentTime),
+            completed: false,
+          }),
+        }).catch(() => {});
       }
     }
     function onEnd() {
       trackEpisodeComplete(seriesSlug, episode.number);
       onProgress(1);
+      fetch("/api/watch-progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ seriesSlug, episodeNumber: episode.number, progressSeconds: 0, completed: true }),
+      }).catch(() => {});
       onEnded();
     }
 
@@ -233,7 +294,7 @@ function EpisodeSlide({
       vid.removeEventListener("timeupdate", onTime);
       vid.removeEventListener("ended", onEnd);
     };
-  }, [isActive, seriesSlug, episode.number, onEnded, onProgress]);
+  }, [isActive, seriesSlug, episode.number, onEnded, onProgress, onPosition]);
 
   /* Tap handler: single tap = pause, double tap = like */
   function handleTap(e: React.MouseEvent) {
@@ -254,6 +315,8 @@ function EpisodeSlide({
       if (!vid || !isActive) return;
 
       if (vid.paused) {
+        // Genuine play gesture — opt the viewer into the resume reminder once.
+        onFirstPlayGesture();
         vid.play().catch(() => {});
         setPlaying(true);
       } else {
@@ -416,6 +479,7 @@ export default function EpisodeFeed({
   posterUrl,
   episodes,
   startEpisode,
+  startPositionS = 0,
   freeEpisodes,
   totalEpisodes,
   horizontal = false,
@@ -463,6 +527,17 @@ export default function EpisodeFeed({
   }, [activeIndex, revealActionRail]);
   const activeIndexRef = useRef(activeIndex);
   activeIndexRef.current = activeIndex;
+
+  /* Re-engagement / Continue Watching: track the active video's live position
+     so the visibilitychange handler can persist the exact resume spot. */
+  const activePositionRef = useRef(0);
+  const askedPermissionRef = useRef(false);
+
+  const requestPermissionOnce = useCallback(() => {
+    if (askedPermissionRef.current) return;
+    askedPermissionRef.current = true;
+    void maybeRequestResumePermission();
+  }, []);
 
   /* Track whether we arrived here via in-app navigation so Back returns to
      the exact page the user was last looking at (not a hardcoded home). */
@@ -563,6 +638,66 @@ export default function EpisodeFeed({
     container.querySelectorAll("[data-index]").forEach((el) => observer.observe(el));
     return () => observer.disconnect();
   }, [episodes, observerCallback, windowStart, windowEnd]);
+
+  /* Re-engagement reminder: when the tab/app is backgrounded mid-episode,
+     remember the exact spot, fire the "Continue watching" notification, and
+     flush a final progress save. Clear the reminder when the viewer returns. */
+  useEffect(() => {
+    function activeVideoEl(): HTMLVideoElement | null {
+      const container = containerRef.current;
+      if (!container) return null;
+      const slide = container.querySelector(`[data-index="${activeIndexRef.current}"]`);
+      return slide ? slide.querySelector("video") : null;
+    }
+
+    function onHidden() {
+      const vid = activeVideoEl();
+      const ep = episodes[activeIndexRef.current];
+      if (!vid || !ep) return;
+      const positionS = vid.currentTime || activePositionRef.current;
+      // Only remind if genuinely mid-episode and playing.
+      if (vid.paused || positionS <= 3) return;
+
+      const item: ResumeItem = {
+        slug: seriesSlug,
+        episode: ep.number,
+        title: seriesTitle,
+        poster: posterUrl,
+        positionS,
+        updatedAt: Date.now(),
+      };
+      saveLastWatching(item);
+      void notifyResume(item);
+      // Final flush — keepalive lets it complete while backgrounding.
+      try {
+        fetch("/api/watch-progress", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          keepalive: true,
+          body: JSON.stringify({
+            seriesSlug,
+            episodeNumber: ep.number,
+            progressSeconds: Math.floor(positionS),
+            completed: false,
+          }),
+        }).catch(() => {});
+      } catch {
+        /* ignore */
+      }
+    }
+
+    function onVisibility() {
+      if (document.visibilityState === "hidden") onHidden();
+      else void clearResumeNotification();
+    }
+
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("pagehide", onHidden);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("pagehide", onHidden);
+    };
+  }, [episodes, seriesSlug, seriesTitle, posterUrl]);
 
   function toggleMute() {
     const next = !muted;
@@ -733,10 +868,18 @@ export default function EpisodeFeed({
                 isActive={i === activeIndex}
                 isNear={Math.abs(i - activeIndex) <= 1}
                 muted={muted}
+                resumePositionS={startPositionS}
+                isResumeTarget={ep.number === startEpisode}
                 onEnded={handleEpisodeEnded}
                 onProgress={i === activeIndex ? setEpProgress : () => {}}
+                onPosition={
+                  i === activeIndex
+                    ? (p: number) => { activePositionRef.current = p; }
+                    : () => {}
+                }
                 onDoubleTap={handleDoubleTap}
                 onReveal={revealActionRail}
+                onFirstPlayGesture={requestPermissionOnce}
               />
             </div>
           );

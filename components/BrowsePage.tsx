@@ -5,7 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import CategoryTabs from "@/components/CategoryTabs";
 import { useTranslation } from "@/components/LangProvider";
-import { BROWSE_TABS, getSeriesByCategory, type Series, type BrowseCategory } from "@/lib/catalog";
+import { BROWSE_TABS, getSeriesByCategory, getEpisode, type Series, type BrowseCategory } from "@/lib/catalog";
+import { buildResumeUrl } from "@/lib/resume";
 import HorizontalFeed from "@/components/HorizontalFeed";
 import SummerSaleBadge from "@/components/SummerSaleBadge";
 import SponsoredTile from "@/components/SponsoredProducts";
@@ -84,6 +85,8 @@ interface ContinueItem {
   posterUrl: string;
   episodeNumber: number;
   totalEpisodes: number;
+  progressSeconds: number;
+  updatedAt?: string;
 }
 
 // Walk up from a swipe's start element; if any ancestor scrolls horizontally
@@ -376,15 +379,18 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
             className="flex gap-1.5 overflow-x-auto no-scrollbar px-3 snap-x snap-mandatory"
             style={{ WebkitOverflowScrolling: "touch", overscrollBehaviorY: "none", touchAction: "pan-x pinch-zoom" }}
           >
-            {continueWatching.map((item) => (
-              <Link key={item.seriesSlug} href={`/series/${item.seriesSlug}/${item.episodeNumber}`} className="group block no-underline flex-shrink-0 snap-start" style={{ width: 120 }}>
+            {continueWatching.map((item) => {
+              const durationS = getEpisode(item.seriesSlug, item.episodeNumber)?.durationS;
+              const pct = durationS && durationS > 0 ? Math.min(96, Math.max(4, Math.round((item.progressSeconds / durationS) * 100))) : 8;
+              return (
+              <Link key={item.seriesSlug} href={buildResumeUrl(item.seriesSlug, item.episodeNumber, item.progressSeconds)} className="group block no-underline flex-shrink-0 snap-start" style={{ width: 120 }}>
                 <div className="relative overflow-hidden rounded-lg" style={{ width: 120, aspectRatio: "2 / 3" }}>
                   {item.posterUrl && (
                     <Image src={item.posterUrl} alt={item.seriesTitle} fill sizes="120px" className="object-cover" />
                   )}
                   {/* Progress bar */}
                   <div className="absolute bottom-0 left-0 right-0 h-1" style={{ background: "rgba(0,0,0,0.5)" }}>
-                    <div className="h-full" style={{ width: "50%", background: "#E0115F" }} />
+                    <div className="h-full" style={{ width: `${pct}%`, background: "#E0115F" }} />
                   </div>
                   {/* Episode badge */}
                   <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded text-[9px] font-bold" style={{ background: "rgba(0,0,0,0.7)", color: "#fff" }}>
@@ -395,7 +401,8 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                   <p className="mt-1.5 text-[11px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>{item.seriesTitle}</p>
                 </div>
               </Link>
-            ))}
+              );
+            })}
           </div>
         </section>
       )}

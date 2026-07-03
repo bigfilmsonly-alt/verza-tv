@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import type HlsType from "hls.js";
 import { trackEpisodeStart, trackEpisodeComplete, trackUnlockPrompt, trackUnlockClick } from "@/lib/track";
@@ -9,6 +10,13 @@ import { T } from "@/lib/theme";
 import { formatDuration } from "@/lib/catalog";
 import { MUX_MAP } from "@/lib/mux-map";
 import VideoWatermark from "@/components/VideoWatermark";
+import {
+  saveLastWatching,
+  notifyResume,
+  clearResumeNotification,
+  maybeRequestResumePermission,
+  type ResumeItem,
+} from "@/lib/resume";
 
 // Dynamic import — hls.js only needed on Chrome/Firefox, not Safari/iOS
 let HlsModule: typeof HlsType | null = null;
@@ -46,10 +54,18 @@ export default function Player({
   freeEpisodes = 5,
 }: PlayerProps) {
 
+  const searchParams = useSearchParams();
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<HlsType | null>(null);
   const progressRef = useRef<HTMLDivElement>(null);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Resume: seconds to seek to once metadata is available (-1 = nothing to restore)
+  const resumeSeekRef = useRef<number>(-1);
+  // Guard so the resume seek runs exactly once
+  const didSeekRef = useRef(false);
+  // Guard so the permission request fires on the first play gesture only
+  const askedPermissionRef = useRef(false);
 
   const [started, setStarted] = useState(false);
   const [playing, setPlaying] = useState(false);
@@ -246,6 +262,129 @@ export default function Player({
     };
   }, [episodeNumber, totalEpisodes, freeEpisodes, seriesSlug]);
 
+  /* ---- Resume: restore saved position on load -------------------- */
+  /*  Prefer a ?t= URL override, else the saved server progress.       */
+  /*  The actual seek happens once, on 'loadedmetadata'.               */
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    let cancelled = false;
+
+    // Apply the resume seek exactly once, once we know the duration.
+    const applySeek = () => {
+      if (didSeekRef.current) return;
+      const target = resumeSeekRef.current;
+      const d = video.duration;
+      if (target > 2 && Number.isFinite(d) && target < d) {
+        didSeekRef.current = true;
+        try {
+          video.currentTime = target;
+        } catch {
+          /* seek not allowed yet */
+        }
+      }
+    };
+
+    // URL override: ?t=<integer seconds> wins over the fetched value.
+    const tParam = searchParams?.get("t");
+    if (tParam) {
+      const tNum = Number.parseInt(tParam, 10);
+      if (Number.isFinite(tNum) && tNum > 2) {
+        resumeSeekRef.current = tNum;
+      }
+    }
+
+    video.addEventListener("loadedmetadata", applySeek);
+    // If metadata is already available (fast cache / native HLS), try now.
+    if (video.readyState >= 1) applySeek();
+
+    // Fetch saved progress only if no URL override already set the target.
+    if (resumeSeekRef.current < 0) {
+      fetch("/api/watch-progress")
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data: { items?: Array<{ seriesSlug: string; episodeNumber: number; progressSeconds: number }> } | null) => {
+          if (cancelled || !data?.items) return;
+          const match = data.items.find(
+            (it) => it.seriesSlug === seriesSlug && it.episodeNumber === episodeNumber,
+          );
+          // GET already filters completed=false; still apply the >2 gate at seek.
+          if (match && match.progressSeconds > 2) {
+            resumeSeekRef.current = match.progressSeconds;
+            applySeek();
+          }
+        })
+        .catch(() => {});
+    }
+
+    return () => {
+      cancelled = true;
+      video.removeEventListener("loadedmetadata", applySeek);
+    };
+  }, [seriesSlug, episodeNumber, searchParams]);
+
+  /* ---- Re-engagement reminder (visibilitychange + pagehide) ------- */
+  /*  When the viewer leaves mid-episode, remember the exact spot,      */
+  /*  fire a "Continue watching" notification, and flush progress.      */
+
+  useEffect(() => {
+    const buildItem = (): ResumeItem | null => {
+      const video = videoRef.current;
+      if (!video) return null;
+      const poster = posterUrl || muxThumb || "/apple-touch-icon-180.png";
+      return {
+        slug: seriesSlug,
+        episode: episodeNumber,
+        title: title || seriesSlug,
+        poster,
+        positionS: video.currentTime,
+        updatedAt: Date.now(),
+      };
+    };
+
+    const onHidden = () => {
+      const video = videoRef.current;
+      if (!video) return;
+      if (video.paused || video.currentTime <= 3) return;
+
+      const item = buildItem();
+      if (!item) return;
+
+      saveLastWatching(item);
+      notifyResume(item);
+
+      // Flush a final progress write that survives the page being backgrounded.
+      fetch("/api/watch-progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          seriesSlug,
+          episodeNumber,
+          progressSeconds: Math.floor(video.currentTime),
+          completed: false,
+        }),
+        keepalive: true,
+      }).catch(() => {});
+    };
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        onHidden();
+      } else if (document.visibilityState === "visible") {
+        clearResumeNotification();
+      }
+    };
+
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    window.addEventListener("pagehide", onHidden);
+
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      window.removeEventListener("pagehide", onHidden);
+    };
+  }, [seriesSlug, episodeNumber, title, posterUrl, muxThumb]);
+
   /* ---- Controls auto-hide ---------------------------------------- */
 
   const scheduleHide = useCallback(() => {
@@ -293,6 +432,12 @@ export default function Player({
     const video = videoRef.current;
     if (!video) return;
 
+    // First real play gesture — ask for resume-notification permission once.
+    if (!askedPermissionRef.current) {
+      askedPermissionRef.current = true;
+      maybeRequestResumePermission().catch(() => {});
+    }
+
     console.log("[Player] Play button clicked, hlsReady:", hlsReady);
     setStarted(true);
     setLoading(true);
@@ -321,6 +466,12 @@ export default function Player({
     if (!started) return;
     const video = videoRef.current;
     if (!video) return;
+
+    // A tap is a user gesture too — cover the auto-play path.
+    if (!askedPermissionRef.current) {
+      askedPermissionRef.current = true;
+      maybeRequestResumePermission().catch(() => {});
+    }
 
     if (showControls) {
       // Controls visible: toggle play/pause
