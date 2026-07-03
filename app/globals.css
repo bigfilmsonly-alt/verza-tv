@@ -23,6 +23,11 @@
 html {
   height: 100%;
   -webkit-tap-highlight-color: transparent;
+  /* Always reserve the scrollbar track so the viewport width stays constant
+     between a scrolling page and a short one. Without this, browsers with
+     classic (non-overlay) scrollbars change width when the scrollbar appears,
+     which makes the centered fixed bottom nav jump sideways between routes. */
+  scrollbar-gutter: stable;
 }
 
 body {
@@ -312,6 +317,13 @@ button:focus-visible {
 /* Desktop: iPhone frame wrapper */
 @media (min-width: 520px) and (orientation: portrait),
        (min-width: 520px) and (min-height: 600px) {
+  /* Framed view: the page itself doesn't scroll (body is overflow:hidden and
+     the iPhone frame is centered), so no reserved gutter is needed here —
+     avoids offsetting the centered frame on classic-scrollbar desktops. */
+  html {
+    scrollbar-gutter: auto;
+  }
+
   body {
     background:
       radial-gradient(ellipse 80% 60% at 20% 30%, rgba(224, 17, 95, 0.18), transparent 60%),
