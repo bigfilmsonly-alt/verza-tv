@@ -368,7 +368,7 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
       />
 
       {/* VERZA watermark — top-left corner while playing */}
-      <VideoWatermark videoRef={videoRef} top={12} left={12} size={42} />
+      <VideoWatermark videoRef={videoRef} top={12} left={12} size={38} />
 
       {/* Swipe detection layer — transparent, receives horizontal swipe */}
       <div

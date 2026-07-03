@@ -12,8 +12,8 @@ export default function VideoWatermark({
   videoRef,
   top = 12,
   left = 12,
-  size = 40,
-  opacity = 0.9,
+  size = 38,
+  opacity = 0.88,
 }: {
   videoRef: RefObject<HTMLVideoElement | null>;
   top?: number;
@@ -53,15 +53,18 @@ export default function VideoWatermark({
         left,
         width: size,
         height: "auto",
-        // Flip horizontally so the emblem's play-arrow points backwards.
-        transform: "scaleX(-1)",
-        transformOrigin: "center",
+        // Crafted entrance: settles in with a gentle scale + fade on play,
+        // rather than a hard pop — presence you feel, not a jolt you notice.
         opacity: playing ? opacity : 0,
-        transition: "opacity 0.35s ease",
+        transform: playing ? "scale(1)" : "scale(0.94)",
+        transformOrigin: "top left",
+        transition:
+          "opacity 0.4s ease, transform 0.55s cubic-bezier(0.22, 1, 0.36, 1)",
         zIndex: 40,
-        // Sleek, crisp lift off the footage without a heavy box.
+        // One restrained shadow that lifts the mark off any footage —
+        // a whisper of dark for bright scenes, a whisper of light for dark ones.
         filter:
-          "drop-shadow(0 2px 5px rgba(0,0,0,0.6)) drop-shadow(0 0 6px rgba(255,255,255,0.18))",
+          "drop-shadow(0 1px 3px rgba(0,0,0,0.5)) drop-shadow(0 0 4px rgba(255,255,255,0.12))",
       }}
     />
   );
