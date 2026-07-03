@@ -141,7 +141,7 @@ export default function CreatorWatch({
               />
 
               {/* VERZA watermark — top-left corner while playing */}
-              <VideoWatermark videoRef={videoRef} top={12} left={12} size={26} />
+              <VideoWatermark videoRef={videoRef} top={12} left={12} size={42} />
               {!started && (
                 <button
                   onClick={play}

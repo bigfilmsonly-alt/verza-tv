@@ -320,7 +320,7 @@ function EpisodeSlide({
       />
 
       {/* VERZA watermark — top-left, beside the back button, while playing */}
-      <VideoWatermark videoRef={videoRef} top={22} left={62} size={26} />
+      <VideoWatermark videoRef={videoRef} top={20} left={62} size={36} />
 
       {/* No spinner — poster holds until video plays */}
 
