@@ -306,6 +306,14 @@ button:focus-visible {
   padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
 }
 
+/* Pin the footer to the bottom of the page. On short-content pages this stops
+   the footer from floating up into the middle of the screen — `margin-top:auto`
+   in the flex column absorbs any leftover space and pushes it flush to the
+   bottom (no-op when the content already fills the viewport). */
+.app-shell > footer {
+  margin-top: auto;
+}
+
 /* ---- Device frame (single render — iPhone chrome on desktop only) ---- */
 
 /* Mobile: plain wrapper, no frame */
