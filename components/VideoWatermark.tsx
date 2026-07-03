@@ -12,7 +12,7 @@ export default function VideoWatermark({
   videoRef,
   top = 12,
   left = 12,
-  size = 50,
+  size = 62,
   opacity = 0.88,
 }: {
   videoRef: RefObject<HTMLVideoElement | null>;
