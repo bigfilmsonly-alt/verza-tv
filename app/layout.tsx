@@ -20,7 +20,10 @@ const inter = Inter({
   display: "swap",
 });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
+// Must be the canonical host the site is actually served on (www). A non-www
+// value makes og:image 308-redirect to www, and many link-preview crawlers
+// don't follow redirects on og:image → blank thumbnail.
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verzatv.com";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
