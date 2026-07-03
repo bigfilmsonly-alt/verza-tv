@@ -40,12 +40,48 @@ export type AmazonProduct = {
   description?: string;
 };
 
+/** Verza TV's Amazon Associates tracking tag. */
+export const AMAZON_TAG = "verzatv-20";
+
 /**
- * The Verza TV Amazon storefront / affiliate link (tag=verzatv-20). Individual
- * products point here until real per-product affiliate URLs are supplied.
+ * The Verza TV Amazon storefront / affiliate link (tag=verzatv-20). Used as the
+ * "browse all" fallback; individual products now use per-product deep links.
  */
 export const AMAZON_STOREFRONT =
   "https://www.amazon.com/b?node=53629917011&linkCode=ll2&tag=verzatv-20&linkId=1877149370959eec0902c66cb14fb4e5&language=en_US&ref_=as_li_ss_tl";
+
+/**
+ * Builds a per-product Amazon affiliate deep link carrying the verzatv-20 tag.
+ *
+ * Pass a full Amazon product-page URL (e.g. https://www.amazon.com/dp/ASIN) to
+ * get that exact page tagged, OR a plain product name to get a tagged search
+ * deep link that lands on that product. Either way the affiliate tag is
+ * guaranteed present so the sale is attributed to Verza TV.
+ *
+ * When the client supplies real product-page URLs, drop them straight into each
+ * product's `url` via this helper (or paste the SiteStripe link directly).
+ */
+export function amazonLink(productUrlOrQuery: string): string {
+  const raw = productUrlOrQuery.trim();
+
+  // Already an Amazon URL → ensure the tag + affiliate params are attached.
+  if (/^https?:\/\//i.test(raw)) {
+    try {
+      const u = new URL(raw);
+      u.searchParams.set("tag", AMAZON_TAG);
+      u.searchParams.set("linkCode", "ll1");
+      u.searchParams.set("language", "en_US");
+      u.searchParams.set("ref_", "as_li_ss_tl");
+      return u.toString();
+    } catch {
+      return raw;
+    }
+  }
+
+  // Plain product name → tagged search deep link that lands on the product.
+  const q = encodeURIComponent(raw);
+  return `https://www.amazon.com/s?k=${q}&tag=${AMAZON_TAG}&linkCode=ll2&language=en_US&ref_=as_li_ss_tl`;
+}
 
 /**
  * Matches an Amazon product against a search query. Every product carries the
@@ -92,7 +128,7 @@ export const AMAZON_PRODUCTS: AmazonProduct[] = [
     id: "amzn-fire-tv-stick-4k-max",
     title: "Fire TV Stick 4K Max Streaming Device",
     price: "$59.99",
-    url: AMAZON_STOREFRONT,
+    url: amazonLink("Fire TV Stick 4K Max"),
     icon: "device",
     accent: ["#FF9900", "#232F3E"],
     badge: "Amazon's Choice",
@@ -102,7 +138,7 @@ export const AMAZON_PRODUCTS: AmazonProduct[] = [
     id: "amzn-echo-dot-5",
     title: "Echo Dot (5th Gen) Smart Speaker",
     price: "$49.99",
-    url: AMAZON_STOREFRONT,
+    url: amazonLink("Echo Dot 5th Gen"),
     icon: "audio",
     accent: ["#00A8E1", "#232F3E"],
     badge: "Bestseller",
@@ -112,7 +148,7 @@ export const AMAZON_PRODUCTS: AmazonProduct[] = [
     id: "amzn-stanley-tumbler-40oz",
     title: "40oz Stainless Quencher Tumbler",
     price: "$45.00",
-    url: AMAZON_STOREFRONT,
+    url: amazonLink("Stanley Quencher 40oz Tumbler"),
     icon: "home",
     accent: ["#EC4899", "#F59E0B"],
     badge: "Viral",
@@ -122,7 +158,7 @@ export const AMAZON_PRODUCTS: AmazonProduct[] = [
     id: "amzn-airpods-pro-2",
     title: "AirPods Pro (2nd Gen, USB-C)",
     price: "$189.99",
-    url: AMAZON_STOREFRONT,
+    url: amazonLink("AirPods Pro 2nd Generation USB-C"),
     icon: "audio",
     accent: ["#00A8E1", "#146EB4"],
     badge: "Trending",
@@ -132,7 +168,7 @@ export const AMAZON_PRODUCTS: AmazonProduct[] = [
     id: "amzn-anker-power-bank",
     title: "Anker 10,000mAh Portable Charger",
     price: "$21.99",
-    url: AMAZON_STOREFRONT,
+    url: amazonLink("Anker 10000mAh Portable Charger"),
     icon: "power",
     accent: ["#22D3EE", "#3B82F6"],
     badge: "Prime deal",
@@ -142,7 +178,7 @@ export const AMAZON_PRODUCTS: AmazonProduct[] = [
     id: "amzn-mini-projector",
     title: "Mini 1080p Home Theater Projector",
     price: "$89.99",
-    url: AMAZON_STOREFRONT,
+    url: amazonLink("Mini Projector 1080p Home Theater"),
     icon: "device",
     accent: ["#FF9900", "#146EB4"],
     badge: "Movie night",
@@ -152,7 +188,7 @@ export const AMAZON_PRODUCTS: AmazonProduct[] = [
     id: "amzn-govee-led-strip",
     title: "Govee Smart LED Strip Lights (100ft)",
     price: "$29.99",
-    url: AMAZON_STOREFRONT,
+    url: amazonLink("Govee LED Strip Lights 100ft"),
     icon: "light",
     accent: ["#EC4899", "#8B5CF6"],
     badge: "Hot deal",
@@ -162,7 +198,7 @@ export const AMAZON_PRODUCTS: AmazonProduct[] = [
     id: "amzn-galaxy-projector",
     title: "Galaxy Star & Aurora Night Projector",
     price: "$27.99",
-    url: AMAZON_STOREFRONT,
+    url: amazonLink("Galaxy Star Aurora Night Projector"),
     icon: "light",
     accent: ["#146EB4", "#7C3AED"],
     badge: "Viral",
@@ -172,7 +208,7 @@ export const AMAZON_PRODUCTS: AmazonProduct[] = [
     id: "amzn-cosori-air-fryer",
     title: "COSORI 5.8QT Air Fryer",
     price: "$99.99",
-    url: AMAZON_STOREFRONT,
+    url: amazonLink("COSORI Air Fryer 5.8QT"),
     icon: "home",
     accent: ["#FF9900", "#EF4444"],
     badge: "Bestseller",
@@ -182,7 +218,7 @@ export const AMAZON_PRODUCTS: AmazonProduct[] = [
     id: "amzn-sleep-headphones",
     title: "Bluetooth Sleep Headphones Headband",
     price: "$19.99",
-    url: AMAZON_STOREFRONT,
+    url: amazonLink("Bluetooth Sleep Headphones Headband"),
     icon: "audio",
     accent: ["#8B5CF6", "#22D3EE"],
     badge: "Trending",
@@ -192,7 +228,7 @@ export const AMAZON_PRODUCTS: AmazonProduct[] = [
     id: "amzn-ring-light-tripod",
     title: "Ring Light with Adjustable Tripod",
     price: "$28.99",
-    url: AMAZON_STOREFRONT,
+    url: amazonLink("Ring Light with Tripod Stand"),
     icon: "light",
     accent: ["#FF9900", "#00A8E1"],
     badge: "Creator pick",
@@ -202,7 +238,7 @@ export const AMAZON_PRODUCTS: AmazonProduct[] = [
     id: "amzn-owala-bottle",
     title: "Owala FreeSip Insulated Water Bottle",
     price: "$27.99",
-    url: AMAZON_STOREFRONT,
+    url: amazonLink("Owala FreeSip Water Bottle"),
     icon: "home",
     accent: ["#22D3EE", "#7C3AED"],
     badge: "Viral",
@@ -212,7 +248,7 @@ export const AMAZON_PRODUCTS: AmazonProduct[] = [
     id: "amzn-blue-light-glasses",
     title: "Blue-Light Blocking Glasses (2-Pack)",
     price: "$16.99",
-    url: AMAZON_STOREFRONT,
+    url: amazonLink("Blue Light Blocking Glasses 2 Pack"),
     icon: "wear",
     accent: ["#146EB4", "#232F3E"],
     badge: "Binge-ready",
@@ -222,7 +258,7 @@ export const AMAZON_PRODUCTS: AmazonProduct[] = [
     id: "amzn-bt-speaker",
     title: "Waterproof Portable Bluetooth Speaker",
     price: "$49.95",
-    url: AMAZON_STOREFRONT,
+    url: amazonLink("Waterproof Portable Bluetooth Speaker"),
     icon: "audio",
     accent: ["#F59E0B", "#EF4444"],
     badge: "Bestseller",
@@ -232,7 +268,7 @@ export const AMAZON_PRODUCTS: AmazonProduct[] = [
     id: "amzn-smart-watch",
     title: "Fitness Smart Watch (Heart Rate, GPS)",
     price: "$39.99",
-    url: AMAZON_STOREFRONT,
+    url: amazonLink("Fitness Smart Watch Heart Rate GPS"),
     icon: "wear",
     accent: ["#00A8E1", "#232F3E"],
     badge: "Trending",
@@ -242,7 +278,7 @@ export const AMAZON_PRODUCTS: AmazonProduct[] = [
     id: "amzn-hoodie-blanket",
     title: "Oversized Wearable Hoodie Blanket",
     price: "$32.99",
-    url: AMAZON_STOREFRONT,
+    url: amazonLink("Oversized Wearable Hoodie Blanket"),
     icon: "wear",
     accent: ["#FF9900", "#F59E0B"],
     badge: "Cozy binge",
