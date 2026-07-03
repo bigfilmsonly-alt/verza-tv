@@ -44,6 +44,16 @@ export default function CreatorWatch({
   const [muted, setMuted] = useState(true);
   const [started, setStarted] = useState(false);
   const [buying, setBuying] = useState(false);
+  // Overlay chrome (back link + tap-for-sound) fades to a clean frame 10s after
+  // it was last shown — only the VERZA watermark stays. Any tap re-reveals it.
+  const [chromeVisible, setChromeVisible] = useState(true);
+  const chromeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const revealChrome = useCallback(() => {
+    setChromeVisible(true);
+    if (chromeTimer.current) clearTimeout(chromeTimer.current);
+    chromeTimer.current = setTimeout(() => setChromeVisible(false), 10000);
+  }, []);
 
   const locked = !isFree && !hasAccess;
   const hlsUrl = `https://stream.mux.com/${playbackId}.m3u8`;
@@ -70,12 +80,14 @@ export default function CreatorWatch({
   useEffect(() => {
     return () => {
       hlsRef.current?.destroy();
+      if (chromeTimer.current) clearTimeout(chromeTimer.current);
     };
   }, []);
 
   async function play() {
     const vid = videoRef.current;
     if (!vid) return;
+    revealChrome();
     if (!started) {
       attach();
       setStarted(true);
@@ -116,7 +128,16 @@ export default function CreatorWatch({
   return (
     <div className="min-h-screen flex flex-col" style={{ background: "#07070E" }}>
       <div className="px-4 pt-4">
-        <Link href="/" className="text-sm no-underline" style={{ color: "rgba(255,255,255,0.5)" }}>
+        <Link
+          href="/"
+          className="text-sm no-underline"
+          style={{
+            color: "rgba(255,255,255,0.5)",
+            opacity: chromeVisible ? 1 : 0,
+            pointerEvents: chromeVisible ? "auto" : "none",
+            transition: "opacity 0.4s ease",
+          }}
+        >
           ← VERZA TV
         </Link>
       </div>
@@ -124,6 +145,7 @@ export default function CreatorWatch({
       <div className="flex-1 flex flex-col items-center justify-center px-4 py-6">
         <div
           className="relative w-full rounded-2xl overflow-hidden"
+          onPointerDownCapture={revealChrome}
           style={{
             maxWidth: vertical ? 360 : 720,
             aspectRatio: vertical ? "9 / 16" : "16 / 9",
@@ -170,7 +192,12 @@ export default function CreatorWatch({
                     }
                   }}
                   className="absolute bottom-3 right-3 px-3 py-1.5 rounded-full text-xs font-semibold border-0 cursor-pointer"
-                  style={{ background: "rgba(0,0,0,0.6)", color: "#fff" }}
+                  style={{
+                    background: "rgba(0,0,0,0.6)", color: "#fff",
+                    opacity: chromeVisible ? 1 : 0,
+                    pointerEvents: chromeVisible ? "auto" : "none",
+                    transition: "opacity 0.4s ease",
+                  }}
                 >
                   Tap for sound
                 </button>

@@ -61,6 +61,7 @@ function EpisodeSlide({
   onEnded,
   onProgress,
   onDoubleTap,
+  onReveal,
 }: {
   episode: FeedEpisode;
   seriesSlug: string;
@@ -71,6 +72,7 @@ function EpisodeSlide({
   onEnded: () => void;
   onProgress: (pct: number) => void;
   onDoubleTap: () => void;
+  onReveal: () => void;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<HlsType | null>(null);
@@ -236,6 +238,7 @@ function EpisodeSlide({
   /* Tap handler: single tap = pause, double tap = like */
   function handleTap(e: React.MouseEvent) {
     e.stopPropagation();
+    onReveal();
     const now = Date.now();
     if (now - lastTap.current < 300) {
       // Double tap
@@ -436,8 +439,9 @@ export default function EpisodeFeed({
   const [liked, setLiked] = useState<Set<number>>(new Set());
   const [showMore, setShowMore] = useState(false);
   const [actionToast, setActionToast] = useState<string | null>(null);
-  // Right-side action rail (Like/Share/More) shows for 8s on each new video,
-  // then fades out to keep the frame clean. Any tap brings it back for 8s more.
+  // All video chrome (back / mute / fullscreen / action rail / badge / progress)
+  // shows for 10s on each new video, then fades out to a clean frame — only the
+  // VERZA watermark stays permanent. Any tap brings the chrome back for 10s more.
   const [showActionRail, setShowActionRail] = useState(true);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const heartTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -447,10 +451,10 @@ export default function EpisodeFeed({
   const revealActionRail = useCallback(() => {
     setShowActionRail(true);
     if (actionRailTimer.current) clearTimeout(actionRailTimer.current);
-    actionRailTimer.current = setTimeout(() => setShowActionRail(false), 8000);
+    actionRailTimer.current = setTimeout(() => setShowActionRail(false), 10000);
   }, []);
 
-  // Show the rail for 10s whenever the active video changes (and on mount).
+  // Show the chrome for 10s whenever the active video changes (and on mount).
   useEffect(() => {
     revealActionRail();
     return () => {
@@ -732,6 +736,7 @@ export default function EpisodeFeed({
                 onEnded={handleEpisodeEnded}
                 onProgress={i === activeIndex ? setEpProgress : () => {}}
                 onDoubleTap={handleDoubleTap}
+                onReveal={revealActionRail}
               />
             </div>
           );
@@ -761,7 +766,12 @@ export default function EpisodeFeed({
       <button
         onClick={handleBack}
         className="absolute top-4 left-4 z-50 w-10 h-10 rounded-full flex items-center justify-center border-0 cursor-pointer"
-        style={{ background: "rgba(0,0,0,0.35)", backdropFilter: "blur(20px)" }}
+        style={{
+          background: "rgba(0,0,0,0.35)", backdropFilter: "blur(20px)",
+          opacity: showActionRail ? 1 : 0,
+          pointerEvents: showActionRail ? "auto" : "none",
+          transition: "opacity 0.4s ease",
+        }}
         aria-label="Back"
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -773,7 +783,12 @@ export default function EpisodeFeed({
       <button
         onClick={toggleMute}
         className="absolute top-4 right-4 z-50 w-10 h-10 rounded-full flex items-center justify-center border-0 cursor-pointer"
-        style={{ background: "rgba(0,0,0,0.35)", backdropFilter: "blur(20px)" }}
+        style={{
+          background: "rgba(0,0,0,0.35)", backdropFilter: "blur(20px)",
+          opacity: showActionRail ? 1 : 0,
+          pointerEvents: showActionRail ? "auto" : "none",
+          transition: "opacity 0.4s ease",
+        }}
         aria-label={muted ? "Unmute" : "Mute"}
       >
         {muted ? (
@@ -804,7 +819,12 @@ export default function EpisodeFeed({
           }
         }}
         className="absolute top-16 right-4 z-50 w-10 h-10 rounded-full flex items-center justify-center border-0 cursor-pointer"
-        style={{ background: "rgba(0,0,0,0.35)", backdropFilter: "blur(20px)" }}
+        style={{
+          background: "rgba(0,0,0,0.35)", backdropFilter: "blur(20px)",
+          opacity: showActionRail ? 1 : 0,
+          pointerEvents: showActionRail ? "auto" : "none",
+          transition: "opacity 0.4s ease",
+        }}
         aria-label="Fullscreen"
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -959,7 +979,10 @@ export default function EpisodeFeed({
       )}
 
       {/* Episode badge — bottom-left */}
-      <div className="absolute bottom-6 left-4 z-50 pointer-events-none">
+      <div
+        className="absolute bottom-6 left-4 z-50 pointer-events-none"
+        style={{ opacity: showActionRail ? 1 : 0, transition: "opacity 0.4s ease" }}
+      >
         <div style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(12px)", borderRadius: 12, padding: "6px 10px" }}>
           <p className="text-[10px] font-medium mb-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>
             {seriesTitle}
@@ -973,7 +996,7 @@ export default function EpisodeFeed({
       {/* Live playback progress bar — very bottom */}
       <div
         className="absolute bottom-0 left-0 right-0 z-50 pointer-events-none"
-        style={{ height: 4 }}
+        style={{ height: 4, opacity: showActionRail ? 1 : 0, transition: "opacity 0.4s ease" }}
       >
         <div
           style={{

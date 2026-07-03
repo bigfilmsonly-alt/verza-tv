@@ -68,8 +68,8 @@ function RailButton({ children, label, onClick }: {
 /* ================================================================== */
 /*  ShortCard — one slide (lightweight, NO video element)              */
 /* ================================================================== */
-function ShortCard({ series, isActive, muted, setMuted, saved, onToggleSave }: {
-  series: Series; isActive: boolean;
+function ShortCard({ series, isActive, visible, muted, setMuted, saved, onToggleSave }: {
+  series: Series; isActive: boolean; visible: boolean;
   muted: boolean; setMuted: (m: boolean) => void;
   saved: boolean; onToggleSave: (slug: string) => void;
 }) {
@@ -94,7 +94,7 @@ function ShortCard({ series, isActive, muted, setMuted, saved, onToggleSave }: {
   return (
     <div
       className="relative overflow-hidden"
-      style={{ width: "100%", height: "100%", pointerEvents: "none" }}
+      style={{ width: "100%", height: "100%", pointerEvents: "none", opacity: visible ? 1 : 0, transition: "opacity 0.4s ease" }}
     >
       {/* Vignette */}
       <div
@@ -116,14 +116,14 @@ function ShortCard({ series, isActive, muted, setMuted, saved, onToggleSave }: {
       </div>
 
       {/* Top-right: close */}
-      <Link href="/" className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center no-underline" style={{ background: "rgba(50,50,50,0.7)", backdropFilter: "blur(4px)", pointerEvents: "auto" }}>
+      <Link href="/" className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center no-underline" style={{ background: "rgba(50,50,50,0.7)", backdropFilter: "blur(4px)", pointerEvents: visible ? "auto" : "none" }}>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
         </svg>
       </Link>
 
       {/* Right rail */}
-      <div className="absolute right-3 flex flex-col items-center gap-4 z-10" style={{ top: "28%", pointerEvents: "auto" }}>
+      <div className="absolute right-3 flex flex-col items-center gap-4 z-10" style={{ top: "28%", pointerEvents: visible ? "auto" : "none" }}>
         <Link href={`/series/${series.slug}`} className="block no-underline">
           <div className="relative w-12 h-16 rounded-lg overflow-hidden" style={{ border: "2px solid rgba(255,255,255,0.4)" }}>
             {series.posterUrl && <Image src={series.posterUrl} alt={series.title} fill className="object-cover" sizes="48px" />}
@@ -174,7 +174,18 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
   const [muted, setMuted] = useState(false);
   const [savedSlugs, setSavedSlugs] = useState<Set<string>>(new Set());
   const [showSplash, setShowSplash] = useState(true);
+  // All overlay chrome (title / close / right rail / dots) shows for 10s on each
+  // new short, then fades to a clean frame — only the VERZA watermark stays.
+  // Any tap/swipe brings the chrome back for 10s more.
+  const [chromeVisible, setChromeVisible] = useState(true);
+  const chromeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const revealChrome = useCallback(() => {
+    setChromeVisible(true);
+    if (chromeTimer.current) clearTimeout(chromeTimer.current);
+    chromeTimer.current = setTimeout(() => setChromeVisible(false), 10000);
+  }, []);
 
   // THE single video element — never destroyed, source swapped
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -349,10 +360,16 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
     return () => clearTimeout(t);
   }, [showSplash]);
 
+  // Reveal chrome for 10s on mount and whenever the active short changes.
+  useEffect(() => {
+    revealChrome();
+    return () => { if (chromeTimer.current) clearTimeout(chromeTimer.current); };
+  }, [activeIndex, revealChrome]);
+
   if (shuffled.length === 0) return null;
 
   return (
-    <div className="episode-immersive" style={{ background: "#000" }}>
+    <div className="episode-immersive" style={{ background: "#000" }} onPointerDownCapture={revealChrome}>
       {/* Splash screen — VERZA TV logo on black */}
       {/* Video starts immediately — no splash */}
 
@@ -406,6 +423,7 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
           <ShortCard
             series={shuffled[activeIndex]}
             isActive={true}
+            visible={chromeVisible}
             muted={muted}
             setMuted={setMuted}
             saved={savedSlugs.has(shuffled[activeIndex].slug)}
@@ -417,7 +435,7 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
       {/* Dot indicators */}
       <div
         className="absolute z-30 flex items-center gap-1.5"
-        style={{ bottom: 16, left: "50%", transform: "translateX(-50%)" }}
+        style={{ bottom: 16, left: "50%", transform: "translateX(-50%)", opacity: chromeVisible ? 1 : 0, transition: "opacity 0.4s ease" }}
       >
         {shuffled.slice(0, Math.min(shuffled.length, 15)).map((_, i) => (
           <div

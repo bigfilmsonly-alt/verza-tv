@@ -255,7 +255,7 @@ export default function Player({
       if (videoRef.current && !videoRef.current.paused) {
         setShowControls(false);
       }
-    }, 3000);
+    }, 10000);
   }, []);
 
   /* ---- Auto-play when HLS is ready ------------------------------- */
