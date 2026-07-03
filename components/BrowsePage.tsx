@@ -104,6 +104,9 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
   const activeTabs = BROWSE_TABS;
 
   const [activeTab, setActiveTab] = useState<BrowseCategory>("drama");
+  // Direction of the last tab change (1 = forward/next, -1 = back/prev) so the
+  // incoming tab content can slide in from the matching side.
+  const [slideDir, setSlideDir] = useState<1 | -1>(1);
   const [heroIdx, setHeroIdx] = useState(0);
   const [heroPaused, setHeroPaused] = useState(false);
   const [continueWatching, setContinueWatching] = useState<ContinueItem[]>([]);
@@ -212,7 +215,20 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
       const idx = keys.indexOf(activeTab);
       if (idx === -1) return;
       const next = (idx + dir + keys.length) % keys.length;
+      setSlideDir(dir);
       setActiveTab(keys[next]);
+    },
+    [activeTab, activeTabs],
+  );
+
+  // Tapping a tab in the bar also slides — direction from the index it moves.
+  const selectTab = useCallback(
+    (key: BrowseCategory) => {
+      const keys = activeTabs.map((tb) => tb.key);
+      const from = keys.indexOf(activeTab);
+      const to = keys.indexOf(key);
+      if (from !== -1 && to !== -1 && to !== from) setSlideDir(to > from ? 1 : -1);
+      setActiveTab(key);
     },
     [activeTab, activeTabs],
   );
@@ -274,7 +290,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
           WebkitBackdropFilter: "blur(16px)",
         }}
       >
-        <CategoryTabs active={activeTab} onSelect={setActiveTab} tabs={activeTabs} />
+        <CategoryTabs active={activeTab} onSelect={selectTab} tabs={activeTabs} />
       </div>
 
       {/* Summer Sale $1.99 ribbon — top-level sticky + zero-height so it pins
@@ -321,6 +337,13 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </section>
       )}
 
+      {/* Swappable tab content — keyed on activeTab so it remounts and re-runs
+          the slide-in animation each time the tab changes. Direction (slideDir)
+          picks which side it slides from (swipe/tap forward vs back). */}
+      <div
+        key={activeTab}
+        className={`tab-slide ${slideDir === 1 ? "tab-slide-next" : "tab-slide-prev"}`}
+      >
       {/* Music tab — Too Much Junk poster → taps to native Mux player */}
       {activeTab === "music" && (
         <div>
@@ -670,6 +693,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
           </div>
         </section>
       )}
+      </div>
 
     </div>
   );

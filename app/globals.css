@@ -629,3 +629,31 @@ img {
   overflow-y: auto;
   background: #07070E;
 }
+
+/* ---- Tab switch slide transition ---- */
+/* The tab content is keyed on activeTab, so it remounts on every switch and
+   replays one of these animations. slideDir picks the direction: forward
+   (next tab) slides in from the right, back (prev tab) from the left. */
+@keyframes tabSlideNext {
+  from { opacity: 0; transform: translateX(30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes tabSlidePrev {
+  from { opacity: 0; transform: translateX(-30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.tab-slide {
+  overflow-x: hidden;
+}
+.tab-slide-next {
+  animation: tabSlideNext 0.28s ease both;
+}
+.tab-slide-prev {
+  animation: tabSlidePrev 0.28s ease both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tab-slide-next,
+  .tab-slide-prev {
+    animation: none;
+  }
+}
