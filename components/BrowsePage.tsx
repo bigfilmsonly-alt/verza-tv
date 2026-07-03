@@ -238,7 +238,8 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
   );
 
   // Commit the swipe: if the gesture ended with a mostly-horizontal move of even
-  // ~30px, jump to the next (left swipe) or previous (right swipe) tab.
+  // ~30px, follow the travel direction — swipe RIGHT advances to the next tab
+  // (rightward in the bar), swipe LEFT goes to the previous tab (leftward).
   function commitSwipe(endX: number, endY: number) {
     const s = swipe.current;
     swipe.current = null;
@@ -246,7 +247,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
     const dx = endX - s.x;
     const dy = endY - s.y;
     if (Math.abs(dx) > 30 && Math.abs(dx) > Math.abs(dy)) {
-      changeTab(dx < 0 ? 1 : -1);
+      changeTab(dx > 0 ? 1 : -1);
     }
   }
 
@@ -299,7 +300,8 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
       if (locked) return;
       acc += e.deltaX;
       if (Math.abs(acc) > 35) {
-        changeTab(acc > 0 ? 1 : -1);
+        // Physical swipe right = fingers move right = negative deltaX → next tab.
+        changeTab(acc < 0 ? 1 : -1);
         acc = 0;
         locked = true; // one tab per continuous gesture
       }
