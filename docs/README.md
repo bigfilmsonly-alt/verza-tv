@@ -3,75 +3,92 @@
 > Vertical micro-drama streaming platform. **Live at [www.verzatv.com](https://www.verzatv.com).**
 > Next.js 16 · TypeScript · Tailwind v4 · React 19 · Supabase · Mux · Stripe · Vercel.
 
-This is the master index for all project documentation. Docs are grouped by
-purpose. Files marked **(reference)** are auto-organized technical catalogs kept
-in `docs/reference/`; the rest are hand-authored reports and playbooks.
+This is the master index for all project documentation. Docs are grouped into
+folders by purpose:
+
+- **[reference/](reference/)** — technical catalogs: architecture, API, components, data model, routes, env, tech stack, project structure.
+- **[guides/](guides/)** — how-to / setup / integration / operations guides.
+- **[reports/](reports/)** — dev reports, audits, and launch-readiness verifications.
+- **[strategy/](strategy/)** — business, valuation, and monetization playbooks.
+
+Two docs stay at the `docs/` root: this index and the ones below.
 
 ---
 
-## 1. Start here
+## Start here
 
 | Doc | What it covers |
 | --- | --- |
-| [DEV-REPORT-CURRENT.md](DEV-REPORT-CURRENT.md) | **Latest pre-share master audit** — snapshot, audit table, fixes, open items, secret sweep, test checklist, RN-migration readiness |
+| [reports/DEV-REPORT-CURRENT.md](reports/DEV-REPORT-CURRENT.md) | **Latest pre-share master audit** — snapshot, audit table, fixes, open items, secret sweep, test checklist, RN-migration readiness |
 | [`../README.md`](../README.md) | Repo readme — quick start |
 | [`../AGENTS.md`](../AGENTS.md) | House rules for anyone (human or AI) editing the code |
-| [reference/PROJECT-STRUCTURE.md](reference/PROJECT-STRUCTURE.md) | **(reference)** Full directory map |
-| [reference/TECH-STACK.md](reference/TECH-STACK.md) | **(reference)** Dependencies, versions, why each exists |
+| [reference/PROJECT-STRUCTURE.md](reference/PROJECT-STRUCTURE.md) | Full directory map |
+| [reference/TECH-STACK.md](reference/TECH-STACK.md) | Dependencies, versions, why each exists |
 
-## 2. Architecture & engineering
-
-| Doc | What it covers |
-| --- | --- |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | System design, rendering model, layout shell |
-| [reference/API-REFERENCE.md](reference/API-REFERENCE.md) | **(reference)** Every `app/api/*` route endpoint |
-| [reference/COMPONENTS.md](reference/COMPONENTS.md) | **(reference)** Every React component |
-| [DATA-MODEL.md](DATA-MODEL.md) | Supabase tables, RLS, entitlements |
-| [ROUTES.md](ROUTES.md) | Page routing map |
-| [CONVENTIONS.md](CONVENTIONS.md) | Coding conventions |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | How to contribute |
-| [REFACTORS.md](REFACTORS.md) | Refactor history / tech debt |
-
-## 3. Integrations
+## Reference — architecture & engineering
 
 | Doc | What it covers |
 | --- | --- |
-| [reference/ENVIRONMENT.md](reference/ENVIRONMENT.md) | **(reference)** All env vars (from `lib/env.ts`) |
-| [ENV.md](ENV.md) | Env var notes |
-| [MUX.md](MUX.md) | Mux video playback + upload |
-| [PAYMENTS.md](PAYMENTS.md) | Stripe checkout, webhooks, revenue truth |
-| [CREATOR-SETUP.md](CREATOR-SETUP.md) | Creator (UGC) pipeline setup |
+| [reference/ARCHITECTURE.md](reference/ARCHITECTURE.md) | System design, rendering model, layout shell |
+| [reference/API-REFERENCE.md](reference/API-REFERENCE.md) | Every `app/api/*` route endpoint |
+| [reference/COMPONENTS.md](reference/COMPONENTS.md) | Every React component |
+| [reference/DATA-MODEL.md](reference/DATA-MODEL.md) | Supabase tables, RLS, entitlements, content types |
+| [reference/ROUTES.md](reference/ROUTES.md) | Page routing map |
+| [reference/PROJECT-STRUCTURE.md](reference/PROJECT-STRUCTURE.md) | Directory map of the codebase |
+| [reference/TECH-STACK.md](reference/TECH-STACK.md) | Runtime + dev dependencies |
+| [reference/ENVIRONMENT.md](reference/ENVIRONMENT.md) | All env vars (from `lib/env.ts`) |
 
-## 4. Operations
+## Guides — setup, integrations & operations
 
 | Doc | What it covers |
 | --- | --- |
-| [DEPLOYMENT.md](DEPLOYMENT.md) | Deploy to Vercel production |
-| [RUNBOOK.md](RUNBOOK.md) | Incident / operational runbook |
-| [DEV-REPORT.md](DEV-REPORT.md) | Latest dev status report |
-| [AUDIT.md](AUDIT.md) | Security / quality audit |
+| [guides/CONTRIBUTING.md](guides/CONTRIBUTING.md) | How to contribute / local dev setup |
+| [guides/CONVENTIONS.md](guides/CONVENTIONS.md) | Coding conventions |
+| [guides/ENV.md](guides/ENV.md) | Env var notes (copy `.env.example`) |
+| [guides/MUX.md](guides/MUX.md) | Mux video playback + upload pipeline |
+| [guides/PAYMENTS.md](guides/PAYMENTS.md) | Stripe checkout, webhooks, revenue truth |
+| [guides/CREATOR-SETUP.md](guides/CREATOR-SETUP.md) | Creator (UGC) pipeline setup & go-live |
+| [guides/CONTENT.md](guides/CONTENT.md) | Catalog structure, series data flow |
+| [guides/seo.md](guides/seo.md) | SEO & content infrastructure |
+| [guides/seo-governance.md](guides/seo-governance.md) | SEO governance rules |
+| [guides/DEPLOYMENT.md](guides/DEPLOYMENT.md) | Deploy to Vercel production |
+| [guides/RUNBOOK.md](guides/RUNBOOK.md) | Incident / operational runbook + pre-launch checklist |
+
+## Reports — status, audits & verification
+
+| Doc | What it covers |
+| --- | --- |
+| [reports/DEV-REPORT-CURRENT.md](reports/DEV-REPORT-CURRENT.md) | Latest pre-share master audit (RN-migration foundation) |
+| [reports/DEV-REPORT.md](reports/DEV-REPORT.md) | Developer status report |
+| [reports/AUDIT.md](reports/AUDIT.md) | Codebase audit — orphans, duplicates, structural notes |
+| [reports/MOBILE-WEB-VERIFICATION.md](reports/MOBILE-WEB-VERIFICATION.md) | Live production mobile-web verification |
+| [reports/gate-0-verification.md](reports/gate-0-verification.md) | Money-path launch gate checklist |
+| [reports/cwv-app-store-checklist.md](reports/cwv-app-store-checklist.md) | Core Web Vitals / app-store readiness |
+| [reports/ALAN-FINAL-REPORT.md](reports/ALAN-FINAL-REPORT.md) | Final project report for Alan |
+| [reports/ALAN-FULL-PROJECT-REPORT.md](reports/ALAN-FULL-PROJECT-REPORT.md) | Extended full project report for Alan |
+
+## Strategy — business & monetization
+
+| Doc | What it covers |
+| --- | --- |
+| [strategy/HIGH-CONVERSION-PLAYBOOK.md](strategy/HIGH-CONVERSION-PLAYBOOK.md) | Monetization / conversion strategy |
+| [strategy/SECTION-BY-SECTION-VALUATION.md](strategy/SECTION-BY-SECTION-VALUATION.md) | Build-cost valuation |
+| [strategy/FINAL-COMPLETE-REPORT-AND-MONETIZATION-STRATEGY.md](strategy/FINAL-COMPLETE-REPORT-AND-MONETIZATION-STRATEGY.md) | Dev report + valuation + pitch + monetization, combined |
+| [strategy/VERZA-TV-LAUNCH-PLAN-10M.md](strategy/VERZA-TV-LAUNCH-PLAN-10M.md) | $10M+ launch & marketing plan |
+
+## Project history
+
+| Doc | What it covers |
+| --- | --- |
 | [CHANGELOG.md](CHANGELOG.md) | Release history |
-| [gate-0-verification.md](gate-0-verification.md) | Launch gate checklist |
+| [REFACTORS.md](REFACTORS.md) | Recommended refactors / tech debt (deferred for review) |
 
-## 5. Content & SEO
-
-| Doc | What it covers |
-| --- | --- |
-| [CONTENT.md](CONTENT.md) | Catalog structure, series data |
-| [seo.md](seo.md) | SEO implementation |
-| [seo-governance.md](seo-governance.md) | SEO governance rules |
-| [cwv-app-store-checklist.md](cwv-app-store-checklist.md) | Core Web Vitals / app-store checklist |
-
-## 6. Business & strategy
+## Related READMEs (co-located with code)
 
 | Doc | What it covers |
 | --- | --- |
-| [ALAN-FINAL-REPORT.md](ALAN-FINAL-REPORT.md) | Complete project report |
-| [ALAN-FULL-PROJECT-REPORT.md](ALAN-FULL-PROJECT-REPORT.md) | Extended project report |
-| [SECTION-BY-SECTION-VALUATION.md](SECTION-BY-SECTION-VALUATION.md) | Build-cost valuation |
-| [HIGH-CONVERSION-PLAYBOOK.md](HIGH-CONVERSION-PLAYBOOK.md) | Monetization strategy |
-| [FINAL-COMPLETE-REPORT-AND-MONETIZATION-STRATEGY.md](FINAL-COMPLETE-REPORT-AND-MONETIZATION-STRATEGY.md) | Everything combined |
-| [VERZA-TV-LAUNCH-PLAN-10M.md](VERZA-TV-LAUNCH-PLAN-10M.md) | $10M marketing plan |
+| [`../scripts/README-reconcile.md`](../scripts/README-reconcile.md) | Mux mapping reconciliation script usage |
+| [`../supabase/migrations/README.md`](../supabase/migrations/README.md) | Content-tables migration notes |
 
 ---
 
@@ -85,4 +102,4 @@ in `docs/reference/`; the rest are hand-authored reports and playbooks.
 - **Monetization:** $1.99 series unlock · VIP $9.99/mo or $79.99/yr · merch · 80/20 creator rev-share
 
 See [reference/TECH-STACK.md](reference/TECH-STACK.md) and
-[ARCHITECTURE.md](ARCHITECTURE.md) for the full picture.
+[reference/ARCHITECTURE.md](reference/ARCHITECTURE.md) for the full picture.

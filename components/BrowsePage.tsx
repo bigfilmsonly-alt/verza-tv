@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, useRef, Fragment } from "react";
+import { useState, useEffect, useCallback, useMemo, Fragment } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import CategoryTabs from "@/components/CategoryTabs";
@@ -89,21 +89,6 @@ interface ContinueItem {
   updatedAt?: string;
 }
 
-// Walk up from a swipe's start element; if any ancestor scrolls horizontally
-// (e.g. the Continue Watching row or a reality carousel) treat the gesture as a
-// row scroll and NOT a tab change, so those rows keep swiping normally.
-function startsInHorizontalScroller(target: EventTarget | null): boolean {
-  let node = target as HTMLElement | null;
-  while (node && node !== document.body) {
-    if (node.scrollWidth > node.clientWidth + 4) {
-      const overflowX = getComputedStyle(node).overflowX;
-      if (overflowX === "auto" || overflowX === "scroll") return true;
-    }
-    node = node.parentElement;
-  }
-  return false;
-}
-
 export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
   const { t } = useTranslation();
   const activeTabs = BROWSE_TABS;
@@ -142,7 +127,18 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
     .slice(0, 4);
   const current = heroSlides[heroIdx % Math.max(heroSlides.length, 1)];
 
-  useEffect(() => { setHeroIdx(0); }, [activeTab]);
+  // Every time the active section changes, reset the hero AND scroll back to
+  // the very top — so switching to a tab (or returning to one) always opens at
+  // the top instead of wherever the previous section was scrolled to.
+  useEffect(() => {
+    setHeroIdx(0);
+    if (typeof window !== "undefined") {
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+      (document.querySelector(".device-screen") as HTMLElement | null)?.scrollTo?.(0, 0);
+    }
+  }, [activeTab]);
 
   // Honor a ?tab= query param on mount (e.g. returning from a red carpet event)
   useEffect(() => {
@@ -210,27 +206,9 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
     setHeroIdx((i) => (((i + 1) % len) + len) % len);
   }, [heroSlides.length]);
 
-  // Swipe / drag / trackpad-swipe to switch the category tab (Drama ⇄ New ⇄ Hot
-  // ⇄ Music ⇄ Reality ⇄ Red Carpet), wrapping around at both ends. We just record
-  // where the gesture started and, on release, if it moved horizontally at all,
-  // jump straight to the next/prev tab — so a single swipe always changes tabs.
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const swipe = useRef<{ x: number; y: number } | null>(null);
-  const mouseDown = useRef(false);
-
-  const changeTab = useCallback(
-    (dir: 1 | -1) => {
-      const keys = activeTabs.map((tb) => tb.key);
-      const idx = keys.indexOf(activeTab);
-      if (idx === -1) return;
-      const next = (idx + dir + keys.length) % keys.length;
-      setSlideDir(dir);
-      setActiveTab(keys[next]);
-    },
-    [activeTab, activeTabs],
-  );
-
-  // Tapping a tab in the bar also slides — direction from the index it moves.
+  // Tab changes happen ONLY by tapping a tab button in the header bar (the
+  // swipe / drag / trackpad gesture was removed per request). Tapping still
+  // slides the incoming content in — slideDir picks which side it enters from.
   const selectTab = useCallback(
     (key: BrowseCategory) => {
       const keys = activeTabs.map((tb) => tb.key);
@@ -242,93 +220,11 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
     [activeTab, activeTabs],
   );
 
-  // Commit the swipe: if the gesture ended with a mostly-horizontal move of even
-  // ~30px, follow the travel direction — swipe RIGHT advances to the next tab
-  // (rightward in the bar), swipe LEFT goes to the previous tab (leftward).
-  function commitSwipe(endX: number, endY: number) {
-    const s = swipe.current;
-    swipe.current = null;
-    if (!s) return;
-    const dx = endX - s.x;
-    const dy = endY - s.y;
-    if (Math.abs(dx) > 30 && Math.abs(dx) > Math.abs(dy)) {
-      changeTab(dx > 0 ? 1 : -1);
-    }
-  }
-
-  // Touch (mobile)
-  function onTouchStart(e: React.TouchEvent) {
-    if (startsInHorizontalScroller(e.target)) {
-      swipe.current = null;
-      return;
-    }
-    const t = e.touches[0];
-    swipe.current = { x: t.clientX, y: t.clientY };
-  }
-  function onTouchEnd(e: React.TouchEvent) {
-    const t = e.changedTouches[0];
-    if (t) commitSwipe(t.clientX, t.clientY);
-  }
-
-  // Click-drag (desktop mouse / laptop trackpad drag)
-  function onMouseDown(e: React.MouseEvent) {
-    if (e.button !== 0 || startsInHorizontalScroller(e.target)) {
-      mouseDown.current = false;
-      swipe.current = null;
-      return;
-    }
-    mouseDown.current = true;
-    swipe.current = { x: e.clientX, y: e.clientY };
-  }
-  function onMouseUp(e: React.MouseEvent) {
-    if (!mouseDown.current) return;
-    mouseDown.current = false;
-    commitSwipe(e.clientX, e.clientY);
-  }
-
-  // Two-finger horizontal trackpad swipe (wheel deltaX) also switches tabs. One
-  // continuous gesture advances a single tab; vertical scrolling is untouched.
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    let acc = 0;
-    let locked = false;
-    let idle: ReturnType<typeof setTimeout>;
-    const onWheel = (e: WheelEvent) => {
-      if (Math.abs(e.deltaX) <= Math.abs(e.deltaY) + 2) return; // vertical scroll
-      e.preventDefault(); // block browser back/forward + horizontal page scroll
-      clearTimeout(idle);
-      idle = setTimeout(() => {
-        acc = 0;
-        locked = false;
-      }, 200);
-      if (locked) return;
-      acc += e.deltaX;
-      if (Math.abs(acc) > 35) {
-        // Physical swipe right = fingers move right = negative deltaX → next tab.
-        changeTab(acc < 0 ? 1 : -1);
-        acc = 0;
-        locked = true; // one tab per continuous gesture
-      }
-    };
-    el.addEventListener("wheel", onWheel, { passive: false });
-    return () => {
-      el.removeEventListener("wheel", onWheel);
-      clearTimeout(idle);
-    };
-  }, [changeTab]);
-
   // Show ALL filtered series in the grid (not just the ones after the hero)
   const gridItems = filtered;
 
   return (
-    <div
-      ref={containerRef}
-      onTouchStart={onTouchStart}
-      onTouchEnd={onTouchEnd}
-      onMouseDown={onMouseDown}
-      onMouseUp={onMouseUp}
-    >
+    <div>
       {/* Splash screen — VERZA TV logo on black */}
       {showSplash && (
         <div
@@ -596,7 +492,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                       </div>
                     </div>
                   </div>
-                  <div style={{ height: 28 }}>
+                  <div style={{ height: 36 }}>
                     <p className="mt-1.5 text-[11px] font-semibold leading-tight line-clamp-1" style={{ color: "#F5F4F8" }}>The Carpet — Event {ev.episode}</p>
                   </div>
                 </Link>

@@ -91,8 +91,8 @@ verification — prices are computed server-side (never client-controlled).
 - **Sponsored ads** — TikTok Shop product tiles woven into the grid + search;
   StorageBlue sponsor ribbons.
 
-Details: [`docs/PAYMENTS.md`](docs/PAYMENTS.md) ·
-[`docs/HIGH-CONVERSION-PLAYBOOK.md`](docs/HIGH-CONVERSION-PLAYBOOK.md).
+Details: [`docs/guides/PAYMENTS.md`](docs/guides/PAYMENTS.md) ·
+[`docs/strategy/HIGH-CONVERSION-PLAYBOOK.md`](docs/strategy/HIGH-CONVERSION-PLAYBOOK.md).
 
 ## Architecture
 
@@ -106,8 +106,8 @@ Details: [`docs/PAYMENTS.md`](docs/PAYMENTS.md) ·
 - **Immersive video** uses a persistent single-player pattern with a
   `sourceReady` gate and `mutedRef` (ref, not state) in async callbacks.
 
-Full write-up: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) ·
-[`docs/DATA-MODEL.md`](docs/DATA-MODEL.md).
+Full write-up: [`docs/reference/ARCHITECTURE.md`](docs/reference/ARCHITECTURE.md) ·
+[`docs/reference/DATA-MODEL.md`](docs/reference/DATA-MODEL.md).
 
 ## Repository layout
 
@@ -173,8 +173,8 @@ Supabase Postgres with RLS on all tables (`profiles`, `entitlements`,
 `purchases`, `watch_progress`, `saved_list`, `pending_entitlements`, plus
 creator + analytics tables). Migrations live in `supabase/migrations/`
 (`001`–`006`). Run pending migrations via the Supabase SQL editor or
-`supabase db push`. See [`docs/DATA-MODEL.md`](docs/DATA-MODEL.md) and
-[`docs/DEV-REPORT-CURRENT.md`](docs/DEV-REPORT-CURRENT.md) §4 for the current
+`supabase db push`. See [`docs/reference/DATA-MODEL.md`](docs/reference/DATA-MODEL.md) and
+[`docs/reports/DEV-REPORT-CURRENT.md`](docs/reports/DEV-REPORT-CURRENT.md) §4 for the current
 run/provision checklist.
 
 ## Deployment
@@ -186,7 +186,7 @@ npx vercel deploy --prod
 ```
 
 Preview deploys are `noindex`; only production is indexed. Runbook:
-[`docs/RUNBOOK.md`](docs/RUNBOOK.md) · [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+[`docs/guides/RUNBOOK.md`](docs/guides/RUNBOOK.md) · [`docs/guides/DEPLOYMENT.md`](docs/guides/DEPLOYMENT.md).
 
 ## Documentation index
 
@@ -194,15 +194,15 @@ The complete, grouped index is in **[`docs/README.md`](docs/README.md)**. Highli
 
 | Doc | Covers |
 | --- | --- |
-| [`docs/DEV-REPORT-CURRENT.md`](docs/DEV-REPORT-CURRENT.md) | **Latest master audit** — metrics, audit results, fixes, open items, secret sweep, test checklist, RN readiness |
-| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | System design & layout shell |
-| [`docs/DATA-MODEL.md`](docs/DATA-MODEL.md) | Supabase tables, RLS, entitlements |
+| [`docs/reports/DEV-REPORT-CURRENT.md`](docs/reports/DEV-REPORT-CURRENT.md) | **Latest master audit** — metrics, audit results, fixes, open items, secret sweep, test checklist, RN readiness |
+| [`docs/reference/ARCHITECTURE.md`](docs/reference/ARCHITECTURE.md) | System design & layout shell |
+| [`docs/reference/DATA-MODEL.md`](docs/reference/DATA-MODEL.md) | Supabase tables, RLS, entitlements |
 | [`docs/reference/API-REFERENCE.md`](docs/reference/API-REFERENCE.md) | Every `app/api/*` endpoint |
 | [`docs/reference/COMPONENTS.md`](docs/reference/COMPONENTS.md) | Every React component |
-| [`docs/MUX.md`](docs/MUX.md) · [`docs/PAYMENTS.md`](docs/PAYMENTS.md) | Video + payments integrations |
-| [`docs/CREATOR-SETUP.md`](docs/CREATOR-SETUP.md) | Creator (UGC) pipeline setup |
-| [`docs/CONTENT.md`](docs/CONTENT.md) | Catalog / content system |
-| [`docs/RUNBOOK.md`](docs/RUNBOOK.md) · [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | Ops & deploy |
+| [`docs/guides/MUX.md`](docs/guides/MUX.md) · [`docs/guides/PAYMENTS.md`](docs/guides/PAYMENTS.md) | Video + payments integrations |
+| [`docs/guides/CREATOR-SETUP.md`](docs/guides/CREATOR-SETUP.md) | Creator (UGC) pipeline setup |
+| [`docs/guides/CONTENT.md`](docs/guides/CONTENT.md) | Catalog / content system |
+| [`docs/guides/RUNBOOK.md`](docs/guides/RUNBOOK.md) · [`docs/guides/DEPLOYMENT.md`](docs/guides/DEPLOYMENT.md) | Ops & deploy |
 | [`AGENTS.md`](AGENTS.md) | House rules for anyone (human or AI) editing the code |
 
 ## React Native migration notes
@@ -211,4 +211,4 @@ This repo is intended as the foundation for a React Native app. The
 server-side business logic (pricing, entitlements, revenue, creator splits) is
 portable as-is; the web-specific `"use client"` components, `hls.js` playback,
 `createPortal` overlays, and CSS layout tricks need native re-implementation.
-Full readiness assessment: [`docs/DEV-REPORT-CURRENT.md`](docs/DEV-REPORT-CURRENT.md) §7.
+Full readiness assessment: [`docs/reports/DEV-REPORT-CURRENT.md`](docs/reports/DEV-REPORT-CURRENT.md) §7.

@@ -73,7 +73,7 @@ Single-render nesting used across the app:
 ```
 
 Immersive video uses the `.episode-immersive` class (`position:fixed` on
-mobile, `absolute` on desktop). See [ARCHITECTURE.md](../ARCHITECTURE.md).
+mobile, `absolute` on desktop). See [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Key conventions
 
