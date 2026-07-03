@@ -129,7 +129,7 @@ function HorizontalCard({ video, index }: { video: HorizontalVideo; index: numbe
         />
 
         {/* VERZA watermark — top-left corner while playing */}
-        <VideoWatermark videoRef={videoRef} top={8} left={8} size={30} />
+        <VideoWatermark videoRef={videoRef} top={8} left={8} size={40} />
 
         {!playing && (
           <img

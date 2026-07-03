@@ -423,7 +423,7 @@ export default function Player({
         />
 
         {/* VERZA watermark — top-left corner while playing */}
-        <VideoWatermark videoRef={videoRef} top={12} left={12} size={40} />
+        <VideoWatermark videoRef={videoRef} top={12} left={12} size={53} />
 
         {/* Poster overlay before start — uses local poster art for instant display */}
         {!started && posterUrl && (
