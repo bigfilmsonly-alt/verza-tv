@@ -476,8 +476,10 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                   background: "#07070E",
                 }}
               >
-                {/* Poster slideshow — full 9:16 flyer so the VERZA TV logo (bottom
-                    ~12% of every 1080x1920 poster) is never cropped */}
+                {/* Poster slideshow — object-cover fills the 9:16 frame edge to
+                    edge for every poster aspect ratio (9:16 posters fit exactly;
+                    2:3 posters fill with a slight side crop) so the hero never
+                    letterboxes with empty bars or looks off-center on mobile */}
                 {current.posterUrl ? (
                   <Image
                     src={current.posterUrl}
@@ -485,7 +487,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                     fill
                     priority
                     sizes="100vw"
-                    className="object-contain"
+                    className="object-cover"
                   />
                 ) : (
                   <div
