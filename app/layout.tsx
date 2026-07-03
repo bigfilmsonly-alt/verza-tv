@@ -25,6 +25,10 @@ const inter = Inter({
 // don't follow redirects on og:image → blank thumbnail.
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verzatv.com";
 
+// Bump this when og-image.png changes so link-preview caches (iMessage,
+// WhatsApp, Facebook, Twitter…) are forced to re-fetch the new thumbnail.
+const OG_IMAGE = `${SITE_URL}/og-image.png?v=3`;
+
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
@@ -43,7 +47,8 @@ export const metadata: Metadata = {
     url: SITE_URL,
     images: [
       {
-        url: `${SITE_URL}/og-image.png`,
+        url: OG_IMAGE,
+        secureUrl: OG_IMAGE,
         width: 1200,
         height: 630,
         alt: "Verza TV — Microdramas, Reality & More",
@@ -59,7 +64,7 @@ export const metadata: Metadata = {
       "Stream binge-worthy micro-dramas, reality shows, and original series — all in vertical, all in minutes.",
     images: [
       {
-        url: `${SITE_URL}/og-image.png`,
+        url: OG_IMAGE,
         width: 1200,
         height: 630,
         alt: "Verza TV",
