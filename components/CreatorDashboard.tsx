@@ -451,7 +451,7 @@ function Uploader({ muxReady, onCreated }: { muxReady: boolean; onCreated: () =>
     return (
       <Notice color={T.warn}>
         Uploads aren&apos;t enabled yet on this environment (missing Mux token).
-        Contact the Verza team to provision video uploads.
+        Contact the VERZA team to provision video uploads.
       </Notice>
     );
   }

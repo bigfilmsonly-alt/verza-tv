@@ -1,9 +1,9 @@
 export const BRAND = {
-  name: "Verza TV",
+  name: "VERZA TV",
   domain: "verzatv.com",
   tagline: "Microdramas, Reality & More.",
   accentHex: "#E0115F", // confirm with Alan
-  nameVariant: "Verza", // confirm with Alan: "Versa" vs "Verza"
+  nameVariant: "VERZA", // confirm with Alan: "Versa" vs "VERZA"
 } as const;
 
 export const COIN_PACKS = [

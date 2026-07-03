@@ -10,7 +10,7 @@ import JsonLd from "@/components/JsonLd";
 
 export const metadata: Metadata = {
   title: `Shop | ${BRAND.name}`,
-  description: "Official Verza TV merch — hoodies, mugs, socks, water bottles, and more.",
+  description: "Official VERZA TV merch — hoodies, mugs, socks, water bottles, and more.",
   alternates: { canonical: "/shop" },
 };
 
@@ -24,7 +24,7 @@ export default function ShopPage() {
             Shop
           </h1>
           <p className="text-sm mt-1" style={{ color: T.textMute }}>
-            Official Verza TV merch
+            Official VERZA TV merch
           </p>
         </div>
         <CartButton />

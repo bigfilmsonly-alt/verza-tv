@@ -14,7 +14,7 @@ const approvedHubs = GENRE_HUBS.filter((g) => g.editorialApproved);
 export const metadata: Metadata = {
   title: `Browse by Genre | ${BRAND.name}`,
   description:
-    "Explore every Verza TV genre — billionaire romance, mafia romance, psychological thrillers, revenge dramas, time travel and more. Cinematic vertical micro-dramas, free to start.",
+    "Explore every VERZA TV genre — billionaire romance, mafia romance, psychological thrillers, revenge dramas, time travel and more. Cinematic vertical micro-dramas, free to start.",
   alternates: { canonical: "/genres" },
   robots: { index: true, follow: true },
 };
@@ -42,9 +42,9 @@ export default function GenresIndexPage() {
       <JsonLd
         data={[
           itemListSchema({
-            name: "Verza TV Genres",
+            name: "VERZA TV Genres",
             description:
-              "All editorially approved genre hubs on Verza TV — curated vertical micro-drama collections.",
+              "All editorially approved genre hubs on VERZA TV — curated vertical micro-drama collections.",
             items: approvedHubs.map((hub, i) => ({
               name: hub.name,
               url: `${BASE_URL}/genres/${hub.slug}`,
@@ -79,7 +79,7 @@ export default function GenresIndexPage() {
           className="text-sm leading-relaxed mb-6 max-w-xl"
           style={{ color: T.textDim }}
         >
-          Find your next obsession. Verza TV organizes its original
+          Find your next obsession. VERZA TV organizes its original
           micro-dramas into {approvedHubs.length} hand-curated genres — from
           billionaire and mafia romance to psychological thrillers, revenge
           arcs, and time-travel fantasy. Every series opens with free episodes.

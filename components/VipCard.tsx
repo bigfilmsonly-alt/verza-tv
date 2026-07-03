@@ -159,7 +159,7 @@ export default function VipCard({ isVip = false, vipExpiresAt }: VipCardProps) {
           </div>
           <div>
             <p className="text-base font-bold" style={{ color: T.text }}>
-              Verza VIP
+              VERZA VIP
             </p>
             <p className="text-xs" style={{ color: T.textDim }}>
               Unlimited episodes, no paywalls

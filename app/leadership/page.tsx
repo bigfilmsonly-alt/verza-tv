@@ -11,12 +11,12 @@ const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
 export const metadata: Metadata = {
   title: `Leadership | ${BRAND.name}`,
   description:
-    "Meet the Verza TV leadership team, led by founder Alan Mruvka, co-founder of E! Entertainment Television, building a vertically integrated micro-drama studio.",
+    "Meet the VERZA TV leadership team, led by founder Alan Mruvka, co-founder of E! Entertainment Television, building a vertically integrated micro-drama studio.",
   alternates: { canonical: "/leadership" },
   openGraph: {
     title: `Leadership | ${BRAND.name}`,
     description:
-      "The Verza TV leadership team, led by founder Alan Mruvka, co-founder of E! Entertainment Television.",
+      "The VERZA TV leadership team, led by founder Alan Mruvka, co-founder of E! Entertainment Television.",
     url: `${BASE_URL}/leadership`,
     type: "website",
   },
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: `Leadership | ${BRAND.name}`,
     description:
-      "The Verza TV leadership team, led by founder Alan Mruvka.",
+      "The VERZA TV leadership team, led by founder Alan Mruvka.",
   },
 };
 

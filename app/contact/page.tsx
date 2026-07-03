@@ -7,7 +7,7 @@ import { BRAND } from "@/lib/config";
 
 export const metadata: Metadata = {
   title: `Contact | ${BRAND.name}`,
-  description: "Get in touch with the Verza TV team.",
+  description: "Get in touch with the VERZA TV team.",
   alternates: { canonical: "/contact" },
 };
 

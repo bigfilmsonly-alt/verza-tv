@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!series) return { title: "Not Found" };
 
   return {
-    title: `${series.title} — Watch Free on Verza TV`,
+    title: `${series.title} — Watch Free on VERZA TV`,
     description: series.logline,
     alternates: { canonical: `/series/${slug}` },
     openGraph: {

@@ -31,7 +31,7 @@ function PosterThumb({ series }: { series: Series }) {
 
 /* ---- Channel meta ---- */
 const CHANNEL_META: Record<string, { description: string; icon: string; posterLimit: number }> = {
-  "Verza Originals": {
+  "VERZA Originals": {
     description: "The flagship channel. Romance, thriller, mystery, and revenge — 70+ original micro-dramas.",
     icon: "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z",
     posterLimit: 12,
@@ -53,8 +53,8 @@ function ChannelsContent() {
   const liveChannelNames = getChannels();
   const allChannelNames = Array.from(new Set([...liveChannelNames, ...Object.keys(CHANNEL_META)]));
   const sortedChannels = allChannelNames.sort((a, b) => {
-    if (a === "Verza Originals") return -1;
-    if (b === "Verza Originals") return 1;
+    if (a === "VERZA Originals") return -1;
+    if (b === "VERZA Originals") return 1;
     return a.localeCompare(b);
   });
 
@@ -84,7 +84,7 @@ function ChannelsContent() {
             </div>
           </div>
           <p className="text-[13px] leading-relaxed mb-4" style={{ color: "rgba(255,255,255,0.7)" }}>
-            Make your own channel, upload vertical or horizontal content, set your subscription pricing, and earn directly from subscribers. Most platforms pay creators pennies for views. Verza TV is different.
+            Make your own channel, upload vertical or horizontal content, set your subscription pricing, and earn directly from subscribers. Most platforms pay creators pennies for views. VERZA TV is different.
           </p>
           <Link
             href="/studio"

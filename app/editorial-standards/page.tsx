@@ -23,11 +23,11 @@ const SECTIONS = [
   },
   {
     title: "Human Review",
-    body: "No content is published on Verza TV without human editorial oversight. While we use technology to assist with scheduling, metadata, and distribution, all creative and editorial decisions are made by people. Any AI-assisted tooling used in production is disclosed, and the final editorial judgment always rests with our team.",
+    body: "No content is published on VERZA TV without human editorial oversight. While we use technology to assist with scheduling, metadata, and distribution, all creative and editorial decisions are made by people. Any AI-assisted tooling used in production is disclosed, and the final editorial judgment always rests with our team.",
   },
   {
     title: "Creator Guidelines",
-    body: "Creators who produce content for Verza TV retain attribution and credit on all published work. We require accurate credits for writers, directors, cast, and crew. Creators are expected to follow our content policies, which prohibit plagiarism, undisclosed AI-generated performances, and misleading claims within storylines presented as fact.",
+    body: "Creators who produce content for VERZA TV retain attribution and credit on all published work. We require accurate credits for writers, directors, cast, and crew. Creators are expected to follow our content policies, which prohibit plagiarism, undisclosed AI-generated performances, and misleading claims within storylines presented as fact.",
   },
   {
     title: "Age-Appropriate Ratings",

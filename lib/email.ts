@@ -2,7 +2,7 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const FROM = "Verza TV <noreply@verzatv.com>";
+const FROM = "VERZA TV <noreply@verzatv.com>";
 
 /** Escape HTML special characters to prevent XSS in email templates */
 function esc(str: string): string {
@@ -30,14 +30,14 @@ async function notifyTeam(subject: string, body: string) {
   return resend.emails.send({
     from: FROM,
     to: TEAM_EMAILS,
-    subject: `[Verza TV] ${subject}`,
+    subject: `[VERZA TV] ${subject}`,
     html: `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 560px; margin: 0 auto; background: #07070E; color: #F5F4F8; padding: 32px 24px; border-radius: 16px;">
-        <img src="https://www.verzatv.com/logo.png" alt="Verza TV" width="120" style="display: block; margin: 0 auto 20px;" />
+        <img src="https://www.verzatv.com/logo.png" alt="VERZA TV" width="120" style="display: block; margin: 0 auto 20px;" />
         <h2 style="font-size: 18px; text-align: center; margin: 0 0 16px; color: #E0115F;">${esc(subject)}</h2>
         ${body}
         <p style="font-size: 11px; color: #6B6B7B; text-align: center; margin-top: 24px;">
-          Verza TV Internal Notification
+          VERZA TV Internal Notification
         </p>
       </div>
     `,
@@ -50,10 +50,10 @@ export async function sendWelcomeEmail(email: string, name: string) {
   const userEmail = resend.emails.send({
     from: FROM,
     to: email,
-    subject: "Welcome to Verza TV!",
+    subject: "Welcome to VERZA TV!",
     html: `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 500px; margin: 0 auto; background: #07070E; color: #F5F4F8; padding: 40px 24px; border-radius: 16px;">
-        <img src="https://www.verzatv.com/logo.png" alt="Verza TV" width="140" style="display: block; margin: 0 auto 24px;" />
+        <img src="https://www.verzatv.com/logo.png" alt="VERZA TV" width="140" style="display: block; margin: 0 auto 24px;" />
         <h1 style="font-size: 22px; text-align: center; margin: 0 0 16px;">Welcome, ${esc(name)}!</h1>
         <p style="font-size: 14px; color: #A0A0B0; text-align: center; line-height: 1.6; margin: 0 0 24px;">
           You're in. Start streaming 76+ original micro-dramas, reality shows, and more — the first 5 episodes of every series are free.
@@ -64,7 +64,7 @@ export async function sendWelcomeEmail(email: string, name: string) {
           </a>
         </div>
         <p style="font-size: 11px; color: #6B6B7B; text-align: center;">
-          &copy; 2026 Verza TV. All rights reserved.
+          &copy; 2026 VERZA TV. All rights reserved.
         </p>
       </div>
     `,
@@ -91,7 +91,7 @@ export async function sendPurchaseConfirmation(
 ) {
   const subject = type === "series_unlock"
     ? `You unlocked ${details.seriesTitle}!`
-    : "Your Verza TV order is confirmed";
+    : "Your VERZA TV order is confirmed";
 
   const body = type === "series_unlock"
     ? `
@@ -124,10 +124,10 @@ export async function sendPurchaseConfirmation(
     subject,
     html: `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 500px; margin: 0 auto; background: #07070E; color: #F5F4F8; padding: 40px 24px; border-radius: 16px;">
-        <img src="https://www.verzatv.com/logo.png" alt="Verza TV" width="140" style="display: block; margin: 0 auto 24px;" />
+        <img src="https://www.verzatv.com/logo.png" alt="VERZA TV" width="140" style="display: block; margin: 0 auto 24px;" />
         ${body}
         <p style="font-size: 11px; color: #6B6B7B; text-align: center; margin-top: 24px;">
-          &copy; 2026 Verza TV. All rights reserved.
+          &copy; 2026 VERZA TV. All rights reserved.
         </p>
       </div>
     `,
@@ -159,15 +159,15 @@ export async function sendCreatorDecisionEmail(
   opts: { title: string; approved: boolean; reason?: string; slug?: string },
 ) {
   const subject = opts.approved
-    ? `"${opts.title}" is live on Verza TV`
-    : `Update on your Verza TV submission`;
+    ? `"${opts.title}" is live on VERZA TV`
+    : `Update on your VERZA TV submission`;
 
   const body = opts.approved
     ? `
         <h1 style="font-size: 22px; text-align: center; margin: 0 0 8px;">You're live!</h1>
         <p style="font-size: 16px; text-align: center; color: #E0115F; font-weight: 700; margin: 0 0 16px;">${esc(opts.title)}</p>
         <p style="font-size: 14px; color: #A0A0B0; text-align: center; line-height: 1.6; margin: 0 0 8px;">
-          Your title passed review and is now streaming on Verza TV. Earnings appear in your creator dashboard.
+          Your title passed review and is now streaming on VERZA TV. Earnings appear in your creator dashboard.
         </p>
         ${
           opts.slug
@@ -195,10 +195,10 @@ export async function sendCreatorDecisionEmail(
     subject,
     html: `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 500px; margin: 0 auto; background: #07070E; color: #F5F4F8; padding: 40px 24px; border-radius: 16px;">
-        <img src="https://www.verzatv.com/logo.png" alt="Verza TV" width="140" style="display: block; margin: 0 auto 24px;" />
+        <img src="https://www.verzatv.com/logo.png" alt="VERZA TV" width="140" style="display: block; margin: 0 auto 24px;" />
         ${body}
         <p style="font-size: 11px; color: #6B6B7B; text-align: center; margin-top: 24px;">
-          &copy; 2026 Verza TV. All rights reserved.
+          &copy; 2026 VERZA TV. All rights reserved.
         </p>
       </div>
     `,

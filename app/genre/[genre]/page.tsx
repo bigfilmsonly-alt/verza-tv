@@ -17,9 +17,9 @@ const GENRE_DATA: Record<
 > = {
   romance: {
     label: "Romance",
-    title: "Best Romance Microdramas on Verza TV",
+    title: "Best Romance Microdramas on VERZA TV",
     description:
-      "Fall in love with Verza TV's romance micro-dramas. From billionaire romances and forbidden love stories to friends-to-lovers twists, every series delivers heart-racing chemistry in 60-second vertical episodes. Start any series free with the first 5 episodes.",
+      "Fall in love with VERZA TV's romance micro-dramas. From billionaire romances and forbidden love stories to friends-to-lovers twists, every series delivers heart-racing chemistry in 60-second vertical episodes. Start any series free with the first 5 episodes.",
     keywords: [
       "romance microdramas",
       "love stories",
@@ -30,9 +30,9 @@ const GENRE_DATA: Record<
   },
   thriller: {
     label: "Thriller",
-    title: "Best Thriller Microdramas on Verza TV",
+    title: "Best Thriller Microdramas on VERZA TV",
     description:
-      "Edge-of-your-seat thriller micro-dramas on Verza TV. Psychological suspense, crime twists, and jaw-dropping reveals packed into 60-second vertical episodes. These are the shows you binge in one sitting. First 5 episodes always free.",
+      "Edge-of-your-seat thriller micro-dramas on VERZA TV. Psychological suspense, crime twists, and jaw-dropping reveals packed into 60-second vertical episodes. These are the shows you binge in one sitting. First 5 episodes always free.",
     keywords: [
       "thriller microdramas",
       "suspense series",
@@ -43,9 +43,9 @@ const GENRE_DATA: Record<
   },
   drama: {
     label: "Drama",
-    title: "Best Drama Microdramas on Verza TV",
+    title: "Best Drama Microdramas on VERZA TV",
     description:
-      "Powerful drama micro-series on Verza TV. Family secrets, dynasty battles, betrayal arcs, and emotional stories told in cinematic 60-second vertical episodes. Binge the best short-form drama content with the first 5 episodes free.",
+      "Powerful drama micro-series on VERZA TV. Family secrets, dynasty battles, betrayal arcs, and emotional stories told in cinematic 60-second vertical episodes. Binge the best short-form drama content with the first 5 episodes free.",
     keywords: [
       "drama microdramas",
       "family drama",
@@ -56,9 +56,9 @@ const GENRE_DATA: Record<
   },
   comedy: {
     label: "Comedy",
-    title: "Best Comedy Microdramas on Verza TV",
+    title: "Best Comedy Microdramas on VERZA TV",
     description:
-      "Laugh-out-loud comedy micro-dramas on Verza TV. Romantic comedies, workplace humor, and witty storylines in fast-paced 60-second vertical episodes. Light, bingeable, and free to start.",
+      "Laugh-out-loud comedy micro-dramas on VERZA TV. Romantic comedies, workplace humor, and witty storylines in fast-paced 60-second vertical episodes. Light, bingeable, and free to start.",
     keywords: [
       "comedy microdramas",
       "romantic comedy",
@@ -69,9 +69,9 @@ const GENRE_DATA: Record<
   },
   mystery: {
     label: "Mystery",
-    title: "Best Mystery Microdramas on Verza TV",
+    title: "Best Mystery Microdramas on VERZA TV",
     description:
-      "Unravel the truth with Verza TV's mystery micro-dramas. Cold cases, hidden identities, and shocking reveals in 60-second vertical episodes that keep you guessing until the final scene. Start watching free.",
+      "Unravel the truth with VERZA TV's mystery micro-dramas. Cold cases, hidden identities, and shocking reveals in 60-second vertical episodes that keep you guessing until the final scene. Start watching free.",
     keywords: [
       "mystery microdramas",
       "whodunit series",
@@ -82,9 +82,9 @@ const GENRE_DATA: Record<
   },
   billionaire: {
     label: "Billionaire",
-    title: "Best Billionaire Microdramas on Verza TV",
+    title: "Best Billionaire Microdramas on VERZA TV",
     description:
-      "Luxury, power, and passion collide in Verza TV's billionaire micro-dramas. Contract marriages, corporate empires, secret heirs, and high-stakes romance in cinematic 60-second vertical episodes. The first 5 episodes of every series are free.",
+      "Luxury, power, and passion collide in VERZA TV's billionaire micro-dramas. Contract marriages, corporate empires, secret heirs, and high-stakes romance in cinematic 60-second vertical episodes. The first 5 episodes of every series are free.",
     keywords: [
       "billionaire microdramas",
       "billionaire romance",
@@ -95,9 +95,9 @@ const GENRE_DATA: Record<
   },
   revenge: {
     label: "Revenge",
-    title: "Best Revenge Microdramas on Verza TV",
+    title: "Best Revenge Microdramas on VERZA TV",
     description:
-      "She was wronged. Now she's back. Verza TV's revenge micro-dramas deliver cunning comebacks, power plays, and satisfying justice in 60-second vertical episodes. Binge the most addictive payback stories with the first 5 episodes free.",
+      "She was wronged. Now she's back. VERZA TV's revenge micro-dramas deliver cunning comebacks, power plays, and satisfying justice in 60-second vertical episodes. Binge the most addictive payback stories with the first 5 episodes free.",
     keywords: [
       "revenge microdramas",
       "revenge drama",
@@ -108,9 +108,9 @@ const GENRE_DATA: Record<
   },
   forbidden: {
     label: "Forbidden",
-    title: "Best Forbidden Love Microdramas on Verza TV",
+    title: "Best Forbidden Love Microdramas on VERZA TV",
     description:
-      "Love knows no rules. Verza TV's forbidden romance micro-dramas explore taboo attractions, secret affairs, and impossible love stories in 60-second vertical episodes that keep you hooked. Start free with 5 episodes per series.",
+      "Love knows no rules. VERZA TV's forbidden romance micro-dramas explore taboo attractions, secret affairs, and impossible love stories in 60-second vertical episodes that keep you hooked. Start free with 5 episodes per series.",
     keywords: [
       "forbidden love microdramas",
       "forbidden romance",
@@ -155,7 +155,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: data.description,
       url: `${BASE_URL}/genre/${genre}`,
       type: "website",
-      siteName: "Verza TV",
+      siteName: "VERZA TV",
     },
     twitter: {
       card: "summary_large_image",
@@ -196,7 +196,7 @@ export default async function GenreLandingPage({ params }: Props) {
       <JsonLd
         data={[
           itemListSchema({
-            name: `Best ${data.label} Shows on Verza TV`,
+            name: `Best ${data.label} Shows on VERZA TV`,
             description: data.description,
             items: allMatches.map((s, i) => ({
               name: s.title,
@@ -249,7 +249,7 @@ export default async function GenreLandingPage({ params }: Props) {
           className="text-3xl font-bold leading-tight mb-3"
           style={{ color: T.text }}
         >
-          Best {data.label} Shows on Verza TV
+          Best {data.label} Shows on VERZA TV
         </h1>
 
         <p
@@ -375,11 +375,11 @@ export default async function GenreLandingPage({ params }: Props) {
         {/* Rich SEO content */}
         <div className="mt-8" style={{ color: T.textMute }}>
           <h2 className="text-sm font-semibold mb-2" style={{ color: T.textDim }}>
-            Why Watch {data.label} Micro-Dramas on Verza TV?
+            Why Watch {data.label} Micro-Dramas on VERZA TV?
           </h2>
           <div className="text-xs leading-relaxed space-y-3">
             <p>
-              Verza TV is the first US-based vertical micro-drama streaming
+              VERZA TV is the first US-based vertical micro-drama streaming
               platform with over 80 original series. Every episode runs 60 to
               120 seconds, filmed in cinematic 9:16 for phone-first viewing.
             </p>
@@ -391,7 +391,7 @@ export default async function GenreLandingPage({ params }: Props) {
             </p>
             <p>
               Whether you have a commute to fill or five minutes before bed,
-              Verza TV {data.label.toLowerCase()} micro-dramas deliver
+              VERZA TV {data.label.toLowerCase()} micro-dramas deliver
               full-season storylines in bite-sized episodes you can binge
               anywhere.
             </p>

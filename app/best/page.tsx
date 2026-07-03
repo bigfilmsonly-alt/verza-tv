@@ -11,7 +11,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
 
 const PAGE_TITLE = `Best-Of Lists: What to Watch on ${BRAND.name}`;
 const PAGE_DESC =
-  "Find your next binge with Verza TV best-of lists — the best billionaire romances, revenge dramas, cliffhangers, mafia romances and more, ranked and ready to watch.";
+  "Find your next binge with VERZA TV best-of lists — the best billionaire romances, revenge dramas, cliffhangers, mafia romances and more, ranked and ready to watch.";
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,

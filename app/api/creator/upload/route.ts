@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
   if (!muxConfigured()) {
     // No Mux token provisioned yet — fail loudly so it's never silently fake.
     return Response.json(
-      { error: "Uploads are not configured yet (missing Mux token). Contact the Verza team." },
+      { error: "Uploads are not configured yet (missing Mux token). Contact the VERZA team." },
       { status: 503 },
     );
   }

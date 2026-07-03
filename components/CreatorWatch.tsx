@@ -116,7 +116,7 @@ export default function CreatorWatch({
     <div className="min-h-screen flex flex-col" style={{ background: "#07070E" }}>
       <div className="px-4 pt-4">
         <Link href="/" className="text-sm no-underline" style={{ color: "rgba(255,255,255,0.5)" }}>
-          ← Verza TV
+          ← VERZA TV
         </Link>
       </div>
 

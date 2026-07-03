@@ -10,7 +10,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
 
 const PAGE_TITLE = `${BRAND.name} Comparisons & Microdrama Explainers`;
 const PAGE_DESC =
-  "Fair, factual comparisons of Verza TV vs other microdrama apps and traditional streaming, plus clear explainers on free episodes, coins and how the format works.";
+  "Fair, factual comparisons of VERZA TV vs other microdrama apps and traditional streaming, plus clear explainers on free episodes, coins and how the format works.";
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,

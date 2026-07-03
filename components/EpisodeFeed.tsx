@@ -630,7 +630,7 @@ export default function EpisodeFeed({
     typeof window !== "undefined"
       ? `${window.location.origin}/series/${seriesSlug}/${activeEp?.number ?? 1}`
       : `https://www.verzatv.com/series/${seriesSlug}/${activeEp?.number ?? 1}`;
-  const shareText = `Watch ${seriesTitle} — EP ${activeEp?.number ?? 1} on Verza TV`;
+  const shareText = `Watch ${seriesTitle} — EP ${activeEp?.number ?? 1} on VERZA TV`;
 
   async function shareEpisode() {
     haptic();

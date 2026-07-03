@@ -32,16 +32,16 @@ const OG_IMAGE = `${SITE_URL}/og-image.png?v=3`;
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Verza TV — Microdramas, Reality & More",
-    template: "%s | Verza TV",
+    default: "VERZA TV — Microdramas, Reality & More",
+    template: "%s | VERZA TV",
   },
   description:
     "Stream binge-worthy micro-dramas, reality shows, and original series — all in vertical, all in minutes. The first US-based vertical micro-drama platform.",
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
-    siteName: "Verza TV",
-    title: "Verza TV — Microdramas, Reality & More",
+    siteName: "VERZA TV",
+    title: "VERZA TV — Microdramas, Reality & More",
     description:
       "Stream binge-worthy micro-dramas, reality shows, and original series — all in vertical, all in minutes.",
     url: SITE_URL,
@@ -51,7 +51,7 @@ export const metadata: Metadata = {
         secureUrl: OG_IMAGE,
         width: 1200,
         height: 630,
-        alt: "Verza TV — Microdramas, Reality & More",
+        alt: "VERZA TV — Microdramas, Reality & More",
         type: "image/png",
       },
     ],
@@ -59,7 +59,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     site: "@VerzaTV",
-    title: "Verza TV — Microdramas, Reality & More",
+    title: "VERZA TV — Microdramas, Reality & More",
     description:
       "Stream binge-worthy micro-dramas, reality shows, and original series — all in vertical, all in minutes.",
     images: [
@@ -67,7 +67,7 @@ export const metadata: Metadata = {
         url: OG_IMAGE,
         width: 1200,
         height: 630,
-        alt: "Verza TV",
+        alt: "VERZA TV",
       },
     ],
   },
@@ -82,7 +82,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Verza TV",
+    title: "VERZA TV",
   },
   robots: { index: true, follow: true },
 };

@@ -16,12 +16,12 @@ const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
 export const metadata: Metadata = {
   title: `Careers | ${BRAND.name}`,
   description:
-    "Join Verza TV — a studio and software company in one building. Explore open roles in engineering, production, content, and growth at the vertical micro-drama studio.",
+    "Join VERZA TV — a studio and software company in one building. Explore open roles in engineering, production, content, and growth at the vertical micro-drama studio.",
   alternates: { canonical: "/careers" },
   openGraph: {
     title: `Careers | ${BRAND.name}`,
     description:
-      "Open roles at Verza TV, the first US-based vertical micro-drama studio. Engineering, production, content, and growth.",
+      "Open roles at VERZA TV, the first US-based vertical micro-drama studio. Engineering, production, content, and growth.",
     url: `${BASE_URL}/careers`,
     type: "website",
   },
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: `Careers | ${BRAND.name}`,
     description:
-      "Open roles at Verza TV — a studio and software company in one building.",
+      "Open roles at VERZA TV — a studio and software company in one building.",
   },
 };
 
@@ -89,7 +89,7 @@ export default function CareersPage() {
           className="text-sm font-semibold uppercase tracking-wider mb-3"
           style={{ color: T.accent }}
         >
-          Why Verza TV
+          Why VERZA TV
         </h2>
         <div className="grid grid-cols-1 gap-3 mb-8">
           {PERKS.map((perk) => (

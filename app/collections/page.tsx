@@ -11,7 +11,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
 
 const PAGE_TITLE = `Curated Collections on ${BRAND.name}`;
 const PAGE_DESC =
-  "Explore handpicked Verza TV collections — billionaire romances, revenge dramas, cliffhangers, enemies-to-lovers and more, each curated from our vertical micro-drama originals.";
+  "Explore handpicked VERZA TV collections — billionaire romances, revenge dramas, cliffhangers, enemies-to-lovers and more, each curated from our vertical micro-drama originals.";
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,

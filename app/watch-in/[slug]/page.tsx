@@ -73,7 +73,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const loc = getLocation(slug);
   if (!loc) return { title: "Not Found" };
 
-  const title = `Watch Verza TV in ${loc.name} — Microdramas & Reality`;
+  const title = `Watch VERZA TV in ${loc.name} — Microdramas & Reality`;
   const canonical = `/watch-in/${loc.slug}`;
   const url = `${BASE_URL}${canonical}`;
 
@@ -91,7 +91,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: loc.blurb,
       url,
       type: "website",
-      siteName: "Verza TV",
+      siteName: "VERZA TV",
       ...(loc.locale ? { locale: loc.locale.replace("-", "_") } : {}),
     },
     twitter: {
@@ -116,27 +116,27 @@ export default async function WatchInLocationPage({ params }: Props) {
 
   const tzNote =
     loc.type === "country"
-      ? `Verza TV streams to every region of ${loc.name} with no geographic blackout. The full catalog is available on demand in your local time — open the app and the newest episodes are ready to watch.`
-      : `Verza TV is available everywhere in ${loc.name} with no regional blackout. New episodes drop on demand and are ready to stream the moment they go live nationwide.`;
+      ? `VERZA TV streams to every region of ${loc.name} with no geographic blackout. The full catalog is available on demand in your local time — open the app and the newest episodes are ready to watch.`
+      : `VERZA TV is available everywhere in ${loc.name} with no regional blackout. New episodes drop on demand and are ready to stream the moment they go live nationwide.`;
 
   const faqs = [
     {
-      question: `Is Verza TV available in ${loc.name}?`,
-      answer: `Yes. Verza TV streams in ${loc.name} with no regional blackout. You can watch all 80+ original micro-drama series on demand in your local time, on any phone, tablet, or computer with a browser.`,
+      question: `Is VERZA TV available in ${loc.name}?`,
+      answer: `Yes. VERZA TV streams in ${loc.name} with no regional blackout. You can watch all 80+ original micro-drama series on demand in your local time, on any phone, tablet, or computer with a browser.`,
     },
     {
-      question: `How much does Verza TV cost in ${loc.name}?`,
+      question: `How much does VERZA TV cost in ${loc.name}?`,
       answer:
         "There's no subscription required to start. Every series begins with 5 free episodes. After that you unlock additional episodes with coins, or go all-in with VIP at $9.99/month or $79.99/year for unlimited access to the full catalog.",
     },
     {
-      question: `Can I watch Verza TV for free in ${loc.name}?`,
-      answer: `Absolutely. The first 5 episodes of every series on Verza TV are free, so viewers in ${loc.name} can sample as many shows as they like at no cost before deciding to unlock the rest with coins.`,
+      question: `Can I watch VERZA TV for free in ${loc.name}?`,
+      answer: `Absolutely. The first 5 episodes of every series on VERZA TV are free, so viewers in ${loc.name} can sample as many shows as they like at no cost before deciding to unlock the rest with coins.`,
     },
     {
-      question: `What devices can I use to watch Verza TV in ${loc.name}?`,
+      question: `What devices can I use to watch VERZA TV in ${loc.name}?`,
       answer:
-        "Verza TV works in any modern web browser on iPhone, Android, iPad, Mac, and PC. The micro-dramas are filmed in vertical 9:16, so they're built for phone-first, one-handed viewing wherever you are.",
+        "VERZA TV works in any modern web browser on iPhone, Android, iPad, Mac, and PC. The micro-dramas are filmed in vertical 9:16, so they're built for phone-first, one-handed viewing wherever you are.",
     },
   ];
 
@@ -146,7 +146,7 @@ export default async function WatchInLocationPage({ params }: Props) {
       <JsonLd
         data={[
           itemListSchema({
-            name: `Most-Watched Verza TV Series in ${loc.name}`,
+            name: `Most-Watched VERZA TV Series in ${loc.name}`,
             description: loc.blurb,
             items: curated.map((s, i) => ({
               name: s.title,
@@ -201,7 +201,7 @@ export default async function WatchInLocationPage({ params }: Props) {
           className="text-3xl font-bold leading-tight mb-3"
           style={{ color: T.text }}
         >
-          Watch Verza TV in {loc.name}
+          Watch VERZA TV in {loc.name}
         </h1>
 
         <p
@@ -303,7 +303,7 @@ export default async function WatchInLocationPage({ params }: Props) {
             className="text-sm font-semibold uppercase tracking-wider mb-3"
             style={{ color: T.textMute }}
           >
-            Also Watching Verza TV
+            Also Watching VERZA TV
           </h2>
           <div className="flex flex-wrap gap-2">
             {related.map((r) => (
@@ -329,7 +329,7 @@ export default async function WatchInLocationPage({ params }: Props) {
             className="text-sm font-semibold mb-3"
             style={{ color: T.textDim }}
           >
-            Verza TV in {loc.name}: Frequently Asked Questions
+            VERZA TV in {loc.name}: Frequently Asked Questions
           </h2>
           <div className="space-y-4">
             {faqs.map((faq) => (
@@ -358,7 +358,7 @@ export default async function WatchInLocationPage({ params }: Props) {
             className="text-xs font-medium no-underline"
             style={{ color: T.accent }}
           >
-            Browse all Verza TV series &rarr;
+            Browse all VERZA TV series &rarr;
           </Link>
         </div>
       </section>

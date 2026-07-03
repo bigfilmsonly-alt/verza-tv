@@ -7,7 +7,7 @@ import { getLiveSeries } from "@/lib/catalog";
 export const metadata: Metadata = {
   title: `Media Kit | ${BRAND.name}`,
   description:
-    "Verza TV media kit. Logos, brand guidelines, key facts, and press resources.",
+    "VERZA TV media kit. Logos, brand guidelines, key facts, and press resources.",
   alternates: { canonical: "/media-kit" },
 };
 
@@ -33,7 +33,7 @@ export default function MediaKitPage() {
             Brand Name
           </h2>
           <p className="text-sm" style={{ color: T.textDim }}>
-            <strong style={{ color: T.text }}>Verza TV</strong> — always
+            <strong style={{ color: T.text }}>VERZA TV</strong> — always
             spelled as two words, with a capital V and capital TV.
           </p>
         </div>

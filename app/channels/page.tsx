@@ -12,7 +12,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
 export const metadata: Metadata = {
   title: `Channels | ${BRAND.name}`,
   description:
-    "Creators, brands, and studios on Verza TV. Browse channels and discover original micro-dramas, reality shows, and more.",
+    "Creators, brands, and studios on VERZA TV. Browse channels and discover original micro-dramas, reality shows, and more.",
   alternates: { canonical: `${SITE_URL}/channels` },
 };
 
@@ -20,9 +20,9 @@ const CHANNEL_META: Record<
   string,
   { description: string; icon: string; posterLimit: number }
 > = {
-  "Verza Originals": {
+  "VERZA Originals": {
     description:
-      "The flagship channel. Romance, thriller, mystery, and revenge \u2014 70+ original micro-dramas produced by Verza TV.",
+      "The flagship channel. Romance, thriller, mystery, and revenge \u2014 70+ original micro-dramas produced by VERZA TV.",
     icon: "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z",
     posterLimit: 12,
   },
@@ -107,10 +107,10 @@ export default function ChannelsPage() {
     new Set([...liveChannelNames, ...Object.keys(CHANNEL_META)])
   );
 
-  /* Sort so Verza Originals appears first */
+  /* Sort so VERZA Originals appears first */
   const sortedChannels = allChannelNames.sort((a, b) => {
-    if (a === "Verza Originals") return -1;
-    if (b === "Verza Originals") return 1;
+    if (a === "VERZA Originals") return -1;
+    if (b === "VERZA Originals") return 1;
     return a.localeCompare(b);
   });
 

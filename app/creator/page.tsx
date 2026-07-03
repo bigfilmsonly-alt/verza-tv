@@ -5,7 +5,7 @@ import CreatorDashboard from "@/components/CreatorDashboard";
 export const metadata: Metadata = {
   title: `Creator Studio | ${BRAND.name}`,
   description:
-    "Apply, upload, price, and manage your titles on Verza TV. Keep up to 80% of every sale.",
+    "Apply, upload, price, and manage your titles on VERZA TV. Keep up to 80% of every sale.",
   robots: { index: false, follow: false },
 };
 

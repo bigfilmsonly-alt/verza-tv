@@ -8,7 +8,7 @@ interface ChatMessage {
 }
 
 const SYSTEM_CONTEXT =
-  "You are Verza, the AI assistant for Verza TV, a vertical micro-drama streaming platform with 76 original series. Help users discover shows, get recommendations, and answer questions about the platform.";
+  "You are VERZA, the AI assistant for VERZA TV, a vertical micro-drama streaming platform with 76 original series. Help users discover shows, get recommendations, and answer questions about the platform.";
 
 const QUICK_CHIPS = [
   "Recommend a drama",
@@ -109,7 +109,7 @@ export default function AskVerza() {
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          aria-label="Ask Verza AI assistant"
+          aria-label="Ask VERZA AI assistant"
           style={{
             position: "fixed",
             bottom: 80,
@@ -230,7 +230,7 @@ export default function AskVerza() {
                     fontSize: 16,
                   }}
                 >
-                  Ask Verza
+                  Ask VERZA
                 </span>
               </div>
               <button
@@ -297,7 +297,7 @@ export default function AskVerza() {
                       />
                     </svg>
                   </div>
-                  Hi! I'm Verza, your streaming assistant.
+                  Hi! I'm VERZA, your streaming assistant.
                   <br />
                   Ask me anything about our shows!
                 </div>
@@ -419,7 +419,7 @@ export default function AskVerza() {
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask Verza anything..."
+                placeholder="Ask VERZA anything..."
                 maxLength={500}
                 style={{
                   flex: 1,

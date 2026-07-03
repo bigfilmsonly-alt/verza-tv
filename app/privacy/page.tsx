@@ -7,7 +7,7 @@ import { BRAND } from "@/lib/config";
 export const metadata: Metadata = {
   title: `Privacy Policy | ${BRAND.name}`,
   description:
-    "Privacy Policy for Verza TV. Learn how we collect, use, and protect your personal information.",
+    "Privacy Policy for VERZA TV. Learn how we collect, use, and protect your personal information.",
   alternates: { canonical: "/privacy" },
 };
 

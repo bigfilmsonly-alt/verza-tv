@@ -10,7 +10,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
 
 const PAGE_TITLE = `Watch ${BRAND.name} Around the World`;
 const PAGE_DESC =
-  "Stream Verza TV vertical micro-dramas and reality from anywhere — browse availability, most-watched picks and viewing guides for 70+ cities, states and countries.";
+  "Stream VERZA TV vertical micro-dramas and reality from anywhere — browse availability, most-watched picks and viewing guides for 70+ cities, states and countries.";
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,

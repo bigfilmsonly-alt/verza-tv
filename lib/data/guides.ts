@@ -1,7 +1,7 @@
 /**
  * GUIDES — long-form informational / answer-engine (AEO) content.
  * Each guide is original editorial prose about the micro-drama format,
- * how Verza TV works, and how to get the most out of vertical drama.
+ * how VERZA TV works, and how to get the most out of vertical drama.
  */
 
 export interface Guide {
@@ -40,7 +40,7 @@ export const GUIDES: Guide[] = [
       },
       {
         heading: "Who makes microdramas",
-        body: "The format was pioneered by Chinese studios and apps, then spread globally through platforms producing English-language originals. Verza TV is a US-based vertical micro-drama service with more than 76 original series spanning romance, thriller, revenge, mystery, and reality. Production values have climbed quickly — real actors, scripts, cinematography, and scoring — so today's microdramas look far closer to streaming television than to a phone video. The economics favor volume and serialization, which is why catalogs grow fast and new episodes arrive often.",
+        body: "The format was pioneered by Chinese studios and apps, then spread globally through platforms producing English-language originals. VERZA TV is a US-based vertical micro-drama service with more than 76 original series spanning romance, thriller, revenge, mystery, and reality. Production values have climbed quickly — real actors, scripts, cinematography, and scoring — so today's microdramas look far closer to streaming television than to a phone video. The economics favor volume and serialization, which is why catalogs grow fast and new episodes arrive often.",
       },
     ],
     faq: [
@@ -57,7 +57,7 @@ export const GUIDES: Guide[] = [
       {
         question: "Where can I watch microdramas?",
         answer:
-          "You can watch microdramas on dedicated platforms like Verza TV, which streams original vertical series in your browser. The first five episodes of every Verza series are free to start.",
+          "You can watch microdramas on dedicated platforms like VERZA TV, which streams original vertical series in your browser. The first five episodes of every VERZA series are free to start.",
       },
     ],
   },
@@ -71,7 +71,7 @@ export const GUIDES: Guide[] = [
     sections: [
       {
         heading: "Pick a series and start the free episodes",
-        body: "Begin by browsing a catalog and choosing a series whose poster or logline grabs you. On Verza TV, the first five episodes of every series are free, so you can sample a story before committing. Tap the poster, hit play, and the first episode begins immediately in vertical full-screen. There is no need to create an account just to start — the free episodes are open, which makes vertical drama one of the lowest-friction formats to try.",
+        body: "Begin by browsing a catalog and choosing a series whose poster or logline grabs you. On VERZA TV, the first five episodes of every series are free, so you can sample a story before committing. Tap the poster, hit play, and the first episode begins immediately in vertical full-screen. There is no need to create an account just to start — the free episodes are open, which makes vertical drama one of the lowest-friction formats to try.",
       },
       {
         heading: "Master the swipe",
@@ -90,7 +90,7 @@ export const GUIDES: Guide[] = [
       {
         question: "Do I need an app to watch vertical dramas?",
         answer:
-          "Not necessarily. Verza TV streams vertical dramas directly in your mobile or desktop browser, so you can start watching the free episodes without installing anything.",
+          "Not necessarily. VERZA TV streams vertical dramas directly in your mobile or desktop browser, so you can start watching the free episodes without installing anything.",
       },
       {
         question: "How do I move to the next episode?",
@@ -110,7 +110,7 @@ export const GUIDES: Guide[] = [
     blurb:
       "A plain-English glossary of microdrama terms — from cliffhanger and binge to coins, vertical, and serialized arc. Understand the language of vertical drama.",
     intro:
-      "Like any growing medium, microdramas have developed their own vocabulary — borrowed partly from television, partly from social video, and partly from gaming and app economics. If you are new to vertical drama, a few of these words can be confusing. This glossary defines the terms you will encounter most often, in plain language, so you can read about microdramas, talk about them, and navigate platforms like Verza TV without guessing. Each entry is short on purpose: a clear definition you can scan.",
+      "Like any growing medium, microdramas have developed their own vocabulary — borrowed partly from television, partly from social video, and partly from gaming and app economics. If you are new to vertical drama, a few of these words can be confusing. This glossary defines the terms you will encounter most often, in plain language, so you can read about microdramas, talk about them, and navigate platforms like VERZA TV without guessing. Each entry is short on purpose: a clear definition you can scan.",
     sections: [
       {
         heading: "Microdrama",
@@ -130,7 +130,7 @@ export const GUIDES: Guide[] = [
       },
       {
         heading: "Coins",
-        body: "A virtual currency used on many microdrama platforms to unlock episodes beyond the free ones. You buy coins in packs and spend them per episode or per series. Coins decouple price from a fixed subscription, letting you pay only for the stories you actually want. On Verza TV the first episodes of every series are free, and coins unlock the rest.",
+        body: "A virtual currency used on many microdrama platforms to unlock episodes beyond the free ones. You buy coins in packs and spend them per episode or per series. Coins decouple price from a fixed subscription, letting you pay only for the stories you actually want. On VERZA TV the first episodes of every series are free, and coins unlock the rest.",
       },
       {
         heading: "Serialized arc",
@@ -177,7 +177,7 @@ export const GUIDES: Guide[] = [
       },
       {
         heading: "Coins versus subscriptions",
-        body: "Coins suit viewers who watch selectively: you pay for the handful of series you love and nothing for the rest. A subscription suits viewers who watch broadly and want everything unlocked for one price. Many platforms, including Verza TV, offer both — coins for à la carte unlocking and a VIP membership for unlimited access. If you only finish a couple of series a month, coins are usually cheaper; if you binge constantly across many titles, a membership often wins.",
+        body: "Coins suit viewers who watch selectively: you pay for the handful of series you love and nothing for the rest. A subscription suits viewers who watch broadly and want everything unlocked for one price. Many platforms, including VERZA TV, offer both — coins for à la carte unlocking and a VIP membership for unlimited access. If you only finish a couple of series a month, coins are usually cheaper; if you binge constantly across many titles, a membership often wins.",
       },
     ],
     faq: [
@@ -208,7 +208,7 @@ export const GUIDES: Guide[] = [
     sections: [
       {
         heading: "What you get for free",
-        body: "On Verza TV, the first five episodes of every series are free, with no payment and no commitment required to start. Across a catalog of more than 76 series, that adds up to a large amount of free, high-quality drama you can watch before spending anything. The free episodes are not trailers — they are the real opening chapters of each story, complete with the cliffhangers that make microdramas addictive. You can sample dozens of series this way and only continue with the ones that grab you.",
+        body: "On VERZA TV, the first five episodes of every series are free, with no payment and no commitment required to start. Across a catalog of more than 76 series, that adds up to a large amount of free, high-quality drama you can watch before spending anything. The free episodes are not trailers — they are the real opening chapters of each story, complete with the cliffhangers that make microdramas addictive. You can sample dozens of series this way and only continue with the ones that grab you.",
       },
       {
         heading: "When microdramas cost money",
@@ -220,14 +220,14 @@ export const GUIDES: Guide[] = [
       },
       {
         heading: "Free episodes versus VIP",
-        body: "If you only dip in occasionally, the free episodes plus the odd coin unlock may be all you ever need. If you find yourself bingeing constantly, a VIP membership removes the per-episode friction and unlocks everything for a flat price. Verza TV offers both a monthly and a yearly VIP plan, with the yearly option discounted for committed viewers. There is no wrong choice — start free, and upgrade only if your habits make it worthwhile.",
+        body: "If you only dip in occasionally, the free episodes plus the odd coin unlock may be all you ever need. If you find yourself bingeing constantly, a VIP membership removes the per-episode friction and unlocks everything for a flat price. VERZA TV offers both a monthly and a yearly VIP plan, with the yearly option discounted for committed viewers. There is no wrong choice — start free, and upgrade only if your habits make it worthwhile.",
       },
     ],
     faq: [
       {
         question: "Can I watch microdramas without paying anything?",
         answer:
-          "Yes. On Verza TV the first five episodes of every series are free, so across the full catalog you can watch a large amount of drama without spending anything or creating a payment account.",
+          "Yes. On VERZA TV the first five episodes of every series are free, so across the full catalog you can watch a large amount of drama without spending anything or creating a payment account.",
       },
       {
         question: "Are the free episodes just previews?",
@@ -245,17 +245,17 @@ export const GUIDES: Guide[] = [
     slug: "how-to-start-watching",
     title: "How to Start Watching Microdramas",
     blurb:
-      "New to vertical drama? This step-by-step guide shows you how to start watching microdramas on Verza TV in minutes — what to pick and how to dive in.",
+      "New to vertical drama? This step-by-step guide shows you how to start watching microdramas on VERZA TV in minutes — what to pick and how to dive in.",
     intro:
       "Getting into microdramas takes almost no setup, which is part of the appeal. There is no download queue, no lengthy onboarding, and no need to commit before you have seen anything. In a couple of minutes you can be deep in a vertical revenge saga or a billionaire romance. This guide gives you a simple, ordered path from never having watched a microdrama to comfortably bingeing your first series, with tips on choosing well so your first experience hooks you the way the format intends.",
     sections: [
       {
         heading: "Step one: open the catalog",
-        body: "Start by browsing a microdrama catalog. On Verza TV you can do this right in your browser on a phone or desktop — no app required. Scan the posters and genre tabs and notice what pulls you in: a dramatic title, a striking poster, a logline that promises a twist. Microdramas live or die on hooks, so trust your gut reaction. The catalog is organized by genre and theme, so if you already love thrillers or romance, head straight to that tab.",
+        body: "Start by browsing a microdrama catalog. On VERZA TV you can do this right in your browser on a phone or desktop — no app required. Scan the posters and genre tabs and notice what pulls you in: a dramatic title, a striking poster, a logline that promises a twist. Microdramas live or die on hooks, so trust your gut reaction. The catalog is organized by genre and theme, so if you already love thrillers or romance, head straight to that tab.",
       },
       {
         heading: "Step two: pick a series and start the free episodes",
-        body: "Choose a series and hit play. The first five episodes of every Verza TV series are free, so there is zero risk in starting. Watch them in order — they are the genuine opening of the story, not a teaser. By the end of those five episodes you will know whether the series' pace, tone, and characters click with you. If they do, you will likely be at a cliffhanger that makes the decision to continue feel obvious.",
+        body: "Choose a series and hit play. The first five episodes of every VERZA TV series are free, so there is zero risk in starting. Watch them in order — they are the genuine opening of the story, not a teaser. By the end of those five episodes you will know whether the series' pace, tone, and characters click with you. If they do, you will likely be at a cliffhanger that makes the decision to continue feel obvious.",
       },
       {
         heading: "Step three: learn the controls as you go",
@@ -270,7 +270,7 @@ export const GUIDES: Guide[] = [
       {
         question: "Do I need to sign up before watching?",
         answer:
-          "No. You can start the free episodes of any Verza TV series directly in your browser without an account. You only need to sign in when you want to unlock more episodes with coins or VIP.",
+          "No. You can start the free episodes of any VERZA TV series directly in your browser without an account. You only need to sign in when you want to unlock more episodes with coins or VIP.",
       },
       {
         question: "Which series should I start with?",
@@ -306,7 +306,7 @@ export const GUIDES: Guide[] = [
       },
       {
         heading: "Cost and access",
-        body: "Most traditional streaming runs on a flat monthly subscription for a whole library. Microdramas typically use a free-to-start model: opening episodes are free, then coins or a membership unlock the rest. This lets you pay per story instead of per month, which suits selective viewers. Platforms like Verza TV offer both coins and a VIP membership, so you can choose à la carte unlocking or all-you-can-watch — flexibility that traditional TV's single-subscription model rarely provides.",
+        body: "Most traditional streaming runs on a flat monthly subscription for a whole library. Microdramas typically use a free-to-start model: opening episodes are free, then coins or a membership unlock the rest. This lets you pay per story instead of per month, which suits selective viewers. Platforms like VERZA TV offer both coins and a VIP membership, so you can choose à la carte unlocking or all-you-can-watch — flexibility that traditional TV's single-subscription model rarely provides.",
       },
     ],
     faq: [
@@ -331,7 +331,7 @@ export const GUIDES: Guide[] = [
     slug: "history-of-vertical-drama",
     title: "The History of Vertical Drama",
     blurb:
-      "From early mobile video to a global phenomenon: a short history of vertical drama, how it grew, and how platforms like Verza TV carry it forward.",
+      "From early mobile video to a global phenomenon: a short history of vertical drama, how it grew, and how platforms like VERZA TV carry it forward.",
     intro:
       "Vertical drama feels brand new, but it is the product of a decade of shifting habits in how people watch video. The format sits at the intersection of two trends: the move of all video consumption onto phones, and the rise of short, swipeable content. Understanding where vertical drama came from explains why it looks the way it does and why it grew so fast. This guide traces the format's path from early experiments to a worldwide industry producing thousands of episodes a year.",
     sections: [
@@ -349,7 +349,7 @@ export const GUIDES: Guide[] = [
       },
       {
         heading: "Where it is going",
-        body: "Vertical drama is now a global industry with rising production values, growing catalogs, and serious investment. US-based platforms like Verza TV produce original vertical series across romance, thriller, revenge, mystery, and reality, with free opening episodes and coin or VIP unlocking. The trajectory points toward more genres, higher craft, and deeper integration with how people already use their phones. What began as a workaround for the wrong-shaped screen has become a storytelling form in its own right.",
+        body: "Vertical drama is now a global industry with rising production values, growing catalogs, and serious investment. US-based platforms like VERZA TV produce original vertical series across romance, thriller, revenge, mystery, and reality, with free opening episodes and coin or VIP unlocking. The trajectory points toward more genres, higher craft, and deeper integration with how people already use their phones. What began as a workaround for the wrong-shaped screen has become a storytelling form in its own right.",
       },
     ],
     faq: [
@@ -366,7 +366,7 @@ export const GUIDES: Guide[] = [
       {
         question: "Is vertical drama still growing?",
         answer:
-          "Yes. The format continues to expand globally with rising production values, larger catalogs, new genres, and ongoing investment from platforms producing original vertical series, including US-based services like Verza TV.",
+          "Yes. The format continues to expand globally with rising production values, larger catalogs, new genres, and ongoing investment from platforms producing original vertical series, including US-based services like VERZA TV.",
       },
     ],
   },

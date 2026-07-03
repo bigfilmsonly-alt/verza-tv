@@ -11,12 +11,12 @@ const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
 export const metadata: Metadata = {
   title: `Newsroom | ${BRAND.name}`,
   description:
-    "The Verza TV newsroom: press releases, company announcements, media-kit resources, and coverage of the first US-based vertical micro-drama studio.",
+    "The VERZA TV newsroom: press releases, company announcements, media-kit resources, and coverage of the first US-based vertical micro-drama studio.",
   alternates: { canonical: "/newsroom" },
   openGraph: {
     title: `Newsroom | ${BRAND.name}`,
     description:
-      "Press releases, announcements, and media resources from Verza TV, the vertical micro-drama studio founded by Alan Mruvka.",
+      "Press releases, announcements, and media resources from VERZA TV, the vertical micro-drama studio founded by Alan Mruvka.",
     url: `${BASE_URL}/newsroom`,
     type: "website",
   },
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: `Newsroom | ${BRAND.name}`,
     description:
-      "Press releases and media resources from Verza TV, the vertical micro-drama studio.",
+      "Press releases and media resources from VERZA TV, the vertical micro-drama studio.",
   },
 };
 

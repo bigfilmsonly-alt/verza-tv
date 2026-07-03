@@ -69,7 +69,7 @@ function buildFaq(title: string, count: number) {
     {
       question: `How long is each episode?`,
       answer:
-        "Verza TV micro-drama episodes run roughly 60 to 120 seconds each, filmed in cinematic 9:16 vertical for phone-first viewing. A full series tells a complete, season-length story across dozens of bite-sized episodes you can binge anywhere.",
+        "VERZA TV micro-drama episodes run roughly 60 to 120 seconds each, filmed in cinematic 9:16 vertical for phone-first viewing. A full series tells a complete, season-length story across dozens of bite-sized episodes you can binge anywhere.",
     },
     {
       question: `Where can I find more collections like this?`,

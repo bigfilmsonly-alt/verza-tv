@@ -5,7 +5,7 @@ import { BRAND } from "@/lib/config";
 
 export const metadata: Metadata = {
   title: `My List | ${BRAND.name}`,
-  description: "Your saved shows and watchlist on Verza TV.",
+  description: "Your saved shows and watchlist on VERZA TV.",
 };
 
 /* ------------------------------------------------------------------ */

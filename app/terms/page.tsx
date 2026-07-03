@@ -7,7 +7,7 @@ import { BRAND } from "@/lib/config";
 export const metadata: Metadata = {
   title: `Terms of Service | ${BRAND.name}`,
   description:
-    "Terms of Service for Verza TV. Read our terms governing use of the platform, coin purchases, content licensing, and more.",
+    "Terms of Service for VERZA TV. Read our terms governing use of the platform, coin purchases, content licensing, and more.",
   alternates: { canonical: "/terms" },
 };
 

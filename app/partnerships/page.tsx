@@ -11,12 +11,12 @@ const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
 export const metadata: Metadata = {
   title: `Partnerships | ${BRAND.name}`,
   description:
-    "Partner with Verza TV across distribution, brand integrations, advertising, and licensing — a vertically integrated American vertical micro-drama studio.",
+    "Partner with VERZA TV across distribution, brand integrations, advertising, and licensing — a vertically integrated American vertical micro-drama studio.",
   alternates: { canonical: "/partnerships" },
   openGraph: {
     title: `Partnerships | ${BRAND.name}`,
     description:
-      "Distribution, brand, advertiser, and licensing partnerships with Verza TV, the vertical micro-drama studio.",
+      "Distribution, brand, advertiser, and licensing partnerships with VERZA TV, the vertical micro-drama studio.",
     url: `${BASE_URL}/partnerships`,
     type: "website",
   },
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: `Partnerships | ${BRAND.name}`,
     description:
-      "Distribution, brand, advertiser, and licensing partnerships with Verza TV.",
+      "Distribution, brand, advertiser, and licensing partnerships with VERZA TV.",
   },
 };
 

@@ -11,12 +11,12 @@ const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
 export const metadata: Metadata = {
   title: `Brand Assets | ${BRAND.name}`,
   description:
-    "Verza TV brand and press assets: logo usage, color palette, typography, and voice guidelines for media, partners, and creators.",
+    "VERZA TV brand and press assets: logo usage, color palette, typography, and voice guidelines for media, partners, and creators.",
   alternates: { canonical: "/brand-assets" },
   openGraph: {
     title: `Brand Assets | ${BRAND.name}`,
     description:
-      "Logo usage, color palette, typography, and voice guidelines for Verza TV.",
+      "Logo usage, color palette, typography, and voice guidelines for VERZA TV.",
     url: `${BASE_URL}/brand-assets`,
     type: "website",
   },
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: `Brand Assets | ${BRAND.name}`,
     description:
-      "Logo usage, color palette, typography, and voice guidelines for Verza TV.",
+      "Logo usage, color palette, typography, and voice guidelines for VERZA TV.",
   },
 };
 
@@ -44,7 +44,7 @@ const PALETTE: { name: string; hex: string; usage: string }[] = [
 const ASSET_CARDS: { title: string; detail: string }[] = [
   {
     title: "Primary logo",
-    detail: "The Verza TV wordmark on dark backgrounds. Maintain clear space equal to the cap height of the wordmark on all sides; never crowd it.",
+    detail: "The VERZA TV wordmark on dark backgrounds. Maintain clear space equal to the cap height of the wordmark on all sides; never crowd it.",
   },
   {
     title: "Logo on light",

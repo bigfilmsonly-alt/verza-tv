@@ -80,7 +80,7 @@ export default async function GenreHubPage({ params }: Props) {
       <JsonLd
         data={[
           itemListSchema({
-            name: `${genre.name} Shows on Verza TV`,
+            name: `${genre.name} Shows on VERZA TV`,
             description: genre.description,
             items: matching.slice(0, 20).map((s, i) => ({
               name: s.title,

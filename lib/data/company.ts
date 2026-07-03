@@ -1,9 +1,9 @@
 /**
- * Corporate / studio content for the Verza TV company section.
+ * Corporate / studio content for the VERZA TV company section.
  *
  * All copy here is data-driven so the corporate landing pages render
  * directly from these exports. Leadership bios for roles other than the
- * founder are plausible placeholders clearly framed as the Verza TV /
+ * founder are plausible placeholders clearly framed as the VERZA TV /
  * Filmology Labs team and should be confirmed before public use.
  */
 
@@ -17,10 +17,10 @@ export interface CompanyFact {
 }
 
 export const COMPANY_MISSION =
-  "Verza TV exists to make premium, cinema-grade storytelling native to the way people actually watch in 2026 — vertical, mobile, and measured in minutes. We produce and distribute original micro-dramas, reality, and red-carpet programming built for the phone first, then engineer every second of the viewing experience to respect attention rather than exploit it.";
+  "VERZA TV exists to make premium, cinema-grade storytelling native to the way people actually watch in 2026 — vertical, mobile, and measured in minutes. We produce and distribute original micro-dramas, reality, and red-carpet programming built for the phone first, then engineer every second of the viewing experience to respect attention rather than exploit it.";
 
 export const COMPANY_VISION =
-  "We believe vertical micro-drama is the next mass-market format in entertainment — the natural successor to the half-hour sitcom and the streaming binge. Our vision is a vertically integrated American studio that owns the pipeline end to end: development, production, distribution, and monetization. By pairing a $250M production facility with a direct-to-consumer platform, Verza TV controls quality and economics that aggregator-only competitors cannot match.";
+  "We believe vertical micro-drama is the next mass-market format in entertainment — the natural successor to the half-hour sitcom and the streaming binge. Our vision is a vertically integrated American studio that owns the pipeline end to end: development, production, distribution, and monetization. By pairing a $250M production facility with a direct-to-consumer platform, VERZA TV controls quality and economics that aggregator-only competitors cannot match.";
 
 export const COMPANY_FACTS: CompanyFact[] = [
   { label: "Founded", value: "2024" },
@@ -50,19 +50,19 @@ export const LEADERSHIP: Leader[] = [
     name: "Alan Mruvka",
     title: "Founder & Chief Executive Officer",
     href: "/alan-mruvka",
-    bio: "Alan Mruvka is the co-founder of E! Entertainment Television, the network that defined a generation of celebrity and pop-culture programming. He built E! from concept to a global brand and brings that same instinct for format, audience, and brand-building to Verza TV. As founder and CEO, Alan sets the creative and commercial direction of the studio — championing the thesis that vertical micro-drama is the next mass entertainment format and that an American studio should own it end to end.",
+    bio: "Alan Mruvka is the co-founder of E! Entertainment Television, the network that defined a generation of celebrity and pop-culture programming. He built E! from concept to a global brand and brings that same instinct for format, audience, and brand-building to VERZA TV. As founder and CEO, Alan sets the creative and commercial direction of the studio — championing the thesis that vertical micro-drama is the next mass entertainment format and that an American studio should own it end to end.",
   },
   {
     name: "Dana Reyes",
     title: "President & Chief Operating Officer",
     placeholder: true,
-    bio: "Dana leads day-to-day operations across the studio and platform, aligning the Paterson production slate with Verza TV's distribution and revenue roadmap. With a background scaling subscription media businesses, Dana owns the operating cadence that turns a high-volume episode pipeline into a predictable, on-time release calendar.",
+    bio: "Dana leads day-to-day operations across the studio and platform, aligning the Paterson production slate with VERZA TV's distribution and revenue roadmap. With a background scaling subscription media businesses, Dana owns the operating cadence that turns a high-volume episode pipeline into a predictable, on-time release calendar.",
   },
   {
     name: "Marcus Okafor",
     title: "Chief Content Officer",
     placeholder: true,
-    bio: "Marcus oversees development and the original slate — greenlighting series, shaping the house style of the micro-drama format, and building the writers' and directors' rooms that feed Filmology Labs. He is responsible for the editorial standards and creative bar that keep Verza TV originals feeling cinematic at 60 seconds an episode.",
+    bio: "Marcus oversees development and the original slate — greenlighting series, shaping the house style of the micro-drama format, and building the writers' and directors' rooms that feed Filmology Labs. He is responsible for the editorial standards and creative bar that keep VERZA TV originals feeling cinematic at 60 seconds an episode.",
   },
   {
     name: "Priya Nandakumar",
@@ -74,7 +74,7 @@ export const LEADERSHIP: Leader[] = [
     name: "Jordan Bellamy",
     title: "Chief Revenue Officer",
     placeholder: true,
-    bio: "Jordan leads monetization and partnerships — coins, VIP subscriptions, merch, brand integrations, and licensing. With experience across direct-to-consumer media and advertising, Jordan is responsible for diversifying revenue beyond a single funnel and building the advertiser and distribution relationships that extend Verza TV's reach.",
+    bio: "Jordan leads monetization and partnerships — coins, VIP subscriptions, merch, brand integrations, and licensing. With experience across direct-to-consumer media and advertising, Jordan is responsible for diversifying revenue beyond a single funnel and building the advertiser and distribution relationships that extend VERZA TV's reach.",
   },
 ];
 
@@ -96,12 +96,12 @@ export interface PressRelease {
 export const PRESS_RELEASES: PressRelease[] = [
   {
     slug: "verza-tv-public-launch",
-    title: "Verza TV Launches as the First US-Based Vertical Micro-Drama Streaming Platform",
+    title: "VERZA TV Launches as the First US-Based Vertical Micro-Drama Streaming Platform",
     date: "2026-03-04",
     dateLabel: "Mar 4, 2026",
     category: "Company",
     summary:
-      "Verza TV, founded by E! Entertainment Television co-founder Alan Mruvka, opened to the public with an original slate of micro-drama, reality, and red-carpet series produced at the studio's Filmology Labs facility. Every series offers its first five episodes free.",
+      "VERZA TV, founded by E! Entertainment Television co-founder Alan Mruvka, opened to the public with an original slate of micro-drama, reality, and red-carpet series produced at the studio's Filmology Labs facility. Every series offers its first five episodes free.",
   },
   {
     slug: "filmology-labs-production-slate",
@@ -114,30 +114,30 @@ export const PRESS_RELEASES: PressRelease[] = [
   },
   {
     slug: "creator-channels-program",
-    title: "Verza TV Opens Creator Channels Program with 80% Revenue Share",
+    title: "VERZA TV Opens Creator Channels Program with 80% Revenue Share",
     date: "2026-05-06",
     dateLabel: "May 6, 2026",
     category: "Partnerships",
     summary:
-      "Verza TV launched an application-based Creator Channels program, inviting independent filmmakers and vertical-native storytellers to publish original series on the platform with an 80% revenue share and access to the studio's distribution and monetization stack.",
+      "VERZA TV launched an application-based Creator Channels program, inviting independent filmmakers and vertical-native storytellers to publish original series on the platform with an 80% revenue share and access to the studio's distribution and monetization stack.",
   },
   {
     slug: "verza-ai-host-launch",
-    title: "Verza TV Ships AI Host and Creator AI Studio Across the Platform",
+    title: "VERZA TV Ships AI Host and Creator AI Studio Across the Platform",
     date: "2026-05-29",
     dateLabel: "May 29, 2026",
     category: "Product",
     summary:
-      "The platform introduced an AI Host for viewers and a Creator AI Studio for filmmakers — covering script generation, logline writing, social copy, and episode descriptions — built on a system that understands the full Verza TV catalog and house style.",
+      "The platform introduced an AI Host for viewers and a Creator AI Studio for filmmakers — covering script generation, logline writing, social copy, and episode descriptions — built on a system that understands the full VERZA TV catalog and house style.",
   },
   {
     slug: "verza-tv-mobile-apps",
-    title: "Verza TV Brings Vertical Streaming to iOS and Android",
+    title: "VERZA TV Brings Vertical Streaming to iOS and Android",
     date: "2026-06-17",
     dateLabel: "Jun 17, 2026",
     category: "Product",
     summary:
-      "Native mobile apps extended Verza TV's swipe-to-play experience to phones, with sub-second playback, offline progress sync, and the same coins-and-VIP monetization available on the web platform.",
+      "Native mobile apps extended VERZA TV's swipe-to-play experience to phones, with sub-second playback, offline progress sync, and the same coins-and-VIP monetization available on the web platform.",
   },
 ];
 
@@ -159,12 +159,12 @@ export const IN_THE_NEWS: NewsMention[] = [
   },
   {
     outlet: "Streaming Weekly",
-    headline: "Inside Verza TV's Vertically Integrated Pipeline from Paterson to Phone",
+    headline: "Inside VERZA TV's Vertically Integrated Pipeline from Paterson to Phone",
     dateLabel: "Apr 2026",
   },
   {
     outlet: "Creator Economy Report",
-    headline: "Verza TV's 80% Revenue Share Aims to Win Vertical-Native Filmmakers",
+    headline: "VERZA TV's 80% Revenue Share Aims to Win Vertical-Native Filmmakers",
     dateLabel: "May 2026",
   },
 ];
@@ -181,7 +181,7 @@ export interface OpenRole {
 }
 
 export const CAREERS_CULTURE =
-  "Verza TV is a studio and a software company in one building. We move at the speed of a vertical feed and hold ourselves to the standard of a film set. We hire people who can ship a feature on Tuesday and shoot a series on Thursday — and who care about both. Small teams, real ownership, and a slate that goes live to a real audience.";
+  "VERZA TV is a studio and a software company in one building. We move at the speed of a vertical feed and hold ourselves to the standard of a film set. We hire people who can ship a feature on Tuesday and shoot a series on Thursday — and who care about both. Small teams, real ownership, and a slate that goes live to a real audience.";
 
 export const PERKS: { title: string; detail: string }[] = [
   {
@@ -235,7 +235,7 @@ export interface InvestorHighlight {
 }
 
 export const INVESTOR_OVERVIEW =
-  "Verza TV is a vertically integrated entertainment studio building the leading American platform for vertical micro-drama. We combine a $250M production facility with a direct-to-consumer streaming app and a diversified revenue model spanning coins, subscriptions, merchandise, and creator partnerships. Our thesis is simple: the format is going mainstream, the audience is mobile-first, and the studio that owns both content and distribution captures the margin.";
+  "VERZA TV is a vertically integrated entertainment studio building the leading American platform for vertical micro-drama. We combine a $250M production facility with a direct-to-consumer streaming app and a diversified revenue model spanning coins, subscriptions, merchandise, and creator partnerships. Our thesis is simple: the format is going mainstream, the audience is mobile-first, and the studio that owns both content and distribution captures the margin.";
 
 export const INVESTOR_HIGHLIGHTS: InvestorHighlight[] = [
   {
@@ -267,11 +267,11 @@ export const MARKET_THESIS: { title: string; body: string }[] = [
   },
   {
     title: "Vertical integration is the moat",
-    body: "Aggregator-only platforms are at the mercy of licensing costs and supply. By owning a $250M production facility and the distribution app, Verza TV controls the cost of content, the quality bar, and the release cadence. That integration compounds: every original we produce is a permanent, owned asset on a platform we control.",
+    body: "Aggregator-only platforms are at the mercy of licensing costs and supply. By owning a $250M production facility and the distribution app, VERZA TV controls the cost of content, the quality bar, and the release cadence. That integration compounds: every original we produce is a permanent, owned asset on a platform we control.",
   },
   {
     title: "Monetization is diversified, not fragile",
-    body: "Verza TV does not depend on a single subscription funnel. Coins drive impulse unlocks, VIP captures committed viewers, merchandise extends top series into physical goods, and the creator program adds supply at an 80% revenue share. Multiple, reinforcing revenue lines reduce risk and expand lifetime value.",
+    body: "VERZA TV does not depend on a single subscription funnel. Coins drive impulse unlocks, VIP captures committed viewers, merchandise extends top series into physical goods, and the creator program adds supply at an 80% revenue share. Multiple, reinforcing revenue lines reduce risk and expand lifetime value.",
   },
 ];
 
@@ -295,7 +295,7 @@ export const PARTNERSHIPS: PartnershipCategory[] = [
     slug: "distribution",
     title: "Distribution",
     summary:
-      "Bring Verza TV originals to your audience. We partner with platforms, carriers, OEMs, and content networks to extend our vertical slate to new screens and new markets.",
+      "Bring VERZA TV originals to your audience. We partner with platforms, carriers, OEMs, and content networks to extend our vertical slate to new screens and new markets.",
     points: [
       "Syndication of original micro-drama and reality series",
       "Co-branded channels and curated collections",
@@ -308,12 +308,12 @@ export const PARTNERSHIPS: PartnershipCategory[] = [
     slug: "brand",
     title: "Brand Partnerships",
     summary:
-      "Embed your brand in story, not just around it. Verza TV builds native integrations and custom series concepts that put brands inside cinematic vertical narratives audiences actually finish.",
+      "Embed your brand in story, not just around it. VERZA TV builds native integrations and custom series concepts that put brands inside cinematic vertical narratives audiences actually finish.",
     points: [
       "In-story product and brand integration",
       "Custom branded series and serialized content",
       "Talent and influencer collaborations",
-      "Merchandise tie-ins through the Verza TV store",
+      "Merchandise tie-ins through the VERZA TV store",
     ],
     cta: "Build a brand partnership",
   },
@@ -328,15 +328,15 @@ export const PARTNERSHIPS: PartnershipCategory[] = [
       "Brand-safe, premium original inventory",
       "Performance reporting and audience insights",
     ],
-    cta: "Advertise with Verza TV",
+    cta: "Advertise with VERZA TV",
   },
   {
     slug: "licensing",
     title: "Licensing",
     summary:
-      "License Verza TV IP and originals for new formats and territories — or license your catalog into our platform. We treat IP as a long-lived, ownable asset on both sides of the table.",
+      "License VERZA TV IP and originals for new formats and territories — or license your catalog into our platform. We treat IP as a long-lived, ownable asset on both sides of the table.",
     points: [
-      "Format and remake rights for Verza TV originals",
+      "Format and remake rights for VERZA TV originals",
       "Territory and platform licensing",
       "Catalog acquisition and content supply deals",
       "Merchandising and consumer-products rights",
@@ -396,23 +396,23 @@ export const TYPOGRAPHY_NOTES: { name: string; role: string; detail: string }[] 
 
 export const COMPANY_FAQ: { question: string; answer: string }[] = [
   {
-    question: "Who founded Verza TV?",
+    question: "Who founded VERZA TV?",
     answer:
-      "Verza TV was founded by Alan Mruvka, co-founder of E! Entertainment Television. He serves as Founder and CEO.",
+      "VERZA TV was founded by Alan Mruvka, co-founder of E! Entertainment Television. He serves as Founder and CEO.",
   },
   {
-    question: "What does Verza TV produce?",
+    question: "What does VERZA TV produce?",
     answer:
-      "Verza TV develops and distributes original vertical micro-dramas, reality, and red-carpet programming — short-form cinematic episodes of 60 to 120 seconds, produced at the studio's Filmology Labs facility in Paterson, New Jersey.",
+      "VERZA TV develops and distributes original vertical micro-dramas, reality, and red-carpet programming — short-form cinematic episodes of 60 to 120 seconds, produced at the studio's Filmology Labs facility in Paterson, New Jersey.",
   },
   {
-    question: "How is Verza TV different from other micro-drama apps?",
+    question: "How is VERZA TV different from other micro-drama apps?",
     answer:
-      "Verza TV is vertically integrated. It owns a $250M production facility alongside its direct-to-consumer streaming platform, controlling content quality, cost, and release cadence end to end rather than relying solely on licensed supply.",
+      "VERZA TV is vertically integrated. It owns a $250M production facility alongside its direct-to-consumer streaming platform, controlling content quality, cost, and release cadence end to end rather than relying solely on licensed supply.",
   },
   {
-    question: "How can I partner with or invest in Verza TV?",
+    question: "How can I partner with or invest in VERZA TV?",
     answer:
-      "For partnership inquiries, reach the team at partnerships@verzatv.com. For investor relations, contact investors@verzatv.com. Open roles are listed on the Verza TV careers page.",
+      "For partnership inquiries, reach the team at partnerships@verzatv.com. For investor relations, contact investors@verzatv.com. Open roles are listed on the VERZA TV careers page.",
   },
 ];

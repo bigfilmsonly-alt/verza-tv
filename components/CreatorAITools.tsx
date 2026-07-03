@@ -36,7 +36,7 @@ const TOOLS: {
     placeholder: "Enter your one-line premise (e.g., \"A maid discovers her boss is secretly a billionaire\")",
     buttonLabel: "Generate Script",
     buildPrompt: (premise: string) =>
-      `You are a professional screenwriter for a vertical micro-drama platform called Verza TV. Write a short script (approximately 2-3 minutes of screen time) based on this premise:\n\n"${premise}"\n\nFormat the script with:\n- Scene headings (INT./EXT.)\n- Character names in CAPS before dialogue\n- Stage directions in parentheses\n- End with a dramatic cliffhanger that makes viewers want the next episode\n\nKeep it punchy, emotional, and designed for a mobile vertical video format.`,
+      `You are a professional screenwriter for a vertical micro-drama platform called VERZA TV. Write a short script (approximately 2-3 minutes of screen time) based on this premise:\n\n"${premise}"\n\nFormat the script with:\n- Scene headings (INT./EXT.)\n- Character names in CAPS before dialogue\n- Stage directions in parentheses\n- End with a dramatic cliffhanger that makes viewers want the next episode\n\nKeep it punchy, emotional, and designed for a mobile vertical video format.`,
     mode: "creator",
   },
   {
@@ -54,7 +54,7 @@ const TOOLS: {
     secondaryPlaceholder: "Brief description of the series",
     buttonLabel: "Write Logline",
     buildPrompt: (title: string, description: string) =>
-      `Write a compelling one-sentence logline for a vertical micro-drama series on Verza TV.\n\nTitle: "${title}"\nDescription: ${description}\n\nThe logline should be punchy, create intrigue, hint at conflict, and make someone want to tap "Watch Now" immediately. One sentence only, no more than 30 words. Do not include the title in the logline.`,
+      `Write a compelling one-sentence logline for a vertical micro-drama series on VERZA TV.\n\nTitle: "${title}"\nDescription: ${description}\n\nThe logline should be punchy, create intrigue, hint at conflict, and make someone want to tap "Watch Now" immediately. One sentence only, no more than 30 words. Do not include the title in the logline.`,
     mode: "creator",
   },
   {
@@ -70,7 +70,7 @@ const TOOLS: {
     secondaryPlaceholder: "Describe a key scene or moment to promote",
     buttonLabel: "Generate Captions",
     buildPrompt: (seriesName: string, scene: string) =>
-      `You are a social media marketing expert for Verza TV, a vertical micro-drama streaming platform. Generate 3 social media captions for promoting this series.\n\nSeries: "${seriesName}"\nScene/Moment: ${scene}\n\nProvide exactly 3 variations, clearly labeled:\n\n**TikTok:**\n(Short, punchy, trending tone, include 3-4 relevant hashtags)\n\n**Instagram:**\n(Slightly longer, emotional hook, include 4-5 hashtags and a CTA to watch on Verza TV)\n\n**Twitter:**\n(Under 280 characters, witty or provocative, 1-2 hashtags)\n\nMake each feel native to its platform.`,
+      `You are a social media marketing expert for VERZA TV, a vertical micro-drama streaming platform. Generate 3 social media captions for promoting this series.\n\nSeries: "${seriesName}"\nScene/Moment: ${scene}\n\nProvide exactly 3 variations, clearly labeled:\n\n**TikTok:**\n(Short, punchy, trending tone, include 3-4 relevant hashtags)\n\n**Instagram:**\n(Slightly longer, emotional hook, include 4-5 hashtags and a CTA to watch on VERZA TV)\n\n**Twitter:**\n(Under 280 characters, witty or provocative, 1-2 hashtags)\n\nMake each feel native to its platform.`,
     mode: "marketing",
   },
   {
@@ -87,7 +87,7 @@ const TOOLS: {
     secondaryPlaceholder: "What happens in this episode?",
     buttonLabel: "Write Description",
     buildPrompt: (epNumber: string, summary: string) =>
-      `Write an SEO-friendly episode description for a vertical micro-drama on Verza TV.\n\nEpisode: ${epNumber}\nWhat happens: ${summary}\n\nThe description should be:\n- 2-3 sentences long\n- Hook the reader with intrigue in the first sentence\n- Include emotional stakes\n- End with a teaser that encourages binging the next episode\n- Naturally include keywords relevant to the drama genre\n\nDo not use quotation marks around the description. Write it as a direct description.`,
+      `Write an SEO-friendly episode description for a vertical micro-drama on VERZA TV.\n\nEpisode: ${epNumber}\nWhat happens: ${summary}\n\nThe description should be:\n- 2-3 sentences long\n- Hook the reader with intrigue in the first sentence\n- Include emotional stakes\n- End with a teaser that encourages binging the next episode\n- Naturally include keywords relevant to the drama genre\n\nDo not use quotation marks around the description. Write it as a direct description.`,
     mode: "creator",
   },
 ];

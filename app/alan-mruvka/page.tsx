@@ -9,21 +9,21 @@ import { ALAN_SAMEAS, ALAN_SUBPAGES } from "@/lib/data/alan";
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
 
 const DESCRIPTION =
-  "Alan Mruvka is a co-founder of E! Entertainment Television and the founder of Verza TV, the US-based vertical micro-drama streaming platform. Biography, legacy, and vision.";
+  "Alan Mruvka is a co-founder of E! Entertainment Television and the founder of VERZA TV, the US-based vertical micro-drama streaming platform. Biography, legacy, and vision.";
 
 export const metadata: Metadata = {
-  title: `Alan Mruvka — E! Co-Founder & Verza TV Founder`,
+  title: `Alan Mruvka — E! Co-Founder & VERZA TV Founder`,
   description: DESCRIPTION,
   keywords: [
     "Alan Mruvka",
     "E! co-founder",
-    "Verza TV founder",
+    "VERZA TV founder",
     "E! Entertainment Television",
     "vertical micro-drama",
   ],
   alternates: { canonical: "/alan-mruvka" },
   openGraph: {
-    title: "Alan Mruvka — E! Co-Founder & Verza TV Founder",
+    title: "Alan Mruvka — E! Co-Founder & VERZA TV Founder",
     description: DESCRIPTION,
     url: `${BASE_URL}/alan-mruvka`,
     type: "profile",
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Alan Mruvka — E! Co-Founder & Verza TV Founder",
+    title: "Alan Mruvka — E! Co-Founder & VERZA TV Founder",
     description: DESCRIPTION,
   },
 };
@@ -43,10 +43,10 @@ const personSchema = {
   url: `${BASE_URL}/alan-mruvka`,
   jobTitle: "Founder & CEO",
   description:
-    "Co-founder of E! Entertainment Television and founder of Verza TV, the US-based vertical micro-drama streaming platform.",
+    "Co-founder of E! Entertainment Television and founder of VERZA TV, the US-based vertical micro-drama streaming platform.",
   worksFor: {
     "@type": "Organization",
-    name: "Verza TV",
+    name: "VERZA TV",
     url: BASE_URL,
   },
   alumniOf: {

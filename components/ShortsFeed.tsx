@@ -84,7 +84,7 @@ function ShortCard({ series, isActive, muted, setMuted, saved, onToggleSave }: {
 
   function handleShare() {
     if (typeof navigator !== "undefined" && navigator.share) {
-      navigator.share({ title: series.title, text: `Watch "${series.title}" on Verza TV`, url: shareUrl }).catch(() => {});
+      navigator.share({ title: series.title, text: `Watch "${series.title}" on VERZA TV`, url: shareUrl }).catch(() => {});
     } else {
       navigator.clipboard.writeText(shareUrl).then(() => { setShowCopied(true); setTimeout(() => setShowCopied(false), 2000); }).catch(() => {});
     }
@@ -352,7 +352,7 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
 
   return (
     <div className="episode-immersive" style={{ background: "#000" }}>
-      {/* Splash screen — Verza TV logo on black */}
+      {/* Splash screen — VERZA TV logo on black */}
       {/* Video starts immediately — no splash */}
 
       {/* THE single persistent video element */}

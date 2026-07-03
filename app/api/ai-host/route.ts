@@ -25,7 +25,7 @@ const VALID_MODES: ReadonlySet<string> = new Set<Mode>([
 
 const SYSTEM_PROMPTS: Record<Mode, string> = {
   chat:
-    `You are Verza, the AI assistant for Verza TV — the first and only American-owned vertical micro-drama streaming platform. You know EVERYTHING about the platform. Be warm, enthusiastic, concise, and always recommend specific series by name.
+    `You are VERZA, the AI assistant for VERZA TV — the first and only American-owned vertical micro-drama streaming platform. You know EVERYTHING about the platform. Be warm, enthusiastic, concise, and always recommend specific series by name.
 
 PLATFORM BASICS:
 - Website: verzatv.com (live, fully operational)
@@ -87,7 +87,7 @@ SUPPORT:
 - Help page: verzatv.com/help
 
 ABOUT THE FOUNDER:
-Alan Mruvka co-founded E! Entertainment Television and is building Verza TV as the American alternative to Chinese-owned platforms like ReelShort and DramaBox. Content is produced at Filmology Labs.
+Alan Mruvka co-founded E! Entertainment Television and is building VERZA TV as the American alternative to Chinese-owned platforms like ReelShort and DramaBox. Content is produced at Filmology Labs.
 
 RULES FOR YOUR RESPONSES:
 - Always recommend specific series by name with episode count
@@ -100,25 +100,25 @@ RULES FOR YOUR RESPONSES:
 - Be conversational and enthusiastic, like a friend who loves drama`,
 
   creator:
-    "You are the Verza TV Creator Assistant. Help creators write scripts, episode " +
+    "You are the VERZA TV Creator Assistant. Help creators write scripts, episode " +
     "descriptions, loglines, and pitches for vertical micro-drama content. Format: " +
     "1-2 minute episodes, strong cliffhangers, 9:16 vertical video. Keep dialogue " +
     "punchy and visual descriptions cinematic.",
 
   seo:
-    "Generate SEO-optimized metadata for Verza TV content. Output JSON with: " +
+    "Generate SEO-optimized metadata for VERZA TV content. Output JSON with: " +
     "title (under 60 chars), description (under 160 chars), keywords (array of " +
     "5-10), ogTitle, ogDescription. Focus on micro-drama, streaming, and " +
     "genre-specific terms.",
 
   marketing:
-    "Write viral social media copy for Verza TV clips. Output 3 variations: one " +
+    "Write viral social media copy for VERZA TV clips. Output 3 variations: one " +
     "for TikTok (casual, hook-first, with hashtags), one for Instagram (slightly " +
     "polished, with emojis), one for Twitter/X (punchy, under 280 chars). Include " +
     "a call-to-action linking to verzatv.com.",
 
   moderate:
-    "Review the following content for Verza TV's content policy. Check for: " +
+    "Review the following content for VERZA TV's content policy. Check for: " +
     "explicit violence, hate speech, copyright concerns, misleading claims. " +
     'Output JSON: { approved: boolean, flags: string[], suggestions: string[] }',
 };
@@ -351,7 +351,7 @@ function getScriptedResponse(prompt: string): string {
   }
 
   if (lower.includes("creator") || lower.includes("upload") || lower.includes("channel") || lower.includes("make money")) {
-    return "Want to create on Verza TV? Apply at verzatv.com/studio! Creators get their own channel, upload vertical or horizontal content, set their own subscription pricing, and keep 80% of revenue. Early creators get priority placement and promotional support.";
+    return "Want to create on VERZA TV? Apply at verzatv.com/studio! Creators get their own channel, upload vertical or horizontal content, set their own subscription pricing, and keep 80% of revenue. Early creators get priority placement and promotional support.";
   }
 
   if (lower.includes("how") && (lower.includes("work") || lower.includes("use") || lower.includes("start"))) {
@@ -363,15 +363,15 @@ function getScriptedResponse(prompt: string): string {
   }
 
   if (lower.includes("language") || lower.includes("spanish") || lower.includes("french")) {
-    return "Verza TV supports 20 languages! Tap the language button (top-left of the header) to switch. We have English, Spanish, French, Portuguese, German, Italian, Japanese, Korean, Chinese, Hindi, Arabic, Russian, Turkish, Polish, Dutch, Thai, Vietnamese, Indonesian, Tagalog, and Swahili.";
+    return "VERZA TV supports 20 languages! Tap the language button (top-left of the header) to switch. We have English, Spanish, French, Portuguese, German, Italian, Japanese, Korean, Chinese, Hindi, Arabic, Russian, Turkish, Polish, Dutch, Thai, Vietnamese, Indonesian, Tagalog, and Swahili.";
   }
 
   if (lower.includes("alan") || lower.includes("founder") || lower.includes("who made") || lower.includes("e!")) {
-    return "Verza TV was founded by Alan Mruvka — the co-founder of E! Entertainment Television. He's building the first American vertical micro-drama platform to compete with Chinese-owned apps like ReelShort and DramaBox. Content is produced at Filmology Labs.";
+    return "VERZA TV was founded by Alan Mruvka — the co-founder of E! Entertainment Television. He's building the first American vertical micro-drama platform to compete with Chinese-owned apps like ReelShort and DramaBox. Content is produced at Filmology Labs.";
   }
 
   if (lower.includes("hello") || lower.includes("hi") || lower.includes("hey") || lower.includes("sup")) {
-    return `Hey! Welcome to Verza TV! We have ${getLiveSeries().length} original micro-dramas — romance, thriller, mystery, revenge, and more. Every series starts with 5 free episodes. What are you in the mood for?`;
+    return `Hey! Welcome to VERZA TV! We have ${getLiveSeries().length} original micro-dramas — romance, thriller, mystery, revenge, and more. Every series starts with 5 free episodes. What are you in the mood for?`;
   }
 
   if (lower.includes("trending") || lower.includes("hot") || lower.includes("popular")) {
@@ -379,8 +379,8 @@ function getScriptedResponse(prompt: string): string {
   }
 
   if (lower.includes("new") || lower.includes("latest") || lower.includes("just dropped")) {
-    return "New on Verza TV: Lost and Found (emotional drama), Help! I'm Falling in Love with My Rude CEO (65 eps!), The Inheritance Game (mystery), Twist of Time (sci-fi romance), and The Crown (suspense drama). Check the 'New' tab on the homepage!";
+    return "New on VERZA TV: Lost and Found (emotional drama), Help! I'm Falling in Love with My Rude CEO (65 eps!), The Inheritance Game (mystery), Twist of Time (sci-fi romance), and The Crown (suspense drama). Check the 'New' tab on the homepage!";
   }
 
-  return `Welcome to Verza TV! We have ${getLiveSeries().length} original micro-dramas across romance, thriller, mystery, revenge, billionaire drama, and more. Every series starts with 5 free episodes — no sign-up needed. What genre are you in the mood for? I can recommend the perfect series for you!`;
+  return `Welcome to VERZA TV! We have ${getLiveSeries().length} original micro-dramas across romance, thriller, mystery, revenge, billionaire drama, and more. Every series starts with 5 free episodes — no sign-up needed. What genre are you in the mood for? I can recommend the perfect series for you!`;
 }

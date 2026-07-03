@@ -6,7 +6,7 @@ import { BRAND } from "@/lib/config";
 export const metadata: Metadata = {
   title: `Alan Mruvka — Founder | ${BRAND.name}`,
   description:
-    "Alan Mruvka, co-founder of E! Entertainment Television, founded Verza TV to bring premium micro-drama entertainment to the mobile-first generation.",
+    "Alan Mruvka, co-founder of E! Entertainment Television, founded VERZA TV to bring premium micro-drama entertainment to the mobile-first generation.",
   alternates: { canonical: "/founder" },
 };
 
@@ -17,11 +17,11 @@ const founderSchema = {
   jobTitle: "Founder & CEO",
   worksFor: {
     "@type": "Organization",
-    name: "Verza TV",
+    name: "VERZA TV",
     url: "https://www.verzatv.com",
   },
   description:
-    "Co-founder of E! Entertainment Television. Founder of Verza TV, the first US-based vertical micro-drama streaming platform.",
+    "Co-founder of E! Entertainment Television. Founder of VERZA TV, the first US-based vertical micro-drama streaming platform.",
   sameAs: [
     "https://www.instagram.com/verzatv",
   ],
@@ -58,13 +58,13 @@ export default function FounderPage() {
             </p>
           </div>
 
-          {/* Verza TV vision */}
+          {/* VERZA TV vision */}
           <div>
             <h2
               className="text-sm font-semibold uppercase tracking-wider mb-2"
               style={{ color: T.accent }}
             >
-              Building Verza TV
+              Building VERZA TV
             </h2>
             <p className="text-sm leading-relaxed" style={{ color: T.textDim }}>
               After decades of building entertainment brands, Alan saw the

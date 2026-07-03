@@ -29,7 +29,7 @@ export function GET() {
       if (muxEntry) {
         const title = esc(`${s.title} - Episode ${ep.number}`);
         const description = esc(
-          `Watch Episode ${ep.number} of ${s.title} on Verza TV`,
+          `Watch Episode ${ep.number} of ${s.title} on VERZA TV`,
         );
         const thumbnailLoc = `https://image.mux.com/${muxEntry.playbackId}/thumbnail.jpg?time=3&amp;width=1280&amp;height=720`;
         const contentLoc = `https://stream.mux.com/${muxEntry.playbackId}.m3u8`;

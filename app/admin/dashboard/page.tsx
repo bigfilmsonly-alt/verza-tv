@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import AdminDashboard from "@/components/AdminDashboard";
 
 export const metadata: Metadata = {
-  title: "Dashboard | Verza TV Admin",
+  title: "Dashboard | VERZA TV Admin",
   robots: { index: false, follow: false },
 };
 

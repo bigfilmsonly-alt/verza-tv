@@ -26,7 +26,7 @@ export function organizationSchema() {
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: "Verza TV",
+    name: "VERZA TV",
     url: BASE_URL,
     logo: `${BASE_URL}/logo.png`,
     description:
@@ -35,7 +35,7 @@ export function organizationSchema() {
     parentOrganization: {
       "@type": "Organization",
       name: "Filmology Labs",
-      description: "State-of-the-art production facility powering Verza TV content.",
+      description: "State-of-the-art production facility powering VERZA TV content.",
     },
     sameAs: [
       "https://www.instagram.com/verzatv",
@@ -56,11 +56,11 @@ export function personSchema() {
     jobTitle: "Founder & CEO",
     worksFor: {
       "@type": "Organization",
-      name: "Verza TV",
+      name: "VERZA TV",
       url: BASE_URL,
     },
     description:
-      "Co-founder of E! Entertainment Television. Founder of Verza TV.",
+      "Co-founder of E! Entertainment Television. Founder of VERZA TV.",
   };
 }
 
@@ -72,7 +72,7 @@ export function websiteSchema() {
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: "Verza TV",
+    name: "VERZA TV",
     url: BASE_URL,
     potentialAction: {
       "@type": "SearchAction",
@@ -93,7 +93,7 @@ export function mobileApplicationSchema() {
   return {
     "@context": "https://schema.org",
     "@type": "MobileApplication",
-    name: "Verza TV",
+    name: "VERZA TV",
     operatingSystem: "iOS, Android",
     applicationCategory: "EntertainmentApplication",
     description:
@@ -148,7 +148,7 @@ export function tvSeriesSchema(show: TVSeriesInput) {
       : {}),
     productionCompany: {
       "@type": "Organization",
-      name: "Verza TV",
+      name: "VERZA TV",
       url: BASE_URL,
     },
   };
@@ -303,12 +303,12 @@ export function articleSchema(article: ArticleInput) {
     url: `${BASE_URL}/blog/${article.slug}`,
     author: {
       "@type": "Organization",
-      name: "Verza TV",
+      name: "VERZA TV",
       url: BASE_URL,
     },
     publisher: {
       "@type": "Organization",
-      name: "Verza TV",
+      name: "VERZA TV",
       url: BASE_URL,
       logo: {
         "@type": "ImageObject",

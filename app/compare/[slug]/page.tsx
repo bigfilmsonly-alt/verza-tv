@@ -134,7 +134,7 @@ export default async function ComparePage({ params }: Props) {
             className="text-sm font-semibold uppercase tracking-wider mb-3"
             style={{ color: T.accent }}
           >
-            Try Verza TV Free
+            Try VERZA TV Free
           </h2>
           <div className="flex flex-wrap gap-2">
             {featuredSeries.map((s) => (

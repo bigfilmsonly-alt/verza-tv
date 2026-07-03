@@ -192,7 +192,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
 
   return (
     <div>
-      {/* Splash screen — Verza TV logo on black */}
+      {/* Splash screen — VERZA TV logo on black */}
       {showSplash && (
         <div
           className="fixed inset-0 flex items-center justify-center"
@@ -203,7 +203,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
           }}
         >
           <div style={{ animation: "scaleIn 0.4s ease" }}>
-            <img src="/logo.png" alt="Verza TV" width={200} height={55} />
+            <img src="/logo.png" alt="VERZA TV" width={200} height={55} />
           </div>
         </div>
       )}

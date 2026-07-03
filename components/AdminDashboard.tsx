@@ -339,7 +339,7 @@ export default function AdminDashboard() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold" style={{ color: T.text }}>
-            Verza TV Dashboard
+            VERZA TV Dashboard
           </h1>
           <p className="text-xs" style={{ color: T.textMute }}>
             Updated {new Date(stats.generatedAt).toLocaleString()}

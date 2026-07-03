@@ -6,9 +6,9 @@ import { T } from "@/lib/theme";
 import SearchBar from "@/components/SearchBar";
 
 export const metadata: Metadata = {
-  title: "Discover Micro-Dramas | Verza TV",
+  title: "Discover Micro-Dramas | VERZA TV",
   description:
-    `Browse micro-dramas on Verza TV by category. ${getLiveSeries().length}+ original series, all vertical, all binge-worthy.`,
+    `Browse micro-dramas on VERZA TV by category. ${getLiveSeries().length}+ original series, all vertical, all binge-worthy.`,
 };
 
 export default function DiscoverPage() {

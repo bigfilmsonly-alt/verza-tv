@@ -160,7 +160,7 @@ export default function Footer() {
           className="text-center m-0"
           style={{ color: T.textMute, fontSize: 11 }}
         >
-          &copy; 2026 Verza TV. All rights reserved. Microdramas, Reality &amp; More.
+          &copy; 2026 VERZA TV. All rights reserved. Microdramas, Reality &amp; More.
         </p>
       </div>
     </footer>

@@ -20,7 +20,7 @@ ${BRAND.name} is the first US-based vertical micro-drama streaming platform. Fou
 - Powered by Filmology Labs ($250M production facility, 21 soundstages, Paterson NJ)
 
 ## What Is a Micro-Drama?
-A micro-drama is a serialized story told in very short episodes (60-120 seconds). Each episode ends on a cliffhanger. The format originated in China and is now growing globally. Verza TV is the first US-based platform dedicated to this format.
+A micro-drama is a serialized story told in very short episodes (60-120 seconds). Each episode ends on a cliffhanger. The format originated in China and is now growing globally. VERZA TV is the first US-based platform dedicated to this format.
 
 ## How It Works
 1. Browse ${liveCount}+ series across genres

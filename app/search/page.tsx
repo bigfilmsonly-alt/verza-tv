@@ -19,14 +19,14 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
     return {
       title: "Search Micro-Dramas",
       description:
-        `Search ${getLiveSeries().length}+ micro-drama series on Verza TV by title, genre, or keyword.`,
+        `Search ${getLiveSeries().length}+ micro-drama series on VERZA TV by title, genre, or keyword.`,
       alternates: { canonical: "/search" },
     };
   }
 
   return {
     title: `"${query}" — Search Results`,
-    description: `Search results for "${query}" on Verza TV. Find micro-dramas matching your query.`,
+    description: `Search results for "${query}" on VERZA TV. Find micro-dramas matching your query.`,
     alternates: { canonical: `/search?q=${encodeURIComponent(query)}` },
     robots: { index: false, follow: true },
   };
@@ -218,7 +218,7 @@ export default async function SearchPage({ searchParams }: Props) {
       {/* SEO footer */}
       <div className="mt-10" style={{ color: T.textMute }}>
         <p className="text-xs leading-relaxed">
-          Search across all Verza TV micro-dramas by title, genre, logline, or
+          Search across all VERZA TV micro-dramas by title, genre, logline, or
           tag. Every series features short-form vertical episodes (60-120
           seconds each), with the first 5 episodes free to watch. Discover
           romance, thriller, mystery, comedy, and more.

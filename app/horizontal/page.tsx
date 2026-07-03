@@ -4,9 +4,9 @@ import { organizationSchema } from "@/lib/seo/schema";
 import JsonLd from "@/components/JsonLd";
 
 export const metadata: Metadata = {
-  title: "Horizontal | Verza TV",
+  title: "Horizontal | VERZA TV",
   description:
-    "Watch widescreen episodes and clips in full HD landscape format on Verza TV.",
+    "Watch widescreen episodes and clips in full HD landscape format on VERZA TV.",
   alternates: { canonical: "/horizontal" },
 };
 

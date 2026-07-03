@@ -10,7 +10,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
 
 const PAGE_TITLE = `Sitemap — Every Page on ${BRAND.name}`;
 const PAGE_DESC =
-  "The complete Verza TV sitemap. Browse every section — shows, genres, collections, best-of lists, guides, locations, company and founder pages — in one place.";
+  "The complete VERZA TV sitemap. Browse every section — shows, genres, collections, best-of lists, guides, locations, company and founder pages — in one place.";
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,

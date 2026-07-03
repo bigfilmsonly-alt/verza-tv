@@ -28,8 +28,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const content = await getPublishedContent(slug.join("/"));
   if (!content) return { title: "Not Found" };
   return {
-    title: `${content.title} | Verza TV`,
-    description: content.description?.slice(0, 200) || `Watch ${content.title} on Verza TV.`,
+    title: `${content.title} | VERZA TV`,
+    description: content.description?.slice(0, 200) || `Watch ${content.title} on VERZA TV.`,
     alternates: { canonical: `/watch/${content.slug}` },
     openGraph: {
       title: content.title,

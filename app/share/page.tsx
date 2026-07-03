@@ -11,14 +11,14 @@ const DESCRIPTION =
 // redirects humans to the app. noindex so it isn't treated as a duplicate of
 // the homepage. Bump OG_IMAGE's ?v= when the thumbnail changes.
 export const metadata: Metadata = {
-  title: { absolute: "Verza TV — Microdramas, Reality & More" },
+  title: { absolute: "VERZA TV — Microdramas, Reality & More" },
   description: DESCRIPTION,
   alternates: { canonical: "/" },
   robots: { index: false, follow: true },
   openGraph: {
     type: "website",
-    siteName: "Verza TV",
-    title: "Verza TV — Microdramas, Reality & More",
+    siteName: "VERZA TV",
+    title: "VERZA TV — Microdramas, Reality & More",
     description: DESCRIPTION,
     url: `${SITE_URL}/share`,
     images: [
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
         secureUrl: OG_IMAGE,
         width: 1200,
         height: 630,
-        alt: "Verza TV — Microdramas, Reality & More",
+        alt: "VERZA TV — Microdramas, Reality & More",
         type: "image/png",
       },
     ],
@@ -35,9 +35,9 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     site: "@VerzaTV",
-    title: "Verza TV — Microdramas, Reality & More",
+    title: "VERZA TV — Microdramas, Reality & More",
     description: DESCRIPTION,
-    images: [{ url: OG_IMAGE, width: 1200, height: 630, alt: "Verza TV" }],
+    images: [{ url: OG_IMAGE, width: 1200, height: 630, alt: "VERZA TV" }],
   },
 };
 
@@ -50,7 +50,7 @@ export default function SharePage() {
       <ShareRedirect />
       <Image
         src="/logo.png"
-        alt="Verza TV"
+        alt="VERZA TV"
         width={240}
         height={65}
         className="object-contain"
@@ -58,11 +58,11 @@ export default function SharePage() {
         priority
       />
       <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 14 }}>
-        Opening Verza TV…
+        Opening VERZA TV…
       </p>
       <noscript>
         <a href="/" style={{ color: "#E0115F" }}>
-          Enter Verza TV
+          Enter VERZA TV
         </a>
       </noscript>
     </main>

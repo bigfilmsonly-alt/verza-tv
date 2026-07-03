@@ -166,7 +166,7 @@ export function formatReportText(report: ReportData): string {
     ? `+${report.revenue.growthPercent}%`
     : `${report.revenue.growthPercent}%`;
 
-  return `Verza TV ${report.period.toUpperCase()} Report
+  return `VERZA TV ${report.period.toUpperCase()} Report
 ${report.startDate} — ${report.endDate}
 ${"=".repeat(40)}
 

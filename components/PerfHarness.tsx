@@ -94,7 +94,7 @@ export default function PerfHarness() {
 
   return (
     <div style={{ minHeight: "100dvh", background: "#07070E", color: "#fff", padding: 16, fontFamily: "system-ui, sans-serif" }}>
-      <h1 style={{ fontSize: 18, fontWeight: 700, marginBottom: 12 }}>Verza Perf Harness</h1>
+      <h1 style={{ fontSize: 18, fontWeight: 700, marginBottom: 12 }}>VERZA Perf Harness</h1>
 
       <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
         <div style={{ position: "relative", width: 240, aspectRatio: "9 / 16", background: "#000", borderRadius: 12, overflow: "hidden", flexShrink: 0 }}>

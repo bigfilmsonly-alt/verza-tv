@@ -7,7 +7,7 @@ import { BRAND } from "@/lib/config";
 export const metadata: Metadata = {
   title: `Refund Policy | ${BRAND.name}`,
   description:
-    "Refund Policy for Verza TV. Learn about our policies on coin refunds, in-app purchase refunds, and subscription cancellations.",
+    "Refund Policy for VERZA TV. Learn about our policies on coin refunds, in-app purchase refunds, and subscription cancellations.",
   alternates: { canonical: "/refund-policy" },
 };
 

@@ -12,33 +12,33 @@ import { T } from "@/lib/theme";
 
 const GENRE_DESCRIPTIONS: Record<string, string> = {
   drama:
-    "Intense family secrets, dynasty battles, and emotional storylines. Verza TV drama micro-dramas pack full-season stakes into 60-second vertical episodes.",
+    "Intense family secrets, dynasty battles, and emotional storylines. VERZA TV drama micro-dramas pack full-season stakes into 60-second vertical episodes.",
   new:
-    "The freshest micro-dramas on Verza TV. Catch new premieres and recently added series before everyone else.",
+    "The freshest micro-dramas on VERZA TV. Catch new premieres and recently added series before everyone else.",
   popular:
-    "The most-watched micro-dramas on Verza TV right now. See what everyone is binging this week.",
+    "The most-watched micro-dramas on VERZA TV right now. See what everyone is binging this week.",
   music:
-    "Music and entertainment-themed shows on Verza TV, from reality formats to behind-the-scenes content.",
+    "Music and entertainment-themed shows on VERZA TV, from reality formats to behind-the-scenes content.",
   reality:
-    "Reality-style micro-dramas on Verza TV. Power games, talk shows, and unscripted entertainment in vertical format.",
+    "Reality-style micro-dramas on VERZA TV. Power games, talk shows, and unscripted entertainment in vertical format.",
   "red-carpet":
-    "Glamour and awards on Verza TV. Red carpet events, award shows, and celebrity micro-drama specials.",
+    "Glamour and awards on VERZA TV. Red carpet events, award shows, and celebrity micro-drama specials.",
   romance:
-    "Sweeping love stories, billionaire romances, and forbidden attractions. Verza TV romance micro-dramas deliver heart-racing chemistry in every 60-second episode.",
+    "Sweeping love stories, billionaire romances, and forbidden attractions. VERZA TV romance micro-dramas deliver heart-racing chemistry in every 60-second episode.",
   thriller:
-    "Edge-of-your-seat psychological thrillers and crime mysteries. Verza TV thriller micro-dramas keep you guessing with plot twists in every episode.",
+    "Edge-of-your-seat psychological thrillers and crime mysteries. VERZA TV thriller micro-dramas keep you guessing with plot twists in every episode.",
   comedy:
-    "Light, witty, and bingeable. Verza TV comedy micro-dramas bring laughs, romantic mishaps, and workplace humor in 60-second vertical episodes.",
+    "Light, witty, and bingeable. VERZA TV comedy micro-dramas bring laughs, romantic mishaps, and workplace humor in 60-second vertical episodes.",
   mystery:
-    "Cold cases, hidden identities, and shocking reveals. Verza TV mystery micro-dramas will keep you guessing until the final scene.",
+    "Cold cases, hidden identities, and shocking reveals. VERZA TV mystery micro-dramas will keep you guessing until the final scene.",
   "sci-fi":
-    "Time travel, supernatural twists, and mind-bending storylines. Verza TV sci-fi micro-dramas push the boundaries of short-form storytelling.",
+    "Time travel, supernatural twists, and mind-bending storylines. VERZA TV sci-fi micro-dramas push the boundaries of short-form storytelling.",
   horror:
-    "Gothic mansions, psychological terror, and supernatural secrets. Verza TV horror micro-dramas deliver chills in 60-second vertical episodes.",
+    "Gothic mansions, psychological terror, and supernatural secrets. VERZA TV horror micro-dramas deliver chills in 60-second vertical episodes.",
   crime:
-    "Undercover agents, crime families, and dangerous investigations. Verza TV crime micro-dramas explore the world of law and the lawless.",
+    "Undercover agents, crime families, and dangerous investigations. VERZA TV crime micro-dramas explore the world of law and the lawless.",
   fantasy:
-    "Supernatural connections and otherworldly love stories. Verza TV fantasy micro-dramas blend magic with cinematic storytelling.",
+    "Supernatural connections and otherworldly love stories. VERZA TV fantasy micro-dramas blend magic with cinematic storytelling.",
 };
 
 const KNOWN_GENRES = [
@@ -76,25 +76,25 @@ export async function generateMetadata({
   const label = genre.charAt(0).toUpperCase() + genre.slice(1);
   const description =
     GENRE_DESCRIPTIONS[genre] ??
-    `Stream the best ${label.toLowerCase()} micro-dramas on Verza TV.`;
+    `Stream the best ${label.toLowerCase()} micro-dramas on VERZA TV.`;
 
   const BASE_URL =
     process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
 
   return {
-    title: `Best ${label} Micro-Dramas on Verza TV`,
+    title: `Best ${label} Micro-Dramas on VERZA TV`,
     description: `${description} Short-form vertical episodes, free to start, binge-worthy from the first scene.`,
     alternates: { canonical: `/discover/${genre}` },
     openGraph: {
-      title: `Best ${label} Micro-Dramas on Verza TV`,
+      title: `Best ${label} Micro-Dramas on VERZA TV`,
       description,
       url: `${BASE_URL}/discover/${genre}`,
       type: "website",
-      siteName: "Verza TV",
+      siteName: "VERZA TV",
     },
     twitter: {
       card: "summary_large_image",
-      title: `Best ${label} Micro-Dramas on Verza TV`,
+      title: `Best ${label} Micro-Dramas on VERZA TV`,
       description,
     },
   };
@@ -261,11 +261,11 @@ export default async function GenrePage({
         {/* SEO-friendly crawlable content */}
         <div className="mt-10" style={{ color: T.textMute }}>
           <h2 className="text-sm font-semibold mb-2">
-            About {label} Micro-Dramas on Verza TV
+            About {label} Micro-Dramas on VERZA TV
           </h2>
           <div className="text-xs leading-relaxed space-y-2">
             <p>
-              Verza TV is the premier platform for vertical micro-dramas.
+              VERZA TV is the premier platform for vertical micro-dramas.
               Each episode runs 60 to 120 seconds, filmed in cinematic 9:16
               for phone-first viewing. Start any series free with the first 5
               episodes, then unlock the rest with coins.
@@ -274,7 +274,7 @@ export default async function GenrePage({
               Our {label.toLowerCase()} catalog features {liveMatches.length}{" "}
               original series with new titles added weekly. From heart-pounding
               thrillers to sweeping romances, there is always something new
-              to binge on Verza TV.
+              to binge on VERZA TV.
             </p>
           </div>
         </div>

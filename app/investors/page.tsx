@@ -16,12 +16,12 @@ const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
 export const metadata: Metadata = {
   title: `Investor Relations | ${BRAND.name}`,
   description:
-    "Verza TV investor relations: company overview, traction, and the market thesis for vertical micro-drama — a vertically integrated American entertainment studio.",
+    "VERZA TV investor relations: company overview, traction, and the market thesis for vertical micro-drama — a vertically integrated American entertainment studio.",
   alternates: { canonical: "/investors" },
   openGraph: {
     title: `Investor Relations | ${BRAND.name}`,
     description:
-      "Company overview, traction highlights, and the market thesis for vertical micro-drama from Verza TV.",
+      "Company overview, traction highlights, and the market thesis for vertical micro-drama from VERZA TV.",
     url: `${BASE_URL}/investors`,
     type: "website",
   },
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: `Investor Relations | ${BRAND.name}`,
     description:
-      "Company overview and market thesis for vertical micro-drama from Verza TV.",
+      "Company overview and market thesis for vertical micro-drama from VERZA TV.",
   },
 };
 

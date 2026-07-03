@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
           price_data: {
             currency: "usd",
             product_data: {
-              name: `Verza VIP — ${selected.label}`,
+              name: `VERZA VIP — ${selected.label}`,
               description:
                 plan === "yearly"
                   ? "Unlimited streaming for a full year — save 33% vs monthly"

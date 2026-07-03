@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${page.title} | ${BRAND.name}`,
     description: page.blurb,
-    keywords: ["Alan Mruvka", "E! co-founder", "Verza TV founder"],
+    keywords: ["Alan Mruvka", "E! co-founder", "VERZA TV founder"],
     alternates: { canonical: `/alan-mruvka/${slug}` },
     openGraph: {
       title: page.title,
@@ -54,10 +54,10 @@ export default async function AlanSubpage({ params }: Props) {
     url: `${BASE_URL}/alan-mruvka`,
     jobTitle: "Founder & CEO",
     description:
-      "Co-founder of E! Entertainment Television and founder of Verza TV, the US-based vertical micro-drama streaming platform.",
+      "Co-founder of E! Entertainment Television and founder of VERZA TV, the US-based vertical micro-drama streaming platform.",
     worksFor: {
       "@type": "Organization",
-      name: "Verza TV",
+      name: "VERZA TV",
       url: BASE_URL,
     },
     alumniOf: {

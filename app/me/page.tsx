@@ -10,7 +10,7 @@ import { SavedCount, WatchingCount, DarkModeToggle, SignOutButton } from "@/comp
 export const metadata: Metadata = {
   title: `My Account | ${BRAND.name}`,
   description:
-    "Manage your Verza TV account, coin balance, library, and settings.",
+    "Manage your VERZA TV account, coin balance, library, and settings.",
 };
 
 /* ------------------------------------------------------------------ */
@@ -383,7 +383,7 @@ export default function MePage() {
       <div className="mt-8 flex flex-col items-center gap-3">
         <SignOutButton />
         <p className="text-xs" style={{ color: T.textMute }}>
-          Verza TV v1.0.0
+          VERZA TV v1.0.0
         </p>
       </div>
     </section>

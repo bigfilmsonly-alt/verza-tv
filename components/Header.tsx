@@ -27,7 +27,7 @@ export default function Header() {
         <Link href="/" className="block">
           <Image
             src="/logo.png"
-            alt="Verza TV"
+            alt="VERZA TV"
             width={200}
             height={54}
             className="object-contain"
