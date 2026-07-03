@@ -205,20 +205,13 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
     setHeroIdx((i) => (((i + 1) % len) + len) % len);
   }, [heroSlides.length]);
 
-  // Drag / swipe / trackpad-swipe to switch the category tab (Drama ⇄ New ⇄ Hot
-  // ⇄ Music ⇄ Reality ⇄ Red Carpet), wrapping around at both ends. One unified
-  // gesture path handles a finger on mobile, a click-drag with the mouse, and a
-  // two-finger horizontal trackpad swipe on laptops.
+  // Swipe / drag / trackpad-swipe to switch the category tab (Drama ⇄ New ⇄ Hot
+  // ⇄ Music ⇄ Reality ⇄ Red Carpet), wrapping around at both ends. We just record
+  // where the gesture started and, on release, if it moved horizontally at all,
+  // jump straight to the next/prev tab — so a single swipe always changes tabs.
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const slideWrapRef = useRef<HTMLDivElement | null>(null);
-  const drag = useRef<{
-    x: number;
-    y: number;
-    t: number;
-    axis: null | "x" | "y";
-    width: number;
-    id: number;
-  } | null>(null);
+  const swipe = useRef<{ x: number; y: number } | null>(null);
+  const mouseDown = useRef(false);
 
   const changeTab = useCallback(
     (dir: 1 | -1) => {
@@ -244,79 +237,47 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
     [activeTab, activeTabs],
   );
 
-  // Live-follow the pointer by translating the content while dragging, then
-  // either commit to the next/prev tab or spring back on release. Written
-  // straight to the DOM (not React state) so every frame stays buttery.
-  function setSlideOffset(px: number, spring: boolean) {
-    const el = slideWrapRef.current;
-    if (!el) return;
-    el.style.animation = "none"; // take over from any in-flight slide-in
-    el.style.transition = spring
-      ? "transform 0.3s cubic-bezier(0.22, 0.61, 0.36, 1)"
-      : "none";
-    el.style.transform = px
-      ? `translate3d(${px}px, 0, 0)`
-      : "translate3d(0, 0, 0)";
+  // Commit the swipe: if the gesture ended with a mostly-horizontal move of even
+  // ~30px, jump to the next (left swipe) or previous (right swipe) tab.
+  function commitSwipe(endX: number, endY: number) {
+    const s = swipe.current;
+    swipe.current = null;
+    if (!s) return;
+    const dx = endX - s.x;
+    const dy = endY - s.y;
+    if (Math.abs(dx) > 30 && Math.abs(dx) > Math.abs(dy)) {
+      changeTab(dx < 0 ? 1 : -1);
+    }
   }
 
-  function onPointerDown(e: React.PointerEvent) {
-    if (e.pointerType === "mouse" && e.button !== 0) return;
+  // Touch (mobile)
+  function onTouchStart(e: React.TouchEvent) {
     if (startsInHorizontalScroller(e.target)) {
-      drag.current = null;
+      swipe.current = null;
       return;
     }
-    drag.current = {
-      x: e.clientX,
-      y: e.clientY,
-      t: Date.now(),
-      axis: null,
-      width: slideWrapRef.current?.offsetWidth || window.innerWidth,
-      id: e.pointerId,
-    };
+    const t = e.touches[0];
+    swipe.current = { x: t.clientX, y: t.clientY };
+  }
+  function onTouchEnd(e: React.TouchEvent) {
+    const t = e.changedTouches[0];
+    if (t) commitSwipe(t.clientX, t.clientY);
   }
 
-  function onPointerMove(e: React.PointerEvent) {
-    const d = drag.current;
-    if (!d) return;
-    const dx = e.clientX - d.x;
-    const dy = e.clientY - d.y;
-    if (d.axis === null) {
-      // Wait until the gesture has a clear direction before locking to it.
-      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
-      d.axis = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
-      if (d.axis === "y") {
-        drag.current = null; // vertical intent — let the page scroll normally
-        return;
-      }
-      containerRef.current?.setPointerCapture?.(d.id);
+  // Click-drag (desktop mouse / laptop trackpad drag)
+  function onMouseDown(e: React.MouseEvent) {
+    if (e.button !== 0 || startsInHorizontalScroller(e.target)) {
+      mouseDown.current = false;
+      swipe.current = null;
+      return;
     }
-    if (d.axis === "x") {
-      e.preventDefault(); // stop text selection / native horizontal scroll
-      setSlideOffset(dx, false);
-    }
+    mouseDown.current = true;
+    swipe.current = { x: e.clientX, y: e.clientY };
   }
-
-  function endPointer(e: React.PointerEvent) {
-    const d = drag.current;
-    drag.current = null;
-    if (!d || d.axis !== "x") return;
-    const dx = e.clientX - d.x;
-    // Commit on almost any deliberate horizontal move — a quick flick of a dozen
-    // pixels, or a slower drag past a small distance — so a single swipe always
-    // pushes through instead of springing back.
-    const flick = Date.now() - d.t < 400 && Math.abs(dx) > 12;
-    const past = Math.abs(dx) > Math.min(45, d.width * 0.1);
-    if (flick || past) {
-      setSlideOffset(0, false); // reset before remount so the slide-in is clean
-      changeTab(dx < 0 ? 1 : -1);
-    } else {
-      setSlideOffset(0, true); // didn't cross the threshold — spring back
-    }
-  }
-
-  function onPointerCancel() {
-    if (drag.current?.axis === "x") setSlideOffset(0, true);
-    drag.current = null;
+  function onMouseUp(e: React.MouseEvent) {
+    if (!mouseDown.current) return;
+    mouseDown.current = false;
+    commitSwipe(e.clientX, e.clientY);
   }
 
   // Two-finger horizontal trackpad swipe (wheel deltaX) also switches tabs. One
@@ -356,11 +317,10 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
   return (
     <div
       ref={containerRef}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={endPointer}
-      onPointerCancel={onPointerCancel}
-      style={{ touchAction: "pan-y pinch-zoom" }}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+      onMouseDown={onMouseDown}
+      onMouseUp={onMouseUp}
     >
       {/* Splash screen — VERZA TV logo on black */}
       {showSplash && (
@@ -436,14 +396,11 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </section>
       )}
 
-      {/* Swappable tab content. Outer .tab-slide clips the horizontal drag so it
-          never leaks a page scrollbar; the keyed inner remounts on each tab
-          change to replay the slide-in animation AND is the element we translate
-          live while dragging. slideDir picks which side the new tab enters from. */}
+      {/* Swappable tab content. The keyed inner remounts on each tab change to
+          replay the slide-in animation; slideDir picks which side it enters from. */}
       <div className="tab-slide">
         <div
           key={activeTab}
-          ref={slideWrapRef}
           className={`tab-slide-inner ${slideDir === 1 ? "tab-slide-next" : "tab-slide-prev"}`}
         >
       {/* Music tab — Too Much Junk poster → taps to native Mux player */}
