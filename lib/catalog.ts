@@ -50,7 +50,7 @@ export const catalog: Series[] = [
   /* ================================================================ */
   {
     slug: "the-mistress-trap",
-    title: "The Mistress Trap",
+    title: "The Escort They Framed",
     logline: "She set a honeytrap to catch her husband cheating. She didn't expect the other woman to be her best friend.",
     genre: "Drama · Betrayal",
     channel: "Verza Originals",
@@ -65,7 +65,7 @@ export const catalog: Series[] = [
   /* ================================================================ */
   {
     slug: "the-dumb-billionaire-heiress-in-love",
-    title: "The Dumb Billionaire Heiress In Love",
+    title: "A Fortune to Die For",
     logline: "She plays the fool so no one suspects her billions — until the one man who sees through it all walks into her life.",
     genre: "Romance \u00b7 Comedy",
     channel: "Verza Originals",
@@ -143,7 +143,7 @@ export const catalog: Series[] = [
   },
   {
     slug: "the-blackthornes",
-    title: "The Blackthornes",
+    title: "Two Brothers, One Bride",
     logline: "Three siblings. One dynasty. The patriarch is dead and his will names none of them — unless they destroy each other first.",
     genre: "Dynasty \u00b7 Drama",
     channel: "Verza Originals",
@@ -177,7 +177,7 @@ export const catalog: Series[] = [
   },
   {
     slug: "the-day-we-got-married",
-    title: "The Day We Got Married",
+    title: "Betrayed at the Altar",
     logline: "The wedding was perfect. The groom was a stranger. She said yes because the alternative was a bullet.",
     genre: "Romance \u00b7 Thriller",
     channel: "Verza Originals",
@@ -222,7 +222,7 @@ export const catalog: Series[] = [
   },
   {
     slug: "the-missing-piece",
-    title: "The Missing Piece",
+    title: "Deadly Revelations",
     logline: "A detective's cold case leads to a love letter addressed to her — written twenty years before she was born.",
     genre: "Mystery romance",
     channel: "Verza Originals",
@@ -289,7 +289,7 @@ export const catalog: Series[] = [
   },
   {
     slug: "im-obsessed-with-my-boss",
-    title: "I'm Obsessed with My Boss",
+    title: "Blackmail Baby",
     logline: "One elevator kiss with the CEO upends the assistant's careful life.",
     genre: "Office romance",
     channel: "Verza Originals",
@@ -312,7 +312,7 @@ export const catalog: Series[] = [
   },
   {
     slug: "echo-of-vengeance",
-    title: "Echo of Vengeance",
+    title: "Revenge in Couture",
     logline: "She was left for dead on her wedding night. Now she's back — and everyone will pay.",
     genre: "Revenge thriller",
     channel: "Verza Originals",
@@ -335,7 +335,7 @@ export const catalog: Series[] = [
   },
   {
     slug: "hidden-agenda",
-    title: "Hidden Agenda",
+    title: "The Killer Caregiver",
     logline: "An undercover journalist infiltrates a powerful family and falls for the son she's investigating.",
     genre: "Romantic thriller",
     channel: "Verza Originals",
@@ -654,7 +654,7 @@ export const catalog: Series[] = [
   },
   {
     slug: "the-escort",
-    title: "The Escort",
+    title: "The Call Girl Bought by Betrayal",
     logline: "A law student escorts to pay tuition. Her richest client turns out to be her professor's husband.",
     genre: "Forbidden drama",
     channel: "Verza Originals",
@@ -792,7 +792,7 @@ export const catalog: Series[] = [
   },
   {
     slug: "the-crown",
-    title: "The Crown",
+    title: "Power and Promises",
     logline: "A beauty queen discovers the pageant world runs on blackmail — and the crown she won was rigged from the start.",
     genre: "Drama \u00b7 Suspense",
     channel: "Verza Originals",
