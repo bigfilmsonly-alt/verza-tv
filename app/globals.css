@@ -229,12 +229,6 @@ body {
     transform: none;
   }
 
-  /* Keep the logo halo, but stop the moving sheen sweep. */
-  .logo-shine::after {
-    animation: none;
-    opacity: 0;
-  }
-
   /* Disable cinematic scale on video open */
   video, img {
     transition: opacity 0.1s ease !important;
@@ -274,57 +268,15 @@ button:focus-visible {
 
 .logo-shine {
   position: relative;
-  /* A soft dual-tone brand halo that lifts the mark off the dark header —
-     bright, but never blown-out (no brightness filter that would distort the
-     official white-inside emblem). */
+  /* A bright dual-tone brand halo that lifts the mark off the dark header.
+     Slight brightness/saturation lift makes it pop without distorting the
+     official white-inside emblem. */
   filter:
-    drop-shadow(0 0 8px rgba(224, 17, 95, 0.35))
-    drop-shadow(0 0 18px rgba(139, 92, 246, 0.22));
+    brightness(1.12)
+    saturate(1.08)
+    drop-shadow(0 0 10px rgba(224, 17, 95, 0.5))
+    drop-shadow(0 0 22px rgba(139, 92, 246, 0.32));
   will-change: filter;
-}
-
-/* A single highlight sweep that glides across ONLY the logo's pixels (masked to
-   the artwork) every few seconds — the "extra coat of polish". */
-.logo-shine::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(
-    100deg,
-    transparent 38%,
-    rgba(255, 255, 255, 0.6) 50%,
-    transparent 62%
-  );
-  background-size: 220% 100%;
-  background-repeat: no-repeat;
-  -webkit-mask-image: url(/logo.png);
-  mask-image: url(/logo.png);
-  -webkit-mask-size: contain;
-  mask-size: contain;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  mask-position: center;
-  animation: logoSheen 6.5s ease-in-out infinite;
-}
-
-@keyframes logoSheen {
-  0%, 22% {
-    background-position: 200% 0;
-    opacity: 0;
-  }
-  32% {
-    opacity: 1;
-  }
-  58% {
-    background-position: -80% 0;
-    opacity: 1;
-  }
-  72%, 100% {
-    background-position: -200% 0;
-    opacity: 0;
-  }
 }
 
 /* ---- Poster grid: uniform sizing on all devices ---- */
