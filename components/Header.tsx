@@ -29,9 +29,8 @@ export default function Header() {
             src="/logo.png"
             alt="VERZA TV"
             width={200}
-            height={54}
+            height={62}
             className="object-contain"
-            style={{ filter: "brightness(1.4)" }}
             priority
           />
         </Link>

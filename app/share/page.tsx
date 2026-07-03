@@ -3,7 +3,7 @@ import Image from "next/image";
 import ShareRedirect from "@/components/ShareRedirect";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verzatv.com";
-const OG_IMAGE = `${SITE_URL}/og-image.png?v=3`;
+const OG_IMAGE = `${SITE_URL}/og-image.png?v=4`;
 const DESCRIPTION =
   "Stream binge-worthy micro-dramas, reality shows, and original series — all in vertical, all in minutes.";
 

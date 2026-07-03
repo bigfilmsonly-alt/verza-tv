@@ -27,7 +27,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verzatv.com";
 
 // Bump this when og-image.png changes so link-preview caches (iMessage,
 // WhatsApp, Facebook, Twitter…) are forced to re-fetch the new thumbnail.
-const OG_IMAGE = `${SITE_URL}/og-image.png?v=3`;
+const OG_IMAGE = `${SITE_URL}/og-image.png?v=4`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
