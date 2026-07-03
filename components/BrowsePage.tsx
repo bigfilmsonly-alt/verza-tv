@@ -466,8 +466,9 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
           onTouchStart={() => setHeroPaused(true)}
           onTouchEnd={() => setHeroPaused(false)}
         >
-          {/* Poster image — clean, no text overlay */}
-          <div className="relative">
+          {/* Poster image — clean, no text overlay. px inset keeps the flyer
+              off the screen edges so the prev/next arrows have side space. */}
+          <div className="relative px-6">
             <Link href={`/series/${current.slug}/1`} className="block">
               <div
                 className="hero-poster relative w-full overflow-hidden mx-auto"
