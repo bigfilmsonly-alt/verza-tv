@@ -10,6 +10,8 @@ import HorizontalFeed from "@/components/HorizontalFeed";
 import SummerSaleBadge from "@/components/SummerSaleBadge";
 import SponsoredTile from "@/components/SponsoredProducts";
 import { SPONSORED_PRODUCTS } from "@/lib/sponsors";
+import AmazonTile from "@/components/AmazonProducts";
+import { AMAZON_PRODUCTS } from "@/lib/amazon-sponsors";
 import { MUX_MAP } from "@/lib/mux-map";
 
 // Eagerly preload hls.js so it's cached before user taps a video
@@ -747,6 +749,17 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                     <SponsoredTile
                       key={`ad-${i}-${k}`}
                       product={SPONSORED_PRODUCTS[(Math.floor(i / 12) * 3 + k) % SPONSORED_PRODUCTS.length]}
+                    />
+                  ))}
+                {/* Amazon sponsored ROW — three poster-sized tiles side by side
+                    filling one full grid row, inserted every 12 posters but
+                    offset by 6 from the TikTok row so the two alternate cleanly
+                    down the grid. Products cycle between blocks. */}
+                {AMAZON_PRODUCTS.length > 0 && (i + 1) % 12 === 6 && i < gridItems.length - 1 &&
+                  [0, 1, 2].map((k) => (
+                    <AmazonTile
+                      key={`amzn-${i}-${k}`}
+                      product={AMAZON_PRODUCTS[(Math.floor(i / 12) * 3 + k) % AMAZON_PRODUCTS.length]}
                     />
                   ))}
               </Fragment>
