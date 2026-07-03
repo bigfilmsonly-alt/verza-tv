@@ -229,6 +229,12 @@ body {
     transform: none;
   }
 
+  /* Keep the logo halo, but stop the moving sheen sweep. */
+  .logo-shine::after {
+    animation: none;
+    opacity: 0;
+  }
+
   /* Disable cinematic scale on video open */
   video, img {
     transition: opacity 0.1s ease !important;
@@ -264,6 +270,63 @@ button:focus-visible {
   box-shadow: 0 0 20px rgba(224, 17, 95, 0.08), 0 0 40px rgba(139, 92, 246, 0.05);
 }
 
+/* ---- Header logo: brand glow + slow cinematic sheen (Lionsgate polish) ---- */
+
+.logo-shine {
+  position: relative;
+  /* A soft dual-tone brand halo that lifts the mark off the dark header —
+     bright, but never blown-out (no brightness filter that would distort the
+     official white-inside emblem). */
+  filter:
+    drop-shadow(0 0 8px rgba(224, 17, 95, 0.35))
+    drop-shadow(0 0 18px rgba(139, 92, 246, 0.22));
+  will-change: filter;
+}
+
+/* A single highlight sweep that glides across ONLY the logo's pixels (masked to
+   the artwork) every few seconds — the "extra coat of polish". */
+.logo-shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    100deg,
+    transparent 38%,
+    rgba(255, 255, 255, 0.6) 50%,
+    transparent 62%
+  );
+  background-size: 220% 100%;
+  background-repeat: no-repeat;
+  -webkit-mask-image: url(/logo.png);
+  mask-image: url(/logo.png);
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  animation: logoSheen 6.5s ease-in-out infinite;
+}
+
+@keyframes logoSheen {
+  0%, 22% {
+    background-position: 200% 0;
+    opacity: 0;
+  }
+  32% {
+    opacity: 1;
+  }
+  58% {
+    background-position: -80% 0;
+    opacity: 1;
+  }
+  72%, 100% {
+    background-position: -200% 0;
+    opacity: 0;
+  }
+}
+
 /* ---- Poster grid: uniform sizing on all devices ---- */
 
 .poster-grid {
@@ -281,6 +344,14 @@ button:focus-visible {
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
+}
+
+/* Mobile: the bottom nav is fixed (72px tall) and overlays content, so reserve
+   its height + the home-indicator safe area under <main> on every device — the
+   last poster row / footer never hides behind the nav. Overrides the `pb-16`
+   utility. The desktop frame docks the nav separately, so it's zeroed there. */
+.app-shell > main {
+  padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
 }
 
 /* ---- Device frame (single render — iPhone chrome on desktop only) ---- */
@@ -307,7 +378,7 @@ button:focus-visible {
    visible on load without scrolling. (Desktop override lives in the frame
    media query below, since 100svh there is the browser height, not the frame.) */
 .hero-poster {
-  max-height: calc(100svh - 112px);
+  max-height: calc(100svh - 112px - env(safe-area-inset-top, 0px));
 }
 
 .device-nav-dock .bottom-nav {
@@ -392,6 +463,12 @@ button:focus-visible {
   .device-screen .app-shell {
     max-width: 100%;
     min-height: 100%;
+  }
+
+  /* The desktop iPhone frame docks the nav below the scroll area, so <main>
+     doesn't need to reserve the mobile fixed-nav height. */
+  .device-screen .app-shell > main {
+    padding-bottom: 24px !important;
   }
 
   /* Inside the iPhone frame `100svh` is the full browser height (not the frame),

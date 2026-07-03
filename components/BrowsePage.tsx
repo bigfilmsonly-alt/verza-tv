@@ -246,7 +246,9 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
       <div
         className="sticky z-30"
         style={{
-          top: 62,
+          // Pin directly under the header; add the top safe-area so the bar stays
+          // glued to the header on notch / Dynamic Island devices (installed PWA).
+          top: "calc(62px + env(safe-area-inset-top, 0px))",
           background: "rgba(7, 7, 14, 0.95)",
           backdropFilter: "blur(16px)",
           WebkitBackdropFilter: "blur(16px)",
@@ -260,7 +262,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
           scroll (not just over the hero), without pushing any content down */}
       <div
         className="sticky z-20 flex justify-center pointer-events-none"
-        style={{ top: 108, height: 0 }}
+        style={{ top: "calc(108px + env(safe-area-inset-top, 0px))", height: 0 }}
       >
         <div className="pointer-events-auto mt-0">
           <SummerSaleBadge />
