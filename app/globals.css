@@ -631,25 +631,33 @@ img {
 }
 
 /* ---- Tab switch slide transition ---- */
-/* The tab content is keyed on activeTab, so it remounts on every switch and
-   replays one of these animations. slideDir picks the direction: forward
-   (next tab) slides in from the right, back (prev tab) from the left. */
+/* The inner tab content is keyed on activeTab, so it remounts on every switch
+   and replays one of these animations. slideDir picks the direction: forward
+   (next tab) slides in from the right, back (prev tab) from the left. No fill
+   mode ("both") so that once the animation ends the live drag transform set
+   inline during a swipe is honoured (an animation would otherwise win the
+   cascade over inline styles). */
 @keyframes tabSlideNext {
-  from { opacity: 0; transform: translateX(30px); }
-  to { opacity: 1; transform: translateX(0); }
+  from { opacity: 0; transform: translate3d(40px, 0, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 @keyframes tabSlidePrev {
-  from { opacity: 0; transform: translateX(-30px); }
-  to { opacity: 1; transform: translateX(0); }
+  from { opacity: 0; transform: translate3d(-40px, 0, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
+/* Outer clips the horizontal drag; it sits BELOW the sticky tabs (not an
+   ancestor of them) so making it a clip context never breaks the sticky bar. */
 .tab-slide {
   overflow-x: hidden;
 }
+.tab-slide-inner {
+  will-change: transform;
+}
 .tab-slide-next {
-  animation: tabSlideNext 0.28s ease both;
+  animation: tabSlideNext 0.32s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 .tab-slide-prev {
-  animation: tabSlidePrev 0.28s ease both;
+  animation: tabSlidePrev 0.32s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 @media (prefers-reduced-motion: reduce) {
   .tab-slide-next,
