@@ -208,12 +208,12 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </div>
       )}
 
-      {/* Category tabs — sticky directly under the single-row header (48px tall)
-          so they stay pinned while scrolling */}
+      {/* Category tabs — sticky directly under the single-row header (~62px tall
+          with the larger logo) so they stay pinned while scrolling */}
       <div
         className="sticky z-30"
         style={{
-          top: 48,
+          top: 62,
           background: "rgba(7, 7, 14, 0.95)",
           backdropFilter: "blur(16px)",
           WebkitBackdropFilter: "blur(16px)",
@@ -227,7 +227,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
           scroll (not just over the hero), without pushing any content down */}
       <div
         className="sticky z-20 flex justify-center pointer-events-none"
-        style={{ top: 94, height: 0 }}
+        style={{ top: 108, height: 0 }}
       >
         <div className="pointer-events-auto mt-0">
           <SummerSaleBadge />
@@ -470,14 +470,9 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
           <div className="relative">
             <Link href={`/series/${current.slug}/1`} className="block">
               <div
-                className="relative w-full overflow-hidden mx-auto"
+                className="hero-poster relative w-full overflow-hidden mx-auto"
                 style={{
                   aspectRatio: "1080 / 1920",
-                  // Cap the poster to what fits under the header (48px) + tabs
-                  // (~44px) so the WHOLE 9:16 flyer — including the bottom VERZA
-                  // TV logo — is visible on load without scrolling. object-contain
-                  // keeps it uncropped; on tight phones this adds slim side bars.
-                  maxHeight: "calc(100svh - 96px)",
                   background: "#07070E",
                 }}
               >

@@ -297,6 +297,14 @@ button:focus-visible {
   flex-shrink: 0;
 }
 
+/* Home hero poster. Mobile: cap to what fits under the header (~62px) + tabs
+   (~44px) so the WHOLE 9:16 flyer — including the bottom VERZA TV logo — is
+   visible on load without scrolling. (Desktop override lives in the frame
+   media query below, since 100svh there is the browser height, not the frame.) */
+.hero-poster {
+  max-height: calc(100svh - 112px);
+}
+
 .device-nav-dock .bottom-nav {
   /* Mobile: default fixed positioning from .bottom-nav class */
 }
@@ -372,6 +380,13 @@ button:focus-visible {
   .device-screen .app-shell {
     max-width: 100%;
     min-height: 100%;
+  }
+
+  /* Inside the iPhone frame `100svh` is the full browser height (not the frame),
+     so the mobile cap lets the poster balloon and eat the whole frame. Cap it to
+     the frame instead, leaving room for the header, tabs and the grid below. */
+  .hero-poster {
+    max-height: 480px;
   }
 
   /* Hide bottom nav inside scroll area (it's in the dock below) */

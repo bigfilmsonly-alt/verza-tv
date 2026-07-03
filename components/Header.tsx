@@ -28,8 +28,8 @@ export default function Header() {
           <Image
             src="/logo.png"
             alt="Verza TV"
-            width={150}
-            height={40}
+            width={200}
+            height={54}
             className="object-contain"
             style={{ filter: "brightness(1.4)" }}
             priority

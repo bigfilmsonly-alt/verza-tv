@@ -9,6 +9,7 @@ import CartDrawer from "@/components/CartDrawer";
 import { LangProvider } from "@/components/LangProvider";
 import ServiceWorker from "@/components/ServiceWorker";
 import ContentTranslator from "@/components/ContentTranslator";
+import ScrollToTop from "@/components/ScrollToTop";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
@@ -114,6 +115,7 @@ export default function RootLayout({
         <CartProvider>
         <LangProvider>
           <ContentTranslator />
+          <ScrollToTop />
           {/* Single render — CSS adds iPhone frame on desktop */}
           <div className="device-frame">
             <div className="device-screen">
