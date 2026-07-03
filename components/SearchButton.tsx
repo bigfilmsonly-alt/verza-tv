@@ -183,9 +183,7 @@ export default function SearchButton() {
                 </p>
                 <div className="grid grid-cols-3 gap-x-2.5 gap-y-4 px-3 pb-10">
                   {filteredAmazon.map((p) => (
-                    <div key={p.id} onClick={() => setOpen(false)}>
-                      <AmazonTile product={p} />
-                    </div>
+                    <AmazonTile key={p.id} product={p} />
                   ))}
                 </div>
               </>
