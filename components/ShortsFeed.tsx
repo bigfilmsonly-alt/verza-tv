@@ -10,6 +10,7 @@ import { T } from "@/lib/theme";
 import { MUX_MAP } from "@/lib/mux-map";
 import { useTranslation } from "@/components/LangProvider";
 import { createTtffTracker } from "@/lib/perf/ttff";
+import VideoWatermark from "@/components/VideoWatermark";
 
 /* ---- Load hls.js once ---- */
 let hlsPromise: Promise<typeof HlsType | null> | null = null;
@@ -101,8 +102,8 @@ function ShortCard({ series, isActive, muted, setMuted, saved, onToggleSave }: {
         style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 15%, transparent 70%, rgba(0,0,0,0.3) 100%)" }}
       />
 
-      {/* Top-left: title + episode chip */}
-      <div className="absolute top-4 left-4 z-10" style={{ maxWidth: "65%" }}>
+      {/* Top-left: title + episode chip (indented to clear the watermark) */}
+      <div className="absolute top-4 left-4 z-10" style={{ maxWidth: "65%", paddingLeft: 40 }}>
         <h2 className="text-base font-bold leading-tight mb-1.5" style={{ color: "#fff", textShadow: "0 1px 6px rgba(0,0,0,0.8)" }}>
           {series.title}
         </h2>
@@ -365,6 +366,9 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
         className="absolute inset-0 w-full h-full object-cover"
         style={{ zIndex: 2, background: "#000", pointerEvents: "none" }}
       />
+
+      {/* VERZA watermark — top-left corner while playing */}
+      <VideoWatermark videoRef={videoRef} top={12} left={12} size={26} />
 
       {/* Swipe detection layer — transparent, receives horizontal swipe */}
       <div

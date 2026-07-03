@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import type HlsType from "hls.js";
 import { emit } from "@/lib/analytics";
+import VideoWatermark from "@/components/VideoWatermark";
 
 let HlsModule: typeof HlsType | null = null;
 if (typeof window !== "undefined") {
@@ -138,6 +139,9 @@ export default function CreatorWatch({
                 controls={started}
                 poster={`https://image.mux.com/${playbackId}/thumbnail.jpg?width=720`}
               />
+
+              {/* VERZA watermark — top-left corner while playing */}
+              <VideoWatermark videoRef={videoRef} top={12} left={12} size={26} />
               {!started && (
                 <button
                   onClick={play}

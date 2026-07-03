@@ -4,6 +4,7 @@ import { useRef, useState, useEffect, useCallback } from "react";
 import type HlsType from "hls.js";
 import { HORIZONTAL_VIDEOS, type HorizontalVideo } from "@/lib/horizontal-map";
 import { useTranslation } from "@/components/LangProvider";
+import VideoWatermark from "@/components/VideoWatermark";
 
 /* ---- Load hls.js once ---- */
 let hlsPromise: Promise<typeof HlsType | null> | null = null;
@@ -126,6 +127,9 @@ function HorizontalCard({ video, index }: { video: HorizontalVideo; index: numbe
           style={{ opacity: playing ? 1 : 0, zIndex: playing ? 1 : 0, background: "#07070E" }}
           onClick={() => { if (playing) { videoRef.current?.pause(); setPlaying(false); } }}
         />
+
+        {/* VERZA watermark — top-left corner while playing */}
+        <VideoWatermark videoRef={videoRef} top={8} left={8} size={22} />
 
         {!playing && (
           <img

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type HlsType from "hls.js";
 import { trackEpisodeStart, trackEpisodeComplete, trackUnlockPrompt, trackUnlockClick } from "@/lib/track";
 import { emit } from "@/lib/analytics";
+import VideoWatermark from "@/components/VideoWatermark";
 
 /* ---- Load hls.js once ---- */
 let hlsPromise: Promise<typeof HlsType | null> | null = null;
@@ -317,6 +318,9 @@ function EpisodeSlide({
           zIndex: 2,
         }}
       />
+
+      {/* VERZA watermark — top-left, beside the back button, while playing */}
+      <VideoWatermark videoRef={videoRef} top={22} left={62} size={26} />
 
       {/* No spinner — poster holds until video plays */}
 

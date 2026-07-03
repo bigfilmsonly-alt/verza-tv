@@ -8,6 +8,7 @@ import { emit } from "@/lib/analytics";
 import { T } from "@/lib/theme";
 import { formatDuration } from "@/lib/catalog";
 import { MUX_MAP } from "@/lib/mux-map";
+import VideoWatermark from "@/components/VideoWatermark";
 
 // Dynamic import — hls.js only needed on Chrome/Firefox, not Safari/iOS
 let HlsModule: typeof HlsType | null = null;
@@ -421,6 +422,9 @@ export default function Player({
           poster={muxThumb || undefined}
         />
 
+        {/* VERZA watermark — top-left corner while playing */}
+        <VideoWatermark videoRef={videoRef} top={12} left={12} size={28} />
+
         {/* Poster overlay before start — uses local poster art for instant display */}
         {!started && posterUrl && (
           <Image
@@ -619,7 +623,7 @@ export default function Player({
         {/* Episode badge (top-left) */}
         {started && showControls && (
           <div
-            className="absolute top-3 left-3 z-20 px-2 py-1 rounded-md transition-opacity duration-300"
+            className="absolute top-3 left-12 z-20 px-2 py-1 rounded-md transition-opacity duration-300"
             style={{
               background: "rgba(0,0,0,0.5)",
               backdropFilter: "blur(8px)",
