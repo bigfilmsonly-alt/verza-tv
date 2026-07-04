@@ -361,13 +361,15 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         const currentShow = realityShows[realityIdx];
         return (
           <div>
-            <div className="relative">
-              <div className="relative w-full overflow-hidden" style={{ aspectRatio: "2 / 3", background: "#000" }}>
-                <Image src={currentShow.poster} alt={currentShow.title} fill priority sizes="100vw" className="object-contain" />
+            {/* px inset keeps the poster off the screen edges (not edge-to-edge);
+                the .hero-poster height cap keeps it small enough that the whole
+                flyer — including the VERZA TV logo at the bottom — is visible
+                without scrolling on every phone size. No bottom gradient, which
+                previously darkened that bottom logo. */}
+            <div className="relative px-6">
+              <div className="hero-poster relative w-full overflow-hidden mx-auto rounded-xl" style={{ aspectRatio: "2 / 3", background: "#000" }}>
+                <Image src={currentShow.poster} alt={currentShow.title} fill priority sizes="(max-width: 440px) 88vw, 388px" className="object-contain" />
               </div>
-
-              {/* Bottom gradient */}
-              <div className="absolute bottom-0 left-0 right-0 pointer-events-none" style={{ height: 80, background: "linear-gradient(to top, #07070E, transparent)", zIndex: 5 }} />
 
               {/* Arrows */}
               <button
