@@ -317,19 +317,17 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         <div>
           <div className="relative">
             <Link href="/series/too-much-junk/1" prefetch={true} className="block transition-transform active:scale-[0.97]">
-              <div className="relative w-full overflow-hidden" style={{ aspectRatio: "2 / 3", background: "#000" }}>
+              <div className="relative mx-auto overflow-hidden rounded-xl" style={{ aspectRatio: "2 / 3", width: "100%", maxWidth: "min(320px, 80vw)", background: "#000" }}>
                 <Image
                   src="/posters/too-much-junk.jpg"
                   alt="Too Much Junk"
                   fill
                   priority
-                  sizes="100vw"
+                  sizes="(max-width: 440px) 80vw, 320px"
                   className="object-contain"
-                  style={{ objectPosition: "top" }}
                 />
               </div>
             </Link>
-            <div className="absolute bottom-0 left-0 right-0 pointer-events-none" style={{ height: 80, background: "linear-gradient(to top, #07070E, transparent)", zIndex: 5 }} />
           </div>
         </div>
       )}
@@ -518,29 +516,29 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
           onTouchStart={() => setHeroPaused(true)}
           onTouchEnd={() => setHeroPaused(false)}
         >
-          {/* Poster image — clean, no text overlay. px inset keeps the flyer
-              off the screen edges so the prev/next arrows have side space. */}
-          <div className="relative px-6">
+          {/* Poster image — same centered, width-capped 2:3 card as the Reality
+              section so every tab's hero is the same size. object-contain shows
+              the whole 9:16 flyer (incl. the bottom VERZA logo) inside the 2:3
+              card without cropping. */}
+          <div className="relative">
             <Link href={`/series/${current.slug}/1`} className="block">
               <div
-                className="hero-poster relative w-full overflow-hidden mx-auto"
+                className="relative mx-auto overflow-hidden rounded-xl"
                 style={{
-                  aspectRatio: "1080 / 1920",
+                  aspectRatio: "2 / 3",
+                  width: "100%",
+                  maxWidth: "min(320px, 80vw)",
                   background: "#07070E",
                 }}
               >
-                {/* Poster slideshow — object-cover fills the 9:16 frame edge to
-                    edge for every poster aspect ratio (9:16 posters fit exactly;
-                    2:3 posters fill with a slight side crop) so the hero never
-                    letterboxes with empty bars or looks off-center on mobile */}
                 {current.posterUrl ? (
                   <Image
                     src={current.posterUrl}
                     alt={current.title}
                     fill
                     priority
-                    sizes="100vw"
-                    className="object-cover"
+                    sizes="(max-width: 440px) 80vw, 320px"
+                    className="object-contain"
                   />
                 ) : (
                   <div
