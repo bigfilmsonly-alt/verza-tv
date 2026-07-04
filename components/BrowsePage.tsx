@@ -361,14 +361,18 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         const currentShow = realityShows[realityIdx];
         return (
           <div>
-            {/* px inset keeps the poster off the screen edges (not edge-to-edge);
-                the .hero-poster height cap keeps it small enough that the whole
-                flyer — including the VERZA TV logo at the bottom — is visible
-                without scrolling on every phone size. No bottom gradient, which
-                previously darkened that bottom logo. */}
-            <div className="relative px-6">
-              <div className="hero-poster relative w-full overflow-hidden mx-auto rounded-xl" style={{ aspectRatio: "2 / 3", background: "#000" }}>
-                <Image src={currentShow.poster} alt={currentShow.title} fill priority sizes="(max-width: 440px) 88vw, 388px" className="object-contain" />
+            {/* A centered, WIDTH-capped card (not edge-to-edge). Capping the width
+                fixes the height too (2:3 box), so the whole flyer — including the
+                VERZA TV logo at the bottom — always fits on screen without scrolling
+                on every iPhone from SE to 17 Pro Max, independent of viewport-height
+                quirks. object-cover on the 2:3 box only ever crops the sides (never
+                the bottom), so the bottom logo is always visible. */}
+            <div className="relative">
+              <div
+                className="relative mx-auto overflow-hidden rounded-xl"
+                style={{ aspectRatio: "2 / 3", width: "100%", maxWidth: "min(320px, 80vw)", background: "#000" }}
+              >
+                <Image src={currentShow.poster} alt={currentShow.title} fill priority sizes="(max-width: 440px) 80vw, 320px" className="object-cover" />
               </div>
 
               {/* Arrows */}
