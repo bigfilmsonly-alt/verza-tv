@@ -2,6 +2,8 @@
 /*  Full catalog — live series + coming soon                            */
 /* ------------------------------------------------------------------ */
 
+import { MUX_MAP } from "./mux-map";
+
 export type BrowseCategory = "drama" | "new" | "popular" | "music" | "reality" | "red-carpet";
 
 export const BROWSE_TABS: { key: BrowseCategory; label: string }[] = [
@@ -897,6 +899,22 @@ export const catalog: Series[] = [
     freeEpisodes: 0, coinPerEpisode: 49, seasonPassCoins: 0, status: "coming_soon",
   },
 ];
+
+/* ------------------------------------------------------------------ */
+/*  Normalize episode counts to the real Mux inventory.                 */
+/*  MUX_MAP is the single source of truth for how many episodes         */
+/*  actually play. This keeps episodeCount, season-pass pricing, and     */
+/*  free-episode ranges honest — no advertised episode without a video,  */
+/*  and no uploaded stream left hidden.                                  */
+/* ------------------------------------------------------------------ */
+for (const s of catalog) {
+  if (s.status !== "live") continue;
+  const streams = MUX_MAP[s.slug]?.length;
+  if (!streams) continue;
+  s.episodeCount = streams;
+  if (s.freeEpisodes > streams) s.freeEpisodes = streams;
+  if (s.coinPerEpisode > 0) s.seasonPassCoins = sp(streams);
+}
 
 /* ---- Episode type ---- */
 
