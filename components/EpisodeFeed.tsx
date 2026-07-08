@@ -498,8 +498,6 @@ export default function EpisodeFeed({
   const [unlockLoading, setUnlockLoading] = useState(false);
   // Persistent Buy/VIP CTA (stays visible while watching, unlike the auto-hiding
   // chrome) → opens a sheet offering one-time series unlock or VIP.
-  const [showBuySheet, setShowBuySheet] = useState(false);
-  const [buyLoading, setBuyLoading] = useState<"series" | "vip" | null>(null);
   const [epProgress, setEpProgress] = useState(0);
   const [showToast, setShowToast] = useState(false);
   const [showHeart, setShowHeart] = useState(false);
@@ -586,44 +584,6 @@ export default function EpisodeFeed({
     }
     leaveNow();
   }, [recShow, leaveNow]);
-
-  /* One-time unlock of this series ($1.99) — shared by the paywall and the
-     persistent Buy/VIP sheet. */
-  const startSeriesUnlock = useCallback(async () => {
-    setBuyLoading("series");
-    trackUnlockClick(seriesSlug);
-    emit("checkout_started", { show_id: seriesSlug, plan_type: "series_unlock", surface: "buy_sheet" });
-    try {
-      const res = await fetch("/api/unlock", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ seriesSlug }),
-      });
-      const data = await res.json();
-      if (data.url) window.location.href = data.url;
-      else setBuyLoading(null);
-    } catch {
-      setBuyLoading(null);
-    }
-  }, [seriesSlug]);
-
-  /* VIP subscription (all series) via Stripe checkout. */
-  const startVip = useCallback(async () => {
-    setBuyLoading("vip");
-    emit("checkout_started", { show_id: seriesSlug, plan_type: "vip_monthly", surface: "buy_sheet" });
-    try {
-      const res = await fetch("/api/subscribe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan: "monthly" }),
-      });
-      const data = await res.json();
-      if (data.url) window.location.href = data.url;
-      else setBuyLoading(null);
-    } catch {
-      setBuyLoading(null);
-    }
-  }, [seriesSlug]);
 
   const activeEp = episodes[activeIndex];
 
@@ -1308,96 +1268,6 @@ export default function EpisodeFeed({
         </div>
       )}
 
-      {/* Persistent unlock CTA — anchored to the bottom edge, styled to match the
-          player's own frosted chrome so it reads as native, not an ad. One restrained
-          brand-gradient accent (the price chip) carries the value + the tap. */}
-      {!showUnlock && !showExitRec && !showBuySheet && !showMore && (
-        <button
-          onClick={() => { revealActionRail(); setShowBuySheet(true); }}
-          className="absolute left-1/2 -translate-x-1/2 z-[55] flex items-center gap-2 pl-3 pr-2 py-2 rounded-full cursor-pointer transition-all active:scale-[0.97]"
-          style={{
-            bottom: "calc(14px + env(safe-area-inset-bottom, 0px))",
-            background: "rgba(12,12,18,0.55)",
-            backdropFilter: "blur(16px) saturate(1.3)",
-            WebkitBackdropFilter: "blur(16px) saturate(1.3)",
-            border: "1px solid rgba(255,255,255,0.14)",
-            boxShadow: "0 2px 14px rgba(0,0,0,0.4)",
-          }}
-          aria-label="Unlock the full series"
-        >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.72)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-            <path d="M7 11V7a5 5 0 0 1 9.9-1" />
-          </svg>
-          <span className="text-[12.5px] font-semibold leading-none tracking-tight" style={{ color: "rgba(255,255,255,0.92)" }}>
-            Unlock full series
-          </span>
-          <span
-            className="text-[11px] font-bold leading-none px-2 py-1 rounded-full"
-            style={{ background: "linear-gradient(135deg, #E0115F, #8B5CF6)", color: "#fff" }}
-          >
-            $1.99
-          </span>
-        </button>
-      )}
-
-      {/* Buy/VIP sheet — one-time series unlock or VIP subscription */}
-      {showBuySheet && (
-        <div
-          className="absolute inset-0 z-[62] flex items-end justify-center"
-          style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)", animation: "fadeIn 0.25s ease" }}
-          onClick={() => { if (!buyLoading) setShowBuySheet(false); }}
-        >
-          <div
-            className="w-full max-w-md rounded-t-3xl p-6 pb-8"
-            style={{ background: "#12121A", animation: "sheetUp 0.3s cubic-bezier(0.22,1,0.36,1)" }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="w-10 h-1 rounded-full mx-auto mb-5" style={{ background: "rgba(255,255,255,0.2)" }} />
-            <h3 className="text-lg font-bold text-center mb-1" style={{ color: "#fff" }}>Unlock everything</h3>
-            <p className="text-xs text-center mb-5" style={{ color: "rgba(255,255,255,0.45)" }}>
-              Keep watching {seriesTitle} — pick what works for you
-            </p>
-
-            {/* VIP — primary */}
-            <button
-              onClick={startVip}
-              disabled={buyLoading !== null}
-              className="w-full rounded-2xl p-4 mb-3 border-0 cursor-pointer flex items-center justify-between transition-transform active:scale-[0.98]"
-              style={{ background: "linear-gradient(135deg, #E0115F, #8B5CF6)", opacity: buyLoading === "series" ? 0.5 : 1 }}
-            >
-              <div className="text-left">
-                <p className="text-sm font-bold" style={{ color: "#fff" }}>VERZA VIP</p>
-                <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.8)" }}>Every series, every episode</p>
-              </div>
-              <span className="text-sm font-bold" style={{ color: "#fff" }}>{buyLoading === "vip" ? "…" : "$9.99/mo"}</span>
-            </button>
-
-            {/* This series — secondary */}
-            <button
-              onClick={startSeriesUnlock}
-              disabled={buyLoading !== null}
-              className="w-full rounded-2xl p-4 cursor-pointer flex items-center justify-between transition-transform active:scale-[0.98]"
-              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)", opacity: buyLoading === "vip" ? 0.5 : 1 }}
-            >
-              <div className="text-left">
-                <p className="text-sm font-bold" style={{ color: "#fff" }}>This series only</p>
-                <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.45)" }}>Unlock all of {seriesTitle}</p>
-              </div>
-              <span className="text-sm font-bold" style={{ color: "#fff" }}>{buyLoading === "series" ? "…" : "$1.99"}</span>
-            </button>
-
-            <button
-              onClick={() => setShowBuySheet(false)}
-              disabled={buyLoading !== null}
-              className="w-full mt-4 text-sm font-medium border-0 bg-transparent cursor-pointer"
-              style={{ color: "rgba(255,255,255,0.4)" }}
-            >
-              Not now
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Episode badge — bottom-left */}
       <div
@@ -1494,7 +1364,6 @@ export default function EpisodeFeed({
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes fadeOut { 0% { opacity: 1; } 100% { opacity: 0; } }
-        @keyframes sheetUp { 0% { transform: translateY(100%); } 100% { transform: translateY(0); } }
         @keyframes scaleIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
         @keyframes heartBurst {
           0% { transform: scale(0.3); opacity: 0; }
