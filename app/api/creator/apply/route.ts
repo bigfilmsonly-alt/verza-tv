@@ -28,6 +28,10 @@ export async function POST(req: NextRequest) {
   const bio = clamp(body.bio, MAX).trim();
   const website = clamp(body.website, 200).trim();
   const social = clamp(body.social, 200).trim();
+  const phone = clamp(body.phone, 40).trim();
+  const contactEmail = clamp(body.contactEmail, 200).trim();
+  const projectPitch = clamp(body.projectPitch, MAX).trim();
+  const filmLink = clamp(body.filmLink, 500).trim();
   const handle = normalizeHandle(clamp(body.handle, 40) || displayName);
 
   if (!displayName) return Response.json({ error: "Display name required" }, { status: 400 });
@@ -64,6 +68,10 @@ export async function POST(req: NextRequest) {
     bio,
     website: website || null,
     social: social || null,
+    phone: phone || null,
+    contact_email: contactEmail || null,
+    project_pitch: projectPitch || null,
+    film_link: filmLink || null,
     status: "pending" as const,
     rejection_reason: null,
     payout_email: user.email,
@@ -88,8 +96,12 @@ export async function POST(req: NextRequest) {
   sendFormNotification("Creator Application", user.email, {
     name: displayName,
     handle,
-    website: website || "—",
+    phone: phone || "—",
+    contactEmail: contactEmail || user.email || "—",
     social: social || "—",
+    website: website || "—",
+    pitch: projectPitch || "—",
+    filmLink: filmLink || "—",
   }).catch(() => {});
 
   return Response.json({ ok: true, status: "pending", handle });

@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
   const supabase = getServiceClient();
   const { data, error } = await supabase
     .from("creators")
-    .select("id, user_id, handle, display_name, bio, website, social, status, payout_email, created_at")
+    .select("id, user_id, handle, display_name, bio, website, social, phone, contact_email, project_pitch, film_link, status, payout_email, created_at")
     .eq("status", status)
     .order("created_at", { ascending: true });
 

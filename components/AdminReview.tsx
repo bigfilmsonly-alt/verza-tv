@@ -39,6 +39,10 @@ interface CreatorApp {
   bio: string;
   website: string | null;
   social: string | null;
+  phone: string | null;
+  contact_email: string | null;
+  project_pitch: string | null;
+  film_link: string | null;
   payout_email: string | null;
   created_at: string;
 }
@@ -188,12 +192,34 @@ export default function AdminReview() {
                 </p>
                 <p className="text-[11px] mb-2" style={{ color: T.textMute }}>
                   @{app.handle}
-                  {app.payout_email ? ` · ${app.payout_email}` : ""}
+                  {app.contact_email || app.payout_email ? ` · ${app.contact_email || app.payout_email}` : ""}
+                  {app.phone ? ` · ${app.phone}` : ""}
                 </p>
                 {app.bio && (
                   <p className="text-xs mb-2 leading-relaxed" style={{ color: T.textDim }}>
                     {app.bio}
                   </p>
+                )}
+                {app.project_pitch && (
+                  <div className="rounded-xl p-3 mb-2" style={{ background: T.raised, border: `1px solid ${T.line}` }}>
+                    <p className="text-[10px] uppercase tracking-wide mb-1" style={{ color: T.textMute }}>
+                      Idea / film pitch
+                    </p>
+                    <p className="text-xs leading-relaxed whitespace-pre-wrap" style={{ color: T.textDim }}>
+                      {app.project_pitch}
+                    </p>
+                  </div>
+                )}
+                {app.film_link && (
+                  <a
+                    href={app.film_link}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="inline-block text-[11px] mb-2 underline break-all"
+                    style={{ color: T.accent }}
+                  >
+                    ▶ Watch submitted film
+                  </a>
                 )}
                 {(app.website || app.social) && (
                   <p className="text-[11px] mb-3" style={{ color: T.textMute }}>

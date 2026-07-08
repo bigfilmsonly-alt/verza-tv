@@ -139,9 +139,13 @@ function ApplyScreen({ me, onSaved }: { me: Me; onSaved: () => void }) {
   const [form, setForm] = useState({
     displayName: c?.displayName ?? "",
     handle: c?.handle ?? "",
-    bio: c?.bio ?? "",
-    website: "",
+    phone: "",
+    contactEmail: me.email ?? "",
     social: "",
+    website: "",
+    bio: c?.bio ?? "",
+    projectPitch: "",
+    filmLink: "",
   });
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -227,13 +231,38 @@ function ApplyScreen({ me, onSaved }: { me: Me; onSaved: () => void }) {
             style={input}
           />
         </Field>
-        <Field label="Bio">
-          <textarea
-            value={form.bio}
-            onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))}
-            placeholder="Tell viewers about your channel"
-            rows={3}
-            className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none"
+        <Field label="Phone number *" hint="So our team can reach you about your enrollment.">
+          <input
+            required
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
+            value={form.phone}
+            onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+            placeholder="(555) 123-4567"
+            className="w-full px-4 py-3 rounded-xl text-sm outline-none"
+            style={input}
+          />
+        </Field>
+        <Field label="Contact email *">
+          <input
+            required
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            value={form.contactEmail}
+            onChange={(e) => setForm((f) => ({ ...f, contactEmail: e.target.value }))}
+            placeholder="you@example.com"
+            className="w-full px-4 py-3 rounded-xl text-sm outline-none"
+            style={input}
+          />
+        </Field>
+        <Field label="Social media">
+          <input
+            value={form.social}
+            onChange={(e) => setForm((f) => ({ ...f, social: e.target.value }))}
+            placeholder="@handle (TikTok, Instagram, YouTube)"
+            className="w-full px-4 py-3 rounded-xl text-sm outline-none"
             style={input}
           />
         </Field>
@@ -246,11 +275,34 @@ function ApplyScreen({ me, onSaved }: { me: Me; onSaved: () => void }) {
             style={input}
           />
         </Field>
-        <Field label="Primary social">
+        <Field label="About you" hint="A short bio viewers will see on your channel.">
+          <textarea
+            value={form.bio}
+            onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))}
+            placeholder="Tell viewers about yourself and your channel"
+            rows={3}
+            className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none"
+            style={input}
+          />
+        </Field>
+        <Field label="Your idea, film, or films *" hint="Describe what you want to make or the films you already have.">
+          <textarea
+            required
+            value={form.projectPitch}
+            onChange={(e) => setForm((f) => ({ ...f, projectPitch: e.target.value }))}
+            placeholder="Pitch your show, film, or series idea. What's it about? Do you have footage ready? What makes it binge-worthy?"
+            rows={5}
+            className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none"
+            style={input}
+          />
+        </Field>
+        <Field label="Link to your film" hint="Share your movie via Google Drive, Dropbox, or any link so our team can watch it.">
           <input
-            value={form.social}
-            onChange={(e) => setForm((f) => ({ ...f, social: e.target.value }))}
-            placeholder="@handle (TikTok, Instagram, YouTube)"
+            type="url"
+            inputMode="url"
+            value={form.filmLink}
+            onChange={(e) => setForm((f) => ({ ...f, filmLink: e.target.value }))}
+            placeholder="https://drive.google.com/…  ·  https://dropbox.com/…"
             className="w-full px-4 py-3 rounded-xl text-sm outline-none"
             style={input}
           />
