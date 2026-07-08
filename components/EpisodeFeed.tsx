@@ -1308,23 +1308,36 @@ export default function EpisodeFeed({
         </div>
       )}
 
-      {/* Persistent Buy/VIP CTA — stays visible while watching (drives conversion
-          before the viewer ever hits a locked episode). Hidden behind other overlays. */}
+      {/* Persistent unlock CTA — anchored to the bottom edge, styled to match the
+          player's own frosted chrome so it reads as native, not an ad. One restrained
+          brand-gradient accent (the price chip) carries the value + the tap. */}
       {!showUnlock && !showExitRec && !showBuySheet && !showMore && (
         <button
           onClick={() => { revealActionRail(); setShowBuySheet(true); }}
-          className="absolute left-1/2 -translate-x-1/2 bottom-[70px] z-[55] flex items-center gap-1.5 px-4 py-2 rounded-full border-0 cursor-pointer transition-transform active:scale-[0.96]"
+          className="absolute left-1/2 -translate-x-1/2 z-[55] flex items-center gap-2 pl-3 pr-2 py-2 rounded-full cursor-pointer transition-all active:scale-[0.97]"
           style={{
-            background: "linear-gradient(135deg, #E0115F, #8B5CF6)",
-            boxShadow: "0 4px 20px rgba(224,17,95,0.4)",
+            bottom: "calc(14px + env(safe-area-inset-bottom, 0px))",
+            background: "rgba(12,12,18,0.55)",
+            backdropFilter: "blur(16px) saturate(1.3)",
+            WebkitBackdropFilter: "blur(16px) saturate(1.3)",
+            border: "1px solid rgba(255,255,255,0.14)",
+            boxShadow: "0 2px 14px rgba(0,0,0,0.4)",
           }}
-          aria-label="Unlock full series or go VIP"
+          aria-label="Unlock the full series"
         >
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.72)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
             <path d="M7 11V7a5 5 0 0 1 9.9-1" />
           </svg>
-          <span className="text-[13px] font-bold leading-none" style={{ color: "#fff" }}>Unlock all episodes</span>
+          <span className="text-[12.5px] font-semibold leading-none tracking-tight" style={{ color: "rgba(255,255,255,0.92)" }}>
+            Unlock full series
+          </span>
+          <span
+            className="text-[11px] font-bold leading-none px-2 py-1 rounded-full"
+            style={{ background: "linear-gradient(135deg, #E0115F, #8B5CF6)", color: "#fff" }}
+          >
+            $1.99
+          </span>
         </button>
       )}
 
