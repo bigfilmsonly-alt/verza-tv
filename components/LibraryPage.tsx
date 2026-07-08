@@ -60,7 +60,40 @@ function ChannelsContent() {
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Creator CTA */}
+      {sortedChannels.map((channelName) => {
+        const series = getSeriesByChannel(channelName);
+        const meta = CHANNEL_META[channelName];
+        const posterLimit = meta?.posterLimit ?? 6;
+        const displaySeries = series.slice(0, posterLimit);
+
+        return (
+          <div key={channelName} className="rounded-xl overflow-hidden" style={{ background: T.surface, border: `1px solid ${T.line}` }}>
+            <div className="p-4 pb-3">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: `${T.accent}18` }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={T.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    {meta && <path d={meta.icon} />}
+                  </svg>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-base font-bold" style={{ color: T.text }}>{channelName}</h3>
+                  <p className="text-xs" style={{ color: T.textMute }}>
+                    {series.length > 0 ? `${series.length} shows` : "Coming Soon"}
+                  </p>
+                </div>
+              </div>
+              {meta && <p className="text-xs leading-relaxed" style={{ color: T.textDim }}>{meta.description}</p>}
+            </div>
+            {displaySeries.length > 0 && (
+              <div className="px-4 pb-4 flex gap-3 overflow-x-auto no-scrollbar" style={{ WebkitOverflowScrolling: "touch" }}>
+                {displaySeries.map((s) => <PosterThumb key={s.slug} series={s} />)}
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      {/* Creator CTA — moved below the fold so browse/watch content leads */}
       <div
         className="rounded-xl overflow-hidden"
         style={{
@@ -103,39 +136,6 @@ function ChannelsContent() {
           </Link>
         </div>
       </div>
-
-      {sortedChannels.map((channelName) => {
-        const series = getSeriesByChannel(channelName);
-        const meta = CHANNEL_META[channelName];
-        const posterLimit = meta?.posterLimit ?? 6;
-        const displaySeries = series.slice(0, posterLimit);
-
-        return (
-          <div key={channelName} className="rounded-xl overflow-hidden" style={{ background: T.surface, border: `1px solid ${T.line}` }}>
-            <div className="p-4 pb-3">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: `${T.accent}18` }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={T.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    {meta && <path d={meta.icon} />}
-                  </svg>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-base font-bold" style={{ color: T.text }}>{channelName}</h3>
-                  <p className="text-xs" style={{ color: T.textMute }}>
-                    {series.length > 0 ? `${series.length} shows` : "Coming Soon"}
-                  </p>
-                </div>
-              </div>
-              {meta && <p className="text-xs leading-relaxed" style={{ color: T.textDim }}>{meta.description}</p>}
-            </div>
-            {displaySeries.length > 0 && (
-              <div className="px-4 pb-4 flex gap-3 overflow-x-auto no-scrollbar" style={{ WebkitOverflowScrolling: "touch" }}>
-                {displaySeries.map((s) => <PosterThumb key={s.slug} series={s} />)}
-              </div>
-            )}
-          </div>
-        );
-      })}
     </div>
   );
 }

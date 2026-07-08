@@ -456,56 +456,36 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         );
       })()}
 
-      {/* Red Carpet tab — The Carpet poster → taps to video instantly */}
+      {/* Red Carpet tab — The Carpet (coming soon). Decoupled from the heiress
+          drama: previously reused MUX_MAP['the-dumb-billionaire-heiress-in-love'],
+          which mislabeled that show's real episodes as red-carpet events. */}
       {activeTab === "red-carpet" && (
-        <div>
-          {/* Preload the HLS stream so video starts instantly on tap */}
-          {(() => {
-            const rcId = MUX_MAP["the-dumb-billionaire-heiress-in-love"]?.[0]?.playbackId;
-            return rcId ? (
-              <link rel="preload" href={`https://stream.mux.com/${rcId}.m3u8`} as="fetch" crossOrigin="anonymous" />
-            ) : null;
-          })()}
-          {/* All red carpet videos — laid out like the drama grid, each loops its own footage */}
-          <section className="pt-4 pb-8 px-3">
-            <h2 className="text-sm font-semibold uppercase tracking-wider mb-3 text-center" style={{ color: "#8A8A9A" }}>Red Carpet</h2>
-            <div className="grid grid-cols-3 gap-1.5">
-              {(MUX_MAP["the-dumb-billionaire-heiress-in-love"] ?? []).map((ev) => (
-                <Link
-                  key={ev.episode}
-                  href={`/series/the-dumb-billionaire-heiress-in-love/${ev.episode}`}
-                  prefetch={false}
-                  className="group block no-underline min-w-0 transition-transform active:scale-[0.97]"
+        <section className="pt-4 pb-10 px-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wider mb-4 text-center" style={{ color: "#8A8A9A" }}>Red Carpet</h2>
+          <div className="mx-auto overflow-hidden rounded-xl" style={{ maxWidth: "min(320px, 80vw)", background: "#000" }}>
+            <div className="relative" style={{ aspectRatio: "2 / 3" }}>
+              <img
+                src="/posters/the-carpet.png"
+                alt="The Carpet"
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+              <div
+                className="absolute inset-0 flex flex-col items-center justify-end pb-6"
+                style={{ background: "linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0) 55%)" }}
+              >
+                <span
+                  className="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-widest"
+                  style={{ background: "rgba(224, 17, 95, 0.9)", color: "#fff" }}
                 >
-                  <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3", background: "#000" }}>
-                    <img
-                      src={`https://image.mux.com/${ev.playbackId}/animated.webp?width=240&fps=15&start=0&end=4`}
-                      alt={`The Carpet — Event ${ev.episode}`}
-                      loading="lazy"
-                      className="absolute inset-0 w-full h-full object-cover"
-                    />
-                    <div
-                      className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
-                      style={{ background: "rgba(0,0,0,0.3)" }}
-                    >
-                      <div
-                        className="w-10 h-10 rounded-full flex items-center justify-center"
-                        style={{ background: "rgba(224, 17, 95, 0.85)", backdropFilter: "blur(4px)" }}
-                      >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff" stroke="none">
-                          <polygon points="8 5 20 12 8 19" />
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-                  <div style={{ height: 36 }}>
-                    <p className="mt-1.5 text-[11px] font-semibold leading-tight line-clamp-1" style={{ color: "#F5F4F8" }}>The Carpet — Event {ev.episode}</p>
-                  </div>
-                </Link>
-              ))}
+                  Coming Soon
+                </span>
+              </div>
             </div>
-          </section>
-        </div>
+          </div>
+          <p className="mt-4 text-center text-sm leading-relaxed mx-auto" style={{ color: "#8A8A9A", maxWidth: 300 }}>
+            Real drama. Real people. Unreal stories. VERZA TV&rsquo;s original red-carpet series premieres soon.
+          </p>
+        </section>
       )}
 
       {/* Hero Slideshow — shows on Drama/New/Hot (not Reality/Red Carpet/Music) */}

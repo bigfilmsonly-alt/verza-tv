@@ -1,8 +1,10 @@
 "use client";
 
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useRef, useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import type HlsType from "hls.js";
+import { catalog } from "@/lib/catalog";
+import { MUX_MAP } from "@/lib/mux-map";
 import { trackEpisodeStart, trackEpisodeComplete, trackUnlockPrompt, trackUnlockClick } from "@/lib/track";
 import { emit } from "@/lib/analytics";
 import VideoWatermark from "@/components/VideoWatermark";
@@ -494,6 +496,10 @@ export default function EpisodeFeed({
   });
   const [showUnlock, setShowUnlock] = useState(false);
   const [unlockLoading, setUnlockLoading] = useState(false);
+  // Persistent Buy/VIP CTA (stays visible while watching, unlike the auto-hiding
+  // chrome) → opens a sheet offering one-time series unlock or VIP.
+  const [showBuySheet, setShowBuySheet] = useState(false);
+  const [buyLoading, setBuyLoading] = useState<"series" | "vip" | null>(null);
   const [epProgress, setEpProgress] = useState(0);
   const [showToast, setShowToast] = useState(false);
   const [showHeart, setShowHeart] = useState(false);
@@ -546,13 +552,78 @@ export default function EpisodeFeed({
         document.referrer.startsWith(window.location.origin));
   }, []);
 
-  const handleBack = useCallback(() => {
-    // Pause any playing video first to avoid audio bleeding into the next view
+  /* "You may like" — on the FIRST back-tap, surface one recommended show
+     instead of dumping straight to the homepage. A second action leaves. */
+  const [showExitRec, setShowExitRec] = useState(false);
+  const exitRecShownRef = useRef(false);
+  const recShow = useMemo(() => {
+    const pool = catalog.filter(
+      (s) =>
+        s.status === "live" &&
+        s.slug !== seriesSlug &&
+        (MUX_MAP[s.slug]?.length ?? 0) > 0
+    );
+    if (!pool.length) return null;
+    return pool[Math.floor(Math.random() * pool.length)];
+  }, [seriesSlug]);
+
+  const leaveNow = useCallback(() => {
     const vids = document.querySelectorAll("video");
     vids.forEach((v) => { v.muted = true; v.pause(); });
     if (canGoBackRef.current) router.back();
     else router.push(backHref);
   }, [router, backHref]);
+
+  const handleBack = useCallback(() => {
+    // Pause any playing video first to avoid audio bleeding into the next view
+    const vids = document.querySelectorAll("video");
+    vids.forEach((v) => { v.muted = true; v.pause(); });
+    // First exit → show a recommendation instead of the homepage dump.
+    if (!exitRecShownRef.current && recShow) {
+      exitRecShownRef.current = true;
+      setShowExitRec(true);
+      return;
+    }
+    leaveNow();
+  }, [recShow, leaveNow]);
+
+  /* One-time unlock of this series ($1.99) — shared by the paywall and the
+     persistent Buy/VIP sheet. */
+  const startSeriesUnlock = useCallback(async () => {
+    setBuyLoading("series");
+    trackUnlockClick(seriesSlug);
+    emit("checkout_started", { show_id: seriesSlug, plan_type: "series_unlock", surface: "buy_sheet" });
+    try {
+      const res = await fetch("/api/unlock", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ seriesSlug }),
+      });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+      else setBuyLoading(null);
+    } catch {
+      setBuyLoading(null);
+    }
+  }, [seriesSlug]);
+
+  /* VIP subscription (all series) via Stripe checkout. */
+  const startVip = useCallback(async () => {
+    setBuyLoading("vip");
+    emit("checkout_started", { show_id: seriesSlug, plan_type: "vip_monthly", surface: "buy_sheet" });
+    try {
+      const res = await fetch("/api/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: "monthly" }),
+      });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+      else setBuyLoading(null);
+    } catch {
+      setBuyLoading(null);
+    }
+  }, [seriesSlug]);
 
   const activeEp = episodes[activeIndex];
 
@@ -721,6 +792,38 @@ export default function EpisodeFeed({
   );
 
   const isLiked = activeEp ? liked.has(activeEp.number) : false;
+
+  /* ---- Saved / My List (persisted per series in localStorage + API) ---- */
+  const [isSaved, setIsSaved] = useState(false);
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("verza-saved");
+      const slugs: string[] = raw ? JSON.parse(raw) : [];
+      setIsSaved(slugs.includes(seriesSlug));
+    } catch {}
+  }, [seriesSlug]);
+
+  function toggleSave() {
+    setIsSaved((prev) => {
+      const next = !prev;
+      try {
+        const raw = localStorage.getItem("verza-saved");
+        const slugs: string[] = raw ? JSON.parse(raw) : [];
+        const set = new Set(slugs);
+        if (next) set.add(seriesSlug);
+        else set.delete(seriesSlug);
+        localStorage.setItem("verza-saved", JSON.stringify([...set]));
+      } catch {}
+      fetch("/api/saved-list", {
+        method: next ? "POST" : "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ seriesSlug }),
+      }).catch(() => {});
+      popActionToast(next ? "Saved to My List" : "Removed from My List");
+      return next;
+    });
+    haptic();
+  }
 
   function flashHeart() {
     setShowHeart(true);
@@ -1005,6 +1108,25 @@ export default function EpisodeFeed({
           </span>
         </button>
 
+        {/* Save / My List */}
+        <button
+          onClick={() => { revealActionRail(); toggleSave(); }}
+          aria-label={isSaved ? "Remove from My List" : "Save to My List"}
+          className="flex flex-col items-center gap-1 border-0 bg-transparent cursor-pointer p-0"
+        >
+          <span
+            className="w-11 h-11 rounded-full flex items-center justify-center transition-transform active:scale-90"
+            style={{ background: "rgba(0,0,0,0.35)", backdropFilter: "blur(20px)" }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill={isSaved ? "#fff" : "none"} stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
+            </svg>
+          </span>
+          <span className="text-[10px] font-semibold" style={{ color: "#fff", textShadow: "0 1px 3px rgba(0,0,0,0.6)" }}>
+            {isSaved ? "Saved" : "Save"}
+          </span>
+        </button>
+
         {/* Share */}
         <button
           onClick={() => { revealActionRail(); shareEpisode(); }}
@@ -1121,6 +1243,149 @@ export default function EpisodeFeed({
         </div>
       )}
 
+      {/* "You may like" — shown on first back-tap instead of dumping home */}
+      {showExitRec && recShow && (
+        <div
+          className="absolute inset-0 z-[70] flex flex-col items-center justify-center px-6"
+          style={{ background: "rgba(7,7,14,0.94)", backdropFilter: "blur(8px)" }}
+        >
+          <p
+            className="text-[11px] font-semibold uppercase tracking-[0.2em] mb-5"
+            style={{ color: "rgba(255,255,255,0.5)" }}
+          >
+            You may like
+          </p>
+
+          <button
+            onClick={() => router.push(`/series/${recShow.slug}/1`)}
+            className="border-0 bg-transparent cursor-pointer p-0"
+            aria-label={`Play ${recShow.title}`}
+          >
+            <div
+              className="relative overflow-hidden rounded-xl mx-auto"
+              style={{ width: "min(200px, 52vw)", aspectRatio: "2 / 3", background: "#000" }}
+            >
+              <img
+                src={recShow.posterUrl}
+                alt={recShow.title}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+              <div
+                className="absolute inset-0 flex items-center justify-center"
+                style={{ background: "rgba(0,0,0,0.15)" }}
+              >
+                <span
+                  className="w-14 h-14 rounded-full flex items-center justify-center"
+                  style={{ background: "rgba(255,255,255,0.16)", backdropFilter: "blur(6px)" }}
+                >
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="#fff" stroke="none"><path d="M8 5v14l11-7z" /></svg>
+                </span>
+              </div>
+            </div>
+          </button>
+
+          <p className="mt-4 text-base font-bold text-center" style={{ color: "#fff" }}>
+            {recShow.title}
+          </p>
+          <p className="mt-1 text-xs text-center" style={{ color: "rgba(255,255,255,0.5)" }}>
+            {recShow.genre}
+          </p>
+
+          <button
+            onClick={() => router.push(`/series/${recShow.slug}/1`)}
+            className="mt-6 w-full max-w-[280px] py-3 rounded-xl border-0 cursor-pointer text-sm font-bold"
+            style={{ background: "linear-gradient(135deg, #E0115F, #8B5CF6)", color: "#fff" }}
+          >
+            Play now
+          </button>
+          <button
+            onClick={leaveNow}
+            className="mt-3 w-full max-w-[280px] py-3 rounded-xl bg-transparent cursor-pointer text-sm font-medium"
+            style={{ color: "rgba(255,255,255,0.6)", border: "1px solid rgba(255,255,255,0.14)" }}
+          >
+            Back to home
+          </button>
+        </div>
+      )}
+
+      {/* Persistent Buy/VIP CTA — stays visible while watching (drives conversion
+          before the viewer ever hits a locked episode). Hidden behind other overlays. */}
+      {!showUnlock && !showExitRec && !showBuySheet && !showMore && (
+        <button
+          onClick={() => { revealActionRail(); setShowBuySheet(true); }}
+          className="absolute left-1/2 -translate-x-1/2 bottom-[70px] z-[55] flex items-center gap-1.5 px-4 py-2 rounded-full border-0 cursor-pointer transition-transform active:scale-[0.96]"
+          style={{
+            background: "linear-gradient(135deg, #E0115F, #8B5CF6)",
+            boxShadow: "0 4px 20px rgba(224,17,95,0.4)",
+          }}
+          aria-label="Unlock full series or go VIP"
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 9.9-1" />
+          </svg>
+          <span className="text-[13px] font-bold leading-none" style={{ color: "#fff" }}>Unlock all episodes</span>
+        </button>
+      )}
+
+      {/* Buy/VIP sheet — one-time series unlock or VIP subscription */}
+      {showBuySheet && (
+        <div
+          className="absolute inset-0 z-[62] flex items-end justify-center"
+          style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)", animation: "fadeIn 0.25s ease" }}
+          onClick={() => { if (!buyLoading) setShowBuySheet(false); }}
+        >
+          <div
+            className="w-full max-w-md rounded-t-3xl p-6 pb-8"
+            style={{ background: "#12121A", animation: "sheetUp 0.3s cubic-bezier(0.22,1,0.36,1)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-10 h-1 rounded-full mx-auto mb-5" style={{ background: "rgba(255,255,255,0.2)" }} />
+            <h3 className="text-lg font-bold text-center mb-1" style={{ color: "#fff" }}>Unlock everything</h3>
+            <p className="text-xs text-center mb-5" style={{ color: "rgba(255,255,255,0.45)" }}>
+              Keep watching {seriesTitle} — pick what works for you
+            </p>
+
+            {/* VIP — primary */}
+            <button
+              onClick={startVip}
+              disabled={buyLoading !== null}
+              className="w-full rounded-2xl p-4 mb-3 border-0 cursor-pointer flex items-center justify-between transition-transform active:scale-[0.98]"
+              style={{ background: "linear-gradient(135deg, #E0115F, #8B5CF6)", opacity: buyLoading === "series" ? 0.5 : 1 }}
+            >
+              <div className="text-left">
+                <p className="text-sm font-bold" style={{ color: "#fff" }}>VERZA VIP</p>
+                <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.8)" }}>Every series, every episode</p>
+              </div>
+              <span className="text-sm font-bold" style={{ color: "#fff" }}>{buyLoading === "vip" ? "…" : "$9.99/mo"}</span>
+            </button>
+
+            {/* This series — secondary */}
+            <button
+              onClick={startSeriesUnlock}
+              disabled={buyLoading !== null}
+              className="w-full rounded-2xl p-4 cursor-pointer flex items-center justify-between transition-transform active:scale-[0.98]"
+              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)", opacity: buyLoading === "vip" ? 0.5 : 1 }}
+            >
+              <div className="text-left">
+                <p className="text-sm font-bold" style={{ color: "#fff" }}>This series only</p>
+                <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.45)" }}>Unlock all of {seriesTitle}</p>
+              </div>
+              <span className="text-sm font-bold" style={{ color: "#fff" }}>{buyLoading === "series" ? "…" : "$1.99"}</span>
+            </button>
+
+            <button
+              onClick={() => setShowBuySheet(false)}
+              disabled={buyLoading !== null}
+              className="w-full mt-4 text-sm font-medium border-0 bg-transparent cursor-pointer"
+              style={{ color: "rgba(255,255,255,0.4)" }}
+            >
+              Not now
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Episode badge — bottom-left */}
       <div
         className="absolute bottom-6 left-4 z-50 pointer-events-none"
@@ -1216,6 +1481,7 @@ export default function EpisodeFeed({
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes fadeOut { 0% { opacity: 1; } 100% { opacity: 0; } }
+        @keyframes sheetUp { 0% { transform: translateY(100%); } 100% { transform: translateY(0); } }
         @keyframes scaleIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
         @keyframes heartBurst {
           0% { transform: scale(0.3); opacity: 0; }

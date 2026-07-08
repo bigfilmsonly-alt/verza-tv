@@ -251,7 +251,7 @@ export default function VipCard({ isVip = false, vipExpiresAt }: VipCardProps) {
         <div className="flex flex-col gap-2 mb-1">
           {[
             "Every episode, every series",
-            "No coin paywalls",
+            "No hidden paywalls",
             "New shows on day one",
             "Cancel anytime",
           ].map((feat) => (

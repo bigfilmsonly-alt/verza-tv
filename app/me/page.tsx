@@ -10,7 +10,7 @@ import { SavedCount, WatchingCount, DarkModeToggle, SignOutButton } from "@/comp
 export const metadata: Metadata = {
   title: `My Account | ${BRAND.name}`,
   description:
-    "Manage your VERZA TV account, coin balance, library, and settings.",
+    "Manage your VERZA TV account, library, purchases, and settings.",
 };
 
 /* ------------------------------------------------------------------ */
@@ -269,7 +269,35 @@ export default function MePage() {
         </svg>
       </Link>
 
-      {/* ---- Creator Program ---- */}
+      {/* ---- VIP Subscription (prominent — sign up & pay to watch) ---- */}
+      <SectionLabel>Subscription</SectionLabel>
+      <VipCard />
+
+      {/* ---- Library ---- */}
+      <SectionLabel>Library</SectionLabel>
+      <SectionCard>
+        <MenuRow
+          icon={Icons.bookmark}
+          label="My List"
+          detail={<SavedCount />}
+          href="/library"
+        />
+        <MenuRow
+          icon={Icons.play}
+          label="Continue Watching"
+          detail={<WatchingCount />}
+          href="/"
+        />
+        <MenuRow
+          icon={Icons.receipt}
+          label="Purchase History"
+          detail="No purchases"
+          href="/me"
+          last
+        />
+      </SectionCard>
+
+      {/* ---- Creator Program (moved below the fold — secondary to watch/pay) ---- */}
       <SectionLabel>Creator</SectionLabel>
       <Link
         href="/studio"
@@ -298,34 +326,6 @@ export default function MePage() {
           <path d="M9 18l6-6-6-6" />
         </svg>
       </Link>
-
-      {/* ---- VIP Subscription ---- */}
-      <SectionLabel>Subscription</SectionLabel>
-      <VipCard />
-
-      {/* ---- Library ---- */}
-      <SectionLabel>Library</SectionLabel>
-      <SectionCard>
-        <MenuRow
-          icon={Icons.bookmark}
-          label="My List"
-          detail={<SavedCount />}
-          href="/library"
-        />
-        <MenuRow
-          icon={Icons.play}
-          label="Continue Watching"
-          detail={<WatchingCount />}
-          href="/"
-        />
-        <MenuRow
-          icon={Icons.receipt}
-          label="Purchase History"
-          detail="No purchases"
-          href="/me"
-          last
-        />
-      </SectionCard>
 
       {/* ---- Settings ---- */}
       <SectionLabel>Settings</SectionLabel>
