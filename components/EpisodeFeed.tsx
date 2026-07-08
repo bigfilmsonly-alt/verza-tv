@@ -101,6 +101,9 @@ function EpisodeSlide({
   const mutedRef = useRef(muted);
   const [sourceReady, setSourceReady] = useState(false);
   const [playing, setPlaying] = useState(false);
+  // True once playback has begun; stays true through pauses so the paused frame
+  // remains visible (no black poster flash on pause). Reset only on teardown.
+  const [started, setStarted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPause, setShowPause] = useState(false);
   const pauseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -187,6 +190,7 @@ function EpisodeSlide({
     attachedRef.current = false;
     setSourceReady(false);
     setPlaying(false);
+    setStarted(false);
     setLoading(false);
   }, [isActive, isNear]);
 
@@ -222,6 +226,7 @@ function EpisodeSlide({
           .then(() => {
             if (cancelled) return;
             setPlaying(true);
+            setStarted(true);
             // Unmute AFTER successful play if user wants sound
             if (!mutedRef.current) vid.muted = false;
             trackEpisodeStart(seriesSlug, episode.number);
@@ -319,6 +324,7 @@ function EpisodeSlide({
         onFirstPlayGesture();
         vid.play().catch(() => {});
         setPlaying(true);
+        setStarted(true);
       } else {
         vid.pause();
         setPlaying(false);
@@ -344,8 +350,8 @@ function EpisodeSlide({
           alt=""
           className="absolute inset-0 w-full h-full object-cover"
           style={{
-            opacity: playing ? 0 : 1,
-            transform: playing ? "scale(1)" : "scale(1.04)",
+            opacity: started ? 0 : 1,
+            transform: started ? "scale(1)" : "scale(1.04)",
             transition: "opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
             willChange: "opacity, transform",
             zIndex: 1,
@@ -360,8 +366,8 @@ function EpisodeSlide({
           alt=""
           className="absolute inset-0 w-full h-full object-cover"
           style={{
-            opacity: playing ? 0 : 1,
-            transform: playing ? "scale(1)" : "scale(1.04)",
+            opacity: started ? 0 : 1,
+            transform: started ? "scale(1)" : "scale(1.04)",
             transition: "opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
             willChange: "opacity, transform",
             filter: "brightness(0.5)",
@@ -370,7 +376,8 @@ function EpisodeSlide({
         />
       )}
 
-      {/* Video — fades in as poster settles */}
+      {/* Video — fades in once started, and stays visible when paused
+          so the current frame shows (no black poster flash on pause). */}
       <video
         ref={videoRef}
         playsInline
@@ -378,7 +385,7 @@ function EpisodeSlide({
         preload={isNear || isActive ? "auto" : "none"}
         className="absolute inset-0 w-full h-full object-cover"
         style={{
-          opacity: playing ? 1 : 0,
+          opacity: started ? 1 : 0,
           transition: "opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
           willChange: "opacity",
           zIndex: 2,

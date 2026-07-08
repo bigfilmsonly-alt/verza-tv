@@ -36,6 +36,9 @@ function HorizontalCard({ video, index }: { video: HorizontalVideo; index: numbe
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<HlsType | null>(null);
   const [playing, setPlaying] = useState(false);
+  // True once playback has begun; keeps the video frame visible through pauses
+  // so a paused card shows its current frame instead of flashing the thumbnail.
+  const [started, setStarted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [videoMuted, setVideoMuted] = useState(() => {
     if (typeof window !== "undefined") return localStorage.getItem("verza-muted") !== "false";
@@ -97,6 +100,7 @@ function HorizontalCard({ video, index }: { video: HorizontalVideo; index: numbe
       try {
         await vid.play();
         setPlaying(true);
+        setStarted(true);
         setLoading(false);
       } catch {
         vid.muted = true;
@@ -124,14 +128,14 @@ function HorizontalCard({ video, index }: { video: HorizontalVideo; index: numbe
           playsInline
           preload="none"
           className="absolute inset-0 w-full h-full object-cover"
-          style={{ opacity: playing ? 1 : 0, zIndex: playing ? 1 : 0, background: "#07070E" }}
+          style={{ opacity: started ? 1 : 0, zIndex: started ? 1 : 0, background: "#07070E" }}
           onClick={() => { if (playing) { videoRef.current?.pause(); setPlaying(false); } }}
         />
 
         {/* VERZA watermark — top-left corner while playing */}
         <VideoWatermark videoRef={videoRef} top={8} left={8} size={50} />
 
-        {!playing && (
+        {!started && (
           <img
             src={thumbUrl}
             alt={video.title}
