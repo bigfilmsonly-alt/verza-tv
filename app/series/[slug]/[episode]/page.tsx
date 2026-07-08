@@ -114,7 +114,10 @@ export default async function EpisodePage({ params, searchParams }: Props) {
     } catch {}
   }
 
-  // Build episode list for feed
+  // Build episode list for feed. Paid series show 4 free preview episodes,
+  // then the $1.99 unlock-all popup on episode 5. Fully-free series (no
+  // per-episode cost) keep their catalog free-episode count untouched.
+  const freeCount = series.coinPerEpisode > 0 ? Math.min(series.freeEpisodes, 4) : series.freeEpisodes;
   const allEpisodes = getEpisodesForSeries(slug);
   const feedEpisodes: FeedEpisode[] = allEpisodes.map((e) => {
     const mux = getPlayback(slug, e.number);
@@ -123,7 +126,7 @@ export default async function EpisodePage({ params, searchParams }: Props) {
       title: e.title,
       durationS: e.durationS,
       playbackId: mux?.playbackId,
-      isFree: e.number <= series.freeEpisodes || isVip || hasEntitlement,
+      isFree: e.number <= freeCount || isVip || hasEntitlement,
     };
   });
 

@@ -3,7 +3,8 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import type HlsType from "hls.js";
-import { trackEpisodeStart, trackEpisodeComplete } from "@/lib/track";
+import { trackEpisodeStart, trackEpisodeComplete, trackUnlockPrompt, trackUnlockClick } from "@/lib/track";
+import { emit } from "@/lib/analytics";
 import VideoWatermark from "@/components/VideoWatermark";
 import {
   saveLastWatching,
@@ -491,8 +492,10 @@ export default function EpisodeFeed({
     if (typeof window !== "undefined") return localStorage.getItem("verza-muted") !== "false";
     return true;
   });
-  // Persistent Buy/VIP CTA (stays visible while watching, unlike the auto-hiding
-  // chrome) → opens a sheet offering one-time series unlock or VIP.
+  // $1.99 "Unlock Full Series" popup — pops up when the viewer reaches the first
+  // locked episode (after the free preview, before entering the paid episode).
+  const [showUnlock, setShowUnlock] = useState(false);
+  const [unlockLoading, setUnlockLoading] = useState(false);
   const [epProgress, setEpProgress] = useState(0);
   const [showToast, setShowToast] = useState(false);
   const [showHeart, setShowHeart] = useState(false);
@@ -599,6 +602,15 @@ export default function EpisodeFeed({
 
             const ep = episodes[idx];
             window.history.replaceState(null, "", `/series/${seriesSlug}/${ep.number}`);
+
+            // First locked episode → surface the $1.99 unlock-all popup.
+            if (!ep.isFree) {
+              trackUnlockPrompt(seriesSlug);
+              emit("paywall_viewed", { show_id: seriesSlug, episode_number: ep.number, plan_type: "series_unlock", surface: "episode_feed" });
+              setShowUnlock(true);
+            } else {
+              setShowUnlock(false);
+            }
           }
         }
       }
@@ -1184,6 +1196,65 @@ export default function EpisodeFeed({
           }}
         />
       </div>
+
+      {/* ---- $1.99 Unlock overlay (first locked episode) ---- */}
+      {showUnlock && (
+        <div
+          className="absolute inset-0 z-[60] flex items-center justify-center"
+          style={{ background: "rgba(0,0,0,0.8)", backdropFilter: "blur(12px)", animation: "fadeIn 0.3s ease" }}
+        >
+          <div className="text-center px-8 max-w-xs" style={{ animation: "scaleIn 0.3s ease" }}>
+            <div
+              className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5"
+              style={{ background: "rgba(224,17,95,0.12)" }}
+            >
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#E0115F" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold mb-2" style={{ color: "#fff" }}>Keep Watching</h3>
+            <p className="text-sm mb-6" style={{ color: "rgba(255,255,255,0.45)" }}>
+              Unlock all episodes of {seriesTitle}
+            </p>
+            <button
+              onClick={async () => {
+                setUnlockLoading(true);
+                trackUnlockClick(seriesSlug);
+                emit("checkout_started", { show_id: seriesSlug, plan_type: "series_unlock", surface: "episode_feed" });
+                try {
+                  const res = await fetch("/api/unlock", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ seriesSlug }),
+                  });
+                  const data = await res.json();
+                  if (data.url) window.location.href = data.url;
+                } catch {
+                  setUnlockLoading(false);
+                }
+              }}
+              disabled={unlockLoading}
+              className="glow-pulse w-full py-4 rounded-2xl text-base font-bold border-0 cursor-pointer transition-transform active:scale-[0.97]"
+              style={{
+                background: "linear-gradient(135deg, #E0115F, #8B5CF6)",
+                color: "#fff",
+                opacity: unlockLoading ? 0.7 : 1,
+                boxShadow: "0 0 40px rgba(224,17,95,0.3)",
+              }}
+            >
+              {unlockLoading ? "Loading..." : "Unlock Full Series — $1.99"}
+            </button>
+            <button
+              onClick={handleBack}
+              className="mt-4 text-sm font-medium border-0 bg-transparent cursor-pointer"
+              style={{ color: "rgba(255,255,255,0.35)" }}
+            >
+              Go Back
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Animations */}
       <style>{`
