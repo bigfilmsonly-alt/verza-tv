@@ -1,12 +1,9 @@
 "use client";
 
-import { useRef, useState, useEffect, useCallback, useMemo } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import type HlsType from "hls.js";
-import { catalog } from "@/lib/catalog";
-import { MUX_MAP } from "@/lib/mux-map";
-import { trackEpisodeStart, trackEpisodeComplete, trackUnlockPrompt, trackUnlockClick } from "@/lib/track";
-import { emit } from "@/lib/analytics";
+import { trackEpisodeStart, trackEpisodeComplete } from "@/lib/track";
 import VideoWatermark from "@/components/VideoWatermark";
 import {
   saveLastWatching,
@@ -494,8 +491,6 @@ export default function EpisodeFeed({
     if (typeof window !== "undefined") return localStorage.getItem("verza-muted") !== "false";
     return true;
   });
-  const [showUnlock, setShowUnlock] = useState(false);
-  const [unlockLoading, setUnlockLoading] = useState(false);
   // Persistent Buy/VIP CTA (stays visible while watching, unlike the auto-hiding
   // chrome) → opens a sheet offering one-time series unlock or VIP.
   const [epProgress, setEpProgress] = useState(0);
@@ -540,50 +535,13 @@ export default function EpisodeFeed({
     void maybeRequestResumePermission();
   }, []);
 
-  /* Track whether we arrived here via in-app navigation so Back returns to
-     the exact page the user was last looking at (not a hardcoded home). */
-  const canGoBackRef = useRef(false);
-  useEffect(() => {
-    canGoBackRef.current =
-      window.history.length > 1 &&
-      (document.referrer === "" ||
-        document.referrer.startsWith(window.location.origin));
-  }, []);
-
-  /* "You may like" — on the FIRST back-tap, surface one recommended show
-     instead of dumping straight to the homepage. A second action leaves. */
-  const [showExitRec, setShowExitRec] = useState(false);
-  const exitRecShownRef = useRef(false);
-  const recShow = useMemo(() => {
-    const pool = catalog.filter(
-      (s) =>
-        s.status === "live" &&
-        s.slug !== seriesSlug &&
-        (MUX_MAP[s.slug]?.length ?? 0) > 0
-    );
-    if (!pool.length) return null;
-    return pool[Math.floor(Math.random() * pool.length)];
-  }, [seriesSlug]);
-
-  const leaveNow = useCallback(() => {
-    const vids = document.querySelectorAll("video");
-    vids.forEach((v) => { v.muted = true; v.pause(); });
-    if (canGoBackRef.current) router.back();
-    else router.push(backHref);
-  }, [router, backHref]);
-
+  /* Back always returns straight to the home page. */
   const handleBack = useCallback(() => {
     // Pause any playing video first to avoid audio bleeding into the next view
     const vids = document.querySelectorAll("video");
     vids.forEach((v) => { v.muted = true; v.pause(); });
-    // First exit → show a recommendation instead of the homepage dump.
-    if (!exitRecShownRef.current && recShow) {
-      exitRecShownRef.current = true;
-      setShowExitRec(true);
-      return;
-    }
-    leaveNow();
-  }, [recShow, leaveNow]);
+    router.push(backHref);
+  }, [router, backHref]);
 
   const activeEp = episodes[activeIndex];
 
@@ -641,14 +599,6 @@ export default function EpisodeFeed({
 
             const ep = episodes[idx];
             window.history.replaceState(null, "", `/series/${seriesSlug}/${ep.number}`);
-
-            if (!ep.isFree) {
-              trackUnlockPrompt(seriesSlug);
-              emit("paywall_viewed", { show_id: seriesSlug, episode_number: ep.number, plan_type: "series_unlock", surface: "episode_feed" });
-              setShowUnlock(true);
-            } else {
-              setShowUnlock(false);
-            }
           }
         }
       }
@@ -1203,72 +1153,6 @@ export default function EpisodeFeed({
         </div>
       )}
 
-      {/* "You may like" — shown on first back-tap instead of dumping home */}
-      {showExitRec && recShow && (
-        <div
-          className="absolute inset-0 z-[70] flex flex-col items-center justify-center px-6"
-          style={{ background: "rgba(7,7,14,0.94)", backdropFilter: "blur(8px)" }}
-        >
-          <p
-            className="text-[11px] font-semibold uppercase tracking-[0.2em] mb-5"
-            style={{ color: "rgba(255,255,255,0.5)" }}
-          >
-            You may like
-          </p>
-
-          <button
-            onClick={() => router.push(`/series/${recShow.slug}/1`)}
-            className="border-0 bg-transparent cursor-pointer p-0"
-            aria-label={`Play ${recShow.title}`}
-          >
-            <div
-              className="relative overflow-hidden rounded-xl mx-auto"
-              style={{ width: "min(200px, 52vw)", aspectRatio: "2 / 3", background: "#000" }}
-            >
-              <img
-                src={recShow.posterUrl}
-                alt={recShow.title}
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-              <div
-                className="absolute inset-0 flex items-center justify-center"
-                style={{ background: "rgba(0,0,0,0.15)" }}
-              >
-                <span
-                  className="w-14 h-14 rounded-full flex items-center justify-center"
-                  style={{ background: "rgba(255,255,255,0.16)", backdropFilter: "blur(6px)" }}
-                >
-                  <svg width="26" height="26" viewBox="0 0 24 24" fill="#fff" stroke="none"><path d="M8 5v14l11-7z" /></svg>
-                </span>
-              </div>
-            </div>
-          </button>
-
-          <p className="mt-4 text-base font-bold text-center" style={{ color: "#fff" }}>
-            {recShow.title}
-          </p>
-          <p className="mt-1 text-xs text-center" style={{ color: "rgba(255,255,255,0.5)" }}>
-            {recShow.genre}
-          </p>
-
-          <button
-            onClick={() => router.push(`/series/${recShow.slug}/1`)}
-            className="mt-6 w-full max-w-[280px] py-3 rounded-xl border-0 cursor-pointer text-sm font-bold"
-            style={{ background: "linear-gradient(135deg, #E0115F, #8B5CF6)", color: "#fff" }}
-          >
-            Play now
-          </button>
-          <button
-            onClick={leaveNow}
-            className="mt-3 w-full max-w-[280px] py-3 rounded-xl bg-transparent cursor-pointer text-sm font-medium"
-            style={{ color: "rgba(255,255,255,0.6)", border: "1px solid rgba(255,255,255,0.14)" }}
-          >
-            Back to home
-          </button>
-        </div>
-      )}
-
-
       {/* Episode badge — bottom-left */}
       <div
         className="absolute bottom-6 left-4 z-50 pointer-events-none"
@@ -1300,65 +1184,6 @@ export default function EpisodeFeed({
           }}
         />
       </div>
-
-      {/* ---- Unlock overlay ---- */}
-      {showUnlock && (
-        <div
-          className="absolute inset-0 z-[60] flex items-center justify-center"
-          style={{ background: "rgba(0,0,0,0.8)", backdropFilter: "blur(12px)", animation: "fadeIn 0.3s ease" }}
-        >
-          <div className="text-center px-8 max-w-xs" style={{ animation: "scaleIn 0.3s ease" }}>
-            <div
-              className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5"
-              style={{ background: "rgba(224,17,95,0.12)" }}
-            >
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#E0115F" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-              </svg>
-            </div>
-            <h3 className="text-xl font-bold mb-2" style={{ color: "#fff" }}>Keep Watching</h3>
-            <p className="text-sm mb-6" style={{ color: "rgba(255,255,255,0.45)" }}>
-              Unlock all episodes of {seriesTitle}
-            </p>
-            <button
-              onClick={async () => {
-                setUnlockLoading(true);
-                trackUnlockClick(seriesSlug);
-                emit("checkout_started", { show_id: seriesSlug, plan_type: "series_unlock", surface: "episode_feed" });
-                try {
-                  const res = await fetch("/api/unlock", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ seriesSlug }),
-                  });
-                  const data = await res.json();
-                  if (data.url) window.location.href = data.url;
-                } catch {
-                  setUnlockLoading(false);
-                }
-              }}
-              disabled={unlockLoading}
-              className="glow-pulse w-full py-4 rounded-2xl text-base font-bold border-0 cursor-pointer transition-transform active:scale-[0.97]"
-              style={{
-                background: "linear-gradient(135deg, #E0115F, #8B5CF6)",
-                color: "#fff",
-                opacity: unlockLoading ? 0.7 : 1,
-                boxShadow: "0 0 40px rgba(224,17,95,0.3)",
-              }}
-            >
-              {unlockLoading ? "Loading..." : "Unlock Full Series — $1.99"}
-            </button>
-            <button
-              onClick={handleBack}
-              className="mt-4 text-sm font-medium border-0 bg-transparent cursor-pointer"
-              style={{ color: "rgba(255,255,255,0.35)" }}
-            >
-              Go Back
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Animations */}
       <style>{`
