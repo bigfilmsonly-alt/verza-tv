@@ -4030,6 +4030,11 @@ export const MUX_MAP: Record<string, MuxEpisode[]> = {
     { episode: 13, playbackId: "9fWtDSlTRs2PpX1rEJOPOqxKnbrQe00hPP801HozBi0218", duration: 399 },
     { episode: 14, playbackId: "qBqc00XczuKuzZgxuYnhHmyVXyLm9HC8raqELT01ItzWg", duration: 187 },
   ],
+  /* Red Carpet — The Carpet (pending real Mux playback IDs) */
+  "the-carpet": [
+    { episode: 1, playbackId: "", duration: 0 },
+    { episode: 2, playbackId: "", duration: 0 },
+  ],
 };
 
 export function getPlayback(slug: string, episode: number): MuxEpisode | undefined {

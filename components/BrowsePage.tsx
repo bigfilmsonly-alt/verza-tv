@@ -172,10 +172,14 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
   // Drama shows the whole library; other tabs show their own set. Hot stays
   // ranked, everything else is shuffled fresh each load for variety.
   const filtered = useMemo(() => {
-    // Too Much Junk is a Music-tab exclusive — keep it out of the Drama library entirely.
+    // Drama shows the whole library EXCEPT tab-exclusive titles: Too Much Junk
+    // (Music tab) and red-carpet events (Red Carpet tab only — the carpet
+    // flyer must never appear in the Drama grid).
     const base =
       activeTab === "drama"
-        ? liveSeries.filter((s) => s.slug !== "too-much-junk")
+        ? liveSeries.filter(
+            (s) => s.slug !== "too-much-junk" && !s.categories.includes("red-carpet"),
+          )
         : tabData[activeTab] ?? [];
     if (shuffleSeed === 0 || activeTab === "popular") return base;
     return shuffleWithSeed(base, shuffleSeed + activeTab.length);
@@ -436,8 +440,8 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </div>
       )}
 
-      {/* Coming Soon — for empty categories (skip Reality and Music since they show inline) */}
-      {filtered.length === 0 && activeTab !== "reality" && activeTab !== "music" && (
+      {/* Coming Soon — for empty categories (skip Reality/Music/Red Carpet since they show inline) */}
+      {filtered.length === 0 && activeTab !== "reality" && activeTab !== "music" && activeTab !== "red-carpet" && (
         <section className="px-4 py-8">
           <div
             className="rounded-2xl py-16 flex flex-col items-center justify-center gap-4 text-center"
@@ -561,6 +565,36 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
           </div>
         );
       })()}
+
+      {/* Red Carpet tab — two event posters (The Carpet). Red Carpet exclusive:
+          these never appear in the Drama grid (filtered out above). */}
+      {activeTab === "red-carpet" && (
+        <section className="pt-4 pb-10 px-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wider mb-4 text-center" style={{ color: "#8A8A9A" }}>The Carpet</h2>
+          <div className="grid grid-cols-2 gap-2.5">
+            {[
+              { title: "Exes Premiere", poster: "/posters/exes-premiere.png", episode: 1 },
+              { title: "Love Awards", poster: "/posters/love-awards.png", episode: 2 },
+            ].map((event) => (
+              <Link
+                key={event.title}
+                href={`/series/the-carpet/${event.episode}`}
+                className="block no-underline min-w-0 transition-transform active:scale-[0.97]"
+                onPointerDown={() => posterPress("the-carpet", event.episode)}
+                onClick={(e) => posterClick(e, "the-carpet", event.episode)}
+              >
+                <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
+                  <Image src={event.poster} alt={event.title} fill sizes="(max-width: 440px) 50vw, 220px" className="object-cover" />
+                </div>
+                <div style={{ height: 36 }}>
+                  <p className="mt-1.5 text-[12px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>{event.title}</p>
+                  <p className="text-[10px] mt-0.5" style={{ color: "#6B6B7B" }}>Red Carpet</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Hero Slideshow — shows on Drama/New/Hot (not Reality/Red Carpet/Music) */}
       {current && activeTab !== "reality" && activeTab !== "red-carpet" && activeTab !== "music" && (
