@@ -905,15 +905,27 @@ export const catalog: Series[] = [
   {
     // Red Carpet tab exclusive — NEVER shown in the Drama library grid
     // (BrowsePage filters red-carpet titles out of the Drama tab).
-    slug: "the-carpet",
-    title: "The Carpet",
-    logline: "Red carpets, premieres, and the stars who walk them — exclusively on VERZA TV.",
+    slug: "exes-premiere",
+    title: "Exes Premiere",
+    logline: "The Carpet takes you inside the star-studded Los Angeles premiere of Exes — cast interviews, arrivals, and all the red carpet moments.",
     genre: "Red Carpet · Reality",
-    channel: "VERZA Originals",
+    channel: "The Carpet",
     categories: ["red-carpet"],
-    episodeCount: 2,
-    posterUrl: "/posters/the-carpet.png",
-    freeEpisodes: 2, coinPerEpisode: 0, seasonPassCoins: 0, status: "live",
+    episodeCount: 12,
+    posterUrl: "/posters/exes-premiere.png",
+    freeEpisodes: 12, coinPerEpisode: 0, seasonPassCoins: 0, status: "live",
+  },
+  {
+    // Red Carpet tab exclusive — NEVER shown in the Drama library grid.
+    slug: "love-awards",
+    title: "Love Awards",
+    logline: "The 1st Annual Vertical Drama Love Awards — winners, gowns, and backstage interviews from The Carpet, presented by VERZA TV.",
+    genre: "Red Carpet · Reality",
+    channel: "The Carpet",
+    categories: ["red-carpet"],
+    episodeCount: 13,
+    posterUrl: "/posters/love-awards.png",
+    freeEpisodes: 13, coinPerEpisode: 0, seasonPassCoins: 0, status: "live",
   },
 ];
 

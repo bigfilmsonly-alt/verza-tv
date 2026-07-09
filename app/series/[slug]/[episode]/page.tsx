@@ -111,8 +111,9 @@ export default async function EpisodePage({ params }: Props) {
 
   const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
 
-  // Horizontal swipe for widescreen series (reality / red carpet)
-  const isHorizontalSwipe = series.categories.includes("red-carpet") || slug === "storage-pirates";
+  // Horizontal swipe is only for WIDESCREEN (16:9) content. Red carpet clips
+  // are vertical 9:16 — they play in the standard vertical feed like dramas.
+  const isHorizontalSwipe = slug === "storage-pirates";
   const backTab = series.categories.includes("red-carpet") ? "red-carpet" : series.categories.includes("reality") ? "reality" : null;
 
   return (

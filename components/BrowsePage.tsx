@@ -587,15 +587,16 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
           <h2 className="text-sm font-semibold uppercase tracking-wider mb-4 text-center" style={{ color: "#8A8A9A" }}>The Carpet</h2>
           <div className="grid grid-cols-2 gap-2.5">
             {[
-              { title: "Exes Premiere", poster: "/posters/exes-premiere.png", episode: 1 },
-              { title: "Love Awards", poster: "/posters/love-awards.png", episode: 2 },
+              { title: "Exes Premiere", poster: "/posters/exes-premiere.png", slug: "exes-premiere" },
+              { title: "Love Awards", poster: "/posters/love-awards.png", slug: "love-awards" },
             ].map((event) => (
               <Link
                 key={event.title}
-                href={`/series/the-carpet/${event.episode}`}
+                href={`/series/${event.slug}/1`}
                 className="block no-underline min-w-0 transition-transform active:scale-[0.97]"
-                onPointerDown={() => posterPress("the-carpet", event.episode)}
-                onClick={(e) => posterClick(e, "the-carpet", event.episode)}
+                prefetch={true}
+                onPointerDown={() => posterPress(event.slug)}
+                onClick={(e) => posterClick(e, event.slug)}
               >
                 <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
                   <Image src={event.poster} alt={event.title} fill sizes="(max-width: 440px) 50vw, 220px" className="object-cover" />

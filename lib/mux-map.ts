@@ -4030,10 +4030,38 @@ export const MUX_MAP: Record<string, MuxEpisode[]> = {
     { episode: 13, playbackId: "9fWtDSlTRs2PpX1rEJOPOqxKnbrQe00hPP801HozBi0218", duration: 399 },
     { episode: 14, playbackId: "qBqc00XczuKuzZgxuYnhHmyVXyLm9HC8raqELT01ItzWg", duration: 187 },
   ],
-  /* Red Carpet — The Carpet (pending real Mux playback IDs) */
-  "the-carpet": [
-    { episode: 1, playbackId: "", duration: 0 },
-    { episode: 2, playbackId: "", duration: 0 },
+  /* Red Carpet — The Carpet: Exes Premiere (LA premiere interviews, with
+     name graphics; uploaded 2026-06-16, verified via thumbnails) */
+  "exes-premiere": [
+    { episode: 1, playbackId: "FM9W9UMwIDcuzd02msbvdUlkS8E00bBSEU5AM6vREr8bM", duration: 268 },
+    { episode: 2, playbackId: "3t2kkc8II295Kc6Euva0201hPtJUcrxPzDJRdWvvJn22Y", duration: 138 },
+    { episode: 3, playbackId: "ihu8WzWBIrG8N6j3xemhZN7w028ikyph00gqO2qk35z6M", duration: 121 },
+    { episode: 4, playbackId: "IgvKZmsd02LcuaAK6vlBmcEauiCZwDHLdNgHgdm7LP7w", duration: 118 },
+    { episode: 5, playbackId: "bd7SSZWkeM1fwwdDoV2bMq6SuMgsudLYgcgO4B9EZvo", duration: 106 },
+    { episode: 6, playbackId: "hGliSykIghlCzF3olwNZncSACUoiiybj2sY9A02EQC38", duration: 120 },
+    { episode: 7, playbackId: "7IK00XTtBvwreFw6SElVdndS6XcnPmapR4ZjIMolWmUM", duration: 69 },
+    { episode: 8, playbackId: "MjLQ014Ocr7YYG3ykACdrL4977gJxnkLjvoKvAXcL9T4", duration: 275 },
+    { episode: 9, playbackId: "Z5g1lF009i663CVfoKO5ZAzHIy9CkFn5abJDqpyX1sBs", duration: 87 },
+    { episode: 10, playbackId: "MYC01b1Hd966QuOpW00nuk9siswdmJWrHjULVZOfmXvKI", duration: 172 },
+    { episode: 11, playbackId: "SR5SpbYkh02ck41LlttVIsSEOpTtg6quo01HiKq9lFqX00", duration: 93 },
+    { episode: 12, playbackId: "dYl401FP7XUE53pikaEeQROLaMN01YWtSEFZ70297lF01X4", duration: 217 },
+  ],
+  /* Red Carpet — The Carpet: 1st Annual Vertical Drama Love Awards
+     (uploaded 2026-05-05/06, verified via thumbnails) */
+  "love-awards": [
+    { episode: 1, playbackId: "ATbe01qdmO2f00E7kee400CSu53FXIddhr1Gs1IBRalxLE", duration: 16 },
+    { episode: 2, playbackId: "ekrsO1pk3sSG1005TCl8C3pBQQtSDL00XYBmxFbmnIibU", duration: 144 },
+    { episode: 3, playbackId: "w4WCQXwyubCtsybh3QHTYo02dOBSr4LW7JRaeN3x00Ogw", duration: 134 },
+    { episode: 4, playbackId: "CnZx00QhRVM4UplMzp47xSMXpPvr4Cv6dSdQG8zMvXtI", duration: 63 },
+    { episode: 5, playbackId: "00enq626pqw01SG7DZaZoz4moaRNBS9H9NbgGhDN9J3KY", duration: 114 },
+    { episode: 6, playbackId: "9kkfacThptsUCjqqa1xUbDPsTTgufuU5ucJHg5mTGh4", duration: 135 },
+    { episode: 7, playbackId: "kQ2X1ce4EDouDu0181mdySvdiJlg3RBRORy8CZO5jJos", duration: 167 },
+    { episode: 8, playbackId: "h00JZxJXWrhovYAu01mIayrDiP887t002Y8sBnAT4faBqo", duration: 114 },
+    { episode: 9, playbackId: "2o5x01iXYv853dVYLUK1xsZHpEE2dxpfU2Pw00XheGFKc", duration: 197 },
+    { episode: 10, playbackId: "92Gql4YnxQuMHSXi01dbktQUTvpSgmry9SGQcNdwaio00", duration: 127 },
+    { episode: 11, playbackId: "BTxbGW00XPusRnIv02WXyCwkVTh5cZWRqgEQ5wns4Rku4", duration: 160 },
+    { episode: 12, playbackId: "kUdV6hkR2JHfeAIIX3mXf0002aUxet6Q59VGjBNXYMSC00", duration: 288 },
+    { episode: 13, playbackId: "vC1lyjhM75TCJ02NoxSd21Mdsy200qaLfShlMrWVAPKI00", duration: 33 },
   ],
 };
 
