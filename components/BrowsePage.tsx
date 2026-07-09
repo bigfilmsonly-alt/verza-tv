@@ -20,6 +20,15 @@ if (typeof window !== "undefined") {
   import("hls.js").catch(() => {});
 }
 
+// Warm the Mux manifest in the browser cache on touch-start so by the time the
+// episode page loads, the manifest is already cached → near-instant play.
+function prefetchManifest(slug: string) {
+  const streams = MUX_MAP[slug];
+  if (!streams?.[0]) return;
+  const url = `https://stream.mux.com/${streams[0].playbackId}.m3u8`;
+  fetch(url, { mode: "cors", credentials: "omit" }).catch(() => {});
+}
+
 // Deterministic, seedable shuffle so the order is stable within one page
 // load (won't reshuffle on every re-render) but fresh on each refresh.
 function shuffleWithSeed<T>(arr: T[], seed: number): T[] {
@@ -529,7 +538,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               the whole 9:16 flyer (incl. the bottom VERZA logo) inside the 2:3
               card without cropping. */}
           <div className="relative">
-            <Link href={`/series/${current.slug}/1`} className="block">
+            <Link href={`/series/${current.slug}/1`} className="block" onTouchStart={() => prefetchManifest(current.slug)}>
               <div
                 className="relative mx-auto overflow-hidden rounded-xl"
                 style={{
@@ -633,7 +642,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
           <div className="poster-grid grid grid-cols-3 gap-1.5">
             {gridItems.map((s, i) => (
               <Fragment key={s.slug}>
-                <Link href={`/series/${s.slug}/1`} className="group block no-underline min-w-0 transition-transform active:scale-[0.97]">
+                <Link href={`/series/${s.slug}/1`} className="group block no-underline min-w-0 transition-transform active:scale-[0.97]" onTouchStart={() => prefetchManifest(s.slug)}>
                   <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
                     <Poster src={s.posterUrl} alt={s.title} />
                     {s.popularRank && s.popularRank <= 5 && <Badge type="trending" />}

@@ -62,7 +62,7 @@ function HorizontalCard({ video, index }: { video: HorizontalVideo; index: numbe
 
     if (hlsRef.current) hlsRef.current.destroy();
 
-    const hls = new Hls({ maxBufferLength: 30, enableWorker: true });
+    const hls = new Hls({ maxBufferLength: 20, enableWorker: true, startLevel: 0, abrEwmaDefaultEstimate: 1_000_000 });
     hlsRef.current = hls;
     hls.loadSource(hlsUrl);
     hls.attachMedia(vid);

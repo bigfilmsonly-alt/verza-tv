@@ -307,7 +307,7 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
     // Chrome / Firefox — hls.js
     getHls().then((Hls) => {
       if (cancelled || !Hls || !Hls.isSupported() || !vid) return;
-      const hls = new Hls({ maxBufferLength: 15, enableWorker: true });
+      const hls = new Hls({ maxBufferLength: 15, enableWorker: true, startLevel: 0, abrEwmaDefaultEstimate: 1_000_000 });
       hlsRef.current = hls;
       hls.loadSource(hlsUrl);
       hls.attachMedia(vid);

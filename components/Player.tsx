@@ -111,12 +111,13 @@ export default function Player({
     if (HlsModule && HlsModule.isSupported()) {
       console.log("[Player] Using hls.js");
       const hls = new HlsModule({
-        maxBufferLength: 60,
-        maxMaxBufferLength: 120,
-        startLevel: -1,
-        capLevelToPlayerSize: false,
+        maxBufferLength: 30,
+        maxMaxBufferLength: 60,
+        startLevel: 0,
+        capLevelToPlayerSize: true,
         enableWorker: true,
         lowLatencyMode: false,
+        abrEwmaDefaultEstimate: 1_000_000,
       });
       hlsRef.current = hls;
       hls.loadSource(hlsUrl);
@@ -518,12 +519,13 @@ export default function Player({
 
     if (HlsModule && HlsModule.isSupported()) {
       const hls = new HlsModule({
-        maxBufferLength: 60,
-        maxMaxBufferLength: 120,
-        startLevel: -1,
-        capLevelToPlayerSize: false,
+        maxBufferLength: 30,
+        maxMaxBufferLength: 60,
+        startLevel: 0,
+        capLevelToPlayerSize: true,
         enableWorker: true,
         lowLatencyMode: false,
+        abrEwmaDefaultEstimate: 1_000_000,
       });
       hlsRef.current = hls;
       hls.loadSource(hlsUrl);

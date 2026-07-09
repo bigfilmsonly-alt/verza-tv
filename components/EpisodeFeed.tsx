@@ -149,9 +149,10 @@ function EpisodeSlide({
       const hls = new Hls({
         maxBufferLength: 15,
         enableWorker: true,
-        startLevel: -1,
-        capLevelToPlayerSize: false,
-        maxLoadingDelay: 2,
+        startLevel: 0,            // Start at lowest quality for fastest first frame
+        capLevelToPlayerSize: true,
+        maxLoadingDelay: 1,
+        abrEwmaDefaultEstimate: 1_000_000, // Assume 1 Mbps initially (quick first segment)
       });
       hlsRef.current = hls;
       hls.loadSource(hlsUrl);
@@ -343,7 +344,7 @@ function EpisodeSlide({
       style={{ height: "var(--feed-h, 100dvh)", background: "#000", margin: 0, padding: 0 }}
       onClick={handleTap}
     >
-      {/* Mux thumbnail — cinematic scale settle on play */}
+      {/* Mux thumbnail — instant crossfade on play */}
       {thumbUrl && (
         <img
           src={thumbUrl}
@@ -351,9 +352,7 @@ function EpisodeSlide({
           className="absolute inset-0 w-full h-full object-cover"
           style={{
             opacity: started ? 0 : 1,
-            transform: started ? "scale(1)" : "scale(1.04)",
-            transition: "opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
-            willChange: "opacity, transform",
+            transition: "opacity 0.15s ease-out",
             zIndex: 1,
           }}
         />
@@ -367,16 +366,14 @@ function EpisodeSlide({
           className="absolute inset-0 w-full h-full object-cover"
           style={{
             opacity: started ? 0 : 1,
-            transform: started ? "scale(1)" : "scale(1.04)",
-            transition: "opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
-            willChange: "opacity, transform",
+            transition: "opacity 0.15s ease-out",
             filter: "brightness(0.5)",
             zIndex: 1,
           }}
         />
       )}
 
-      {/* Video — fades in once started, and stays visible when paused
+      {/* Video — appears once started, stays visible when paused
           so the current frame shows (no black poster flash on pause). */}
       <video
         ref={videoRef}
@@ -386,8 +383,7 @@ function EpisodeSlide({
         className="absolute inset-0 w-full h-full object-cover"
         style={{
           opacity: started ? 1 : 0,
-          transition: "opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-          willChange: "opacity",
+          transition: "opacity 0.15s ease-out",
           zIndex: 2,
         }}
       />
