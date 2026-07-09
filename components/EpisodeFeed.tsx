@@ -121,10 +121,39 @@ function EpisodeSlide({
     ? `https://image.mux.com/${episode.playbackId}/thumbnail.jpg?time=0&width=720&height=1280`
     : "";
 
-  /* Step 1: Attach HLS source (preload for near slides, don't tear down on active change) */
+  // Fire play() on a video element — shared by attach + activation paths.
+  const tryPlay = useCallback((vid: HTMLVideoElement) => {
+    vid.muted = true; // iOS requires muted for autoplay
+    // Resume seek (only once on the resume-target episode)
+    const dur = vid.duration;
+    const durKnown = isFinite(dur) && dur > 0;
+    if (
+      isResumeTarget &&
+      !resumeSeekedRef.current &&
+      resumePositionS > 2 &&
+      (!durKnown || resumePositionS < dur)
+    ) {
+      resumeSeekedRef.current = true;
+      try { vid.currentTime = resumePositionS; } catch { vid.currentTime = 0; }
+    } else if (vid.currentTime > 0.5) {
+      vid.currentTime = 0;
+    }
+    const p = vid.play();
+    if (p) {
+      p.then(() => {
+        setPlaying(true);
+        setStarted(true);
+        if (!mutedRef.current) vid.muted = false;
+        trackEpisodeStart(seriesSlug, episode.number);
+      }).catch(() => {});
+    }
+  }, [isResumeTarget, resumePositionS, seriesSlug, episode.number]);
+
+  /* Attach HLS source AND play immediately if this is the active slide.
+     No intermediate sourceReady state → no extra React render cycle. */
   useEffect(() => {
     if (!hlsUrl || (!isActive && !isNear)) return;
-    if (attachedRef.current) return; // Already attached, don't re-attach
+    if (attachedRef.current) return;
 
     const vid = videoRef.current;
     if (!vid) return;
@@ -138,8 +167,10 @@ function EpisodeSlide({
       if (vid.canPlayType("application/vnd.apple.mpegurl")) {
         vid.src = hlsUrl;
         vid.load();
-        // Set sourceReady immediately — Safari will queue play() until data arrives
-        if (!cancelled) setSourceReady(true);
+        if (!cancelled) {
+          setSourceReady(true);
+          if (isActive) tryPlay(vid);
+        }
         return;
       }
 
@@ -149,17 +180,18 @@ function EpisodeSlide({
       const hls = new Hls({
         maxBufferLength: 15,
         enableWorker: true,
-        startLevel: 0,            // Start at lowest quality for fastest first frame
+        startLevel: 0,
         capLevelToPlayerSize: true,
         maxLoadingDelay: 1,
-        abrEwmaDefaultEstimate: 1_000_000, // Assume 1 Mbps initially (quick first segment)
+        abrEwmaDefaultEstimate: 1_000_000,
       });
       hlsRef.current = hls;
       hls.loadSource(hlsUrl);
       hls.attachMedia(vid);
-      // Set sourceReady immediately — play() will queue until manifest parsed
-      if (!cancelled) setSourceReady(true);
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {});
+      if (!cancelled) {
+        setSourceReady(true);
+        if (isActive) tryPlay(vid);
+      }
       hls.on(Hls.Events.ERROR, (_e: string, data: { type: string; fatal: boolean }) => {
         if (data.fatal && Hls) {
           if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hls.startLoad();
@@ -172,19 +204,17 @@ function EpisodeSlide({
 
     return () => {
       cancelled = true;
-      // Destroy on unmount (virtualization removes elements from DOM)
       if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
       const v = videoRef.current;
       if (v) { v.pause(); v.removeAttribute("src"); v.load(); }
       attachedRef.current = false;
       setSourceReady(false);
     };
-  }, [hlsUrl, isActive, isNear]);
+  }, [hlsUrl, isActive, isNear, tryPlay]);
 
   /* Tear down HLS only when slide is far away (not near) */
   useEffect(() => {
     if (isActive || isNear) return;
-    // Not near — clean up
     const vid = videoRef.current;
     if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
     if (vid) { vid.pause(); vid.removeAttribute("src"); vid.load(); }
@@ -195,58 +225,19 @@ function EpisodeSlide({
     setLoading(false);
   }, [isActive, isNear]);
 
-  /* Step 2: Play only when source is ready AND slide is active */
+  /* When a slide becomes active AFTER source was already attached (swiping
+     to a pre-loaded neighbor), play immediately. */
   useEffect(() => {
     const vid = videoRef.current;
     if (!vid) return;
-
-    let cancelled = false;
-
     if (isActive && sourceReady) {
-      // ALWAYS start muted — iOS requires this for autoplay
-      vid.muted = true;
-      // Continue Watching: on the resume-target episode's FIRST activation,
-      // seek to the saved position instead of resetting to 0. Every other
-      // episode (and any later replay of this one) starts at 0.
-      const dur = vid.duration;
-      const durKnown = isFinite(dur) && dur > 0;
-      if (
-        isResumeTarget &&
-        !resumeSeekedRef.current &&
-        resumePositionS > 2 &&
-        (!durKnown || resumePositionS < dur)
-      ) {
-        resumeSeekedRef.current = true;
-        try { vid.currentTime = resumePositionS; } catch { vid.currentTime = 0; }
-      } else {
-        vid.currentTime = 0;
-      }
-      const playPromise = vid.play();
-      if (playPromise) {
-        playPromise
-          .then(() => {
-            if (cancelled) return;
-            setPlaying(true);
-            setStarted(true);
-            // Unmute AFTER successful play if user wants sound
-            if (!mutedRef.current) vid.muted = false;
-            trackEpisodeStart(seriesSlug, episode.number);
-          })
-          .catch(() => {
-            // Play failed even muted — do nothing, poster holds
-          });
-      } else {
-        // play() returned undefined (rare)
-        setLoading(false);
-      }
+      tryPlay(vid);
     } else if (!isActive) {
       vid.muted = true;
       vid.pause();
       setPlaying(false);
     }
-
-    return () => { cancelled = true; };
-  }, [isActive, sourceReady]);
+  }, [isActive, sourceReady, tryPlay]);
 
   /* Step 3: Sync muted prop instantly to video element */
   useEffect(() => {
