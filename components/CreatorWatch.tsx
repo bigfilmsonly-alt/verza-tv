@@ -7,10 +7,14 @@ import { emit } from "@/lib/analytics";
 import VideoWatermark from "@/components/VideoWatermark";
 
 let HlsModule: typeof HlsType | null = null;
+// Deferred via setTimeout: a dynamic import() fired DURING module evaluation
+// can deadlock the bundler's chunk loader (the promise never settles).
 if (typeof window !== "undefined") {
-  import("hls.js").then((m) => {
-    HlsModule = m.default;
-  }).catch(() => {});
+  setTimeout(() => {
+    import("hls.js").then((m) => {
+      HlsModule = m.default;
+    }).catch(() => {});
+  }, 0);
 }
 
 interface Props {
@@ -63,16 +67,16 @@ export default function CreatorWatch({
     const vid = videoRef.current;
     if (!vid || locked) return;
 
-    if (vid.canPlayType("application/vnd.apple.mpegurl")) {
-      vid.src = hlsUrl; // Safari / iOS native HLS
-      vid.load();
-    } else if (HlsModule && HlsModule.isSupported()) {
+    // Prefer hls.js (MSE) whenever supported; native HLS only where hls.js
+    // can't run (iOS Safari). Some Chrome versions answer "maybe" to
+    // canPlayType(HLS) but then stall forever without playing.
+    if (HlsModule && HlsModule.isSupported()) {
       const hls = new HlsModule();
       hlsRef.current = hls;
       hls.loadSource(hlsUrl);
       hls.attachMedia(vid);
     } else {
-      vid.src = hlsUrl;
+      vid.src = hlsUrl; // iOS Safari native HLS (also last-resort fallback)
       vid.load();
     }
   }, [hlsUrl, locked]);

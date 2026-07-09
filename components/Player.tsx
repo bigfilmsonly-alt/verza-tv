@@ -18,11 +18,19 @@ import {
   type ResumeItem,
 } from "@/lib/resume";
 
-// Dynamic import — hls.js only needed on Chrome/Firefox, not Safari/iOS
+// Dynamic import — hls.js drives playback everywhere MSE is available;
+// native HLS is only used where hls.js can't run (iOS Safari).
 let HlsModule: typeof HlsType | null = null;
-if (typeof window !== "undefined") {
-  import("hls.js").then((m) => { HlsModule = m.default; }).catch(() => {});
+let hlsLoad: Promise<typeof HlsType | null> | null = null;
+function getHls(): Promise<typeof HlsType | null> {
+  if (!hlsLoad && typeof window !== "undefined") {
+    hlsLoad = import("hls.js").then((m) => { HlsModule = m.default; return HlsModule; }).catch(() => null);
+  }
+  return hlsLoad || Promise.resolve(null);
 }
+// Deferred warm-up (a dynamic import() fired during module evaluation can
+// deadlock the bundler's chunk loader).
+if (typeof window !== "undefined") setTimeout(() => { void getHls(); }, 0);
 
 /* ------------------------------------------------------------------ */
 /*  Props                                                              */
@@ -113,16 +121,25 @@ export default function Player({
     const video = videoRef.current;
     if (!video) return;
 
-    // Native HLS support (Safari / iOS)
-    if (video.canPlayType("application/vnd.apple.mpegurl")) {
-      video.src = hlsUrl;
-      setHlsReady(true);
-      return;
-    }
+    let cancelled = false;
 
-    // hls.js for other browsers
-    if (HlsModule && HlsModule.isSupported()) {
-      const hls = new HlsModule({
+    // Prefer hls.js (MSE) whenever it's supported. Some Chrome versions
+    // answer "maybe" to canPlayType(HLS) but then stall forever without
+    // playing — native HLS is only trustworthy on iOS Safari (no MSE).
+    getHls().then((Hls) => {
+      if (cancelled || !video) return;
+
+      if (!Hls || !Hls.isSupported()) {
+        if (video.canPlayType("application/vnd.apple.mpegurl")) {
+          video.src = hlsUrl;
+          setHlsReady(true);
+        } else {
+          setError("Your browser does not support video playback. Please try Chrome, Safari, or Firefox.");
+        }
+        return;
+      }
+
+      const hls = new Hls({
         maxBufferLength: 30,
         maxMaxBufferLength: 60,
         startLevel: 0,
@@ -135,29 +152,30 @@ export default function Player({
       hls.loadSource(hlsUrl);
       hls.attachMedia(video);
 
-      hls.on(HlsModule.Events.MANIFEST_PARSED, () => {
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
         setHlsReady(true);
       });
 
-      hls.on(HlsModule.Events.ERROR, (_event: string, data: { type: string; details: string; fatal: boolean }) => {
+      hls.on(Hls.Events.ERROR, (_event: string, data: { type: string; details: string; fatal: boolean }) => {
         if (data.fatal) {
-          if (data.type === HlsModule!.ErrorTypes.NETWORK_ERROR) {
+          if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
             hls.startLoad();
-          } else if (data.type === HlsModule!.ErrorTypes.MEDIA_ERROR) {
+          } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
             hls.recoverMediaError();
           } else {
             setError("Video failed to load. Please try refreshing the page.");
           }
         }
       });
+    });
 
-      return () => {
-        hls.destroy();
+    return () => {
+      cancelled = true;
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
         hlsRef.current = null;
-      };
-    }
-
-    setError("Your browser does not support video playback. Please try Chrome, Safari, or Firefox.");
+      }
+    };
   }, [hlsUrl]);
 
   /* ---- Warm episode N+1 manifest — ONLY if it's a free episode ----- */
@@ -529,7 +547,7 @@ export default function Player({
     const video = videoRef.current;
     if (!video || !hlsUrl) return;
 
-    if (video.canPlayType("application/vnd.apple.mpegurl")) {
+    if ((!HlsModule || !HlsModule.isSupported()) && video.canPlayType("application/vnd.apple.mpegurl")) {
       video.src = hlsUrl;
       video.play().catch(() => {});
       return;

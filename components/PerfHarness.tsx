@@ -70,15 +70,18 @@ export default function PerfHarness() {
       vid.removeEventListener("waiting", onWaiting);
     };
 
-    if (vid.canPlayType("application/vnd.apple.mpegurl")) {
-      vid.src = hlsUrl;
-      vid.addEventListener("canplay", () => { if (!cancelled) doPlay(); }, { once: true });
-      vid.load();
-      return cleanup;
-    }
-
+    // Prefer hls.js (MSE) whenever supported; native HLS only where hls.js
+    // can't run (iOS Safari).
     getHls().then((Hls) => {
-      if (cancelled || !Hls || !Hls.isSupported()) return;
+      if (cancelled) return;
+      if (!Hls || !Hls.isSupported()) {
+        if (vid.canPlayType("application/vnd.apple.mpegurl")) {
+          vid.src = hlsUrl;
+          vid.addEventListener("canplay", () => { if (!cancelled) doPlay(); }, { once: true });
+          vid.load();
+        }
+        return;
+      }
       const hls = new Hls({ maxBufferLength: 15, enableWorker: true });
       hlsRef.current = hls;
       hls.loadSource(hlsUrl);

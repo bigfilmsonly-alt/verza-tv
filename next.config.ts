@@ -32,6 +32,10 @@ const nextConfig: NextConfig = {
               "connect-src 'self' https://*.supabase.co https://api.stripe.com https://*.mux.com https://www.google-analytics.com https://translate.google.com https://pagead2.googlesyndication.com https://*.googlesyndication.com https://googleads.g.doubleclick.net https://*.g.doubleclick.net wss://*.supabase.co",
               "frame-src 'self' https://js.stripe.com https://player.vimeo.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://*.googlesyndication.com",
               "media-src 'self' https://*.mux.com blob:",
+              // hls.js runs its transmuxer in a blob worker; without this the
+              // worker is CSP-blocked and playback falls back to the slower
+              // inline path (or stalls on some browsers).
+              "worker-src 'self' blob:",
               "object-src 'none'",
               "base-uri 'self'",
               "form-action 'self' https://checkout.stripe.com",

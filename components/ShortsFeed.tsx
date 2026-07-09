@@ -296,17 +296,19 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
       vid.removeEventListener("waiting", onWaiting);
     };
 
-    // Safari / iOS — native HLS
-    if (vid.canPlayType("application/vnd.apple.mpegurl")) {
-      vid.src = hlsUrl;
-      vid.addEventListener("canplay", () => { if (!cancelled) doPlay(); }, { once: true });
-      vid.load();
-      return cleanup;
-    }
-
-    // Chrome / Firefox — hls.js
+    // Prefer hls.js (MSE) whenever supported; native HLS only where hls.js
+    // can't run (iOS Safari). Some Chrome versions answer "maybe" to
+    // canPlayType(HLS) but then stall forever without playing.
     getHls().then((Hls) => {
-      if (cancelled || !Hls || !Hls.isSupported() || !vid) return;
+      if (cancelled || !vid) return;
+      if (!Hls || !Hls.isSupported()) {
+        if (vid.canPlayType("application/vnd.apple.mpegurl")) {
+          vid.src = hlsUrl;
+          vid.addEventListener("canplay", () => { if (!cancelled) doPlay(); }, { once: true });
+          vid.load();
+        }
+        return;
+      }
       const hls = new Hls({ maxBufferLength: 15, enableWorker: true, startLevel: 0, abrEwmaDefaultEstimate: 1_000_000 });
       hlsRef.current = hls;
       hls.loadSource(hlsUrl);

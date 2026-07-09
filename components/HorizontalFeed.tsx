@@ -52,13 +52,18 @@ function HorizontalCard({ video, index }: { video: HorizontalVideo; index: numbe
     const vid = videoRef.current;
     if (!vid) return;
 
-    if (vid.canPlayType("application/vnd.apple.mpegurl")) {
-      vid.src = hlsUrl;
+    // Prefer hls.js (MSE) whenever supported; native HLS only where hls.js
+    // can't run (iOS Safari). Some Chrome versions answer "maybe" to
+    // canPlayType(HLS) but then stall forever without playing.
+    const Hls = await getHls();
+    if (!vid) return;
+
+    if (!Hls || !Hls.isSupported()) {
+      if (vid.canPlayType("application/vnd.apple.mpegurl")) {
+        vid.src = hlsUrl;
+      }
       return;
     }
-
-    const Hls = await getHls();
-    if (!Hls || !Hls.isSupported() || !vid) return;
 
     if (hlsRef.current) hlsRef.current.destroy();
 

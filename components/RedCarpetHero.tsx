@@ -55,17 +55,19 @@ export default function RedCarpetHero({ playbackIds }: RedCarpetHeroProps) {
       }).catch(() => {});
     }
 
-    // Safari
-    if (vid.canPlayType("application/vnd.apple.mpegurl")) {
-      vid.src = hlsUrl;
-      vid.load();
-      vid.addEventListener("canplay", () => { if (!cancelled) doPlay(); }, { once: true });
-      return () => { cancelled = true; };
-    }
-
-    // hls.js
+    // Prefer hls.js (MSE) whenever supported; native HLS only where hls.js
+    // can't run (iOS Safari). Some Chrome versions answer "maybe" to
+    // canPlayType(HLS) but then stall forever without playing.
     getHls().then((Hls) => {
-      if (cancelled || !Hls || !Hls.isSupported() || !vid) return;
+      if (cancelled || !vid) return;
+      if (!Hls || !Hls.isSupported()) {
+        if (vid.canPlayType("application/vnd.apple.mpegurl")) {
+          vid.src = hlsUrl;
+          vid.load();
+          vid.addEventListener("canplay", () => { if (!cancelled) doPlay(); }, { once: true });
+        }
+        return;
+      }
       const hls = new Hls({ maxBufferLength: 15, enableWorker: true });
       hlsRef.current = hls;
       hls.loadSource(hlsUrl);

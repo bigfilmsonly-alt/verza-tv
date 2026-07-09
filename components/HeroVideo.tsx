@@ -51,14 +51,19 @@ export default function HeroVideo({ playbackId }: HeroVideoProps) {
     async function attach() {
       if (destroyed || !vid) return;
 
-      if (vid.canPlayType("application/vnd.apple.mpegurl")) {
-        vid.src = hlsUrl;
-        tryPlay();
+      // Prefer hls.js (MSE) whenever supported; native HLS only where hls.js
+      // can't run (iOS Safari). Some Chrome versions answer "maybe" to
+      // canPlayType(HLS) but then stall forever without playing.
+      const Hls = await getHls();
+      if (destroyed || !vid) return;
+
+      if (!Hls || !Hls.isSupported()) {
+        if (vid.canPlayType("application/vnd.apple.mpegurl")) {
+          vid.src = hlsUrl;
+          tryPlay();
+        }
         return;
       }
-
-      const Hls = await getHls();
-      if (destroyed || !Hls || !Hls.isSupported() || !vid) return;
 
       const hls = new Hls({ maxBufferLength: 15, enableWorker: true });
       hlsRef.current = hls;

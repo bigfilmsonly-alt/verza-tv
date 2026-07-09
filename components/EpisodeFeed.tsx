@@ -22,9 +22,12 @@ function getHls(): Promise<typeof HlsType | null> {
   }
   return hlsPromise || Promise.resolve(null);
 }
-// Start downloading hls.js the instant this module loads — by the time
-// the first video needs it, the library is already cached.
-if (typeof window !== "undefined") getHls();
+// Start downloading hls.js right after this module loads — by the time the
+// first video needs it, the library is already cached. Deferred via
+// setTimeout: a dynamic import() fired DURING module evaluation can deadlock
+// the bundler's chunk loader (the promise never settles), which leaves every
+// video waiting on hls.js forever.
+if (typeof window !== "undefined") setTimeout(() => { void getHls(); }, 0);
 
 /* ---- Haptic feedback ---- */
 function haptic() {
@@ -79,6 +82,7 @@ function EpisodeSlide({
   onReveal,
   onFirstPlayGesture,
   widescreen = false,
+  transitionPoster,
 }: {
   episode: FeedEpisode;
   seriesSlug: string;
@@ -100,6 +104,9 @@ function EpisodeSlide({
   onFirstPlayGesture: () => void;
   /** True for 16:9 landscape content — uses object-contain instead of cover. */
   widescreen?: boolean;
+  /** Exact (already-cached) poster URL the user tapped on the browse page —
+      painted instantly for a seamless poster → video transition. */
+  transitionPoster?: string;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<HlsType | null>(null);
@@ -112,41 +119,24 @@ function EpisodeSlide({
   const [started, setStarted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPause, setShowPause] = useState(false);
-  // Poster images are HIDDEN initially — they only fade in after 500ms IF the
-  // video hasn't started yet.  On fast connections (SSG + prefetched manifest),
-  // the video starts within ~300ms so the poster is NEVER seen = no flash.
-  // Only slow connections ever see the poster (as a graceful fallback).
-  const [showPoster, setShowPoster] = useState(false);
-  const posterTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pauseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastTap = useRef(0);
   const lastSavedRef = useRef(0);
   const resumeSeekedRef = useRef(false);
 
-  // Keep ref in sync with prop
+  // Keep refs in sync with props
   useEffect(() => { mutedRef.current = muted; }, [muted]);
+  const isActiveRef = useRef(isActive);
+  useEffect(() => { isActiveRef.current = isActive; }, [isActive]);
 
-  // Delayed poster reveal — only show poster after 500ms if video hasn't
-  // started yet.  Prevents the "poster flash" on fast connections.
-  useEffect(() => {
-    if (started) {
-      setShowPoster(false);
-      if (posterTimerRef.current) clearTimeout(posterTimerRef.current);
-      return;
-    }
-    if (!isActive) return;
-    posterTimerRef.current = setTimeout(() => {
-      if (!started) setShowPoster(true);
-    }, 500);
-    return () => { if (posterTimerRef.current) clearTimeout(posterTimerRef.current); };
-  }, [isActive, started]);
+  // The poster is visible from the very first paint and stays until the first
+  // real video frame is composited, then crossfades out. No timers, no delayed
+  // reveals — a stable placeholder makes a black flash or poster flash
+  // impossible by construction, on any connection speed.
 
   const hlsUrl = episode.playbackId
     ? `https://stream.mux.com/${episode.playbackId}.m3u8`
     : null;
-  const thumbUrl = episode.playbackId
-    ? `https://image.mux.com/${episode.playbackId}/thumbnail.jpg?time=1&width=720&height=1280`
-    : "";
 
   // Wait for the video compositor to actually paint a frame before revealing.
   // This prevents the black flash that happens when play() resolves but the
@@ -193,9 +183,12 @@ function EpisodeSlide({
   }, [isResumeTarget, resumePositionS, seriesSlug, episode.number]);
 
   /* Attach HLS source AND play immediately if this is the active slide.
-     No intermediate sourceReady state → no extra React render cycle. */
+     Depends only on shouldLoad (active OR near) — NOT isActive — so swiping
+     between neighbors never destroys an already-buffered player. Activation
+     of a pre-attached neighbor is handled by the play effect below. */
+  const shouldLoad = isActive || isNear;
   useEffect(() => {
-    if (!hlsUrl || (!isActive && !isNear)) return;
+    if (!hlsUrl || !shouldLoad) return;
     if (attachedRef.current) return;
 
     const vid = videoRef.current;
@@ -207,18 +200,25 @@ function EpisodeSlide({
     async function attach() {
       if (cancelled || !vid || !hlsUrl) return;
 
-      if (vid.canPlayType("application/vnd.apple.mpegurl")) {
-        vid.src = hlsUrl;
-        vid.load();
-        if (!cancelled) {
-          setSourceReady(true);
-          if (isActive) tryPlay(vid);
+      // Prefer hls.js (MSE) whenever it's supported — Chrome, Edge, Firefox,
+      // desktop Safari. Some Chrome versions answer "maybe" to
+      // canPlayType(HLS) but then stall forever at readyState 0, so native
+      // HLS is only trustworthy where hls.js CAN'T run (iOS Safari, which
+      // has no MSE — and where native HLS genuinely works).
+      const Hls = await getHls();
+      if (cancelled || !vid) return;
+
+      if (!Hls || !Hls.isSupported()) {
+        if (vid.canPlayType("application/vnd.apple.mpegurl")) {
+          vid.src = hlsUrl;
+          vid.load();
+          if (!cancelled) {
+            setSourceReady(true);
+            if (isActiveRef.current) tryPlay(vid);
+          }
         }
         return;
       }
-
-      const Hls = await getHls();
-      if (cancelled || !Hls || !Hls.isSupported() || !vid) return;
 
       const hls = new Hls({
         maxBufferLength: 8,
@@ -236,7 +236,7 @@ function EpisodeSlide({
       hls.attachMedia(vid);
       if (!cancelled) {
         setSourceReady(true);
-        if (isActive) tryPlay(vid);
+        if (isActiveRef.current) tryPlay(vid);
       }
       hls.on(Hls.Events.ERROR, (_e: string, data: { type: string; fatal: boolean }) => {
         if (data.fatal && Hls) {
@@ -256,7 +256,7 @@ function EpisodeSlide({
       attachedRef.current = false;
       setSourceReady(false);
     };
-  }, [hlsUrl, isActive, isNear, tryPlay]);
+  }, [hlsUrl, shouldLoad, tryPlay]);
 
   /* Tear down HLS only when slide is far away (not near) */
   useEffect(() => {
@@ -381,40 +381,43 @@ function EpisodeSlide({
       style={{ height: "var(--feed-h, 100dvh)", background: "#000", margin: 0, padding: 0 }}
       onClick={handleTap}
     >
-      {/* Series poster — HIDDEN for the first 500ms.  Only fades in as a
-          slow-connection fallback if the video hasn't started in time.
-          On fast connections the poster is NEVER visible = zero flash. */}
+      {/* Transition poster — the EXACT image the user tapped on the browse
+          page (already in the browser cache → paints instantly). Sits at the
+          bottom of the stack so the screen is never black while the full-res
+          poster and video load. */}
+      {transitionPoster && (
+        <img
+          src={transitionPoster}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{
+            opacity: started ? 0 : 1,
+            transition: "opacity 0.3s ease 0.15s",
+            zIndex: 0,
+          }}
+        />
+      )}
+
+      {/* Series poster — visible IMMEDIATELY (no delay, no fade-in) and held
+          steady until the first real video frame is composited. A stable
+          placeholder can't flash: it only crossfades out once the video is
+          actually showing pixels. */}
       {posterUrl && (
         <img
           src={posterUrl}
           alt=""
           className={`absolute inset-0 w-full h-full ${widescreen ? "object-contain" : "object-cover"}`}
           style={{
-            opacity: showPoster && !started ? 0.5 : 0,
-            transition: "opacity 0.35s ease-in",
-            filter: "brightness(0.5)",
-            zIndex: 0,
-          }}
-        />
-      )}
-
-      {/* Mux thumbnail — same delayed reveal as the series poster. */}
-      {thumbUrl && (
-        <img
-          src={thumbUrl}
-          alt=""
-          className={`absolute inset-0 w-full h-full ${widescreen ? "object-contain" : "object-cover"}`}
-          style={{
-            opacity: showPoster && !started ? 1 : 0,
-            transition: "opacity 0.35s ease-in",
+            opacity: started ? 0 : 1,
+            transition: "opacity 0.3s ease 0.15s",
             zIndex: 1,
           }}
         />
       )}
 
-      {/* Video — fades in smoothly once the first real frame is composited
-          (via requestVideoFrameCallback). The 0.12s transition creates a
-          gentle appearance rather than a hard pop. */}
+      {/* Video — fades in once the first real frame is composited (via
+          requestVideoFrameCallback), overlapping the poster fade-out so the
+          swap is a true crossfade with no gap on either side. */}
       <video
         ref={videoRef}
         playsInline
@@ -423,7 +426,7 @@ function EpisodeSlide({
         className={`absolute inset-0 w-full h-full ${widescreen ? "object-contain" : "object-cover"}`}
         style={{
           opacity: started ? 1 : 0,
-          transition: "opacity 0.12s ease-out",
+          transition: "opacity 0.2s ease-out",
           zIndex: 2,
         }}
       />
@@ -527,6 +530,26 @@ export default function EpisodeFeed({
 }: EpisodeFeedProps) {
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Poster the user tapped on the browse page (stored in sessionStorage at
+  // click time). It's already in the browser cache, so painting it here is
+  // instant — the visual bridge from the browse grid into the first frame.
+  const [transitionPoster] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const raw = sessionStorage.getItem("verza-transition");
+      if (!raw) return null;
+      const d = JSON.parse(raw) as { src?: string; ts?: number };
+      if (d.src && d.ts && Date.now() - d.ts < 15000) return d.src;
+    } catch {}
+    return null;
+  });
+
+  // One-shot: consume the transition poster so a later refresh / back-nav
+  // doesn't show a stale image.
+  useEffect(() => {
+    try { sessionStorage.removeItem("verza-transition"); } catch {}
+  }, []);
 
   // Read ?t= and ?unlocked= from URL client-side (page is static / SSG —
   // these params aren't available server-side).
@@ -986,6 +1009,7 @@ export default function EpisodeFeed({
                 onReveal={revealActionRail}
                 onFirstPlayGesture={requestPermissionOnce}
                 widescreen={horizontal}
+                transitionPoster={ep.number === startEpisode ? transitionPoster ?? undefined : undefined}
               />
             </div>
           );

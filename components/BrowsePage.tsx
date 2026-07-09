@@ -14,18 +14,62 @@ import AmazonTile from "@/components/AmazonProducts";
 import { AMAZON_PRODUCTS } from "@/lib/amazon-sponsors";
 import { MUX_MAP } from "@/lib/mux-map";
 
-// Eagerly preload hls.js so it's cached before user taps a video
+// Eagerly preload hls.js so it's cached before user taps a video.
+// Deferred via setTimeout: a dynamic import() fired DURING module evaluation
+// can deadlock the bundler's chunk loader (the promise never settles).
 if (typeof window !== "undefined") {
-  import("hls.js").catch(() => {});
+  setTimeout(() => { import("hls.js").catch(() => {}); }, 0);
 }
 
-// Warm the Mux manifest in the browser cache on touch-start so by the time the
-// episode page loads, the manifest is already cached → near-instant play.
-function prefetchManifest(slug: string) {
-  const streams = MUX_MAP[slug];
-  if (!streams?.[0]) return;
-  const url = `https://stream.mux.com/${streams[0].playbackId}.m3u8`;
-  fetch(url, { mode: "cors", credentials: "omit" }).catch(() => {});
+/* ---- Two-stage HLS warm-up for instant playback ----------------------
+   Stage 1 (pointerdown — the finger/mouse touches a poster): fetch the
+   master manifest AND the first rendition playlist (~5 KB total). hls.js
+   starts at level 0 (startLevel: 0), which is exactly the first variant in
+   the master, so these land straight in the HTTP cache it reads from.
+   Stage 2 (click — navigation is committed): fetch the init + first media
+   segment. The fetch keeps running during the client-side navigation, so
+   by the time hls.js asks for the first segment it's already local. */
+
+const variantCache = new Map<string, Promise<{ url: string; text: string } | null>>();
+
+function warmPlaylists(slug: string, epNum = 1) {
+  const pid = MUX_MAP[slug]?.find((e) => e.episode === epNum)?.playbackId;
+  if (!pid) return Promise.resolve(null);
+  let p = variantCache.get(pid);
+  if (!p) {
+    p = (async () => {
+      const base = `https://stream.mux.com/${pid}.m3u8`;
+      const master = await (await fetch(base, { mode: "cors", credentials: "omit" })).text();
+      const uri = master.split("\n").map((l) => l.trim()).find((l) => l && !l.startsWith("#"));
+      if (!uri) return null;
+      const url = new URL(uri, base).href;
+      const text = await (await fetch(url, { mode: "cors", credentials: "omit" })).text();
+      return { url, text };
+    })().catch(() => null);
+    variantCache.set(pid, p);
+  }
+  return p;
+}
+
+const segmentWarmed = new Set<string>();
+
+async function warmFirstSegment(slug: string, epNum = 1) {
+  const pid = MUX_MAP[slug]?.find((e) => e.episode === epNum)?.playbackId;
+  if (!pid || segmentWarmed.has(pid)) return;
+  segmentWarmed.add(pid);
+  const v = await warmPlaylists(slug, epNum);
+  if (!v) return;
+  const lines = v.text.split("\n").map((l) => l.trim());
+  const urls: string[] = [];
+  const init = lines.find((l) => l.startsWith("#EXT-X-MAP"))?.match(/URI="([^"]+)"/)?.[1];
+  if (init) urls.push(init);
+  const seg = lines.find((l) => l && !l.startsWith("#"));
+  if (seg) urls.push(seg);
+  await Promise.all(
+    urls.map((u) =>
+      fetch(new URL(u, v.url).href, { mode: "cors", credentials: "omit" }).catch(() => {}),
+    ),
+  );
 }
 
 // Deterministic, seedable shuffle so the order is stable within one page
@@ -100,6 +144,23 @@ interface ContinueItem {
 export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
   const { t } = useTranslation();
   const activeTabs = BROWSE_TABS;
+
+  /* Poster press/click plumbing for instant playback:
+     - pointerdown (mouse AND touch) → warm the HLS playlists
+     - click → store the tapped poster's cached URL (the episode page shows it
+       full-screen instantly — no black frame) + warm the first video segment */
+  const posterPress = useCallback((slug: string, epNum = 1) => {
+    void warmPlaylists(slug, epNum);
+  }, []);
+
+  const posterClick = useCallback((e: React.MouseEvent<HTMLElement>, slug: string, epNum = 1) => {
+    try {
+      const img = e.currentTarget.querySelector("img") as HTMLImageElement | null;
+      const src = img?.currentSrc || img?.src;
+      if (src) sessionStorage.setItem("verza-transition", JSON.stringify({ src, ts: Date.now() }));
+    } catch {}
+    void warmFirstSegment(slug, epNum);
+  }, []);
 
   const [activeTab, setActiveTab] = useState<BrowseCategory>("drama");
   // Direction of the last tab change (1 = forward/next, -1 = back/prev) so the
@@ -180,10 +241,10 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
       .catch(() => {});
   }, []);
 
-  // Eagerly prefetch HLS manifests for hero posters so by the time the user
-  // taps, the manifest is already in the browser cache → near-instant start.
+  // Eagerly prefetch HLS playlists for hero posters so by the time the user
+  // taps, the manifests are already in the browser cache → near-instant start.
   useEffect(() => {
-    heroSlides.slice(0, 4).forEach((s) => prefetchManifest(s.slug));
+    heroSlides.slice(0, 4).forEach((s) => void warmPlaylists(s.slug));
   }, [heroSlides]);
 
   // Auto-rotate hero slideshow (works for Drama/New/Hot AND Reality)
@@ -320,7 +381,14 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               const durationS = getEpisode(item.seriesSlug, item.episodeNumber)?.durationS;
               const pct = durationS && durationS > 0 ? Math.min(96, Math.max(4, Math.round((item.progressSeconds / durationS) * 100))) : 8;
               return (
-              <Link key={item.seriesSlug} href={buildResumeUrl(item.seriesSlug, item.episodeNumber, item.progressSeconds)} className="group block no-underline flex-shrink-0 snap-start" style={{ width: 120 }}>
+              <Link
+                key={item.seriesSlug}
+                href={buildResumeUrl(item.seriesSlug, item.episodeNumber, item.progressSeconds)}
+                className="group block no-underline flex-shrink-0 snap-start"
+                style={{ width: 120 }}
+                onPointerDown={() => posterPress(item.seriesSlug, item.episodeNumber)}
+                onClick={(e) => posterClick(e, item.seriesSlug, item.episodeNumber)}
+              >
                 <div className="relative overflow-hidden rounded-lg" style={{ width: 120, aspectRatio: "2 / 3" }}>
                   {item.posterUrl && (
                     <Image src={item.posterUrl} alt={item.seriesTitle} fill sizes="120px" className="object-cover" />
@@ -356,7 +424,13 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         <div>
           {/* Extra top padding so the poster clears the sticky Summer Sale badge */}
           <div className="relative pt-10">
-            <Link href="/series/too-much-junk/1" prefetch={true} className="block transition-transform active:scale-[0.97]">
+            <Link
+              href="/series/too-much-junk/1"
+              prefetch={true}
+              className="block transition-transform active:scale-[0.97]"
+              onPointerDown={() => posterPress("too-much-junk")}
+              onClick={(e) => posterClick(e, "too-much-junk")}
+            >
               <div className="relative mx-auto overflow-hidden rounded-xl" style={{ aspectRatio: "2 / 3", width: "100%", maxWidth: "min(320px, 80vw)", background: "#000" }}>
                 <Image
                   src="/posters/too-much-junk.jpg"
@@ -455,6 +529,8 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                     href={`/series/${show.slug}/1`}
                     className="block no-underline min-w-0 transition-transform active:scale-[0.97]"
                     prefetch={true}
+                    onPointerDown={() => posterPress(show.slug)}
+                    onClick={(e) => posterClick(e, show.slug)}
                   >
                     <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
                       <Image src={show.poster} alt={show.title} fill sizes="(max-width: 440px) 50vw, 220px" className="object-cover" />
@@ -507,7 +583,13 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               { title: "Exes Premiere", poster: "/posters/exes-premiere.png", episode: 1 },
               { title: "Love Awards", poster: "/posters/love-awards.png", episode: 2 },
             ].map((event) => (
-              <Link key={event.title} href={`/series/the-carpet/${event.episode}`} className="block no-underline min-w-0 transition-transform active:scale-[0.97]">
+              <Link
+                key={event.title}
+                href={`/series/the-carpet/${event.episode}`}
+                className="block no-underline min-w-0 transition-transform active:scale-[0.97]"
+                onPointerDown={() => posterPress("the-carpet")}
+                onClick={(e) => posterClick(e, "the-carpet")}
+              >
                 <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
                   <Image src={event.poster} alt={event.title} fill sizes="(max-width: 440px) 50vw, 220px" className="object-cover" />
                 </div>
@@ -534,7 +616,12 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               the whole 9:16 flyer (incl. the bottom VERZA logo) inside the 2:3
               card without cropping. */}
           <div className="relative">
-            <Link href={`/series/${current.slug}/1`} className="block" onTouchStart={() => prefetchManifest(current.slug)}>
+            <Link
+              href={`/series/${current.slug}/1`}
+              className="block"
+              onPointerDown={() => posterPress(current.slug)}
+              onClick={(e) => posterClick(e, current.slug)}
+            >
               <div
                 className="relative mx-auto overflow-hidden rounded-xl"
                 style={{
@@ -638,7 +725,12 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
           <div className="poster-grid grid grid-cols-3 gap-1.5">
             {gridItems.map((s, i) => (
               <Fragment key={s.slug}>
-                <Link href={`/series/${s.slug}/1`} className="group block no-underline min-w-0 transition-transform active:scale-[0.97]" onTouchStart={() => prefetchManifest(s.slug)}>
+                <Link
+                  href={`/series/${s.slug}/1`}
+                  className="group block no-underline min-w-0 transition-transform active:scale-[0.97]"
+                  onPointerDown={() => posterPress(s.slug)}
+                  onClick={(e) => posterClick(e, s.slug)}
+                >
                   <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
                     <Poster src={s.posterUrl} alt={s.title} />
                     {s.popularRank && s.popularRank <= 5 && <Badge type="trending" />}
