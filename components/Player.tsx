@@ -405,9 +405,19 @@ export default function Player({
     const video = videoRef.current;
     if (!video) return;
 
-    setStarted(true);
     setLoading(true);
     trackEpisodeStart(seriesSlug, episodeNumber);
+
+    // Wait for the compositor to actually paint a video frame before
+    // revealing (prevents black flash between poster and first frame).
+    const vid = video!;
+    function revealOnFrame() {
+      if ("requestVideoFrameCallback" in vid) {
+        (vid as any).requestVideoFrameCallback(() => { setStarted(true); });
+      } else {
+        requestAnimationFrame(() => requestAnimationFrame(() => { setStarted(true); }));
+      }
+    }
 
     // Restore mute preference — if user unmuted on previous episode, keep sound on
     const wasMuted = localStorage.getItem("verza-muted") !== "false";
@@ -415,6 +425,7 @@ export default function Player({
     setMuted(wasMuted);
     video.play()
       .then(() => {
+        revealOnFrame();
         scheduleHide();
       })
       .catch(() => {
@@ -422,7 +433,7 @@ export default function Player({
         video.muted = true;
         setMuted(true);
         video.play()
-          .then(() => { scheduleHide(); })
+          .then(() => { revealOnFrame(); scheduleHide(); })
           .catch(() => { setLoading(false); });
       });
   }, [hlsReady, started, scheduleHide]);
@@ -578,15 +589,23 @@ export default function Player({
         {/* VERZA logo — fades in as the controls fade out after the 10s idle timer */}
         <VideoWatermark visible={started && !showControls} top={12} left={12} size={66} />
 
-        {/* Poster overlay before start — uses local poster art for instant display */}
-        {!started && posterUrl && (
+        {/* Poster overlay — stays visible behind the video until a real frame
+            is composited, then fades out with a short delay so there is never a
+            black flash between poster and first video frame. */}
+        {posterUrl && (
           <Image
             src={posterUrl}
             alt={title}
             fill
             sizes="(max-width: 440px) 100vw, 440px"
             className="object-cover"
-            style={{ filter: "brightness(0.7)", zIndex: 2 }}
+            style={{
+              filter: "brightness(0.7)",
+              zIndex: 2,
+              opacity: started ? 0 : 1,
+              transition: started ? "opacity 0.3s ease-out 0.1s" : "none",
+              pointerEvents: started ? "none" : "auto",
+            }}
             priority
           />
         )}

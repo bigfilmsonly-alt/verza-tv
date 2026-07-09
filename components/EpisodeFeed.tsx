@@ -118,8 +118,20 @@ function EpisodeSlide({
     ? `https://stream.mux.com/${episode.playbackId}.m3u8`
     : null;
   const thumbUrl = episode.playbackId
-    ? `https://image.mux.com/${episode.playbackId}/thumbnail.jpg?time=0&width=720&height=1280`
+    ? `https://image.mux.com/${episode.playbackId}/thumbnail.jpg?time=1&width=720&height=1280`
     : "";
+
+  // Wait for the video compositor to actually paint a frame before revealing.
+  // This prevents the black flash that happens when play() resolves but the
+  // decoder hasn't presented a frame to the screen yet.
+  function onFirstFrame(vid: HTMLVideoElement, cb: () => void) {
+    if ("requestVideoFrameCallback" in vid) {
+      (vid as any).requestVideoFrameCallback(() => cb());
+    } else {
+      // Fallback: double-RAF ensures at least one compositor paint cycle
+      requestAnimationFrame(() => requestAnimationFrame(() => cb()));
+    }
+  }
 
   // Fire play() on a video element — shared by attach + activation paths.
   const tryPlay = useCallback((vid: HTMLVideoElement) => {
@@ -142,8 +154,12 @@ function EpisodeSlide({
     if (p) {
       p.then(() => {
         setPlaying(true);
-        setStarted(true);
-        if (!mutedRef.current) vid.muted = false;
+        // Don't set started yet — wait for the first actual frame to be
+        // composited so the poster stays visible until real pixels are ready.
+        onFirstFrame(vid, () => {
+          setStarted(true);
+          if (!mutedRef.current) vid.muted = false;
+        });
         trackEpisodeStart(seriesSlug, episode.number);
       }).catch(() => {});
     }
@@ -335,7 +351,11 @@ function EpisodeSlide({
       style={{ height: "var(--feed-h, 100dvh)", background: "#000", margin: 0, padding: 0 }}
       onClick={handleTap}
     >
-      {/* Mux thumbnail — instant crossfade on play */}
+      {/* Poster — stays fully visible BEHIND the video as a safety net so
+          there is never a black flash. The video (zIndex 2) covers it once a
+          real frame is composited. We hide it only after started=true to free
+          the GPU layer, using a short delay so the video is definitely
+          covering it by then. */}
       {thumbUrl && (
         <img
           src={thumbUrl}
@@ -343,13 +363,12 @@ function EpisodeSlide({
           className="absolute inset-0 w-full h-full object-cover"
           style={{
             opacity: started ? 0 : 1,
-            transition: "opacity 0.15s ease-out",
+            transition: started ? "opacity 0.3s ease-out 0.1s" : "none",
             zIndex: 1,
           }}
         />
       )}
 
-      {/* Poster fallback */}
       {!thumbUrl && posterUrl && (
         <img
           src={posterUrl}
@@ -357,15 +376,16 @@ function EpisodeSlide({
           className="absolute inset-0 w-full h-full object-cover"
           style={{
             opacity: started ? 0 : 1,
-            transition: "opacity 0.15s ease-out",
+            transition: started ? "opacity 0.3s ease-out 0.1s" : "none",
             filter: "brightness(0.5)",
             zIndex: 1,
           }}
         />
       )}
 
-      {/* Video — appears once started, stays visible when paused
-          so the current frame shows (no black poster flash on pause). */}
+      {/* Video — opacity flips to 1 only after a real frame is composited
+          (via requestVideoFrameCallback). No transition needed — the frame
+          is already there when we flip. */}
       <video
         ref={videoRef}
         playsInline
@@ -374,7 +394,6 @@ function EpisodeSlide({
         className="absolute inset-0 w-full h-full object-cover"
         style={{
           opacity: started ? 1 : 0,
-          transition: "opacity 0.15s ease-out",
           zIndex: 2,
         }}
       />
