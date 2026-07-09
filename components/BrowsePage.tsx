@@ -7,7 +7,6 @@ import CategoryTabs from "@/components/CategoryTabs";
 import { useTranslation } from "@/components/LangProvider";
 import { BROWSE_TABS, getSeriesByCategory, getEpisode, type Series, type BrowseCategory } from "@/lib/catalog";
 import { buildResumeUrl } from "@/lib/resume";
-import HorizontalFeed from "@/components/HorizontalFeed";
 import SummerSaleBadge from "@/components/SummerSaleBadge";
 import SponsoredTile from "@/components/SponsoredProducts";
 import { SPONSORED_PRODUCTS } from "@/lib/sponsors";
@@ -110,7 +109,6 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
   const [heroPaused, setHeroPaused] = useState(false);
   const [continueWatching, setContinueWatching] = useState<ContinueItem[]>([]);
   const [showSplash, setShowSplash] = useState<string | null>(null);
-  const [showStoragePirates, setShowStoragePirates] = useState(false);
 
   // Shuffle seed: 0 on the server + first client render (keeps hydration in
   // sync), then a random value after mount so the catalog order is freshly
@@ -168,10 +166,10 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
 
   // Reality show data (posters may not exist yet — uses styled placeholders)
   const realityShows = [
-    { title: "Sugar Babies", poster: "/posters/sugar-babies.jpg" },
-    { title: "Buy/Sell Miami", poster: "/posters/buy-sell-miami.png" },
-    { title: "The Vertical Tea", poster: "/posters/the-vertical-tea.png" },
-    { title: "Storage Pirates", poster: "/posters/storage-pirates.jpg" },
+    { title: "Sugar Babies", slug: "sugar-babies", poster: "/posters/sugar-babies.jpg" },
+    { title: "Buy/Sell Miami", slug: "buy-sell-miami", poster: "/posters/buy-sell-miami.png" },
+    { title: "The Vertical Tea", slug: "the-vertical-tea", poster: "/posters/the-vertical-tea.png" },
+    { title: "Storage Pirates", slug: "storage-pirates", poster: "/posters/storage-pirates.jpg" },
   ];
 
   // Fetch continue watching data
@@ -452,50 +450,48 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
             <section className="mt-2 pb-4 px-3">
               <div className="grid grid-cols-2 gap-2.5">
                 {realityShows.map((show) => (
-                  <div
+                  <Link
                     key={show.title}
-                    className="block no-underline min-w-0"
-                    style={{ cursor: show.title === "Storage Pirates" ? "pointer" : undefined }}
-                    onClick={show.title === "Storage Pirates" ? () => setShowStoragePirates((v) => !v) : undefined}
+                    href={show.title === "Storage Pirates" ? "/horizontal" : `/series/${show.slug}/1`}
+                    className="block no-underline min-w-0 transition-transform active:scale-[0.97]"
+                    prefetch={true}
                   >
                     <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
                       <Image src={show.poster} alt={show.title} fill sizes="(max-width: 440px) 50vw, 220px" className="object-cover" />
+                      {show.title === "Storage Pirates" && (
+                        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ background: "rgba(0,0,0,0.65)", backdropFilter: "blur(6px)" }}>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: "rotate(90deg)" }}>
+                            <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+                          </svg>
+                          <span className="text-[9px] font-semibold" style={{ color: "rgba(255,255,255,0.85)" }}>Landscape</span>
+                        </div>
+                      )}
                     </div>
                     <div style={{ height: 36 }}>
                       <p className="mt-1.5 text-[12px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>{show.title}</p>
                       <p className="text-[10px] mt-0.5" style={{ color: "#6B6B7B" }}>Reality</p>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </section>
 
-            {/* Storage Pirates section — revealed on poster tap */}
-            {showStoragePirates && (
-              <>
-                {/* Sponsored Ad Ribbon */}
-                <a
-                  href="https://www.storageblue.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block mx-3 mt-5 mb-0 rounded-xl overflow-hidden transition-transform active:scale-[0.98]"
-                  style={{
-                    background: "linear-gradient(135deg, rgba(10,10,20,0.95), rgba(15,15,25,0.95))",
-                    border: "1px solid rgba(100,180,220,0.12)",
-                    boxShadow: "0 0 20px rgba(100,180,220,0.04)",
-                  }}
-                >
-                  <div className="flex items-center justify-center py-2.5 px-6">
-                    <img src="/ads/storageblue-logo.png" alt="StorageBlue" style={{ height: 52, objectFit: "contain" }} />
-                  </div>
-                </a>
-
-                {/* Storage Pirates widescreen episodes */}
-                <div className="px-3">
-                  <HorizontalFeed embedded />
-                </div>
-              </>
-            )}
+            {/* Sponsored Ad Ribbon */}
+            <a
+              href="https://www.storageblue.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block mx-3 mt-3 mb-0 rounded-xl overflow-hidden transition-transform active:scale-[0.98]"
+              style={{
+                background: "linear-gradient(135deg, rgba(10,10,20,0.95), rgba(15,15,25,0.95))",
+                border: "1px solid rgba(100,180,220,0.12)",
+                boxShadow: "0 0 20px rgba(100,180,220,0.04)",
+              }}
+            >
+              <div className="flex items-center justify-center py-2.5 px-6">
+                <img src="/ads/storageblue-logo.png" alt="StorageBlue" style={{ height: 52, objectFit: "contain" }} />
+              </div>
+            </a>
           </div>
         );
       })()}

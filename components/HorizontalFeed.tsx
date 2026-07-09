@@ -234,7 +234,7 @@ export default function HorizontalFeed({ embedded = false }: { embedded?: boolea
   const { t } = useTranslation();
 
   return (
-    <div className={embedded ? "px-4 pt-0 pb-24" : "px-4 pt-16 pb-24"}>
+    <div className={embedded ? "px-4 pt-0 pb-24" : "px-4 pt-2 pb-24"}>
       {/* Series header */}
       <h1 className="text-2xl font-bold mb-1" style={{ color: "#F5F4F8" }}>
         Storage Pirates
