@@ -452,7 +452,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                 {realityShows.map((show) => (
                   <Link
                     key={show.title}
-                    href={show.title === "Storage Pirates" ? "/horizontal" : `/series/${show.slug}/1`}
+                    href={`/series/${show.slug}/1`}
                     className="block no-underline min-w-0 transition-transform active:scale-[0.97]"
                     prefetch={true}
                   >

@@ -78,6 +78,7 @@ function EpisodeSlide({
   onDoubleTap,
   onReveal,
   onFirstPlayGesture,
+  widescreen = false,
 }: {
   episode: FeedEpisode;
   seriesSlug: string;
@@ -97,6 +98,8 @@ function EpisodeSlide({
   onReveal: () => void;
   /** Fired once on a genuine play tap so we can ask for notification permission. */
   onFirstPlayGesture: () => void;
+  /** True for 16:9 landscape content — uses object-contain instead of cover. */
+  widescreen?: boolean;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<HlsType | null>(null);
@@ -385,7 +388,7 @@ function EpisodeSlide({
         <img
           src={posterUrl}
           alt=""
-          className="absolute inset-0 w-full h-full object-cover"
+          className={`absolute inset-0 w-full h-full ${widescreen ? "object-contain" : "object-cover"}`}
           style={{
             opacity: showPoster && !started ? 0.5 : 0,
             transition: "opacity 0.35s ease-in",
@@ -400,7 +403,7 @@ function EpisodeSlide({
         <img
           src={thumbUrl}
           alt=""
-          className="absolute inset-0 w-full h-full object-cover"
+          className={`absolute inset-0 w-full h-full ${widescreen ? "object-contain" : "object-cover"}`}
           style={{
             opacity: showPoster && !started ? 1 : 0,
             transition: "opacity 0.35s ease-in",
@@ -417,7 +420,7 @@ function EpisodeSlide({
         playsInline
         muted
         preload={isNear || isActive ? "auto" : "none"}
-        className="absolute inset-0 w-full h-full object-cover"
+        className={`absolute inset-0 w-full h-full ${widescreen ? "object-contain" : "object-cover"}`}
         style={{
           opacity: started ? 1 : 0,
           transition: "opacity 0.12s ease-out",
@@ -982,6 +985,7 @@ export default function EpisodeFeed({
                 onDoubleTap={handleDoubleTap}
                 onReveal={revealActionRail}
                 onFirstPlayGesture={requestPermissionOnce}
+                widescreen={horizontal}
               />
             </div>
           );

@@ -111,8 +111,9 @@ export default async function EpisodePage({ params }: Props) {
 
   const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
 
-  // Red carpet events return to the red carpet layout
-  const isRedCarpet = series.categories.includes("red-carpet");
+  // Horizontal swipe for widescreen series (reality / red carpet)
+  const isHorizontalSwipe = series.categories.includes("red-carpet") || slug === "storage-pirates";
+  const backTab = series.categories.includes("red-carpet") ? "red-carpet" : series.categories.includes("reality") ? "reality" : null;
 
   return (
     <>
@@ -160,8 +161,8 @@ export default async function EpisodePage({ params }: Props) {
         startEpisode={epNum}
         freeEpisodes={series.freeEpisodes}
         totalEpisodes={series.episodeCount}
-        horizontal={isRedCarpet}
-        backHref={isRedCarpet ? "/?tab=red-carpet" : "/"}
+        horizontal={isHorizontalSwipe}
+        backHref={backTab ? `/?tab=${backTab}` : "/"}
       />
     </>
   );

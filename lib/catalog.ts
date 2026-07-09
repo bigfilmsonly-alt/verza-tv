@@ -687,6 +687,21 @@ export const catalog: Series[] = [
   },
 
   /* ================================================================ */
+  /*  REALITY TAB — Storage Pirates (horizontal / landscape)            */
+  /* ================================================================ */
+  {
+    slug: "storage-pirates",
+    title: "Storage Pirates",
+    logline: "Reality meets comedy. Real storage auctions, hidden treasures, bidding wars, and behind-the-scenes chaos.",
+    genre: "Reality · Comedy",
+    channel: "VERZA Originals",
+    categories: ["reality"],
+    episodeCount: 14,
+    posterUrl: "/posters/storage-pirates.jpg",
+    freeEpisodes: 14, coinPerEpisode: 0, seasonPassCoins: 0, status: "live",
+  },
+
+  /* ================================================================ */
   /*  RED CARPET TAB                                                   */
   /* ================================================================ */
 

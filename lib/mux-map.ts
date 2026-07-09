@@ -4013,6 +4013,23 @@ export const MUX_MAP: Record<string, MuxEpisode[]> = {
   "too-much-junk": [
     { episode: 1, playbackId: "qBqc00XczuKuzZgxuYnhHmyVXyLm9HC8raqELT01ItzWg", duration: 187 },
   ],
+  /* Storage Pirates — all episodes (S1 teaser + S1E1-7 + S2E1-5 + promo) */
+  "storage-pirates": [
+    { episode: 1, playbackId: "ISuPawNDgpa92VcXLcFMe6vrAnspIC2vqCBtjnmj2u00", duration: 50 },
+    { episode: 2, playbackId: "02lcuHQRqEwllaxhXHFLs4XmgZDr01zQYzfRWp004SoaUs", duration: 345 },
+    { episode: 3, playbackId: "Zxm02rMkwH5lN86kpoSic4RZADYsy3l0102PC1NeC3TTNY", duration: 362 },
+    { episode: 4, playbackId: "a01kZcNMAoT006LTrNlmLCurj4jISCJr9hkBDZtnUxbxI", duration: 332 },
+    { episode: 5, playbackId: "52BE2rHHRqadF8UxrVuoNFwinT6CKZdtEZeDpc2uzPo", duration: 347 },
+    { episode: 6, playbackId: "fytQhzbElXP7USlBmxfcd4ONzmSCIV502X00cXiHcev01M", duration: 323 },
+    { episode: 7, playbackId: "fmwsu00NIx1aKreviDnBIzCOtQb5hh02LyCXBfsUUQqxk", duration: 386 },
+    { episode: 8, playbackId: "xnNKagnPw02NgxTPGg3UbWfPzbzc14YuS02wyVAGQCqNY", duration: 391 },
+    { episode: 9, playbackId: "iy2W4BvVK0200H19SKf2OB7SIDlimst01DuMPRPYnstZOw", duration: 313 },
+    { episode: 10, playbackId: "Kq2sIkLBYO2BX01s1fXVfNqRYhCA01AC2VptiYtwFz92E", duration: 283 },
+    { episode: 11, playbackId: "100xeqfMYu1VhQyxkzbZLE00v3STK023XtwE2rQNSKlII4", duration: 351 },
+    { episode: 12, playbackId: "4HeP3OulRFJtSyKBwxuL3sJpptfY8cJdYMrp7tpDGmo", duration: 390 },
+    { episode: 13, playbackId: "9fWtDSlTRs2PpX1rEJOPOqxKnbrQe00hPP801HozBi0218", duration: 399 },
+    { episode: 14, playbackId: "qBqc00XczuKuzZgxuYnhHmyVXyLm9HC8raqELT01ItzWg", duration: 187 },
+  ],
   /* Red Carpet — The Carpet (pending real Mux playback IDs) */
   "the-carpet": [
     { episode: 1, playbackId: "", duration: 0 },
