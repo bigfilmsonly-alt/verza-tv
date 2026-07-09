@@ -14,7 +14,7 @@ import {
   type ResumeItem,
 } from "@/lib/resume";
 
-/* ---- Load hls.js once ---- */
+/* ---- Load hls.js once, EAGERLY ---- */
 let hlsPromise: Promise<typeof HlsType | null> | null = null;
 function getHls(): Promise<typeof HlsType | null> {
   if (!hlsPromise && typeof window !== "undefined") {
@@ -22,6 +22,9 @@ function getHls(): Promise<typeof HlsType | null> {
   }
   return hlsPromise || Promise.resolve(null);
 }
+// Start downloading hls.js the instant this module loads — by the time
+// the first video needs it, the library is already cached.
+if (typeof window !== "undefined") getHls();
 
 /* ---- Haptic feedback ---- */
 function haptic() {
@@ -194,12 +197,15 @@ function EpisodeSlide({
       if (cancelled || !Hls || !Hls.isSupported() || !vid) return;
 
       const hls = new Hls({
-        maxBufferLength: 15,
+        maxBufferLength: 8,
+        maxMaxBufferLength: 15,
+        backBufferLength: 0,
         enableWorker: true,
         startLevel: 0,
         capLevelToPlayerSize: true,
-        maxLoadingDelay: 1,
-        abrEwmaDefaultEstimate: 1_000_000,
+        maxLoadingDelay: 0,
+        startFragPrefetch: true,
+        abrEwmaDefaultEstimate: 500_000,
       });
       hlsRef.current = hls;
       hls.loadSource(hlsUrl);
@@ -489,7 +495,7 @@ export default function EpisodeFeed({
   posterUrl,
   episodes,
   startEpisode,
-  startPositionS = 0,
+  startPositionS: startPositionProp = 0,
   freeEpisodes,
   totalEpisodes,
   horizontal = false,
@@ -497,6 +503,41 @@ export default function EpisodeFeed({
 }: EpisodeFeedProps) {
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Read ?t= and ?unlocked= from URL client-side (page is static / SSG —
+  // these params aren't available server-side).
+  const [startPositionS] = useState(() => {
+    if (typeof window !== "undefined") {
+      const t = Number(new URLSearchParams(window.location.search).get("t"));
+      if (t > 0) return Math.floor(t);
+    }
+    return startPositionProp;
+  });
+
+  // Client-side auth: VIP / entitlement upgrade.  The page ships with
+  // episodes marked free based on series config only.  This check runs
+  // in the background and flips authFree=true if the user is VIP or owns
+  // the series — making every episode playable without a paywall.
+  const [authFree, setAuthFree] = useState(() => {
+    if (typeof window !== "undefined") {
+      return new URLSearchParams(window.location.search).get("unlocked") === "true";
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (authFree) return; // already unlocked via ?unlocked=true
+    fetch(`/api/access?slug=${seriesSlug}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { full?: boolean } | null) => { if (d?.full) setAuthFree(true); })
+      .catch(() => {});
+  }, [seriesSlug, authFree]);
+
+  // Dismiss any visible paywall popup when auth resolves
+  useEffect(() => {
+    if (authFree) setShowUnlock(false);
+  }, [authFree]);
+
   const [activeIndex, setActiveIndex] = useState(() => {
     const idx = episodes.findIndex((e) => e.number === startEpisode);
     return idx >= 0 ? idx : 0;
@@ -617,7 +658,8 @@ export default function EpisodeFeed({
             window.history.replaceState(null, "", `/series/${seriesSlug}/${ep.number}`);
 
             // First locked episode → surface the $1.99 unlock-all popup.
-            if (!ep.isFree) {
+            // authFree (VIP / entitled) bypasses the paywall entirely.
+            if (!ep.isFree && !authFree) {
               trackUnlockPrompt(seriesSlug);
               emit("paywall_viewed", { show_id: seriesSlug, episode_number: ep.number, plan_type: "series_unlock", surface: "episode_feed" });
               setShowUnlock(true);
@@ -628,7 +670,7 @@ export default function EpisodeFeed({
         }
       }
     },
-    [episodes, seriesSlug],
+    [episodes, seriesSlug, authFree],
   );
 
   useEffect(() => {

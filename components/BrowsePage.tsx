@@ -184,6 +184,12 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
       .catch(() => {});
   }, []);
 
+  // Eagerly prefetch HLS manifests for hero posters so by the time the user
+  // taps, the manifest is already in the browser cache → near-instant start.
+  useEffect(() => {
+    heroSlides.slice(0, 4).forEach((s) => prefetchManifest(s.slug));
+  }, [heroSlides]);
+
   // Auto-rotate hero slideshow (works for Drama/New/Hot AND Reality)
   const slideCount = activeTab === "reality" ? realityShows.length : heroSlides.length;
 

@@ -15,11 +15,14 @@ import {
   episodeSchema,
   breadcrumbSchema,
 } from "@/lib/schemas";
-import { cookies } from "next/headers";
-import { getServiceClient } from "@/lib/supabase/server";
 
 /* ------------------------------------------------------------------ */
 /*  Static params (first 25 episodes per live series)                  */
+/*                                                                     */
+/*  No dynamic APIs (cookies/headers) are used in this page, so ALL    */
+/*  listed params are pre-rendered at build time and served instantly   */
+/*  from the CDN edge — zero server round-trip, ReelShort-speed.       */
+/*  VIP / entitlement checks happen client-side in EpisodeFeed.        */
 /* ------------------------------------------------------------------ */
 
 export async function generateStaticParams() {
@@ -35,13 +38,15 @@ export async function generateStaticParams() {
   return params;
 }
 
+/* ISR: re-validate pages every hour so new content propagates */
+export const revalidate = 3600;
+
 /* ------------------------------------------------------------------ */
 /*  Metadata                                                           */
 /* ------------------------------------------------------------------ */
 
 type Props = {
   params: Promise<{ slug: string; episode: string }>;
-  searchParams: Promise<{ unlocked?: string; t?: string }>;
 };
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string; episode: string }> }): Promise<Metadata> {
@@ -78,52 +83,19 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 /*  Page                                                               */
 /* ------------------------------------------------------------------ */
 
-export default async function EpisodePage({ params, searchParams }: Props) {
+export default async function EpisodePage({ params }: Props) {
   const { slug, episode: epStr } = await params;
-  const { unlocked, t } = await searchParams;
   const series = getSeriesBySlug(slug);
   const epNum = parseInt(epStr, 10);
-  const startPositionS = Math.max(0, Math.floor(Number(t) || 0));
 
   if (!series) notFound();
 
   const ep = getEpisode(slug, epNum);
   if (!ep) notFound();
 
-  // Run VIP + entitlement checks in PARALLEL with a single getUser call.
-  // Non-logged-in users short-circuit immediately (<1ms).
-  let isVip = false;
-  let hasEntitlement = unlocked === "true";
-
-  if (!hasEntitlement) {
-    try {
-      const cookieStore = await cookies();
-      const token = cookieStore.get("sb-access-token")?.value;
-
-      if (token) {
-        const supabase = getServiceClient();
-        const { data: { user } } = await supabase.auth.getUser(token);
-
-        if (user) {
-          const [vipResult, entitlementResult] = await Promise.all([
-            supabase.from("profiles").select("is_vip, vip_expires_at").eq("id", user.id).single(),
-            supabase.from("entitlements").select("id").eq("user_id", user.id).eq("series_slug", slug).limit(1),
-          ]);
-
-          if (vipResult.data?.is_vip) {
-            isVip = !vipResult.data.vip_expires_at || new Date(vipResult.data.vip_expires_at) >= new Date();
-          }
-          if (entitlementResult.data && entitlementResult.data.length > 0) {
-            hasEntitlement = true;
-          }
-        }
-      }
-    } catch {}
-  }
-
-  // Build episode list for feed. Paid series show 4 free preview episodes,
-  // then the $1.99 unlock-all popup on episode 5. Fully-free series (no
-  // per-episode cost) keep their catalog free-episode count untouched.
+  // Build episode list with series-level free logic only (no auth).
+  // VIP / entitlement overrides happen client-side in EpisodeFeed via
+  // /api/access — this keeps the page fully static (SSG).
   const freeCount = series.coinPerEpisode > 0 ? Math.min(series.freeEpisodes, 4) : series.freeEpisodes;
   const allEpisodes = getEpisodesForSeries(slug);
   const feedEpisodes: FeedEpisode[] = allEpisodes.map((e) => {
@@ -133,7 +105,7 @@ export default async function EpisodePage({ params, searchParams }: Props) {
       title: e.title,
       durationS: e.durationS,
       playbackId: mux?.playbackId,
-      isFree: e.number <= freeCount || isVip || hasEntitlement,
+      isFree: e.number <= freeCount,
     };
   });
 
@@ -186,7 +158,6 @@ export default async function EpisodePage({ params, searchParams }: Props) {
         posterUrl={series.posterUrl}
         episodes={feedEpisodes}
         startEpisode={epNum}
-        startPositionS={startPositionS}
         freeEpisodes={series.freeEpisodes}
         totalEpisodes={series.episodeCount}
         horizontal={isRedCarpet}
