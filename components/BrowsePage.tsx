@@ -514,35 +514,49 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               ))}
             </div>
 
-            {/* All Reality posters — 2×2 grid for bigger flyers */}
+            {/* All Reality posters — 2×2 grid for bigger flyers.
+                Only shows with real episodes are tappable; the rest are
+                static flyers (their /series pages would 404). */}
             <section className="mt-2 pb-4 px-3">
               <div className="grid grid-cols-2 gap-2.5">
-                {realityShows.map((show) => (
-                  <Link
-                    key={show.title}
-                    href={`/series/${show.slug}/1`}
-                    className="block no-underline min-w-0 transition-transform active:scale-[0.97]"
-                    prefetch={true}
-                    onPointerDown={() => posterPress(show.slug)}
-                    onClick={(e) => posterClick(e, show.slug)}
-                  >
-                    <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
-                      <Image src={show.poster} alt={show.title} fill sizes="(max-width: 440px) 50vw, 220px" className="object-cover" />
-                      {show.title === "Storage Pirates" && (
-                        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ background: "rgba(0,0,0,0.65)", backdropFilter: "blur(6px)" }}>
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: "rotate(90deg)" }}>
-                            <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
-                          </svg>
-                          <span className="text-[9px] font-semibold" style={{ color: "rgba(255,255,255,0.85)" }}>Landscape</span>
-                        </div>
-                      )}
+                {realityShows.map((show) => {
+                  const playable = (MUX_MAP[show.slug]?.length ?? 0) > 0;
+                  const card = (
+                    <>
+                      <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
+                        <Image src={show.poster} alt={show.title} fill sizes="(max-width: 440px) 50vw, 220px" className="object-cover" />
+                        {show.title === "Storage Pirates" && (
+                          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ background: "rgba(0,0,0,0.65)", backdropFilter: "blur(6px)" }}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: "rotate(90deg)" }}>
+                              <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+                            </svg>
+                            <span className="text-[9px] font-semibold" style={{ color: "rgba(255,255,255,0.85)" }}>Landscape</span>
+                          </div>
+                        )}
+                      </div>
+                      <div style={{ height: 36 }}>
+                        <p className="mt-1.5 text-[12px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>{show.title}</p>
+                        <p className="text-[10px] mt-0.5" style={{ color: "#6B6B7B" }}>Reality</p>
+                      </div>
+                    </>
+                  );
+                  return playable ? (
+                    <Link
+                      key={show.title}
+                      href={`/series/${show.slug}/1`}
+                      className="block no-underline min-w-0 transition-transform active:scale-[0.97]"
+                      prefetch={true}
+                      onPointerDown={() => posterPress(show.slug)}
+                      onClick={(e) => posterClick(e, show.slug)}
+                    >
+                      {card}
+                    </Link>
+                  ) : (
+                    <div key={show.title} className="block min-w-0" aria-disabled="true">
+                      {card}
                     </div>
-                    <div style={{ height: 36 }}>
-                      <p className="mt-1.5 text-[12px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>{show.title}</p>
-                      <p className="text-[10px] mt-0.5" style={{ color: "#6B6B7B" }}>Reality</p>
-                    </div>
-                  </Link>
-                ))}
+                  );
+                })}
               </div>
             </section>
 
