@@ -13,6 +13,7 @@ import { SPONSORED_PRODUCTS } from "@/lib/sponsors";
 import AmazonTile from "@/components/AmazonProducts";
 import { AMAZON_PRODUCTS } from "@/lib/amazon-sponsors";
 import { MUX_MAP } from "@/lib/mux-map";
+import { startInstantPlayer } from "@/lib/instant-player";
 
 // Eagerly preload hls.js so it's cached before user taps a video.
 // Deferred via setTimeout: a dynamic import() fired DURING module evaluation
@@ -51,26 +52,9 @@ function warmPlaylists(slug: string, epNum = 1) {
   return p;
 }
 
-const segmentWarmed = new Set<string>();
-
-async function warmFirstSegment(slug: string, epNum = 1) {
-  const pid = MUX_MAP[slug]?.find((e) => e.episode === epNum)?.playbackId;
-  if (!pid || segmentWarmed.has(pid)) return;
-  segmentWarmed.add(pid);
-  const v = await warmPlaylists(slug, epNum);
-  if (!v) return;
-  const lines = v.text.split("\n").map((l) => l.trim());
-  const urls: string[] = [];
-  const init = lines.find((l) => l.startsWith("#EXT-X-MAP"))?.match(/URI="([^"]+)"/)?.[1];
-  if (init) urls.push(init);
-  const seg = lines.find((l) => l && !l.startsWith("#"));
-  if (seg) urls.push(seg);
-  await Promise.all(
-    urls.map((u) =>
-      fetch(new URL(u, v.url).href, { mode: "cors", credentials: "omit" }).catch(() => {}),
-    ),
-  );
-}
+/* Stage 2 is now the real thing: the click starts a hidden muted player
+   (lib/instant-player) that the episode page ADOPTS on arrival — by then the
+   first frame is usually already decoded, so the movie is simply playing. */
 
 // Deterministic, seedable shuffle so the order is stable within one page
 // load (won't reshuffle on every re-render) but fresh on each refresh.
@@ -154,12 +138,16 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
   }, []);
 
   const posterClick = useCallback((e: React.MouseEvent<HTMLElement>, slug: string, epNum = 1) => {
+    // Slow-network fallback: the tapped poster (already cached) is shown until
+    // the movie's first frame — only ever visible if the video isn't ready.
     try {
       const img = e.currentTarget.querySelector("img") as HTMLImageElement | null;
       const src = img?.currentSrc || img?.src;
       if (src) sessionStorage.setItem("verza-transition", JSON.stringify({ src, ts: Date.now() }));
     } catch {}
-    void warmFirstSegment(slug, epNum);
+    // Start the movie NOW — hidden and muted — so the episode page adopts an
+    // already-playing video instead of showing anything in between.
+    startInstantPlayer(MUX_MAP[slug]?.find((ep) => ep.episode === epNum)?.playbackId);
   }, []);
 
   const [activeTab, setActiveTab] = useState<BrowseCategory>("drama");

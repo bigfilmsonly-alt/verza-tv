@@ -1,8 +1,9 @@
 "use client";
 
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useRef, useState, useEffect, useLayoutEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import type HlsType from "hls.js";
+import { adoptInstantPlayer } from "@/lib/instant-player";
 import { trackEpisodeStart, trackEpisodeComplete, trackUnlockPrompt, trackUnlockClick } from "@/lib/track";
 import { emit } from "@/lib/analytics";
 import VideoWatermark from "@/components/VideoWatermark";
@@ -108,7 +109,8 @@ function EpisodeSlide({
       painted instantly for a seamless poster → video transition. */
   transitionPoster?: string;
 }) {
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const videoBoxRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   const hlsRef = useRef<HlsType | null>(null);
   const attachedRef = useRef(false);
   const mutedRef = useRef(muted);
@@ -137,6 +139,66 @@ function EpisodeSlide({
   const hlsUrl = episode.playbackId
     ? `https://stream.mux.com/${episode.playbackId}.m3u8`
     : null;
+
+  /* Create — or ADOPT — the video element before the browser's first paint.
+     The browse page starts a hidden muted player the instant a poster is
+     clicked (lib/instant-player); by the time this page mounts, that video
+     usually already has decoded frames. Adopting it here (inside
+     useLayoutEffect, i.e. pre-paint) means the very first painted frame of
+     this page is the MOVIE — the poster never appears at all. On cold
+     navigations (direct URL, slow network) we create a fresh element and the
+     poster covers the gap exactly as before. */
+  useLayoutEffect(() => {
+    const box = videoBoxRef.current;
+    if (!box || videoRef.current) return;
+
+    const adopted = isActive ? adoptInstantPlayer(episode.playbackId) : null;
+    const vid = adopted ? adopted.video : document.createElement("video");
+
+    vid.muted = true;
+    vid.playsInline = true;
+    vid.setAttribute("playsinline", "");
+    vid.preload = "auto";
+    vid.className = `absolute inset-0 w-full h-full ${widescreen ? "object-contain" : "object-cover"}`;
+    vid.style.cssText = "opacity:0;transition:opacity 0.2s ease-out;z-index:2;";
+    box.appendChild(vid);
+    videoRef.current = vid;
+
+    if (adopted) {
+      hlsRef.current = adopted.hls;
+      attachedRef.current = true;
+      setSourceReady(true);
+      setPlaying(!vid.paused);
+      // A frame is already decoded → reveal the movie in this same pre-paint
+      // pass. Otherwise reveal on the first composited frame.
+      if (vid.readyState >= 2) setStarted(true);
+      else onFirstFrame(vid, () => setStarted(true));
+    }
+
+    return () => {
+      // Unmount teardown. Covers the adopted player too — the attach effect
+      // early-returns for adopted slides, so its cleanup never registers.
+      if (hlsRef.current) { try { hlsRef.current.destroy(); } catch {} hlsRef.current = null; }
+      const v = videoRef.current;
+      if (v) { try { v.muted = true; v.pause(); v.remove(); } catch {} }
+      videoRef.current = null;
+      attachedRef.current = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /* Keep the video's opacity in lock-step with `started` BEFORE paint so
+     there is never a frame where both video and poster are hidden. */
+  useLayoutEffect(() => {
+    const vid = videoRef.current;
+    if (vid) vid.style.opacity = started ? "1" : "0";
+  }, [started]);
+
+  /* preload hint follows proximity (was a JSX attribute before adoption). */
+  useEffect(() => {
+    const vid = videoRef.current;
+    if (vid) vid.preload = isActive || isNear ? "auto" : "none";
+  }, [isActive, isNear]);
 
   // Wait for the video compositor to actually paint a frame before revealing.
   // This prevents the black flash that happens when play() resolves but the
@@ -415,21 +477,11 @@ function EpisodeSlide({
         />
       )}
 
-      {/* Video — fades in once the first real frame is composited (via
-          requestVideoFrameCallback), overlapping the poster fade-out so the
-          swap is a true crossfade with no gap on either side. */}
-      <video
-        ref={videoRef}
-        playsInline
-        muted
-        preload={isNear || isActive ? "auto" : "none"}
-        className={`absolute inset-0 w-full h-full ${widescreen ? "object-contain" : "object-cover"}`}
-        style={{
-          opacity: started ? 1 : 0,
-          transition: "opacity 0.2s ease-out",
-          zIndex: 2,
-        }}
-      />
+      {/* Video mounts here imperatively (created fresh, or ADOPTED from the
+          browse page's instant player so it's already playing on arrival).
+          It fades in once the first real frame is composited, overlapping the
+          poster fade-out so the swap is a true crossfade with no gap. */}
+      <div ref={videoBoxRef} className="absolute inset-0" style={{ zIndex: 2 }} />
 
       {/* No spinner — poster holds until video plays */}
 
