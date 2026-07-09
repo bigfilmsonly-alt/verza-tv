@@ -355,7 +355,8 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
       {/* Music tab — Too Much Junk poster → taps to native Mux player */}
       {activeTab === "music" && (
         <div>
-          <div className="relative">
+          {/* Extra top padding so the poster clears the sticky Summer Sale badge */}
+          <div className="relative pt-10">
             <Link href="/series/too-much-junk/1" prefetch={true} className="block transition-transform active:scale-[0.97]">
               <div className="relative mx-auto overflow-hidden rounded-xl" style={{ aspectRatio: "2 / 3", width: "100%", maxWidth: "min(320px, 80vw)", background: "#000" }}>
                 <Image
