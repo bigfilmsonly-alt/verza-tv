@@ -109,6 +109,12 @@ function EpisodeSlide({
   const [started, setStarted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPause, setShowPause] = useState(false);
+  // Poster images are HIDDEN initially — they only fade in after 500ms IF the
+  // video hasn't started yet.  On fast connections (SSG + prefetched manifest),
+  // the video starts within ~300ms so the poster is NEVER seen = no flash.
+  // Only slow connections ever see the poster (as a graceful fallback).
+  const [showPoster, setShowPoster] = useState(false);
+  const posterTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pauseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastTap = useRef(0);
   const lastSavedRef = useRef(0);
@@ -116,6 +122,21 @@ function EpisodeSlide({
 
   // Keep ref in sync with prop
   useEffect(() => { mutedRef.current = muted; }, [muted]);
+
+  // Delayed poster reveal — only show poster after 500ms if video hasn't
+  // started yet.  Prevents the "poster flash" on fast connections.
+  useEffect(() => {
+    if (started) {
+      setShowPoster(false);
+      if (posterTimerRef.current) clearTimeout(posterTimerRef.current);
+      return;
+    }
+    if (!isActive) return;
+    posterTimerRef.current = setTimeout(() => {
+      if (!started) setShowPoster(true);
+    }, 500);
+    return () => { if (posterTimerRef.current) clearTimeout(posterTimerRef.current); };
+  }, [isActive, started]);
 
   const hlsUrl = episode.playbackId
     ? `https://stream.mux.com/${episode.playbackId}.m3u8`
@@ -357,41 +378,40 @@ function EpisodeSlide({
       style={{ height: "var(--feed-h, 100dvh)", background: "#000", margin: 0, padding: 0 }}
       onClick={handleTap}
     >
-      {/* Series poster — instant background (already cached from browse page).
-          Sits at zIndex 0 as the bottom-most safety net so no black gap ever
-          shows while the Mux thumbnail or video are loading. */}
+      {/* Series poster — HIDDEN for the first 500ms.  Only fades in as a
+          slow-connection fallback if the video hasn't started in time.
+          On fast connections the poster is NEVER visible = zero flash. */}
       {posterUrl && (
         <img
           src={posterUrl}
           alt=""
           className="absolute inset-0 w-full h-full object-cover"
           style={{
-            opacity: started ? 0 : 1,
-            transition: started ? "opacity 0.3s ease-out 0.15s" : "none",
+            opacity: showPoster && !started ? 0.5 : 0,
+            transition: "opacity 0.35s ease-in",
             filter: "brightness(0.5)",
             zIndex: 0,
           }}
         />
       )}
 
-      {/* Mux thumbnail — higher-quality frame from the actual video. Loads from
-          CDN on top of the series poster. Falls away once the live video plays. */}
+      {/* Mux thumbnail — same delayed reveal as the series poster. */}
       {thumbUrl && (
         <img
           src={thumbUrl}
           alt=""
           className="absolute inset-0 w-full h-full object-cover"
           style={{
-            opacity: started ? 0 : 1,
-            transition: started ? "opacity 0.3s ease-out 0.1s" : "none",
+            opacity: showPoster && !started ? 1 : 0,
+            transition: "opacity 0.35s ease-in",
             zIndex: 1,
           }}
         />
       )}
 
-      {/* Video — opacity flips to 1 only after a real frame is composited
-          (via requestVideoFrameCallback). No transition needed — the frame
-          is already there when we flip. */}
+      {/* Video — fades in smoothly once the first real frame is composited
+          (via requestVideoFrameCallback). The 0.12s transition creates a
+          gentle appearance rather than a hard pop. */}
       <video
         ref={videoRef}
         playsInline
@@ -400,6 +420,7 @@ function EpisodeSlide({
         className="absolute inset-0 w-full h-full object-cover"
         style={{
           opacity: started ? 1 : 0,
+          transition: "opacity 0.12s ease-out",
           zIndex: 2,
         }}
       />

@@ -80,6 +80,22 @@ export default function Player({
   const [error, setError] = useState<string | null>(null);
   const [hlsReady, setHlsReady] = useState(false);
   const [muted, setMuted] = useState(true);
+  // Poster is HIDDEN initially — only shows after 500ms if video hasn't
+  // started yet.  Eliminates the poster flash on fast connections.
+  const [showPoster, setShowPoster] = useState(false);
+  const posterTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (started) {
+      setShowPoster(false);
+      if (posterTimerRef.current) clearTimeout(posterTimerRef.current);
+      return;
+    }
+    posterTimerRef.current = setTimeout(() => {
+      if (!started) setShowPoster(true);
+    }, 500);
+    return () => { if (posterTimerRef.current) clearTimeout(posterTimerRef.current); };
+  }, [started]);
 
   const hlsUrl = playbackId
     ? `https://stream.mux.com/${playbackId}.m3u8`
@@ -564,25 +580,25 @@ export default function Player({
         style={{ width: "100%", height: "100dvh", background: "#07070E" }}
         onClick={handleTap}
       >
-        {/* Video element -- ALWAYS rendered, hidden behind poster until started */}
+        {/* Video element -- ALWAYS rendered, fades in once first frame composited */}
         <video
           ref={videoRef}
           className="absolute inset-0 w-full h-full object-cover"
           style={{
-            zIndex: started ? 1 : 0,
+            zIndex: 1,
             opacity: started ? 1 : 0,
+            transition: "opacity 0.12s ease-out",
           }}
           playsInline
           preload="auto"
-          poster={muxThumb || undefined}
         />
 
         {/* VERZA logo — fades in as the controls fade out after the 10s idle timer */}
         <VideoWatermark visible={started && !showControls} top={12} left={12} size={66} />
 
-        {/* Poster overlay — stays visible behind the video until a real frame
-            is composited, then fades out with a short delay so there is never a
-            black flash between poster and first video frame. */}
+        {/* Poster overlay — HIDDEN for the first 500ms to prevent poster flash.
+            Only fades in as a slow-connection fallback. On fast connections the
+            video starts before the poster is ever visible. */}
         {posterUrl && (
           <Image
             src={posterUrl}
@@ -593,8 +609,8 @@ export default function Player({
             style={{
               filter: "brightness(0.7)",
               zIndex: 2,
-              opacity: started ? 0 : 1,
-              transition: started ? "opacity 0.3s ease-out 0.1s" : "none",
+              opacity: showPoster && !started ? 1 : 0,
+              transition: "opacity 0.35s ease-in",
               pointerEvents: started ? "none" : "auto",
             }}
             priority
