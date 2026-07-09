@@ -613,13 +613,17 @@ export default function EpisodeFeed({
     void maybeRequestResumePermission();
   }, []);
 
-  /* Back always returns straight to the home page. */
+  /* Back always returns straight to the home page.
+     Use window.location.href (not router.push) so the page fully reloads and
+     BrowsePage remounts with default state (drama tab). router.push does a
+     client-side navigation that keeps the component mounted, preserving
+     whatever tab was previously active (e.g. reality). */
   const handleBack = useCallback(() => {
     // Pause any playing video first to avoid audio bleeding into the next view
     const vids = document.querySelectorAll("video");
     vids.forEach((v) => { v.muted = true; v.pause(); });
-    router.push(backHref);
-  }, [router, backHref]);
+    window.location.href = backHref;
+  }, [backHref]);
 
   const activeEp = episodes[activeIndex];
 

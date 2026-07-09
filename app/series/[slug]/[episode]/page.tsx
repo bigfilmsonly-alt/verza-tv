@@ -111,8 +111,8 @@ export default async function EpisodePage({ params }: Props) {
 
   const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
 
-  // Red carpet events use horizontal swipe and return to the red carpet layout
-  const isRedCarpet = slug === "the-dumb-billionaire-heiress-in-love";
+  // Red carpet events return to the red carpet layout
+  const isRedCarpet = series.categories.includes("red-carpet");
 
   return (
     <>
@@ -131,7 +131,7 @@ export default async function EpisodePage({ params }: Props) {
               number: ep.number,
               title: ep.title,
               durationS: ep.durationS,
-              thumbUrl: getPlayback(slug, epNum)
+              thumbUrl: getPlayback(slug, epNum)?.playbackId
                 ? `https://image.mux.com/${getPlayback(slug, epNum)!.playbackId}/thumbnail.jpg?time=5&width=1080&height=1920`
                 : `${BASE_URL}${series.posterUrl}`,
             },

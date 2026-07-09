@@ -451,34 +451,22 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
             {/* All Reality posters — 2×2 grid for bigger flyers */}
             <section className="mt-2 pb-4 px-3">
               <div className="grid grid-cols-2 gap-2.5">
-                {realityShows.map((show) => {
-                  const isStoragePirates = show.title === "Storage Pirates";
-                  return (
+                {realityShows.map((show) => (
                   <div
                     key={show.title}
                     className="block no-underline min-w-0"
-                    role={isStoragePirates ? "button" : undefined}
-                    tabIndex={isStoragePirates ? 0 : undefined}
-                    style={{ cursor: isStoragePirates ? "pointer" : undefined }}
-                    onClick={isStoragePirates ? () => setShowStoragePirates((v) => !v) : undefined}
+                    style={{ cursor: show.title === "Storage Pirates" ? "pointer" : undefined }}
+                    onClick={show.title === "Storage Pirates" ? () => setShowStoragePirates((v) => !v) : undefined}
                   >
                     <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
                       <Image src={show.poster} alt={show.title} fill sizes="(max-width: 440px) 50vw, 220px" className="object-cover" />
-                      {isStoragePirates && (
-                        <div className="absolute inset-0 flex items-end justify-center pb-3" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.6), transparent 50%)" }}>
-                          <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ background: "rgba(139,92,246,0.9)", color: "#fff" }}>
-                            {showStoragePirates ? "Hide Episodes" : "Watch Episodes"}
-                          </span>
-                        </div>
-                      )}
                     </div>
                     <div style={{ height: 36 }}>
                       <p className="mt-1.5 text-[12px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>{show.title}</p>
                       <p className="text-[10px] mt-0.5" style={{ color: "#6B6B7B" }}>Reality</p>
                     </div>
                   </div>
-                  );
-                })}
+                ))}
               </div>
             </section>
 
@@ -517,30 +505,23 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
           which mislabeled that show's real episodes as red-carpet events. */}
       {activeTab === "red-carpet" && (
         <section className="pt-4 pb-10 px-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wider mb-4 text-center" style={{ color: "#8A8A9A" }}>Red Carpet</h2>
-          <div className="mx-auto overflow-hidden rounded-xl" style={{ maxWidth: "min(320px, 80vw)", background: "#000" }}>
-            <div className="relative" style={{ aspectRatio: "2 / 3" }}>
-              <img
-                src="/posters/the-carpet.png"
-                alt="The Carpet"
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-              <div
-                className="absolute inset-0 flex flex-col items-center justify-end pb-6"
-                style={{ background: "linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0) 55%)" }}
-              >
-                <span
-                  className="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-widest"
-                  style={{ background: "rgba(224, 17, 95, 0.9)", color: "#fff" }}
-                >
-                  Coming Soon
-                </span>
-              </div>
-            </div>
+          <h2 className="text-sm font-semibold uppercase tracking-wider mb-4 text-center" style={{ color: "#8A8A9A" }}>The Carpet</h2>
+          <div className="grid grid-cols-2 gap-2.5">
+            {[
+              { title: "Exes Premiere", poster: "/posters/exes-premiere.png", episode: 1 },
+              { title: "Love Awards", poster: "/posters/love-awards.png", episode: 2 },
+            ].map((event) => (
+              <Link key={event.title} href={`/series/the-carpet/${event.episode}`} className="block no-underline min-w-0 transition-transform active:scale-[0.97]">
+                <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
+                  <Image src={event.poster} alt={event.title} fill sizes="(max-width: 440px) 50vw, 220px" className="object-cover" />
+                </div>
+                <div style={{ height: 36 }}>
+                  <p className="mt-1.5 text-[12px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>{event.title}</p>
+                  <p className="text-[10px] mt-0.5" style={{ color: "#6B6B7B" }}>Red Carpet</p>
+                </div>
+              </Link>
+            ))}
           </div>
-          <p className="mt-4 text-center text-sm leading-relaxed mx-auto" style={{ color: "#8A8A9A", maxWidth: 300 }}>
-            Real drama. Real people. Unreal stories. VERZA TV&rsquo;s original red-carpet series premieres soon.
-          </p>
         </section>
       )}
 

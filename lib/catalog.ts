@@ -890,13 +890,13 @@ export const catalog: Series[] = [
   {
     slug: "the-carpet",
     title: "The Carpet",
-    logline: "A star is about to rise. Real drama. Real people. Unreal stories — exclusively on VERZA TV.",
+    logline: "Red carpets, premieres, and the stars who walk them — exclusively on VERZA TV.",
     genre: "Red Carpet · Reality",
     channel: "VERZA Originals",
     categories: ["red-carpet"],
-    episodeCount: 0,
+    episodeCount: 2,
     posterUrl: "/posters/the-carpet.png",
-    freeEpisodes: 0, coinPerEpisode: 49, seasonPassCoins: 0, status: "coming_soon",
+    freeEpisodes: 2, coinPerEpisode: 0, seasonPassCoins: 0, status: "live",
   },
 ];
 
