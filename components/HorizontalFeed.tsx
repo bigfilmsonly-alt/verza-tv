@@ -239,9 +239,31 @@ export default function HorizontalFeed({ embedded = false }: { embedded?: boolea
       <h1 className="text-2xl font-bold mb-1" style={{ color: "#F5F4F8" }}>
         Storage Pirates
       </h1>
-      <p className="text-sm mb-6" style={{ color: "rgba(245,244,248,0.5)" }}>
+      <p className="text-sm mb-4" style={{ color: "rgba(245,244,248,0.5)" }}>
         Reality meets comedy. Real storage auctions, hidden treasures, bidding wars, and behind-the-scenes chaos.
       </p>
+
+      {/* Rotate phone banner */}
+      <div
+        className="flex items-center gap-3 rounded-xl px-4 py-3 mb-6"
+        style={{
+          background: "linear-gradient(135deg, rgba(139,92,246,0.12), rgba(224,17,95,0.08))",
+          border: "1px solid rgba(139,92,246,0.2)",
+        }}
+      >
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, transform: "rotate(90deg)" }}>
+          <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+          <line x1="12" y1="18" x2="12.01" y2="18" />
+        </svg>
+        <div>
+          <p className="text-xs font-semibold" style={{ color: "#F5F4F8" }}>
+            Horizontal Video
+          </p>
+          <p className="text-[11px]" style={{ color: "rgba(245,244,248,0.5)" }}>
+            Rotate your phone for full-screen landscape viewing
+          </p>
+        </div>
+      </div>
 
       {/* Season 1 */}
       <div className="mb-6">

@@ -157,14 +157,11 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
     }
   }, []);
 
-  // Keep the URL in sync with the active tab so the browser Back button
-  // returns the user to whatever section they were last browsing.
-  useEffect(() => {
-    const url = activeTab === "drama" ? "/" : `/?tab=${activeTab}`;
-    if (window.location.pathname + window.location.search !== url) {
-      window.history.replaceState(null, "", url);
-    }
-  }, [activeTab]);
+  // Tab state is ephemeral — do NOT write ?tab= to the URL.  The old
+  // replaceState approach left /?tab=reality in the history so the browser
+  // Back button on the home screen navigated to the reality section.
+  // The only tab that writes a URL is red-carpet (via the episode page's
+  // backHref="/?tab=red-carpet"); the mount effect above reads that.
 
   // No splash on Red Carpet — poster shows instantly
 
@@ -449,28 +446,20 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               ))}
             </div>
 
-            {/* All Reality posters */}
+            {/* All Reality posters — 2×2 grid for bigger flyers */}
             <section className="mt-2 pb-4 px-3">
-              <div className="poster-grid grid grid-cols-3 gap-1.5">
-                {realityShows.map((show, i) => {
-                  // Center a lone last poster (e.g. Storage Pirates) under the
-                  // middle column by inserting an empty spacer cell before it.
-                  const isLoneLast = i === realityShows.length - 1 && realityShows.length % 3 === 1;
-                  return (
-                    <Fragment key={show.title}>
-                      {isLoneLast && <div aria-hidden className="min-w-0" />}
-                      <div className="block no-underline min-w-0">
-                        <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
-                          <Image src={show.poster} alt={show.title} fill sizes="(max-width: 440px) 33vw, 146px" className="object-cover" />
-                        </div>
-                        <div style={{ height: 36 }}>
-                          <p className="mt-1.5 text-[11px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>{show.title}</p>
-                          <p className="text-[10px] mt-0.5" style={{ color: "#6B6B7B" }}>Reality</p>
-                        </div>
-                      </div>
-                    </Fragment>
-                  );
-                })}
+              <div className="grid grid-cols-2 gap-2.5">
+                {realityShows.map((show) => (
+                  <div key={show.title} className="block no-underline min-w-0">
+                    <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
+                      <Image src={show.poster} alt={show.title} fill sizes="(max-width: 440px) 50vw, 220px" className="object-cover" />
+                    </div>
+                    <div style={{ height: 36 }}>
+                      <p className="mt-1.5 text-[12px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>{show.title}</p>
+                      <p className="text-[10px] mt-0.5" style={{ color: "#6B6B7B" }}>Reality</p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </section>
 
