@@ -902,17 +902,6 @@ export const catalog: Series[] = [
     posterUrl: "/posters/too-much-junk.jpg",
     freeEpisodes: 1, coinPerEpisode: 0, seasonPassCoins: 0, status: "live",
   },
-  {
-    slug: "the-carpet",
-    title: "The Carpet",
-    logline: "Red carpets, premieres, and the stars who walk them — exclusively on VERZA TV.",
-    genre: "Red Carpet · Reality",
-    channel: "VERZA Originals",
-    categories: ["red-carpet"],
-    episodeCount: 2,
-    posterUrl: "/posters/the-carpet.png",
-    freeEpisodes: 2, coinPerEpisode: 0, seasonPassCoins: 0, status: "live",
-  },
 ];
 
 /* ------------------------------------------------------------------ */

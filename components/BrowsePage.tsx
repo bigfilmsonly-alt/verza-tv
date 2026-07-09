@@ -138,15 +138,17 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
   }, []);
 
   const posterClick = useCallback((e: React.MouseEvent<HTMLElement>, slug: string, epNum = 1) => {
-    // Slow-network fallback: the tapped poster (already cached) is shown until
-    // the movie's first frame — only ever visible if the video isn't ready.
+    // The tapped poster doubles as the loading state (user preference:
+    // poster > black) — the episode page paints it instantly from cache.
     try {
       const img = e.currentTarget.querySelector("img") as HTMLImageElement | null;
       const src = img?.currentSrc || img?.src;
       if (src) sessionStorage.setItem("verza-transition", JSON.stringify({ src, ts: Date.now() }));
     } catch {}
-    // Start the movie NOW — hidden and muted — so the episode page adopts an
-    // already-playing video instead of showing anything in between.
+    // Start the movie downloading + decoding NOW (hidden, muted). The episode
+    // page adopts this already-running player, so the poster crossfades into
+    // the movie the moment its first frame is ready — the wait is only the
+    // real network time, nothing architectural.
     startInstantPlayer(MUX_MAP[slug]?.find((ep) => ep.episode === epNum)?.playbackId);
   }, []);
 
@@ -435,7 +437,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
       )}
 
       {/* Coming Soon — for empty categories (skip Reality and Music since they show inline) */}
-      {filtered.length === 0 && activeTab !== "reality" && activeTab !== "music" && activeTab !== "red-carpet" && (
+      {filtered.length === 0 && activeTab !== "reality" && activeTab !== "music" && (
         <section className="px-4 py-8">
           <div
             className="rounded-2xl py-16 flex flex-col items-center justify-center gap-4 text-center"
@@ -559,37 +561,6 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
           </div>
         );
       })()}
-
-      {/* Red Carpet tab — The Carpet (coming soon). Decoupled from the heiress
-          drama: previously reused MUX_MAP['the-dumb-billionaire-heiress-in-love'],
-          which mislabeled that show's real episodes as red-carpet events. */}
-      {activeTab === "red-carpet" && (
-        <section className="pt-4 pb-10 px-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wider mb-4 text-center" style={{ color: "#8A8A9A" }}>The Carpet</h2>
-          <div className="grid grid-cols-2 gap-2.5">
-            {[
-              { title: "Exes Premiere", poster: "/posters/exes-premiere.png", episode: 1 },
-              { title: "Love Awards", poster: "/posters/love-awards.png", episode: 2 },
-            ].map((event) => (
-              <Link
-                key={event.title}
-                href={`/series/the-carpet/${event.episode}`}
-                className="block no-underline min-w-0 transition-transform active:scale-[0.97]"
-                onPointerDown={() => posterPress("the-carpet")}
-                onClick={(e) => posterClick(e, "the-carpet")}
-              >
-                <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
-                  <Image src={event.poster} alt={event.title} fill sizes="(max-width: 440px) 50vw, 220px" className="object-cover" />
-                </div>
-                <div style={{ height: 36 }}>
-                  <p className="mt-1.5 text-[12px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>{event.title}</p>
-                  <p className="text-[10px] mt-0.5" style={{ color: "#6B6B7B" }}>Red Carpet</p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
 
       {/* Hero Slideshow — shows on Drama/New/Hot (not Reality/Red Carpet/Music) */}
       {current && activeTab !== "reality" && activeTab !== "red-carpet" && activeTab !== "music" && (

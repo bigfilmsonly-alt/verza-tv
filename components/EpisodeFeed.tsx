@@ -148,36 +148,72 @@ function EpisodeSlide({
      this page is the MOVIE — the poster never appears at all. On cold
      navigations (direct URL, slow network) we create a fresh element and the
      poster covers the gap exactly as before. */
+  const unplaceRef = useRef<(() => void) | null>(null);
+
   useLayoutEffect(() => {
     const box = videoBoxRef.current;
     if (!box || videoRef.current) return;
 
     const adopted = isActive ? adoptInstantPlayer(episode.playbackId) : null;
-    const vid = adopted ? adopted.video : document.createElement("video");
-
-    vid.muted = true;
-    vid.playsInline = true;
-    vid.setAttribute("playsinline", "");
-    vid.preload = "auto";
-    vid.className = `absolute inset-0 w-full h-full ${widescreen ? "object-contain" : "object-cover"}`;
-    vid.style.cssText = "opacity:0;transition:opacity 0.2s ease-out;z-index:2;";
-    box.appendChild(vid);
-    videoRef.current = vid;
 
     if (adopted) {
+      /* CRITICAL: an MSE-attached <video> must NEVER be reparented — moving
+         it in the DOM detaches its MediaSource and playback dies at
+         readyState 0. The pre-started element therefore STAYS a direct child
+         of <body> and is pinned over this slide's box as a fixed overlay,
+         tracking it through feed scroll and window resize. */
+      const vid = adopted.video;
+      vid.dataset.verzaFixed = "1";
+      vid.muted = true;
+      const host = box.closest(".device-screen") as HTMLElement | null;
+      const radius = host ? getComputedStyle(host).borderRadius : "";
+      vid.style.cssText =
+        `position:fixed;z-index:10;pointer-events:none;` +
+        `object-fit:${widescreen ? "contain" : "cover"};background:#000;` +
+        `opacity:0;transition:opacity 0.2s ease-out;` +
+        (radius ? `border-radius:${radius};` : "");
+      const place = () => {
+        const r = box.getBoundingClientRect();
+        vid.style.left = `${r.left}px`;
+        vid.style.top = `${r.top}px`;
+        vid.style.width = `${r.width}px`;
+        vid.style.height = `${r.height}px`;
+      };
+      place();
+      const scroller = box.closest(".no-scrollbar");
+      scroller?.addEventListener("scroll", place, { passive: true });
+      window.addEventListener("resize", place);
+      unplaceRef.current = () => {
+        scroller?.removeEventListener("scroll", place);
+        window.removeEventListener("resize", place);
+      };
+
+      videoRef.current = vid;
       hlsRef.current = adopted.hls;
       attachedRef.current = true;
       setSourceReady(true);
       setPlaying(!vid.paused);
       // A frame is already decoded → reveal the movie in this same pre-paint
-      // pass. Otherwise reveal on the first composited frame.
+      // pass (the poster never appears). Otherwise reveal on first frame.
       if (vid.readyState >= 2) setStarted(true);
       else onFirstFrame(vid, () => setStarted(true));
+    } else {
+      const vid = document.createElement("video");
+      vid.muted = true;
+      vid.playsInline = true;
+      vid.setAttribute("playsinline", "");
+      vid.preload = "auto";
+      vid.className = `absolute inset-0 w-full h-full ${widescreen ? "object-contain" : "object-cover"}`;
+      vid.style.cssText = "opacity:0;transition:opacity 0.2s ease-out;z-index:2;";
+      box.appendChild(vid);
+      videoRef.current = vid;
     }
 
     return () => {
       // Unmount teardown. Covers the adopted player too — the attach effect
       // early-returns for adopted slides, so its cleanup never registers.
+      unplaceRef.current?.();
+      unplaceRef.current = null;
       if (hlsRef.current) { try { hlsRef.current.destroy(); } catch {} hlsRef.current = null; }
       const v = videoRef.current;
       if (v) { try { v.muted = true; v.pause(); v.remove(); } catch {} }
