@@ -351,11 +351,25 @@ function EpisodeSlide({
       style={{ height: "var(--feed-h, 100dvh)", background: "#000", margin: 0, padding: 0 }}
       onClick={handleTap}
     >
-      {/* Poster — stays fully visible BEHIND the video as a safety net so
-          there is never a black flash. The video (zIndex 2) covers it once a
-          real frame is composited. We hide it only after started=true to free
-          the GPU layer, using a short delay so the video is definitely
-          covering it by then. */}
+      {/* Series poster — instant background (already cached from browse page).
+          Sits at zIndex 0 as the bottom-most safety net so no black gap ever
+          shows while the Mux thumbnail or video are loading. */}
+      {posterUrl && (
+        <img
+          src={posterUrl}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{
+            opacity: started ? 0 : 1,
+            transition: started ? "opacity 0.3s ease-out 0.15s" : "none",
+            filter: "brightness(0.5)",
+            zIndex: 0,
+          }}
+        />
+      )}
+
+      {/* Mux thumbnail — higher-quality frame from the actual video. Loads from
+          CDN on top of the series poster. Falls away once the live video plays. */}
       {thumbUrl && (
         <img
           src={thumbUrl}
@@ -364,20 +378,6 @@ function EpisodeSlide({
           style={{
             opacity: started ? 0 : 1,
             transition: started ? "opacity 0.3s ease-out 0.1s" : "none",
-            zIndex: 1,
-          }}
-        />
-      )}
-
-      {!thumbUrl && posterUrl && (
-        <img
-          src={posterUrl}
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{
-            opacity: started ? 0 : 1,
-            transition: started ? "opacity 0.3s ease-out 0.1s" : "none",
-            filter: "brightness(0.5)",
             zIndex: 1,
           }}
         />

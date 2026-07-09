@@ -97,11 +97,8 @@ export default function Player({
     const video = videoRef.current;
     if (!video) return;
 
-    console.log("[Player] Attaching HLS source:", hlsUrl);
-
     // Native HLS support (Safari / iOS)
     if (video.canPlayType("application/vnd.apple.mpegurl")) {
-      console.log("[Player] Using native HLS (Safari/iOS)");
       video.src = hlsUrl;
       setHlsReady(true);
       return;
@@ -109,7 +106,6 @@ export default function Player({
 
     // hls.js for other browsers
     if (HlsModule && HlsModule.isSupported()) {
-      console.log("[Player] Using hls.js");
       const hls = new HlsModule({
         maxBufferLength: 30,
         maxMaxBufferLength: 60,
@@ -123,36 +119,28 @@ export default function Player({
       hls.loadSource(hlsUrl);
       hls.attachMedia(video);
 
-      hls.on(HlsModule.Events.MANIFEST_PARSED, (_event: string, data: { levels: unknown[] }) => {
-        console.log("[Player] HLS manifest parsed, levels:", data.levels.length);
+      hls.on(HlsModule.Events.MANIFEST_PARSED, () => {
         setHlsReady(true);
       });
 
       hls.on(HlsModule.Events.ERROR, (_event: string, data: { type: string; details: string; fatal: boolean }) => {
-        console.error("[Player] HLS error:", data.type, data.details, data.fatal);
         if (data.fatal) {
           if (data.type === HlsModule!.ErrorTypes.NETWORK_ERROR) {
-            console.log("[Player] Fatal network error, attempting recovery...");
             hls.startLoad();
           } else if (data.type === HlsModule!.ErrorTypes.MEDIA_ERROR) {
-            console.log("[Player] Fatal media error, attempting recovery...");
             hls.recoverMediaError();
           } else {
-            console.error("[Player] Fatal error, cannot recover:", data.type);
             setError("Video failed to load. Please try refreshing the page.");
           }
         }
       });
 
       return () => {
-        console.log("[Player] Destroying HLS instance");
         hls.destroy();
         hlsRef.current = null;
       };
     }
 
-    // Neither native HLS nor hls.js supported
-    console.error("[Player] HLS not supported in this browser");
     setError("Your browser does not support video playback. Please try Chrome, Safari, or Firefox.");
   }, [hlsUrl]);
 
@@ -199,23 +187,18 @@ export default function Player({
       }
     };
     const onPlay = () => {
-      console.log("[Player] Video play event fired");
       setPlaying(true);
       setLoading(false);
     };
     const onPause = () => setPlaying(false);
     const onWaiting = () => setLoading(true);
-    const onCanPlay = () => {
-      console.log("[Player] Video canplay event fired");
-      setLoading(false);
-    };
+    const onCanPlay = () => setLoading(false);
     const onProgress = () => {
       if (video.buffered.length > 0) {
         setBuffered(video.buffered.end(video.buffered.length - 1));
       }
     };
     const onError = () => {
-      console.error("[Player] Video element error:", video.error?.message);
       if (started) {
         setError("Video playback error. Please try again.");
         setLoading(false);
@@ -450,25 +433,33 @@ export default function Player({
       maybeRequestResumePermission().catch(() => {});
     }
 
-    console.log("[Player] Play button clicked, hlsReady:", hlsReady);
-    setStarted(true);
+    // DON'T set started yet — keep poster visible until a real video frame
+    // is composited. Loading hides the play button and shows the spinner.
     setLoading(true);
     setError(null);
 
-    // HLS is already attached -- just play
+    function revealOnFrame(vid: HTMLVideoElement) {
+      if ("requestVideoFrameCallback" in vid) {
+        (vid as any).requestVideoFrameCallback(() => { setStarted(true); setLoading(false); });
+      } else {
+        requestAnimationFrame(() => requestAnimationFrame(() => { setStarted(true); setLoading(false); }));
+      }
+    }
+
     video.play()
       .then(() => {
-        console.log("[Player] video.play() resolved");
+        revealOnFrame(video);
+        scheduleHide();
       })
-      .catch((err) => {
-        console.error("[Player] video.play() rejected:", err);
-        // Autoplay may be blocked -- try muted
+      .catch(() => {
         video.muted = true;
-        video.play().catch((err2) => {
-          console.error("[Player] Muted play also failed:", err2);
-          setError("Tap to play. Your browser blocked autoplay.");
-          setLoading(false);
-        });
+        setMuted(true);
+        video.play()
+          .then(() => { revealOnFrame(video); scheduleHide(); })
+          .catch(() => {
+            setError("Tap to play. Your browser blocked autoplay.");
+            setLoading(false);
+          });
       });
 
     scheduleHide();
@@ -632,8 +623,8 @@ export default function Player({
           </>
         )}
 
-        {/* Big play button (before start) */}
-        {!started && !error && (
+        {/* Big play button (before start, hidden during loading) */}
+        {!started && !error && !loading && (
           <div className="absolute inset-0 flex items-center justify-center z-10">
             <button
               className="w-16 h-16 rounded-full flex items-center justify-center transition-transform active:scale-90"
@@ -696,8 +687,8 @@ export default function Player({
           </div>
         )}
 
-        {/* Loading spinner */}
-        {loading && started && !error && (
+        {/* Loading spinner — shown during load regardless of started state */}
+        {loading && !error && (
           <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
             <div
               className="w-10 h-10 rounded-full border-2 border-transparent animate-spin"

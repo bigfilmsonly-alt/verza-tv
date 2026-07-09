@@ -15,17 +15,18 @@ import {
   episodeSchema,
   breadcrumbSchema,
 } from "@/lib/schemas";
-import { checkVipStatusServer } from "@/lib/vip-server";
+import { cookies } from "next/headers";
+import { getServiceClient } from "@/lib/supabase/server";
 
 /* ------------------------------------------------------------------ */
-/*  Static params (first 10 episodes per live series)                  */
+/*  Static params (first 25 episodes per live series)                  */
 /* ------------------------------------------------------------------ */
 
 export async function generateStaticParams() {
   const params: { slug: string; episode: string }[] = [];
 
   for (const series of SERIES.filter((s) => s.status === "live")) {
-    const limit = Math.min(series.episodeCount, 10);
+    const limit = Math.min(series.episodeCount, 25);
     for (let i = 1; i <= limit; i++) {
       params.push({ slug: series.slug, episode: String(i) });
     }
@@ -89,27 +90,33 @@ export default async function EpisodePage({ params, searchParams }: Props) {
   const ep = getEpisode(slug, epNum);
   if (!ep) notFound();
 
-  const isVip = await checkVipStatusServer();
+  // Run VIP + entitlement checks in PARALLEL with a single getUser call.
+  // Non-logged-in users short-circuit immediately (<1ms).
+  let isVip = false;
+  let hasEntitlement = unlocked === "true";
 
-  // Check entitlement
-  let hasEntitlement = false;
-  if (unlocked === "true") {
-    hasEntitlement = true;
-  }
   if (!hasEntitlement) {
     try {
-      const { getUser } = await import("@/lib/auth");
-      const user = await getUser();
-      if (user) {
-        const { getServiceClient } = await import("@/lib/supabase/server");
+      const cookieStore = await cookies();
+      const token = cookieStore.get("sb-access-token")?.value;
+
+      if (token) {
         const supabase = getServiceClient();
-        const { data } = await supabase
-          .from("entitlements")
-          .select("id")
-          .eq("user_id", user.id)
-          .eq("series_slug", slug)
-          .limit(1);
-        if (data && data.length > 0) hasEntitlement = true;
+        const { data: { user } } = await supabase.auth.getUser(token);
+
+        if (user) {
+          const [vipResult, entitlementResult] = await Promise.all([
+            supabase.from("profiles").select("is_vip, vip_expires_at").eq("id", user.id).single(),
+            supabase.from("entitlements").select("id").eq("user_id", user.id).eq("series_slug", slug).limit(1),
+          ]);
+
+          if (vipResult.data?.is_vip) {
+            isVip = !vipResult.data.vip_expires_at || new Date(vipResult.data.vip_expires_at) >= new Date();
+          }
+          if (entitlementResult.data && entitlementResult.data.length > 0) {
+            hasEntitlement = true;
+          }
+        }
       }
     } catch {}
   }
