@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, Fragment } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef, Fragment } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import CategoryTabs from "@/components/CategoryTabs";
@@ -206,9 +206,6 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
     setHeroIdx((i) => (((i + 1) % len) + len) % len);
   }, [heroSlides.length]);
 
-  // Tab changes happen ONLY by tapping a tab button in the header bar (the
-  // swipe / drag / trackpad gesture was removed per request). Tapping still
-  // slides the incoming content in — slideDir picks which side it enters from.
   const selectTab = useCallback(
     (key: BrowseCategory) => {
       const keys = activeTabs.map((tb) => tb.key);
@@ -220,11 +217,42 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
     [activeTab, activeTabs],
   );
 
+  // Swipe between tabs: swipe left → next tab, swipe right → prev tab
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  }, []);
+
+  const onTouchEnd = useCallback(
+    (e: React.TouchEvent) => {
+      if (touchStartX.current === null || touchStartY.current === null) return;
+      const dx = e.changedTouches[0].clientX - touchStartX.current;
+      const dy = e.changedTouches[0].clientY - touchStartY.current;
+      touchStartX.current = null;
+      touchStartY.current = null;
+      // Only trigger if horizontal swipe is dominant and exceeds threshold
+      if (Math.abs(dx) < 50 || Math.abs(dy) > Math.abs(dx)) return;
+      const keys = activeTabs.map((tb) => tb.key);
+      const idx = keys.indexOf(activeTab);
+      if (dx < 0 && idx < keys.length - 1) {
+        // Swipe left → next tab
+        selectTab(keys[idx + 1]);
+      } else if (dx > 0 && idx > 0) {
+        // Swipe right → prev tab
+        selectTab(keys[idx - 1]);
+      }
+    },
+    [activeTab, activeTabs, selectTab],
+  );
+
   // Show ALL filtered series in the grid (not just the ones after the hero)
   const gridItems = filtered;
 
   return (
-    <div>
+    <div onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
       {/* Splash screen — VERZA TV logo on black */}
       {showSplash && (
         <div
