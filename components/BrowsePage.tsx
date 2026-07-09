@@ -110,6 +110,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
   const [heroPaused, setHeroPaused] = useState(false);
   const [continueWatching, setContinueWatching] = useState<ContinueItem[]>([]);
   const [showSplash, setShowSplash] = useState<string | null>(null);
+  const [showStoragePirates, setShowStoragePirates] = useState(false);
 
   // Shuffle seed: 0 on the server + first client render (keeps hydration in
   // sync), then a random value after mount so the catalog order is freshly
@@ -450,41 +451,63 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
             {/* All Reality posters — 2×2 grid for bigger flyers */}
             <section className="mt-2 pb-4 px-3">
               <div className="grid grid-cols-2 gap-2.5">
-                {realityShows.map((show) => (
-                  <div key={show.title} className="block no-underline min-w-0">
+                {realityShows.map((show) => {
+                  const isStoragePirates = show.title === "Storage Pirates";
+                  return (
+                  <div
+                    key={show.title}
+                    className="block no-underline min-w-0"
+                    role={isStoragePirates ? "button" : undefined}
+                    tabIndex={isStoragePirates ? 0 : undefined}
+                    style={{ cursor: isStoragePirates ? "pointer" : undefined }}
+                    onClick={isStoragePirates ? () => setShowStoragePirates((v) => !v) : undefined}
+                  >
                     <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
                       <Image src={show.poster} alt={show.title} fill sizes="(max-width: 440px) 50vw, 220px" className="object-cover" />
+                      {isStoragePirates && (
+                        <div className="absolute inset-0 flex items-end justify-center pb-3" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.6), transparent 50%)" }}>
+                          <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ background: "rgba(139,92,246,0.9)", color: "#fff" }}>
+                            {showStoragePirates ? "Hide Episodes" : "Watch Episodes"}
+                          </span>
+                        </div>
+                      )}
                     </div>
                     <div style={{ height: 36 }}>
                       <p className="mt-1.5 text-[12px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>{show.title}</p>
                       <p className="text-[10px] mt-0.5" style={{ color: "#6B6B7B" }}>Reality</p>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </section>
 
-            {/* Sponsored Ad Ribbon — in the gap above Storage Pirates */}
-            <a
-              href="https://www.storageblue.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block mx-3 mt-5 mb-0 rounded-xl overflow-hidden transition-transform active:scale-[0.98]"
-              style={{
-                background: "linear-gradient(135deg, rgba(10,10,20,0.95), rgba(15,15,25,0.95))",
-                border: "1px solid rgba(100,180,220,0.12)",
-                boxShadow: "0 0 20px rgba(100,180,220,0.04)",
-              }}
-            >
-              <div className="flex items-center justify-center py-2.5 px-6">
-                <img src="/ads/storageblue-logo.png" alt="StorageBlue" style={{ height: 52, objectFit: "contain" }} />
-              </div>
-            </a>
+            {/* Storage Pirates section — revealed on poster tap */}
+            {showStoragePirates && (
+              <>
+                {/* Sponsored Ad Ribbon */}
+                <a
+                  href="https://www.storageblue.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block mx-3 mt-5 mb-0 rounded-xl overflow-hidden transition-transform active:scale-[0.98]"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(10,10,20,0.95), rgba(15,15,25,0.95))",
+                    border: "1px solid rgba(100,180,220,0.12)",
+                    boxShadow: "0 0 20px rgba(100,180,220,0.04)",
+                  }}
+                >
+                  <div className="flex items-center justify-center py-2.5 px-6">
+                    <img src="/ads/storageblue-logo.png" alt="StorageBlue" style={{ height: 52, objectFit: "contain" }} />
+                  </div>
+                </a>
 
-            {/* Storage Pirates widescreen episodes */}
-            <div className="px-3">
-              <HorizontalFeed embedded />
-            </div>
+                {/* Storage Pirates widescreen episodes */}
+                <div className="px-3">
+                  <HorizontalFeed embedded />
+                </div>
+              </>
+            )}
           </div>
         );
       })()}
