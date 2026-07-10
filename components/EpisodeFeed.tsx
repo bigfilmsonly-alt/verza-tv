@@ -130,6 +130,12 @@ function EpisodeSlide({
   const lastTap = useRef(0);
   const lastSavedRef = useRef(0);
   const resumeSeekedRef = useRef(false);
+  // Playback self-healing: bounded recovery for fatal hls errors + a stall
+  // watchdog. A video must never sit paused/black forever with no way out.
+  const mediaRecoveriesRef = useRef(0);
+  const audioSwappedRef = useRef(false);
+  const reattachCountRef = useRef(0);
+  const [attachNonce, setAttachNonce] = useState(0);
 
   // Keep refs in sync with props
   useEffect(() => { mutedRef.current = muted; }, [muted]);
@@ -180,7 +186,7 @@ function EpisodeSlide({
       if (feedRoot) feedRoot.style.background = "transparent";
       const slideEl = box.parentElement as HTMLElement | null;
       if (slideEl) slideEl.style.background = "transparent";
-      const host = box.closest(".device-screen") as HTMLElement | null;
+      const host = box.closest(".device-frame") as HTMLElement | null;
       const radius = host ? getComputedStyle(host).borderRadius : "";
       vid.style.cssText =
         `position:fixed;z-index:10;pointer-events:none;` +
@@ -227,6 +233,8 @@ function EpisodeSlide({
     return () => {
       // Unmount teardown. Covers the adopted player too — the attach effect
       // early-returns for adopted slides, so its cleanup never registers.
+      const feedRootEl = document.querySelector(".episode-immersive") as HTMLElement | null;
+      if (feedRootEl && feedRootEl.style.background === "transparent") feedRootEl.style.background = "";
       unplaceRef.current?.();
       unplaceRef.current = null;
       if (hlsRef.current) { try { hlsRef.current.destroy(); } catch {} hlsRef.current = null; }
@@ -288,12 +296,53 @@ function EpisodeSlide({
         // composited so the poster stays visible until real pixels are ready.
         onFirstFrame(vid, () => {
           setStarted(true);
-          if (!mutedRef.current) vid.muted = false;
+          if (!mutedRef.current) {
+            vid.muted = false;
+            // iOS pauses a muted-autoplayed video when unmuted outside a user
+            // gesture — if that happened, fall back to muted playback instead
+            // of freezing on a paused frame.
+            if (vid.paused) {
+              vid.muted = true;
+              vid.play().catch(() => {});
+            }
+          }
         });
         trackEpisodeStart(seriesSlug, episode.number);
       }).catch(() => {});
     }
   }, [isResumeTarget, resumePositionS, seriesSlug, episode.number]);
+
+  /* Last-resort recovery: tear the player down completely and re-attach.
+     Bounded (2 per slide) so a truly broken stream can't loop forever. */
+  const fullReattach = useCallback(() => {
+    if (reattachCountRef.current >= 2) return;
+    reattachCountRef.current += 1;
+    if (hlsRef.current) { try { hlsRef.current.destroy(); } catch {} hlsRef.current = null; }
+    const v = videoRef.current;
+    if (v) { try { v.pause(); v.removeAttribute("src"); v.load(); } catch {} }
+    attachedRef.current = false;
+    mediaRecoveriesRef.current = 0;
+    setSourceReady(false);
+    setStarted(false);
+    setAttachNonce((n) => n + 1); // re-runs the attach effect
+  }, []);
+
+  /* Stall watchdog: if this slide is ACTIVE and a source is attached but no
+     frame has been composited after 10s, the pipeline is silently dead
+     (worker died, native-HLS stall, poisoned element) — rebuild it.
+     Skipped when the user paused it themselves or when data is actually
+     arriving (slow networks must not have an in-progress load destroyed). */
+  useEffect(() => {
+    if (!isActive || !sourceReady || started || blocked) return;
+    const t = setTimeout(() => {
+      const v = videoRef.current;
+      if (!v || v.readyState >= 2) return;
+      if (v.paused && !playing) return; // user paused pre-frame — leave it
+      if (v.buffered.length > 0) return; // data flowing — just slow, not dead
+      fullReattach();
+    }, 10000);
+    return () => clearTimeout(t);
+  }, [isActive, sourceReady, started, blocked, playing, fullReattach]);
 
   /* Attach HLS source AND play immediately if this is the active slide.
      Depends only on shouldLoad (active OR near) — NOT isActive — so swiping
@@ -326,8 +375,7 @@ function EpisodeSlide({
           vid.src = hlsUrl;
           vid.load();
           if (!cancelled) {
-            setSourceReady(true);
-            if (isActiveRef.current && !blockedRef.current) tryPlay(vid);
+            setSourceReady(true); // the play effect is the single tryPlay caller
           }
         }
         return;
@@ -351,9 +399,30 @@ function EpisodeSlide({
         setSourceReady(true); // the play effect is the single tryPlay caller
       }
       hls.on(Hls.Events.ERROR, (_e: string, data: { type: string; fatal: boolean }) => {
-        if (data.fatal && Hls) {
-          if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hls.startLoad();
-          else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
+        if (!data.fatal || !Hls) return;
+        const resume = () => {
+          const v = videoRef.current;
+          if (v && isActiveRef.current && !blockedRef.current) v.play().catch(() => {});
+        };
+        if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+          hls.startLoad();
+          resume();
+        } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+          if (mediaRecoveriesRef.current < 2) {
+            mediaRecoveriesRef.current += 1;
+            hls.recoverMediaError();
+            resume();
+          } else if (!audioSwappedRef.current) {
+            audioSwappedRef.current = true;
+            hls.swapAudioCodec();
+            hls.recoverMediaError();
+            resume();
+          } else {
+            fullReattach();
+          }
+        } else {
+          // OTHER_ERROR (worker/demuxer death, etc.) — rebuild from scratch.
+          fullReattach();
         }
       });
     }
@@ -368,7 +437,7 @@ function EpisodeSlide({
       attachedRef.current = false;
       setSourceReady(false);
     };
-  }, [hlsUrl, shouldLoad, tryPlay]);
+  }, [hlsUrl, shouldLoad, tryPlay, attachNonce]);
 
   /* Tear down HLS only when slide is far away (not near) */
   useEffect(() => {
@@ -469,7 +538,9 @@ function EpisodeSlide({
     setTimeout(() => {
       if (lastTap.current === 0) return; // was double tap
       const vid = videoRef.current;
-      if (!vid || !isActive) return;
+      // Read activeness via ref — the tap-time closure goes stale if the user
+      // swipes within 300ms, and acting on it played/paused the wrong slide.
+      if (!vid || !isActiveRef.current) return;
 
       if (vid.paused) {
         // Genuine play gesture — opt the viewer into the resume reminder once.
@@ -762,10 +833,39 @@ export default function EpisodeFeed({
 
   const activeEp = episodes[activeIndex];
 
-  // Virtual window: only render 5 slides max (active ± 2)
+  // Virtual window: only render 5 slides max (windowCenter ± 2).
+  // The window recenters ONLY when scrolling is idle — mounting/unmounting
+  // slides and resizing spacers ABOVE the scrollport mid-swipe retargeted the
+  // in-flight snap scroll (first happens at the 4th video) and broke playback.
   const WINDOW = 2;
-  const windowStart = Math.max(0, activeIndex - WINDOW);
-  const windowEnd = Math.min(episodes.length - 1, activeIndex + WINDOW);
+  const [windowCenter, setWindowCenter] = useState(activeIndex);
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    let idleTimer: ReturnType<typeof setTimeout> | null = null;
+    const recenter = () => setWindowCenter(activeIndexRef.current);
+    const onScroll = () => {
+      if (idleTimer) clearTimeout(idleTimer);
+      idleTimer = setTimeout(recenter, 160);
+    };
+    container.addEventListener("scroll", onScroll, { passive: true });
+    container.addEventListener("scrollend", recenter);
+    return () => {
+      if (idleTimer) clearTimeout(idleTimer);
+      container.removeEventListener("scroll", onScroll);
+      container.removeEventListener("scrollend", recenter);
+    };
+  }, []);
+  // The window always covers activeIndex ± 1 even before the idle recenter,
+  // so a fast consecutive swipe never lands where its snap target is missing.
+  const windowStart = Math.min(
+    Math.max(0, windowCenter - WINDOW),
+    Math.max(0, activeIndex - 1),
+  );
+  const windowEnd = Math.max(
+    Math.min(episodes.length - 1, windowCenter + WINDOW),
+    Math.min(episodes.length - 1, activeIndex + 1),
+  );
 
   /* Scroll to start episode on mount. Look the slide up by data-index — the
      container's children include window spacers, so positional indexing is
@@ -804,7 +904,11 @@ export default function EpisodeFeed({
   const observerCallback = useCallback(
     (entries: IntersectionObserverEntry[]) => {
       for (const entry of entries) {
-        if (entry.isIntersecting) {
+        // Gate on the RATIO, not isIntersecting: when the observer re-subscribes
+        // after a window shift (first happens at the 4th video), the initial
+        // callbacks report partially-visible neighbors as isIntersecting —
+        // acting on those flapped activeIndex mid-swipe and paused playback.
+        if (entry.intersectionRatio >= 0.55) {
           const idx = Number(entry.target.getAttribute("data-index"));
           if (!Number.isNaN(idx)) {
             setActiveIndex((prev) => {
@@ -1065,6 +1169,7 @@ export default function EpisodeFeed({
                 overflowY: "hidden",
                 scrollSnapType: "x mandatory",
                 scrollbarWidth: "none",
+                overflowAnchor: "none",
               }
             : {
                 width: "100%",
@@ -1073,6 +1178,9 @@ export default function EpisodeFeed({
                 overflowX: "hidden",
                 scrollSnapType: "y mandatory",
                 scrollbarWidth: "none",
+                // Browser scroll anchoring fights the spacer resizes that keep
+                // the virtual window's geometry stable — disable it.
+                overflowAnchor: "none",
               }
         }
       >

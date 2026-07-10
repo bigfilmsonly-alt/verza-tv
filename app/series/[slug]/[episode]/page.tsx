@@ -96,7 +96,11 @@ export default async function EpisodePage({ params }: Props) {
   // Build episode list with series-level free logic only (no auth).
   // VIP / entitlement overrides happen client-side in EpisodeFeed via
   // /api/access — this keeps the page fully static (SSG).
-  const freeCount = series.coinPerEpisode > 0 ? Math.min(series.freeEpisodes, 4) : series.freeEpisodes;
+  // Honor the catalog's freeEpisodes as-is: the series page advertises
+  // "First 5 Episodes FREE" and the episode dropdown marks episode 5 free —
+  // the old Math.min(…, 4) cap silently paywalled episode 5 anyway, stopping
+  // every binge right after the 4th video.
+  const freeCount = series.freeEpisodes;
   const allEpisodes = getEpisodesForSeries(slug);
   const feedEpisodes: FeedEpisode[] = allEpisodes.map((e) => {
     const mux = getPlayback(slug, e.number);

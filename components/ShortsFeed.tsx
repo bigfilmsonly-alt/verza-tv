@@ -272,8 +272,20 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
       const p = vid.play();
       if (p) {
         p.then(() => {
-          if (!cancelled && !mutedRef.current) vid.muted = false;
-        }).catch(() => {});
+          if (!cancelled && !mutedRef.current) {
+            vid.muted = false;
+            // iOS pauses on programmatic unmute outside a gesture — fall back
+            // to muted playback instead of freezing.
+            if (vid.paused) {
+              vid.muted = true;
+              vid.play().catch(() => {});
+            }
+          }
+        }).catch(() => {
+          // Autoplay rejected (e.g. iOS Low Power Mode): retry on first tap.
+          const retry = () => { vid.play().catch(() => {}); };
+          document.addEventListener("pointerdown", retry, { once: true });
+        });
       }
     }
 

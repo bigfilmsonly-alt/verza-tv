@@ -84,6 +84,11 @@ export default function CreatorWatch({
       hlsRef.current = hls;
       hls.loadSource(hlsUrl);
       hls.attachMedia(vid);
+      hls.on(Hls.Events.ERROR, (_e: string, data: { type: string; fatal: boolean }) => {
+        if (!data.fatal) return;
+        if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hls.startLoad();
+        else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
+      });
     } else {
       vid.src = hlsUrl; // iOS Safari native HLS (also last-resort fallback)
       vid.load();

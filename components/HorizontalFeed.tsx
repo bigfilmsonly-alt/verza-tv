@@ -15,6 +15,9 @@ function getHls(): Promise<typeof HlsType | null> {
   return hlsPromise || Promise.resolve(null);
 }
 
+// Only one horizontal card may play at a time.
+let pauseCurrentCard: (() => void) | null = null;
+
 function formatDuration(s: number): string {
   const m = Math.floor(s / 60);
   const sec = s % 60;
@@ -84,7 +87,40 @@ function HorizontalCard({ video, index }: { video: HorizontalVideo; index: numbe
   useEffect(() => {
     return () => {
       if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
+      if (pauseCurrentCard === pauseThisCard.current) pauseCurrentCard = null;
     };
+  }, []);
+
+  // Keep `playing` truthful: browsers pause videos on their own (backgrounding,
+  // interruptions, end of stream) — the UI must follow the element, not memory.
+  const pauseThisCard = useRef<() => void>(() => {});
+  useEffect(() => {
+    const vid = videoRef.current;
+    if (!vid) return;
+    const onPlay = () => setPlaying(true);
+    const onPause = () => setPlaying(false);
+    vid.addEventListener("play", onPlay);
+    vid.addEventListener("pause", onPause);
+    vid.addEventListener("ended", onPause);
+    return () => {
+      vid.removeEventListener("play", onPlay);
+      vid.removeEventListener("pause", onPause);
+      vid.removeEventListener("ended", onPause);
+    };
+  }, []);
+
+  // Pause when the card scrolls out of view — a hidden card kept playing
+  // audio and streaming data indefinitely.
+  useEffect(() => {
+    const vid = videoRef.current;
+    if (!vid) return;
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (!e.isIntersecting && !vid.paused) vid.pause();
+      }
+    }, { threshold: 0.1 });
+    io.observe(vid);
+    return () => io.disconnect();
   }, []);
 
   function handlePlay() {
@@ -98,6 +134,11 @@ function HorizontalCard({ video, index }: { video: HorizontalVideo; index: numbe
     }
 
     setLoading(true);
+
+    // Pause whichever card is currently playing before starting this one.
+    if (pauseCurrentCard) pauseCurrentCard();
+    pauseThisCard.current = () => { videoRef.current?.pause(); };
+    pauseCurrentCard = pauseThisCard.current;
 
     async function start() {
       await attachHls();
