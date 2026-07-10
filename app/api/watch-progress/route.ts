@@ -92,18 +92,20 @@ export async function GET() {
     return Response.json({ items: [] });
   }
 
-  // Enrich with series metadata
-  const items = (data ?? []).map((wp) => {
+  // Enrich with series metadata; drop rows for series that no longer exist
+  // (they rendered poster-less ghost cards linking to 404s).
+  const items = (data ?? []).flatMap((wp) => {
     const series = getSeriesBySlug(wp.series_slug);
-    return {
+    if (!series || series.status !== "live") return [];
+    return [{
       seriesSlug: wp.series_slug,
-      seriesTitle: series?.title ?? wp.series_slug,
-      posterUrl: series?.posterUrl ?? "",
+      seriesTitle: series.title,
+      posterUrl: series.posterUrl,
       episodeNumber: wp.episode_number,
-      totalEpisodes: series?.episodeCount ?? 0,
+      totalEpisodes: series.episodeCount,
       progressSeconds: wp.progress_seconds,
       updatedAt: wp.updated_at,
-    };
+    }];
   });
 
   return Response.json({ items });

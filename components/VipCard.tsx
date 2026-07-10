@@ -223,7 +223,7 @@ export default function VipCard({ isVip = false, vipExpiresAt }: VipCardProps) {
                 color: "#fff",
               }}
             >
-              Save 33%
+              Best Value · Save 33%
             </span>
 
             {loading === "yearly" ? (
@@ -241,6 +241,9 @@ export default function VipCard({ isVip = false, vipExpiresAt }: VipCardProps) {
                   style={{ color: T.textDim }}
                 >
                   per year
+                </span>
+                <span className="text-[10px] font-medium" style={{ color: T.textMute }}>
+                  just $6.67/mo
                 </span>
               </>
             )}

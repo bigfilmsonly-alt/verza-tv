@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import Stripe from "stripe";
 import { VIP_PLANS } from "@/lib/config";
+import { getUser } from "@/lib/auth";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -46,9 +47,15 @@ export async function POST(req: NextRequest) {
     const siteUrl =
       process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verzatv.com";
 
+    // Attach the signed-in subscriber so the webhook can activate is_vip on
+    // their profile (previously nothing linked the Stripe customer to a user,
+    // so VIP never activated for anyone).
+    const user = await getUser();
+
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       phone_number_collection: { enabled: true },
+      ...(user ? { client_reference_id: user.id, customer_email: user.email || undefined } : {}),
       line_items: [
         {
           price_data: {
@@ -73,6 +80,13 @@ export async function POST(req: NextRequest) {
         type: "vip_subscription",
         plan,
         plan_type: plan === "yearly" ? "vip_yearly" : "vip_monthly",
+        ...(user ? { userId: user.id } : {}),
+      },
+      subscription_data: {
+        metadata: {
+          type: "vip_subscription",
+          ...(user ? { userId: user.id } : {}),
+        },
       },
       success_url: `${siteUrl}/me?vip=true`,
       cancel_url: `${siteUrl}/me`,

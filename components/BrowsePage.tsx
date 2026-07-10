@@ -54,6 +54,7 @@ function Badge({ type }: { type: "trending" | "new" }) {
 }
 
 function Poster({ src, alt }: { src: string; alt: string }) {
+  const [loaded, setLoaded] = useState(false);
   if (!src) {
     return (
       <div
@@ -65,13 +66,19 @@ function Poster({ src, alt }: { src: string; alt: string }) {
     );
   }
   return (
-    <Image
-      src={src}
-      alt={alt}
-      fill
-      sizes="(max-width: 440px) 33vw, 146px"
-      className="object-cover"
-    />
+    <>
+      {/* Shimmer placeholder until the poster decodes, then a soft fade-in */}
+      {!loaded && <div className="absolute inset-0 skeleton" />}
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        sizes="(max-width: 440px) 33vw, 146px"
+        className="object-cover"
+        onLoad={() => setLoaded(true)}
+        style={{ opacity: loaded ? 1 : 0, transition: "opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1)" }}
+      />
+    </>
   );
 }
 
@@ -246,6 +253,14 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
   const touchStartY = useRef<number | null>(null);
 
   const onTouchStart = useCallback((e: React.TouchEvent) => {
+    // Touches that begin inside a horizontal scroller (Continue Watching row,
+    // category tabs bar) must scroll that element, not switch tabs.
+    const t = e.target as HTMLElement | null;
+    if (t?.closest(".overflow-x-auto, .snap-x")) {
+      touchStartX.current = null;
+      touchStartY.current = null;
+      return;
+    }
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
   }, []);
@@ -323,7 +338,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
 
       {/* Continue Watching row */}
       {continueWatching.length > 0 && (
-        <section className="pb-4">
+        <section className="pb-4 animate-slideUp">
           <h2 className="text-sm font-semibold uppercase tracking-wider mb-3 px-4" style={{ color: "#8A8A9A" }}>Continue Watching</h2>
           <div
             className="flex gap-1.5 overflow-x-auto no-scrollbar px-3 snap-x snap-mandatory"
@@ -346,7 +361,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                   )}
                   {/* Progress bar */}
                   <div className="absolute bottom-0 left-0 right-0 h-1" style={{ background: "rgba(0,0,0,0.5)" }}>
-                    <div className="h-full" style={{ width: `${pct}%`, background: "#E0115F" }} />
+                    <div className="h-full" style={{ width: `${pct}%`, background: "linear-gradient(90deg, #E0115F, #8B5CF6)", boxShadow: "0 0 6px rgba(224,17,95,0.5)" }} />
                   </div>
                   {/* Episode badge */}
                   <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded text-[9px] font-bold" style={{ background: "rgba(0,0,0,0.7)", color: "#fff" }}>
@@ -464,7 +479,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                     width: i === realityIdx ? 20 : 6,
                     height: 6,
                     background: i === realityIdx ? "linear-gradient(90deg, #E0115F, #8B5CF6)" : "rgba(255,255,255,0.4)",
-                    transition: "width 0.3s",
+                    transition: "width 0.35s cubic-bezier(0.22, 1, 0.36, 1)",
                   }} />
                 </button>
               ))}
@@ -581,7 +596,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
           <div className="relative">
             <Link
               href={`/series/${current.slug}/1`}
-              className="block"
+              className="block transition-transform duration-200 ease-out active:scale-[0.98]"
               onClick={(e) => posterClick(e, current.slug)}
             >
               <div
@@ -594,14 +609,22 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                 }}
               >
                 {current.posterUrl ? (
-                  <Image
-                    src={current.posterUrl}
-                    alt={current.title}
-                    fill
-                    priority
-                    sizes="(max-width: 440px) 80vw, 320px"
-                    className="object-contain"
-                  />
+                  /* All hero posters stay mounted and CROSSFADE — swapping a
+                     single img src hard-cut between slides. */
+                  heroSlides.map((s, i) =>
+                    s.posterUrl ? (
+                      <Image
+                        key={s.slug}
+                        src={s.posterUrl}
+                        alt={s.title}
+                        fill
+                        priority={i === 0}
+                        sizes="(max-width: 440px) 80vw, 320px"
+                        className="object-contain hero-crossfade"
+                        style={{ opacity: i === heroIdx % heroSlides.length ? 1 : 0 }}
+                      />
+                    ) : null,
+                  )
                 ) : (
                   <div
                     className="absolute inset-0 flex items-center justify-center text-lg font-bold"
@@ -652,7 +675,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                       width: i === heroIdx % heroSlides.length ? 20 : 6,
                       height: 6,
                       background: i === heroIdx % heroSlides.length ? "linear-gradient(90deg, #E0115F, #8B5CF6)" : "rgba(255,255,255,0.4)",
-                      transition: "width 0.3s",
+                      transition: "width 0.35s cubic-bezier(0.22, 1, 0.36, 1)",
                     }}
                   />
                 </button>
@@ -684,7 +707,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
       {/* Tab Row — 3-column grid (not on Music/Reality/Red Carpet — they have custom sections) */}
       {gridItems.length > 0 && activeTab !== "music" && activeTab !== "reality" && activeTab !== "red-carpet" && (
         <section className="mt-4 pb-4 px-3">
-          <div className="poster-grid grid grid-cols-3 gap-1.5">
+          <div className="poster-grid stagger-children grid grid-cols-3 gap-1.5">
             {gridItems.map((s, i) => (
               <Fragment key={s.slug}>
                 <Link
@@ -701,8 +724,8 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                       style={{ background: "rgba(0,0,0,0.3)" }}
                     >
                       <div
-                        className="w-10 h-10 rounded-full flex items-center justify-center"
-                        style={{ background: "rgba(224, 17, 95, 0.85)", backdropFilter: "blur(4px)" }}
+                        className="w-10 h-10 rounded-full flex items-center justify-center scale-75 group-hover:scale-100 transition-transform duration-300"
+                        style={{ background: "rgba(224, 17, 95, 0.85)", backdropFilter: "blur(4px)", transitionTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)" }}
                       >
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff" stroke="none">
                           <polygon points="8 5 20 12 8 19" />

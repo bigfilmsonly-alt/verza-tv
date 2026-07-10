@@ -5,6 +5,7 @@ import { BRAND } from "@/lib/config";
 import LanguagePicker from "@/components/LanguagePicker";
 import PushNotificationToggle from "@/components/PushNotificationToggle";
 import VipCard from "@/components/VipCard";
+import { checkVipStatusServer } from "@/lib/vip-server";
 import { SavedCount, WatchingCount, DarkModeToggle, SignOutButton } from "@/components/ProfileDynamic";
 
 export const metadata: Metadata = {
@@ -219,7 +220,8 @@ function SectionCard({ children }: { children: React.ReactNode }) {
 /* ------------------------------------------------------------------ */
 /*  Page                                                              */
 /* ------------------------------------------------------------------ */
-export default function MePage() {
+export default async function MePage() {
+  const isVip = await checkVipStatusServer();
   return (
     <section className="px-4 pt-6 pb-10 max-w-lg mx-auto">
       {/* ---- Guest header ---- */}
@@ -271,7 +273,7 @@ export default function MePage() {
 
       {/* ---- VIP Subscription (prominent — sign up & pay to watch) ---- */}
       <SectionLabel>Subscription</SectionLabel>
-      <VipCard />
+      <VipCard isVip={isVip} />
 
       {/* ---- Library ---- */}
       <SectionLabel>Library</SectionLabel>

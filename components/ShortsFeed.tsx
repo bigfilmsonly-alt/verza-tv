@@ -397,6 +397,20 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
       {/* Video starts immediately — no splash */}
 
       {/* THE single persistent video element */}
+      {/* Poster-as-loading-state: the active clip's thumbnail sits behind the
+          video so source swaps show a frame preview instead of black. */}
+      {(() => {
+        const activeId = MUX_MAP[shuffled[activeIndex]?.slug]?.[0]?.playbackId;
+        return activeId ? (
+          <img
+            key={activeId}
+            src={`https://image.mux.com/${activeId}/thumbnail.jpg?time=2&width=480`}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{ zIndex: 1 }}
+          />
+        ) : null;
+      })()}
       <video
         ref={videoRef}
         playsInline
@@ -404,7 +418,7 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
         loop
         preload="auto"
         className="absolute inset-0 w-full h-full object-cover"
-        style={{ zIndex: 2, background: "#000", pointerEvents: "none" }}
+        style={{ zIndex: 2, background: "transparent", pointerEvents: "none" }}
       />
 
       {/* VERZA logo — fades in as the chrome fades out after the 10s idle timer */}

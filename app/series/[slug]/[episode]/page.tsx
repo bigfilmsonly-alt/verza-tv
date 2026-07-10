@@ -118,7 +118,13 @@ export default async function EpisodePage({ params }: Props) {
   // Horizontal swipe is only for WIDESCREEN (16:9) content. Red carpet clips
   // are vertical 9:16 — they play in the standard vertical feed like dramas.
   const isHorizontalSwipe = slug === "storage-pirates";
-  const backTab = series.categories.includes("red-carpet") ? "red-carpet" : series.categories.includes("reality") ? "reality" : null;
+  const backTab = series.categories.includes("red-carpet")
+    ? "red-carpet"
+    : series.categories.includes("reality")
+      ? "reality"
+      : series.categories.includes("music")
+        ? "music"
+        : null;
 
   return (
     <>

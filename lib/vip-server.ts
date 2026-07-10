@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { getUser } from "@/lib/auth";
 import { getServiceClient } from "@/lib/supabase/server";
 
 /**
@@ -12,19 +12,10 @@ import { getServiceClient } from "@/lib/supabase/server";
  */
 export async function checkVipStatusServer(): Promise<boolean> {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("sb-access-token")?.value;
-
-    if (!token) return false;
+    const user = await getUser();
+    if (!user) return false;
 
     const supabase = getServiceClient();
-
-    const {
-      data: { user },
-      error,
-    } = await supabase.auth.getUser(token);
-
-    if (error || !user) return false;
 
     const { data: profile } = await supabase
       .from("profiles")

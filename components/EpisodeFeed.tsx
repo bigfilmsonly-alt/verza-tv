@@ -162,6 +162,7 @@ function EpisodeSlide({
      navigations (direct URL, slow network) we create a fresh element and the
      poster covers the gap exactly as before. */
   const unplaceRef = useRef<(() => void) | null>(null);
+  const didAdoptRef = useRef(false);
 
   useLayoutEffect(() => {
     const box = videoBoxRef.current;
@@ -184,6 +185,7 @@ function EpisodeSlide({
       // inside the feed (posters, chrome, paywall) still paints above it.
       const feedRoot = box.closest(".episode-immersive") as HTMLElement | null;
       if (feedRoot) feedRoot.style.background = "transparent";
+      didAdoptRef.current = true;
       const slideEl = box.parentElement as HTMLElement | null;
       if (slideEl) slideEl.style.background = "transparent";
       const host = box.closest(".device-frame") as HTMLElement | null;
@@ -191,7 +193,7 @@ function EpisodeSlide({
       vid.style.cssText =
         `position:fixed;z-index:10;pointer-events:none;` +
         `object-fit:${widescreen ? "contain" : "cover"};background:#000;` +
-        `opacity:0;transition:opacity 0.2s ease-out;` +
+        `opacity:0;transition:opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1);` +
         (radius ? `border-radius:${radius};` : "");
       const place = () => {
         const r = box.getBoundingClientRect();
@@ -212,6 +214,29 @@ function EpisodeSlide({
       videoRef.current = vid;
       hlsRef.current = adopted.hls;
       attachedRef.current = true;
+      // The instant player only had minimal error handling — give the adopted
+      // instance the same bounded fatal-error recovery as fresh attaches.
+      if (adopted.hls) {
+        const AdoptedHls = adopted.hls.constructor as typeof HlsType;
+        const ahls = adopted.hls;
+        ahls.on(AdoptedHls.Events.ERROR, (_e: string, data: { type: string; fatal: boolean }) => {
+          if (!data.fatal) return;
+          const resume = () => {
+            const v = videoRef.current;
+            if (v && isActiveRef.current && !blockedRef.current) v.play().catch(() => {});
+          };
+          if (data.type === AdoptedHls.ErrorTypes.NETWORK_ERROR) {
+            ahls.startLoad();
+            resume();
+          } else if (data.type === AdoptedHls.ErrorTypes.MEDIA_ERROR && mediaRecoveriesRef.current < 2) {
+            mediaRecoveriesRef.current += 1;
+            ahls.recoverMediaError();
+            resume();
+          } else {
+            fullReattach();
+          }
+        });
+      }
       setSourceReady(true);
       setPlaying(!vid.paused);
       // A frame is already decoded → reveal the movie in this same pre-paint
@@ -225,7 +250,7 @@ function EpisodeSlide({
       vid.setAttribute("playsinline", "");
       vid.preload = "auto";
       vid.className = `absolute inset-0 w-full h-full ${widescreen ? "object-contain" : "object-cover"}`;
-      vid.style.cssText = "opacity:0;transition:opacity 0.2s ease-out;z-index:2;";
+      vid.style.cssText = "opacity:0;transition:opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1);z-index:2;";
       box.appendChild(vid);
       videoRef.current = vid;
     }
@@ -233,8 +258,12 @@ function EpisodeSlide({
     return () => {
       // Unmount teardown. Covers the adopted player too — the attach effect
       // early-returns for adopted slides, so its cleanup never registers.
-      const feedRootEl = document.querySelector(".episode-immersive") as HTMLElement | null;
-      if (feedRootEl && feedRootEl.style.background === "transparent") feedRootEl.style.background = "";
+      // Only the slide that ADOPTED restores the shared feed background —
+      // any slide doing it re-blacked the feed on every window shift.
+      if (didAdoptRef.current) {
+        const feedRootEl = document.querySelector(".episode-immersive") as HTMLElement | null;
+        if (feedRootEl && feedRootEl.style.background === "transparent") feedRootEl.style.background = "";
+      }
       unplaceRef.current?.();
       unplaceRef.current = null;
       if (hlsRef.current) { try { hlsRef.current.destroy(); } catch {} hlsRef.current = null; }
@@ -334,14 +363,14 @@ function EpisodeSlide({
      arriving (slow networks must not have an in-progress load destroyed). */
   useEffect(() => {
     if (!isActive || !sourceReady || started || blocked) return;
-    const t = setTimeout(() => {
+    const t = setInterval(() => {
       const v = videoRef.current;
       if (!v || v.readyState >= 2) return;
       if (v.paused && !playing) return; // user paused pre-frame — leave it
       if (v.buffered.length > 0) return; // data flowing — just slow, not dead
       fullReattach();
     }, 10000);
-    return () => clearTimeout(t);
+    return () => clearInterval(t);
   }, [isActive, sourceReady, started, blocked, playing, fullReattach]);
 
   /* Attach HLS source AND play immediately if this is the active slide.
@@ -579,7 +608,7 @@ function EpisodeSlide({
           className="absolute inset-0 w-full h-full object-cover"
           style={{
             opacity: started ? 0 : 1,
-            transition: "opacity 0.3s ease 0.15s",
+            transition: "opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.1s",
             zIndex: 0,
           }}
         />
@@ -599,7 +628,7 @@ function EpisodeSlide({
           className={widescreen ? "object-contain" : "object-cover"}
           style={{
             opacity: started ? 0 : 1,
-            transition: "opacity 0.3s ease 0.15s",
+            transition: "opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.1s",
             zIndex: 1,
           }}
         />
@@ -617,14 +646,14 @@ function EpisodeSlide({
       {showPause && (
         <div
           className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none"
-          style={{ animation: "fadeOut 0.8s ease forwards" }}
+          style={{ animation: "fadeOut 0.3s ease 0.5s forwards" }}
         >
           <div
             className="w-20 h-20 rounded-full flex items-center justify-center"
             style={{
               background: "rgba(0,0,0,0.4)",
               backdropFilter: "blur(16px)",
-              animation: "scaleIn 0.15s ease-out",
+              animation: "scaleIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)",
             }}
           >
             {playing ? (
@@ -673,7 +702,7 @@ function EpisodeToast({ epNumber, show }: { epNumber: number; show: boolean }) {
       className="absolute top-1/2 left-1/2 z-40 pointer-events-none"
       style={{
         transform: "translate(-50%, -50%)",
-        animation: "toastIn 0.6s ease forwards",
+        animation: "toastIn 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards",
       }}
     >
       <div
@@ -742,23 +771,60 @@ export default function EpisodeFeed({
   });
 
   // Client-side auth: VIP / entitlement upgrade.  The page ships with
-  // episodes marked free based on series config only.  This check runs
-  // in the background and flips authFree=true if the user is VIP or owns
-  // the series — making every episode playable without a paywall.
+  // episodes marked free based on series config only.  A Stripe checkout
+  // return carries ?session_id=cs_... which is VERIFIED server-side (the old
+  // blind ?unlocked=true param let anyone unlock by editing the URL);
+  // verified sessions are remembered per-device for guest buyers.
   const [authFree, setAuthFree] = useState(() => {
     if (typeof window !== "undefined") {
-      return new URLSearchParams(window.location.search).get("unlocked") === "true";
+      // Optimistic while verification runs — a buyer landing back from
+      // Stripe must never see a paywall flash. Reverted if it fails.
+      return (new URLSearchParams(window.location.search).get("session_id") ?? "").startsWith("cs_");
     }
     return false;
   });
 
   useEffect(() => {
-    if (authFree) return; // already unlocked via ?unlocked=true
-    fetch(`/api/access?slug=${seriesSlug}`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d: { full?: boolean } | null) => { if (d?.full) setAuthFree(true); })
-      .catch(() => {});
-  }, [seriesSlug, authFree]);
+    let stale = false;
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get("session_id");
+    const storageKey = `verza-unlock:${seriesSlug}`;
+
+    async function confirmSession(id: string): Promise<boolean> {
+      try {
+        const r = await fetch(`/api/unlock/confirm?session_id=${encodeURIComponent(id)}&slug=${encodeURIComponent(seriesSlug)}`);
+        const d = (await r.json()) as { full?: boolean };
+        return !!d.full;
+      } catch {
+        return false;
+      }
+    }
+
+    (async () => {
+      if (sessionId?.startsWith("cs_")) {
+        const ok = await confirmSession(sessionId);
+        if (stale) return;
+        if (ok) {
+          setAuthFree(true);
+          try { localStorage.setItem(storageKey, sessionId); } catch {}
+          return;
+        }
+        setAuthFree(false); // forged/expired param — fall through to /api/access
+      }
+      try {
+        const r = await fetch(`/api/access?slug=${seriesSlug}`);
+        const d = r.ok ? ((await r.json()) as { full?: boolean }) : null;
+        if (!stale && d?.full) { setAuthFree(true); return; }
+      } catch {}
+      // Guest buyer on this device: re-verify the remembered session.
+      try {
+        const remembered = localStorage.getItem(storageKey);
+        if (remembered && !stale && (await confirmSession(remembered))) setAuthFree(true);
+      } catch {}
+    })();
+
+    return () => { stale = true; };
+  }, [seriesSlug]);
 
   // Dismiss any visible paywall popup when auth resolves
   useEffect(() => {
@@ -828,7 +894,10 @@ export default function EpisodeFeed({
     // Pause any playing video first to avoid audio bleeding into the next view
     const vids = document.querySelectorAll("video");
     vids.forEach((v) => { v.muted = true; v.pause(); });
-    window.location.href = backHref;
+    // replace() instead of href assignment: the episode's history entry is
+    // swapped for home, so the browser Back button from home doesn't bounce
+    // the user straight back into the player.
+    window.location.replace(backHref);
   }, [backHref]);
 
   const activeEp = episodes[activeIndex];
@@ -926,9 +995,14 @@ export default function EpisodeFeed({
             });
 
             const ep = episodes[idx];
-            // Preserve query params (?unlocked=true from Stripe, ?t= resume) —
-            // stripping them broke access on reload before the webhook landed.
-            window.history.replaceState(null, "", `/series/${seriesSlug}/${ep.number}${window.location.search}`);
+            // Preserve query params on the starting episode, but drop the
+            // one-shot ones (?t= resume position, ?session_id=) once the
+            // viewer moves to another episode — a reload there must not
+            // re-apply a stale resume seek to the wrong episode.
+            const qp = new URLSearchParams(window.location.search);
+            if (ep.number !== startEpisode) { qp.delete("t"); qp.delete("session_id"); qp.delete("unlocked"); }
+            const qs = qp.toString();
+            window.history.replaceState(null, "", `/series/${seriesSlug}/${ep.number}${qs ? `?${qs}` : ""}`);
 
             // First locked episode → surface the $1.99 unlock-all popup.
             // authFree (VIP / entitled) bypasses the paywall entirely.
@@ -1274,7 +1348,7 @@ export default function EpisodeFeed({
           background: "rgba(0,0,0,0.35)", backdropFilter: "blur(20px)",
           opacity: showActionRail ? 1 : 0,
           pointerEvents: showActionRail ? "auto" : "none",
-          transition: "opacity 0.4s ease",
+          transition: showActionRail ? "opacity 0.2s cubic-bezier(0.22, 1, 0.36, 1)" : "opacity 0.6s ease",
         }}
         aria-label="Back"
       >
@@ -1294,7 +1368,7 @@ export default function EpisodeFeed({
           background: "rgba(0,0,0,0.35)", backdropFilter: "blur(20px)",
           opacity: showActionRail ? 1 : 0,
           pointerEvents: showActionRail ? "auto" : "none",
-          transition: "opacity 0.4s ease",
+          transition: showActionRail ? "opacity 0.2s cubic-bezier(0.22, 1, 0.36, 1)" : "opacity 0.6s ease",
         }}
         aria-label={muted ? "Unmute" : "Mute"}
       >
@@ -1331,7 +1405,7 @@ export default function EpisodeFeed({
           background: "rgba(0,0,0,0.35)", backdropFilter: "blur(20px)",
           opacity: showActionRail ? 1 : 0,
           pointerEvents: showActionRail ? "auto" : "none",
-          transition: "opacity 0.4s ease",
+          transition: showActionRail ? "opacity 0.2s cubic-bezier(0.22, 1, 0.36, 1)" : "opacity 0.6s ease",
         }}
         aria-label="Fullscreen"
       >
@@ -1348,7 +1422,7 @@ export default function EpisodeFeed({
           transform: "translateY(-50%)",
           opacity: showActionRail ? 1 : 0,
           pointerEvents: showActionRail ? "auto" : "none",
-          transition: "opacity 0.4s ease",
+          transition: showActionRail ? "opacity 0.2s cubic-bezier(0.22, 1, 0.36, 1)" : "opacity 0.6s ease",
         }}
       >
         {/* Like */}
@@ -1449,7 +1523,7 @@ export default function EpisodeFeed({
           <div
             onClick={(e) => e.stopPropagation()}
             className="w-full px-5 pt-3 pb-8"
-            style={{ background: "#12121C", borderTopLeftRadius: 22, borderTopRightRadius: 22, animation: "scaleIn 0.25s ease" }}
+            style={{ background: "#12121C", borderTopLeftRadius: 22, borderTopRightRadius: 22, animation: "slideUp 0.35s cubic-bezier(0.22, 1, 0.36, 1) both" }}
           >
             <div className="w-10 h-1 rounded-full mx-auto mb-4" style={{ background: "rgba(255,255,255,0.2)" }} />
             <p className="text-sm font-bold" style={{ color: "#F5F4F8" }}>Share this episode</p>
@@ -1508,7 +1582,7 @@ export default function EpisodeFeed({
       {/* Episode badge — bottom-left */}
       <div
         className="absolute bottom-6 left-4 z-50 pointer-events-none"
-        style={{ opacity: showActionRail ? 1 : 0, transition: "opacity 0.4s ease" }}
+        style={{ opacity: showActionRail ? 1 : 0, transition: showActionRail ? "opacity 0.2s cubic-bezier(0.22, 1, 0.36, 1)" : "opacity 0.6s ease" }}
       >
         <div style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(12px)", borderRadius: 12, padding: "6px 10px" }}>
           <p className="text-[10px] font-medium mb-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>
@@ -1523,7 +1597,7 @@ export default function EpisodeFeed({
       {/* Live playback progress bar — very bottom */}
       <div
         className="absolute bottom-0 left-0 right-0 z-50 pointer-events-none"
-        style={{ height: 4, opacity: showActionRail ? 1 : 0, transition: "opacity 0.4s ease" }}
+        style={{ height: 4, opacity: showActionRail ? 1 : 0, transition: showActionRail ? "opacity 0.2s cubic-bezier(0.22, 1, 0.36, 1)" : "opacity 0.6s ease" }}
       >
         <div
           style={{
@@ -1541,9 +1615,9 @@ export default function EpisodeFeed({
       {showUnlock && (
         <div
           className="absolute inset-0 z-[60] flex items-center justify-center"
-          style={{ background: "rgba(0,0,0,0.8)", backdropFilter: "blur(12px)", animation: "fadeIn 0.3s ease" }}
+          style={{ background: "rgba(0,0,0,0.8)", backdropFilter: "blur(12px)", animation: "fadeIn 0.35s ease-out both" }}
         >
-          <div className="text-center px-8 max-w-xs" style={{ animation: "scaleIn 0.3s ease" }}>
+          <div className="text-center px-8 max-w-xs" style={{ animation: "paywallIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both" }}>
             <div
               className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5"
               style={{ background: "rgba(224,17,95,0.12)" }}
@@ -1555,7 +1629,7 @@ export default function EpisodeFeed({
             </div>
             <h3 className="text-xl font-bold mb-2" style={{ color: "#fff" }}>Keep Watching</h3>
             <p className="text-sm mb-6" style={{ color: "rgba(255,255,255,0.45)" }}>
-              Unlock all episodes of {seriesTitle}
+              All {episodes.length} episodes of {seriesTitle} — yours forever
             </p>
             <button
               onClick={async () => {
@@ -1570,6 +1644,7 @@ export default function EpisodeFeed({
                   });
                   const data = await res.json();
                   if (data.url) window.location.href = data.url;
+                  else setUnlockLoading(false); // non-OK — let them retry
                 } catch {
                   setUnlockLoading(false);
                 }
@@ -1583,14 +1658,17 @@ export default function EpisodeFeed({
                 boxShadow: "0 0 40px rgba(224,17,95,0.3)",
               }}
             >
-              {unlockLoading ? "Loading..." : "Unlock Full Series — $1.99"}
+              {unlockLoading ? "Opening secure checkout…" : (<>Unlock Full Series — <span className="line-through mr-1" style={{ opacity: 0.55, fontWeight: 600 }}>$4.99</span>$1.99</>)}
             </button>
+            <p className="mt-2.5 text-[11px]" style={{ color: "rgba(255,255,255,0.35)" }}>
+              One-time payment · Secure checkout via Stripe
+            </p>
             <button
               onClick={handleBack}
               className="mt-4 text-sm font-medium border-0 bg-transparent cursor-pointer"
-              style={{ color: "rgba(255,255,255,0.35)" }}
+              style={{ color: "rgba(255,255,255,0.35)", opacity: 0, animation: "fadeIn 0.4s ease-out 0.9s forwards" }}
             >
-              Go Back
+              Maybe later
             </button>
           </div>
         </div>
@@ -1608,10 +1686,15 @@ export default function EpisodeFeed({
           100% { transform: scale(1); opacity: 0; }
         }
         @keyframes toastIn {
-          0% { transform: translate(-50%, -50%) scale(0.7); opacity: 0; }
-          20% { transform: translate(-50%, -50%) scale(1.05); opacity: 1; }
-          40% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-          100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+          0% { transform: translate(-50%, -50%) scale(0.85); opacity: 0; }
+          10% { transform: translate(-50%, -50%) scale(1.04); opacity: 1; }
+          18% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+          80% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+          100% { transform: translate(-50%, -50%) scale(0.98); opacity: 0; }
+        }
+        @keyframes paywallIn {
+          0% { transform: translateY(20px) scale(0.94); opacity: 0; }
+          100% { transform: translateY(0) scale(1); opacity: 1; }
         }
       `}</style>
     </div>

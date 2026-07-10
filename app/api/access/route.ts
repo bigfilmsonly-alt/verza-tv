@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { getUser } from "@/lib/auth";
 import { getServiceClient } from "@/lib/supabase/server";
 import { type NextRequest } from "next/server";
 
@@ -13,15 +13,13 @@ export async function GET(request: NextRequest) {
   try {
     const slug = request.nextUrl.searchParams.get("slug");
 
-    const cookieStore = await cookies();
-    const token = cookieStore.get("sb-access-token")?.value;
-    if (!token) return Response.json({ full: false });
+    // Resolve the session via @supabase/ssr cookies (the old "sb-access-token"
+    // cookie name was never set by anything — every user read as logged-out,
+    // so paying customers were re-paywalled on reload).
+    const user = await getUser();
+    if (!user) return Response.json({ full: false });
 
     const supabase = getServiceClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser(token);
-    if (!user) return Response.json({ full: false });
 
     const vipQuery = supabase
       .from("profiles")

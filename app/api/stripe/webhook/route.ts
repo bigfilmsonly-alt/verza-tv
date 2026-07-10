@@ -118,13 +118,17 @@ export async function POST(req: NextRequest) {
           (type === "series_unlock" || type === "creator_unlock") &&
           session.metadata?.seriesSlug
         ) {
-          // Try to find user by stripe_customer_id on profiles table
+          // Resolve the buyer: checkout now carries the signed-in user's id
+          // directly (client_reference_id + metadata.userId) — the old
+          // stripe_customer_id lookup never matched because payment-mode
+          // sessions have no customer and nothing populated that column.
           const stripeCustomer =
             typeof session.customer === "string" ? session.customer : (session.customer as { id: string } | null)?.id ?? null;
 
-          let userId: string | null = null;
+          let userId: string | null =
+            session.metadata?.userId || session.client_reference_id || null;
 
-          if (stripeCustomer) {
+          if (!userId && stripeCustomer) {
             const { data: profile } = await supabase
               .from("profiles")
               .select("id")
@@ -176,6 +180,38 @@ export async function POST(req: NextRequest) {
           }
         }
 
+        // VIP subscription checkout: link the Stripe customer to the user's
+        // profile NOW (the subscription.created handler resolves users by
+        // stripe_customer_id, which nothing else ever writes) and activate.
+        if (type === "vip_subscription") {
+          const subCustomer =
+            typeof session.customer === "string" ? session.customer : (session.customer as { id: string } | null)?.id ?? null;
+          let vipUserId: string | null =
+            session.metadata?.userId || session.client_reference_id || null;
+          if (!vipUserId && email) {
+            const { data: byEmail } = await supabase
+              .from("profiles")
+              .select("id")
+              .ilike("email", email)
+              .maybeSingle();
+            vipUserId = byEmail?.id ?? null;
+          }
+          if (vipUserId) {
+            const { error: linkErr } = await supabase
+              .from("profiles")
+              .update({
+                stripe_customer_id: subCustomer,
+                is_vip: true,
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", vipUserId);
+            if (linkErr) console.error("[webhook] Failed to link VIP profile:", linkErr);
+            else console.log("[webhook] VIP linked + activated for user", vipUserId);
+          } else {
+            console.error("[webhook] VIP checkout completed but no user could be resolved", { email });
+          }
+        }
+
         // Send confirmation email
         if (email) {
           const amount = `$${((session.amount_total || 0) / 100).toFixed(2)}`;
@@ -213,13 +249,26 @@ export async function POST(req: NextRequest) {
         const email =
           !("deleted" in customer && customer.deleted) ? customer.email : null;
 
-        // Look up user by stripe_customer_id in profiles table
+        // Look up user by stripe_customer_id, then subscription metadata,
+        // then the customer's email (covers subscriptions created before the
+        // profile was linked).
         const { data: profile } = await supabase
           .from("profiles")
           .select("id")
           .eq("stripe_customer_id", customerId)
           .maybeSingle();
-        const userId = profile?.id ?? null;
+        let userId: string | null = profile?.id ?? null;
+        if (!userId && (sub.metadata as Record<string, string> | null)?.userId) {
+          userId = (sub.metadata as Record<string, string>).userId;
+        }
+        if (!userId && email) {
+          const { data: byEmail } = await supabase
+            .from("profiles")
+            .select("id")
+            .ilike("email", email)
+            .maybeSingle();
+          userId = byEmail?.id ?? null;
+        }
 
         if (userId) {
           const periodEnd = sub.items.data[0]?.current_period_end

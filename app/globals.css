@@ -126,7 +126,7 @@ body {
 }
 
 .animate-slideUp {
-  animation: slideUp 0.5s ease-out both;
+  animation: slideUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .animate-rise {
@@ -691,10 +691,10 @@ img {
   will-change: transform;
 }
 .tab-slide-next {
-  animation: tabSlideNext 0.32s cubic-bezier(0.22, 0.61, 0.36, 1);
+  animation: tabSlideNext 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .tab-slide-prev {
-  animation: tabSlidePrev 0.32s cubic-bezier(0.22, 0.61, 0.36, 1);
+  animation: tabSlidePrev 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 @media (prefers-reduced-motion: reduce) {
   .tab-slide-next,

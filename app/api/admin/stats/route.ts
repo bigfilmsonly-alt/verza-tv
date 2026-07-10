@@ -79,7 +79,7 @@ export async function GET(req: NextRequest) {
       // Watch progress (engagement)
       supabase
         .from("watch_progress")
-        .select("id, series_slug, episode_number, progress, updated_at")
+        .select("id, series_slug, episode_number, progress_seconds, updated_at")
         .gte("updated_at", sinceISO),
 
       // Saved list

@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import Stripe from "stripe";
 import { getSeriesBySlug } from "@/lib/catalog";
+import { getUser } from "@/lib/auth";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -26,9 +27,15 @@ export async function POST(req: NextRequest) {
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verzatv.com";
     const priceInCents = 199; // $1.99 Summer Sale — per movie
 
+    // Attach the signed-in buyer so the webhook can write the entitlement to
+    // their account IMMEDIATELY (previously every purchase fell into the
+    // pending-by-email bucket and only unlocked on the buyer's next sign-in).
+    const user = await getUser();
+
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       phone_number_collection: { enabled: true },
+      ...(user ? { client_reference_id: user.id, customer_email: user.email || undefined } : {}),
       line_items: [
         {
           price_data: {
@@ -49,8 +56,12 @@ export async function POST(req: NextRequest) {
         seriesSlug: series.slug,
         show_id: series.slug,
         episodeCount: String(series.episodeCount),
+        ...(user ? { userId: user.id } : {}),
       },
-      success_url: `${siteUrl}/series/${series.slug}/6?unlocked=true`,
+      // session_id is VERIFIED server-side by /api/unlock/confirm before the
+      // client honors it — the old blind ?unlocked=true param let anyone
+      // unlock every series by editing the URL.
+      success_url: `${siteUrl}/series/${series.slug}/${series.freeEpisodes + 1}?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${siteUrl}/series/${series.slug}/1`,
     });
 
