@@ -625,7 +625,10 @@ function EpisodeSlide({
           fill
           priority={isActive}
           sizes="100vw"
-          className={widescreen ? "object-contain" : "object-cover"}
+          // Always cover: only the VIDEO letterboxes in widescreen mode. A
+          // contained poster over the full-bleed transition poster rendered
+          // as a "poster inside a poster" double image on Storage Pirates.
+          className="object-cover"
           style={{
             opacity: started ? 0 : 1,
             transition: "opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.1s",
