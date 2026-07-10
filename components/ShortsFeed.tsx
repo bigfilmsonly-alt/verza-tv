@@ -325,6 +325,15 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
     return cleanup;
   }, [activeIndex, shuffled]);
 
+  /* Destroy the live hls instance on unmount — the source-swap effect's
+     cleanup only cancels listeners, so leaving the feed leaked a running
+     player that kept buffering segments. */
+  useEffect(() => {
+    return () => {
+      if (hlsRef.current) { try { hlsRef.current.destroy(); } catch {} hlsRef.current = null; }
+    };
+  }, []);
+
   /* Sync muted */
   useEffect(() => {
     const vid = videoRef.current;

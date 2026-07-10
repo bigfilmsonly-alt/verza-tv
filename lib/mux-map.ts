@@ -4028,7 +4028,6 @@ export const MUX_MAP: Record<string, MuxEpisode[]> = {
     { episode: 11, playbackId: "100xeqfMYu1VhQyxkzbZLE00v3STK023XtwE2rQNSKlII4", duration: 351 },
     { episode: 12, playbackId: "4HeP3OulRFJtSyKBwxuL3sJpptfY8cJdYMrp7tpDGmo", duration: 390 },
     { episode: 13, playbackId: "9fWtDSlTRs2PpX1rEJOPOqxKnbrQe00hPP801HozBi0218", duration: 399 },
-    { episode: 14, playbackId: "qBqc00XczuKuzZgxuYnhHmyVXyLm9HC8raqELT01ItzWg", duration: 187 },
   ],
   /* Red Carpet — The Carpet: Exes Premiere (LA premiere interviews, with
      name graphics; uploaded 2026-06-16, verified via thumbnails) */

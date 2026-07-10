@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useEffect, useLayoutEffect, useCallback } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import type HlsType from "hls.js";
 import { adoptInstantPlayer } from "@/lib/instant-player";
@@ -19,7 +20,7 @@ import {
 let hlsPromise: Promise<typeof HlsType | null> | null = null;
 function getHls(): Promise<typeof HlsType | null> {
   if (!hlsPromise && typeof window !== "undefined") {
-    hlsPromise = import("hls.js").then((m) => m.default).catch(() => null);
+    hlsPromise = import("hls.js").then((m) => m.default).catch(() => { hlsPromise = null; return null; });
   }
   return hlsPromise || Promise.resolve(null);
 }
@@ -84,6 +85,7 @@ function EpisodeSlide({
   onFirstPlayGesture,
   widescreen = false,
   transitionPoster,
+  blocked = false,
 }: {
   episode: FeedEpisode;
   seriesSlug: string;
@@ -108,6 +110,9 @@ function EpisodeSlide({
   /** Exact (already-cached) poster URL the user tapped on the browse page —
       painted instantly for a seamless poster → video transition. */
   transitionPoster?: string;
+  /** True when this episode is behind the paywall for this viewer — the
+      video is held paused so paid content never plays under the overlay. */
+  blocked?: boolean;
 }) {
   const videoBoxRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -130,6 +135,8 @@ function EpisodeSlide({
   useEffect(() => { mutedRef.current = muted; }, [muted]);
   const isActiveRef = useRef(isActive);
   useEffect(() => { isActiveRef.current = isActive; }, [isActive]);
+  const blockedRef = useRef(blocked);
+  useEffect(() => { blockedRef.current = blocked; }, [blocked]);
 
   // The poster is visible from the very first paint and stays until the first
   // real video frame is composited, then crossfades out. No timers, no delayed
@@ -165,6 +172,14 @@ function EpisodeSlide({
       const vid = adopted.video;
       vid.dataset.verzaFixed = "1";
       vid.muted = true;
+      // The feed root (.episode-immersive) is an OPAQUE z-50 layer that would
+      // paint a black wall over this body-level z-10 video. Make the root and
+      // this slide transparent so the movie shows through, while everything
+      // inside the feed (posters, chrome, paywall) still paints above it.
+      const feedRoot = box.closest(".episode-immersive") as HTMLElement | null;
+      if (feedRoot) feedRoot.style.background = "transparent";
+      const slideEl = box.parentElement as HTMLElement | null;
+      if (slideEl) slideEl.style.background = "transparent";
       const host = box.closest(".device-screen") as HTMLElement | null;
       const radius = host ? getComputedStyle(host).borderRadius : "";
       vid.style.cssText =
@@ -312,7 +327,7 @@ function EpisodeSlide({
           vid.load();
           if (!cancelled) {
             setSourceReady(true);
-            if (isActiveRef.current) tryPlay(vid);
+            if (isActiveRef.current && !blockedRef.current) tryPlay(vid);
           }
         }
         return;
@@ -333,8 +348,7 @@ function EpisodeSlide({
       hls.loadSource(hlsUrl);
       hls.attachMedia(vid);
       if (!cancelled) {
-        setSourceReady(true);
-        if (isActiveRef.current) tryPlay(vid);
+        setSourceReady(true); // the play effect is the single tryPlay caller
       }
       hls.on(Hls.Events.ERROR, (_e: string, data: { type: string; fatal: boolean }) => {
         if (data.fatal && Hls) {
@@ -370,18 +384,20 @@ function EpisodeSlide({
   }, [isActive, isNear]);
 
   /* When a slide becomes active AFTER source was already attached (swiping
-     to a pre-loaded neighbor), play immediately. */
+     to a pre-loaded neighbor), play immediately. Locked (paywalled) episodes
+     are PAUSED instead — the paid content must not play behind the unlock
+     overlay. When the viewer unlocks (blocked flips false), it plays. */
   useEffect(() => {
     const vid = videoRef.current;
     if (!vid) return;
-    if (isActive && sourceReady) {
+    if (isActive && sourceReady && !blocked) {
       tryPlay(vid);
-    } else if (!isActive) {
+    } else if (!isActive || blocked) {
       vid.muted = true;
       vid.pause();
       setPlaying(false);
     }
-  }, [isActive, sourceReady, tryPlay]);
+  }, [isActive, sourceReady, blocked, tryPlay]);
 
   /* Step 3: Sync muted prop instantly to video element */
   useEffect(() => {
@@ -460,7 +476,9 @@ function EpisodeSlide({
         onFirstPlayGesture();
         vid.play().catch(() => {});
         setPlaying(true);
-        setStarted(true);
+        // Reveal only once a real frame is composited — flipping `started`
+        // immediately would fade the posters over a still-black video.
+        onFirstFrame(vid, () => setStarted(true));
       } else {
         vid.pause();
         setPlaying(false);
@@ -501,10 +519,13 @@ function EpisodeSlide({
           placeholder can't flash: it only crossfades out once the video is
           actually showing pixels. */}
       {posterUrl && (
-        <img
+        <Image
           src={posterUrl}
           alt=""
-          className={`absolute inset-0 w-full h-full ${widescreen ? "object-contain" : "object-cover"}`}
+          fill
+          priority={isActive}
+          sizes="100vw"
+          className={widescreen ? "object-contain" : "object-cover"}
           style={{
             opacity: started ? 0 : 1,
             transition: "opacity 0.3s ease 0.15s",
@@ -746,28 +767,35 @@ export default function EpisodeFeed({
   const windowStart = Math.max(0, activeIndex - WINDOW);
   const windowEnd = Math.min(episodes.length - 1, activeIndex + WINDOW);
 
-  /* Scroll to start episode on mount */
+  /* Scroll to start episode on mount. Look the slide up by data-index — the
+     container's children include window spacers, so positional indexing is
+     wrong for any start episode past the first render window. */
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
     const startIdx = episodes.findIndex((e) => e.number === startEpisode);
     if (startIdx > 0) {
-      const target = container.children[startIdx] as HTMLElement;
+      const target = container.querySelector(`[data-index="${startIdx}"]`) as HTMLElement | null;
       if (target) target.scrollIntoView({ behavior: "instant" as ScrollBehavior });
     }
   }, []);
 
-  /* Auto-advance: pause current, then scroll to next */
+  /* Auto-advance: pause current, then scroll to next. Slides are looked up by
+     data-index (positional children[] indexing breaks once window spacers
+     exist — it skipped episodes and scrolled into blank spacer regions). */
   const handleEpisodeEnded = useCallback(() => {
     const container = containerRef.current;
     if (!container) return;
-    // Pause the current video immediately to prevent audio overlap
-    const currentSlide = container.children[activeIndexRef.current];
-    const currentVid = currentSlide?.querySelector("video");
+    // Pause the current video immediately to prevent audio overlap. The
+    // adopted instant-player video lives in <body>, not in the slide.
+    const currentSlide = container.querySelector(`[data-index="${activeIndexRef.current}"]`);
+    const currentVid =
+      currentSlide?.querySelector("video") ??
+      document.querySelector<HTMLVideoElement>("video[data-verza-fixed]");
     if (currentVid) { currentVid.muted = true; currentVid.pause(); }
     const nextIdx = activeIndexRef.current + 1;
     if (nextIdx < episodes.length) {
-      const target = container.children[nextIdx] as HTMLElement;
+      const target = container.querySelector(`[data-index="${nextIdx}"]`) as HTMLElement | null;
       if (target) target.scrollIntoView({ behavior: "smooth" });
     }
   }, [episodes.length]);
@@ -794,7 +822,9 @@ export default function EpisodeFeed({
             });
 
             const ep = episodes[idx];
-            window.history.replaceState(null, "", `/series/${seriesSlug}/${ep.number}`);
+            // Preserve query params (?unlocked=true from Stripe, ?t= resume) —
+            // stripping them broke access on reload before the webhook landed.
+            window.history.replaceState(null, "", `/series/${seriesSlug}/${ep.number}${window.location.search}`);
 
             // First locked episode → surface the $1.99 unlock-all popup.
             // authFree (VIP / entitled) bypasses the paywall entirely.
@@ -831,7 +861,11 @@ export default function EpisodeFeed({
       const container = containerRef.current;
       if (!container) return null;
       const slide = container.querySelector(`[data-index="${activeIndexRef.current}"]`);
-      return slide ? slide.querySelector("video") : null;
+      // The adopted instant-player video is a <body> child, not in the slide.
+      return (
+        (slide ? slide.querySelector("video") : null) ??
+        document.querySelector<HTMLVideoElement>("video[data-verza-fixed]")
+      );
     }
 
     function onHidden() {
@@ -1098,6 +1132,7 @@ export default function EpisodeFeed({
                 onFirstPlayGesture={requestPermissionOnce}
                 widescreen={horizontal}
                 transitionPoster={ep.number === startEpisode ? transitionPoster ?? undefined : undefined}
+                blocked={!ep.isFree && !authFree}
               />
             </div>
           );
@@ -1172,14 +1207,15 @@ export default function EpisodeFeed({
       {/* Fullscreen button — below mute */}
       <button
         onClick={() => {
-          // Find the active video element and request fullscreen
-          const vids = document.querySelectorAll("video");
-          for (const v of vids) {
-            if (!v.paused) {
-              if (v.requestFullscreen) v.requestFullscreen();
-              else if ((v as any).webkitEnterFullscreen) (v as any).webkitEnterFullscreen();
-              break;
-            }
+          // Fullscreen the ACTIVE slide's video (works while paused too).
+          // The adopted instant-player video is a <body> child, not in the slide.
+          const slide = containerRef.current?.querySelector(`[data-index="${activeIndexRef.current}"]`);
+          const v =
+            (slide?.querySelector("video") as HTMLVideoElement | null) ??
+            document.querySelector<HTMLVideoElement>("video[data-verza-fixed]");
+          if (v) {
+            if (v.requestFullscreen) v.requestFullscreen();
+            else if ((v as any).webkitEnterFullscreen) (v as any).webkitEnterFullscreen();
           }
         }}
         className="absolute top-16 right-4 z-50 w-10 h-10 rounded-full flex items-center justify-center border-0 cursor-pointer"

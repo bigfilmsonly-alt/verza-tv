@@ -7,14 +7,19 @@ import { emit } from "@/lib/analytics";
 import VideoWatermark from "@/components/VideoWatermark";
 
 let HlsModule: typeof HlsType | null = null;
+let hlsLoad: Promise<typeof HlsType | null> | null = null;
+function getHls(): Promise<typeof HlsType | null> {
+  if (!hlsLoad && typeof window !== "undefined") {
+    hlsLoad = import("hls.js")
+      .then((m) => { HlsModule = m.default; return HlsModule; })
+      .catch(() => { hlsLoad = null; return null; }); // transient failure → retry next call
+  }
+  return hlsLoad || Promise.resolve(null);
+}
 // Deferred via setTimeout: a dynamic import() fired DURING module evaluation
 // can deadlock the bundler's chunk loader (the promise never settles).
 if (typeof window !== "undefined") {
-  setTimeout(() => {
-    import("hls.js").then((m) => {
-      HlsModule = m.default;
-    }).catch(() => {});
-  }, 0);
+  setTimeout(() => { void getHls(); }, 0);
 }
 
 interface Props {
@@ -63,15 +68,19 @@ export default function CreatorWatch({
   const hlsUrl = `https://stream.mux.com/${playbackId}.m3u8`;
 
   // Attach the stream once the user starts (mux public playback).
-  const attach = useCallback(() => {
+  // AWAITS the hls.js load — a tap in the first seconds must not race the
+  // dynamic import and fall onto Chrome's stalling native-HLS path.
+  const attach = useCallback(async () => {
     const vid = videoRef.current;
     if (!vid || locked) return;
 
     // Prefer hls.js (MSE) whenever supported; native HLS only where hls.js
     // can't run (iOS Safari). Some Chrome versions answer "maybe" to
     // canPlayType(HLS) but then stall forever without playing.
-    if (HlsModule && HlsModule.isSupported()) {
-      const hls = new HlsModule();
+    const Hls = await getHls();
+    if (!videoRef.current) return; // unmounted while loading
+    if (Hls && Hls.isSupported()) {
+      const hls = new Hls();
       hlsRef.current = hls;
       hls.loadSource(hlsUrl);
       hls.attachMedia(vid);
@@ -93,7 +102,7 @@ export default function CreatorWatch({
     if (!vid) return;
     revealChrome();
     if (!started) {
-      attach();
+      await attach();
       setStarted(true);
       emit("play_started", { show_id: slug });
     }

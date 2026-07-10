@@ -22,40 +22,6 @@ if (typeof window !== "undefined") {
   setTimeout(() => { import("hls.js").catch(() => {}); }, 0);
 }
 
-/* ---- Two-stage HLS warm-up for instant playback ----------------------
-   Stage 1 (pointerdown — the finger/mouse touches a poster): fetch the
-   master manifest AND the first rendition playlist (~5 KB total). hls.js
-   starts at level 0 (startLevel: 0), which is exactly the first variant in
-   the master, so these land straight in the HTTP cache it reads from.
-   Stage 2 (click — navigation is committed): fetch the init + first media
-   segment. The fetch keeps running during the client-side navigation, so
-   by the time hls.js asks for the first segment it's already local. */
-
-const variantCache = new Map<string, Promise<{ url: string; text: string } | null>>();
-
-function warmPlaylists(slug: string, epNum = 1) {
-  const pid = MUX_MAP[slug]?.find((e) => e.episode === epNum)?.playbackId;
-  if (!pid) return Promise.resolve(null);
-  let p = variantCache.get(pid);
-  if (!p) {
-    p = (async () => {
-      const base = `https://stream.mux.com/${pid}.m3u8`;
-      const master = await (await fetch(base, { mode: "cors", credentials: "omit" })).text();
-      const uri = master.split("\n").map((l) => l.trim()).find((l) => l && !l.startsWith("#"));
-      if (!uri) return null;
-      const url = new URL(uri, base).href;
-      const text = await (await fetch(url, { mode: "cors", credentials: "omit" })).text();
-      return { url, text };
-    })().catch(() => null);
-    variantCache.set(pid, p);
-  }
-  return p;
-}
-
-/* Stage 2 is now the real thing: the click starts a hidden muted player
-   (lib/instant-player) that the episode page ADOPTS on arrival — by then the
-   first frame is usually already decoded, so the movie is simply playing. */
-
 // Deterministic, seedable shuffle so the order is stable within one page
 // load (won't reshuffle on every re-render) but fresh on each refresh.
 function shuffleWithSeed<T>(arr: T[], seed: number): T[] {
@@ -129,15 +95,10 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
   const { t } = useTranslation();
   const activeTabs = BROWSE_TABS;
 
-  /* Poster press/click plumbing for instant playback:
-     - pointerdown (mouse AND touch) → warm the HLS playlists
-     - click → store the tapped poster's cached URL (the episode page shows it
-       full-screen instantly — no black frame) + warm the first video segment */
-  const posterPress = useCallback((slug: string, epNum = 1) => {
-    void warmPlaylists(slug, epNum);
-  }, []);
-
-  const posterClick = useCallback((e: React.MouseEvent<HTMLElement>, slug: string, epNum = 1) => {
+  const posterClick = useCallback((e: React.MouseEvent<HTMLElement>, slug: string, epNum = 1, resumeS = 0) => {
+    // Modified clicks (open in new tab, etc.) get default browser behavior —
+    // don't spin up a hidden player for a tab the user isn't watching.
+    if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
     // The tapped poster doubles as the loading state (user preference:
     // poster > black) — the episode page paints it instantly from cache.
     try {
@@ -148,8 +109,11 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
     // Start the movie downloading + decoding NOW (hidden, muted). The episode
     // page adopts this already-running player, so the poster crossfades into
     // the movie the moment its first frame is ready — the wait is only the
-    // real network time, nothing architectural.
-    startInstantPlayer(MUX_MAP[slug]?.find((ep) => ep.episode === epNum)?.playbackId);
+    // real network time, nothing architectural. Skipped for mid-episode
+    // resumes: the player would buffer from 0:00 while playback starts at ?t=.
+    if (resumeS <= 2) {
+      startInstantPlayer(MUX_MAP[slug]?.find((ep) => ep.episode === epNum)?.playbackId);
+    }
   }, []);
 
   const [activeTab, setActiveTab] = useState<BrowseCategory>("drama");
@@ -234,12 +198,6 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
       .then((d) => setContinueWatching(d.items ?? []))
       .catch(() => {});
   }, []);
-
-  // Eagerly prefetch HLS playlists for hero posters so by the time the user
-  // taps, the manifests are already in the browser cache → near-instant start.
-  useEffect(() => {
-    heroSlides.slice(0, 4).forEach((s) => void warmPlaylists(s.slug));
-  }, [heroSlides]);
 
   // Auto-rotate hero slideshow (works for Drama/New/Hot AND Reality)
   const slideCount = activeTab === "reality" ? realityShows.length : heroSlides.length;
@@ -376,12 +334,11 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               const pct = durationS && durationS > 0 ? Math.min(96, Math.max(4, Math.round((item.progressSeconds / durationS) * 100))) : 8;
               return (
               <Link
-                key={item.seriesSlug}
+                key={`${item.seriesSlug}-${item.episodeNumber}`}
                 href={buildResumeUrl(item.seriesSlug, item.episodeNumber, item.progressSeconds)}
                 className="group block no-underline flex-shrink-0 snap-start"
                 style={{ width: 120 }}
-                onPointerDown={() => posterPress(item.seriesSlug, item.episodeNumber)}
-                onClick={(e) => posterClick(e, item.seriesSlug, item.episodeNumber)}
+                onClick={(e) => posterClick(e, item.seriesSlug, item.episodeNumber, item.progressSeconds)}
               >
                 <div className="relative overflow-hidden rounded-lg" style={{ width: 120, aspectRatio: "2 / 3" }}>
                   {item.posterUrl && (
@@ -422,7 +379,6 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               href="/series/too-much-junk/1"
               prefetch={true}
               className="block transition-transform active:scale-[0.97]"
-              onPointerDown={() => posterPress("too-much-junk")}
               onClick={(e) => posterClick(e, "too-much-junk")}
             >
               <div className="relative mx-auto overflow-hidden rounded-xl" style={{ aspectRatio: "2 / 3", width: "100%", maxWidth: "min(320px, 80vw)", background: "#000" }}>
@@ -546,7 +502,6 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                       href={`/series/${show.slug}/1`}
                       className="block no-underline min-w-0 transition-transform active:scale-[0.97]"
                       prefetch={true}
-                      onPointerDown={() => posterPress(show.slug)}
                       onClick={(e) => posterClick(e, show.slug)}
                     >
                       {card}
@@ -595,7 +550,6 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                 href={`/series/${event.slug}/1`}
                 className="block no-underline min-w-0 transition-transform active:scale-[0.97]"
                 prefetch={true}
-                onPointerDown={() => posterPress(event.slug)}
                 onClick={(e) => posterClick(e, event.slug)}
               >
                 <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
@@ -618,6 +572,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
           onMouseLeave={() => setHeroPaused(false)}
           onTouchStart={() => setHeroPaused(true)}
           onTouchEnd={() => setHeroPaused(false)}
+          onTouchCancel={() => setHeroPaused(false)}
         >
           {/* Poster image — same centered, width-capped 2:3 card as the Reality
               section so every tab's hero is the same size. object-contain shows
@@ -627,7 +582,6 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
             <Link
               href={`/series/${current.slug}/1`}
               className="block"
-              onPointerDown={() => posterPress(current.slug)}
               onClick={(e) => posterClick(e, current.slug)}
             >
               <div
@@ -736,7 +690,6 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                 <Link
                   href={`/series/${s.slug}/1`}
                   className="group block no-underline min-w-0 transition-transform active:scale-[0.97]"
-                  onPointerDown={() => posterPress(s.slug)}
                   onClick={(e) => posterClick(e, s.slug)}
                 >
                   <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>

@@ -109,7 +109,7 @@ export default async function EpisodePage({ params }: Props) {
     };
   });
 
-  const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
+  const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verzatv.com";
 
   // Horizontal swipe is only for WIDESCREEN (16:9) content. Red carpet clips
   // are vertical 9:16 — they play in the standard vertical feed like dramas.

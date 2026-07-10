@@ -14,7 +14,7 @@ import type HlsType from "hls.js";
 let hlsPromise: Promise<typeof HlsType | null> | null = null;
 function getHls(): Promise<typeof HlsType | null> {
   if (!hlsPromise && typeof window !== "undefined") {
-    hlsPromise = import("hls.js").then((m) => m.default).catch(() => null);
+    hlsPromise = import("hls.js").then((m) => m.default).catch(() => { hlsPromise = null; return null; });
   }
   return hlsPromise || Promise.resolve(null);
 }

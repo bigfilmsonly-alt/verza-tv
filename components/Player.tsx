@@ -24,7 +24,9 @@ let HlsModule: typeof HlsType | null = null;
 let hlsLoad: Promise<typeof HlsType | null> | null = null;
 function getHls(): Promise<typeof HlsType | null> {
   if (!hlsLoad && typeof window !== "undefined") {
-    hlsLoad = import("hls.js").then((m) => { HlsModule = m.default; return HlsModule; }).catch(() => null);
+    hlsLoad = import("hls.js")
+      .then((m) => { HlsModule = m.default; return HlsModule; })
+      .catch(() => { hlsLoad = null; return null; }); // transient failure → retry next call
   }
   return hlsLoad || Promise.resolve(null);
 }
@@ -534,7 +536,7 @@ export default function Player({
     scheduleHide();
   };
 
-  const handleRetry = () => {
+  const handleRetry = async () => {
     setError(null);
     setLoading(true);
 
@@ -547,36 +549,56 @@ export default function Player({
     const video = videoRef.current;
     if (!video || !hlsUrl) return;
 
-    if ((!HlsModule || !HlsModule.isSupported()) && video.canPlayType("application/vnd.apple.mpegurl")) {
-      video.src = hlsUrl;
-      video.play().catch(() => {});
+    // Reveal the frame once retry playback actually produces pixels — the
+    // mount-time reveal effect only fires on hlsReady's FIRST transition.
+    const revealOnFrame = () => {
+      if ("requestVideoFrameCallback" in video) {
+        (video as any).requestVideoFrameCallback(() => { setStarted(true); setLoading(false); });
+      } else {
+        requestAnimationFrame(() => requestAnimationFrame(() => { setStarted(true); setLoading(false); }));
+      }
+    };
+
+    // AWAIT the hls.js load (retries a previously failed chunk fetch) instead
+    // of reading the module variable — a null module must not route Chrome to
+    // its stalling native-HLS path.
+    const Hls = await getHls();
+    if (!videoRef.current) return; // unmounted while loading
+
+    if (!Hls || !Hls.isSupported()) {
+      if (video.canPlayType("application/vnd.apple.mpegurl")) {
+        video.src = hlsUrl;
+        setHlsReady(true);
+        video.play().then(revealOnFrame).catch(() => {});
+      } else {
+        setError("Video failed to load. Please try refreshing the page.");
+        setLoading(false);
+      }
       return;
     }
 
-    if (HlsModule && HlsModule.isSupported()) {
-      const hls = new HlsModule({
-        maxBufferLength: 30,
-        maxMaxBufferLength: 60,
-        startLevel: 0,
-        capLevelToPlayerSize: true,
-        enableWorker: true,
-        lowLatencyMode: false,
-        abrEwmaDefaultEstimate: 1_000_000,
-      });
-      hlsRef.current = hls;
-      hls.loadSource(hlsUrl);
-      hls.attachMedia(video);
-      hls.on(HlsModule.Events.MANIFEST_PARSED, () => {
-        setHlsReady(true);
-        video.play().catch(() => {});
-      });
-      hls.on(HlsModule.Events.ERROR, (_event: string, data: { fatal: boolean }) => {
-        if (data.fatal) {
-          setError("Video failed to load. Please try refreshing the page.");
-          setLoading(false);
-        }
-      });
-    }
+    const hls = new Hls({
+      maxBufferLength: 30,
+      maxMaxBufferLength: 60,
+      startLevel: 0,
+      capLevelToPlayerSize: true,
+      enableWorker: true,
+      lowLatencyMode: false,
+      abrEwmaDefaultEstimate: 1_000_000,
+    });
+    hlsRef.current = hls;
+    hls.loadSource(hlsUrl);
+    hls.attachMedia(video);
+    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+      setHlsReady(true);
+      video.play().then(revealOnFrame).catch(() => {});
+    });
+    hls.on(Hls.Events.ERROR, (_event: string, data: { fatal: boolean }) => {
+      if (data.fatal) {
+        setError("Video failed to load. Please try refreshing the page.");
+        setLoading(false);
+      }
+    });
   };
 
   const progress = duration > 0 ? currentTime / duration : 0;
