@@ -6,7 +6,7 @@ import LanguagePicker from "@/components/LanguagePicker";
 import PushNotificationToggle from "@/components/PushNotificationToggle";
 import VipCard from "@/components/VipCard";
 import { checkVipStatusServer } from "@/lib/vip-server";
-import { SavedCount, WatchingCount, DarkModeToggle, SignOutButton } from "@/components/ProfileDynamic";
+import { SavedCount, WatchingCount, DarkModeToggle, SignOutButton, DeleteAccountButton } from "@/components/ProfileDynamic";
 
 export const metadata: Metadata = {
   title: `My Account | ${BRAND.name}`,
@@ -384,6 +384,7 @@ export default async function MePage() {
       {/* ---- Sign out + version ---- */}
       <div className="mt-8 flex flex-col items-center gap-3">
         <SignOutButton />
+      <DeleteAccountButton />
         <p className="text-xs" style={{ color: T.textMute }}>
           VERZA TV v1.0.0
         </p>

@@ -61,6 +61,79 @@ export function DarkModeToggle() {
 }
 
 /* ---- Sign out button ---- */
+/**
+ * Two-step permanent account deletion (Apple App Review 5.1.1(v) requires an
+ * in-app path). First tap arms the confirmation; second tap deletes.
+ */
+export function DeleteAccountButton() {
+  const [confirming, setConfirming] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
+  async function handleDelete() {
+    if (!confirming) {
+      setConfirming(true);
+      setTimeout(() => setConfirming(false), 6000); // disarm after 6s
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/account/delete", { method: "POST" });
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
+        setError(body.error ?? "Deletion failed — contact support@verzatv.com");
+        setLoading(false);
+        setConfirming(false);
+        return;
+      }
+      try { await signOutAction(); } catch {}
+      try {
+        localStorage.removeItem("verza-saved");
+        localStorage.removeItem("verza-lang");
+      } catch {}
+      router.push("/");
+    } catch {
+      setError("Deletion failed — contact support@verzatv.com");
+      setLoading(false);
+      setConfirming(false);
+    }
+  }
+
+  return (
+    <div className="mt-3">
+      <button
+        onClick={handleDelete}
+        disabled={loading}
+        className="w-full py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-opacity border-0 cursor-pointer"
+        style={{
+          background: confirming ? "rgba(224, 17, 95, 0.12)" : "transparent",
+          border: `1px solid ${confirming ? "rgba(224, 17, 95, 0.5)" : T.line}`,
+          color: confirming ? "#E0115F" : T.textMute,
+          opacity: loading ? 0.5 : 1,
+        }}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="3 6 5 6 21 6" />
+          <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+        </svg>
+        {loading
+          ? "Deleting account…"
+          : confirming
+            ? "Tap again to permanently delete"
+            : "Delete Account"}
+      </button>
+      {error && (
+        <p className="mt-2 text-xs text-center" style={{ color: "#E0115F" }}>{error}</p>
+      )}
+      <p className="mt-2 text-[11px] text-center" style={{ color: T.textMute }}>
+        Permanently removes your account, watch history, saved list, and purchases access. This cannot be undone.
+      </p>
+    </div>
+  );
+}
+
 export function SignOutButton() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();

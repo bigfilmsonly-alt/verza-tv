@@ -1,4 +1,3 @@
-{/* DRAFT — flagged for legal review */}
 import type { Metadata } from "next";
 import Link from "next/link";
 import { T } from "@/lib/theme";
@@ -11,7 +10,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/privacy" },
 };
 
-const LAST_UPDATED = "June 2025";
+const LAST_UPDATED = "July 10, 2026";
 
 const sectionHeading = {
   color: T.text,
@@ -173,8 +172,18 @@ export default function PrivacyPage() {
           <ul className="list-disc pl-5 flex flex-col gap-1.5">
             <li className="text-sm leading-relaxed" style={bodyText}>
               <strong style={{ color: T.text }}>Service Providers:</strong>{" "}
-              With third-party vendors who assist in operating the Service
-              (payment processors, hosting providers, analytics services).
+              With third-party vendors who assist in operating the Service.
+              These currently include: <strong style={{ color: T.text }}>Stripe</strong>{" "}
+              (payment processing), <strong style={{ color: T.text }}>Supabase</strong>{" "}
+              (account authentication and database hosting),{" "}
+              <strong style={{ color: T.text }}>Mux</strong> (video streaming and
+              playback analytics), <strong style={{ color: T.text }}>Vercel</strong>{" "}
+              (application hosting and performance analytics), and{" "}
+              <strong style={{ color: T.text }}>Google</strong> (analytics and
+              advertising services). Each provider is contractually required to
+              protect your information with safeguards that are the same as or
+              equal to those described in this policy, and may only use it to
+              provide services to us.
             </li>
             <li className="text-sm leading-relaxed" style={bodyText}>
               <strong style={{ color: T.text }}>Legal Requirements:</strong>{" "}
@@ -328,10 +337,66 @@ export default function PrivacyPage() {
           </p>
         </div>
 
-        {/* 10. Changes to This Policy */}
+        {/* 10. Account Deletion */}
         <div>
           <h2 className="text-base font-semibold mb-2" style={sectionHeading}>
-            10. Changes to This Policy
+            10. Account &amp; Data Deletion
+          </h2>
+          <p className="text-sm leading-relaxed" style={bodyText}>
+            You can permanently delete your account at any time from within the
+            Service: open your <strong style={{ color: T.text }}>Profile</strong>{" "}
+            page and tap <strong style={{ color: T.text }}>Delete Account</strong>.
+            Deletion removes your account, profile, watch history, saved list,
+            push notification subscriptions, and access to purchases, and cannot
+            be undone. You may also request deletion by emailing{" "}
+            <a href="mailto:privacy@verzatv.com" style={{ color: T.accent }}>
+              privacy@verzatv.com
+            </a>{" "}
+            from your account email; we process such requests within 30 days.
+            Records of completed financial transactions may be retained where
+            required for tax, accounting, and fraud-prevention purposes.
+          </p>
+        </div>
+
+        {/* 11. Push Notifications */}
+        <div>
+          <h2 className="text-base font-semibold mb-2" style={sectionHeading}>
+            11. Push Notifications
+          </h2>
+          <p className="text-sm leading-relaxed" style={bodyText}>
+            With your permission, we may send push notifications (for example,
+            to resume an episode you were watching or announce new releases).
+            You can withdraw this permission at any time in your device or
+            browser notification settings, or from the Profile page; doing so
+            deletes the associated push subscription token.
+          </p>
+        </div>
+
+        {/* 12. Advertising & Tracking */}
+        <div>
+          <h2 className="text-base font-semibold mb-2" style={sectionHeading}>
+            12. Advertising &amp; Tracking
+          </h2>
+          <p className="text-sm leading-relaxed" style={bodyText}>
+            The Service displays sponsored content and may use third-party
+            advertising services. Where our iOS application would track your
+            activity across other companies&apos; apps or websites, we will
+            first request your permission through Apple&apos;s App Tracking
+            Transparency prompt, and we honor your choice. We do not sell your
+            personal information; California residents may nonetheless opt out
+            of any &quot;sharing&quot; for cross-context behavioral advertising
+            by emailing{" "}
+            <a href="mailto:privacy@verzatv.com" style={{ color: T.accent }}>
+              privacy@verzatv.com
+            </a>
+            .
+          </p>
+        </div>
+
+        {/* 13. Changes to This Policy */}
+        <div>
+          <h2 className="text-base font-semibold mb-2" style={sectionHeading}>
+            13. Changes to This Policy
           </h2>
           <p className="text-sm leading-relaxed" style={bodyText}>
             We may update this Privacy Policy from time to time. If we make
@@ -341,10 +406,10 @@ export default function PrivacyPage() {
           </p>
         </div>
 
-        {/* 11. Contact */}
+        {/* 14. Contact */}
         <div>
           <h2 className="text-base font-semibold mb-2" style={sectionHeading}>
-            11. Contact
+            14. Contact
           </h2>
           <p className="text-sm leading-relaxed" style={bodyText}>
             If you have any questions or concerns about this Privacy Policy or
