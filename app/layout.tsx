@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import ThirdPartyScripts from "@/components/ThirdPartyScripts";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import BottomNav from "@/components/BottomNav";
@@ -110,23 +111,12 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://stream.mux.com" />
         <link rel="dns-prefetch" href="https://image.mux.com" />
         <link rel="dns-prefetch" href="https://litix.io" />
-        {/* Google Tag Manager container (GTM-K9GWK2XT) — GA4 (G-HY8HNR5DQD) & other tags managed inside GTM */}
-        <Script id="gtm" strategy="afterInteractive">{`
-          (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-          new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-          j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-          'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-          })(window,document,'script','dataLayer','GTM-K9GWK2XT');
-        `}</Script>
-        {/* Google AdSense (ca-pub-8089901381021947) — placed DIRECTLY in <head>, not via GTM.
-            AdSense verification reads the served HTML and often can't see a GTM-injected loader. */}
-        <script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8089901381021947"
-          crossOrigin="anonymous"
-        />
+        {/* GTM + AdSense load via ThirdPartyScripts (client) — skipped inside
+            the iOS app so no ad-tracking runs there (App Tracking Transparency
+            would otherwise be required). Web behavior is unchanged. */}
       </head>
       <body className="min-h-full flex flex-col" style={{ background: "#07070E" }}>
+        <ThirdPartyScripts />
         {/* Google Tag Manager (noscript) — fallback for JS-disabled clients */}
         <noscript>
           <iframe

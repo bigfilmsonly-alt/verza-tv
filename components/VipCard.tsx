@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { T } from "@/lib/theme";
+import { isIOSApp } from "@/lib/platform";
 import { emit } from "@/lib/analytics";
 
 interface VipCardProps {
@@ -10,6 +11,10 @@ interface VipCardProps {
 }
 
 export default function VipCard({ isVip = false, vipExpiresAt }: VipCardProps) {
+  // Reader mode (Apple 3.1.1): the iOS app must not show subscription
+  // purchase UI. Existing VIPs still see their status (without billing links).
+  const [iosApp, setIosApp] = useState(false);
+  useEffect(() => { if (isIOSApp()) setIosApp(true); }, []);
   const [loading, setLoading] = useState<"monthly" | "yearly" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -48,6 +53,8 @@ export default function VipCard({ isVip = false, vipExpiresAt }: VipCardProps) {
   }
 
   /* ---- Active VIP state ---- */
+  if (!isVip && iosApp) return null;
+
   if (isVip) {
     const expiryLabel = vipExpiresAt
       ? new Date(vipExpiresAt).toLocaleDateString("en-US", {
@@ -105,6 +112,7 @@ export default function VipCard({ isVip = false, vipExpiresAt }: VipCardProps) {
             </p>
           )}
 
+          {iosApp ? null : (
           <button
             onClick={async () => {
               try {
@@ -125,6 +133,7 @@ export default function VipCard({ isVip = false, vipExpiresAt }: VipCardProps) {
           >
             Manage Subscription
           </button>
+          )}
         </div>
 
         <p className="mt-3 text-[10px] leading-relaxed text-center" style={{ color: T.textMute }}>

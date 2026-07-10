@@ -10,7 +10,7 @@ import { getClipBySlug, clipDuration, clipDeepLink, clipAppScheme } from "@/lib/
 import JsonLd from "@/components/JsonLd";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
-const APP_ID = process.env.NEXT_PUBLIC_APPLE_APP_ID ?? "PLACEHOLDER_APP_ID";
+const APP_ID = process.env.NEXT_PUBLIC_APPLE_APP_ID; // Smart App Banner only when a real App Store id exists
 
 /* ------------------------------------------------------------------ */
 /*  Metadata                                                           */
@@ -53,7 +53,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         description: series.logline,
         images: thumb ? [thumb] : [],
       },
-      itunes: { appId: APP_ID, appArgument: `verzatv://series/${seriesSlug}/${epNum}` },
+      ...(APP_ID ? { itunes: { appId: APP_ID, appArgument: `verzatv://series/${seriesSlug}/${epNum}` } } : {}),
       other: { "google-play-app": "app-id=com.verzatv.app" },
     };
   }
@@ -78,7 +78,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       siteName: BRAND.name,
     },
     twitter: { card: "summary_large_image", title: clip.hookText, images: thumb ? [thumb] : [] },
-    itunes: { appId: APP_ID, appArgument: clipAppScheme(clip) },
+    ...(APP_ID ? { itunes: { appId: APP_ID, appArgument: clipAppScheme(clip) } } : {}),
     other: { "google-play-app": "app-id=com.verzatv.app" },
   };
 }

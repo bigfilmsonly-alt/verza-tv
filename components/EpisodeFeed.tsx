@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import type HlsType from "hls.js";
 import { adoptInstantPlayer } from "@/lib/instant-player";
+import { isIOSApp } from "@/lib/platform";
 import { trackEpisodeStart, trackEpisodeComplete, trackUnlockPrompt, trackUnlockClick } from "@/lib/track";
 import { emit } from "@/lib/analytics";
 import VideoWatermark from "@/components/VideoWatermark";
@@ -845,6 +846,9 @@ export default function EpisodeFeed({
   // $1.99 "Unlock Full Series" popup — pops up when the viewer reaches the first
   // locked episode (after the free preview, before entering the paid episode).
   const [showUnlock, setShowUnlock] = useState(false);
+  // Reader mode (Apple 3.1.1): inside the iOS app, no purchase UI may appear.
+  const [iosApp, setIosApp] = useState(false);
+  useEffect(() => { if (isIOSApp()) setIosApp(true); }, []);
   const [unlockLoading, setUnlockLoading] = useState(false);
   const [epProgress, setEpProgress] = useState(0);
   const [showToast, setShowToast] = useState(false);
@@ -1630,10 +1634,15 @@ export default function EpisodeFeed({
                 <path d="M7 11V7a5 5 0 0 1 10 0v4" />
               </svg>
             </div>
-            <h3 className="text-xl font-bold mb-2" style={{ color: "#fff" }}>Keep Watching</h3>
+            <h3 className="text-xl font-bold mb-2" style={{ color: "#fff" }}>
+              {iosApp ? "Episode Unavailable" : "Keep Watching"}
+            </h3>
             <p className="text-sm mb-6" style={{ color: "rgba(255,255,255,0.45)" }}>
-              All {episodes.length} episodes of {seriesTitle} — yours forever
+              {iosApp
+                ? "This episode isn't available in this app."
+                : <>All {episodes.length} episodes of {seriesTitle} — yours forever</>}
             </p>
+            {!iosApp && (
             <button
               onClick={async () => {
                 setUnlockLoading(true);
@@ -1663,15 +1672,18 @@ export default function EpisodeFeed({
             >
               {unlockLoading ? "Opening secure checkout…" : (<>Unlock Full Series — <span className="line-through mr-1" style={{ opacity: 0.55, fontWeight: 600 }}>$4.99</span>$1.99</>)}
             </button>
+            )}
+            {!iosApp && (
             <p className="mt-2.5 text-[11px]" style={{ color: "rgba(255,255,255,0.35)" }}>
               One-time payment · Secure checkout via Stripe
             </p>
+            )}
             <button
               onClick={handleBack}
               className="mt-4 text-sm font-medium border-0 bg-transparent cursor-pointer"
-              style={{ color: "rgba(255,255,255,0.35)", opacity: 0, animation: "fadeIn 0.4s ease-out 0.9s forwards" }}
+              style={{ color: "rgba(255,255,255,0.35)", opacity: 0, animation: iosApp ? "fadeIn 0.3s ease-out 0.1s forwards" : "fadeIn 0.4s ease-out 0.9s forwards" }}
             >
-              Maybe later
+              {iosApp ? "Go Back" : "Maybe later"}
             </button>
           </div>
         </div>

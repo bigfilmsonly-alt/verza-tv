@@ -14,6 +14,7 @@ import AmazonTile from "@/components/AmazonProducts";
 import { AMAZON_PRODUCTS } from "@/lib/amazon-sponsors";
 import { MUX_MAP } from "@/lib/mux-map";
 import { startInstantPlayer } from "@/lib/instant-player";
+import HideInIOSApp from "@/components/HideInIOSApp";
 
 // Eagerly preload hls.js so it's cached before user taps a video.
 // Deferred via setTimeout: a dynamic import() fired DURING module evaluation
@@ -332,7 +333,9 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         style={{ top: "calc(108px + env(safe-area-inset-top, 0px))", height: 0 }}
       >
         <div className="pointer-events-auto mt-0">
-          <SummerSaleBadge />
+          <HideInIOSApp>
+            <SummerSaleBadge />
+          </HideInIOSApp>
         </div>
       </div>
 

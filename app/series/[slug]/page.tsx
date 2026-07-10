@@ -14,6 +14,7 @@ import { seriesSchema, breadcrumbSchema } from "@/lib/schemas";
 import { T } from "@/lib/theme";
 import { FREE_EPISODES } from "@/lib/config";
 import EpisodeDropdown from "@/components/EpisodeDropdown";
+import HideInIOSApp from "@/components/HideInIOSApp";
 
 /* ------------------------------------------------------------------ */
 /*  Static params                                                      */
@@ -292,7 +293,9 @@ export default async function SeriesPage({ params }: Props) {
           </div>
         )}
 
-        {/* ---- Unlock Full Series Card (brand-gradient frame) ---- */}
+        {/* ---- Unlock Full Series Card (brand-gradient frame) ----
+             Hidden inside the iOS app (Apple 3.1.1 — no purchase UI). */}
+        <HideInIOSApp>
         <div
           className="rounded-xl p-[1px] mb-6"
           style={{ background: "linear-gradient(135deg, rgba(224,17,95,0.5), rgba(139,92,246,0.5))" }}
@@ -332,6 +335,7 @@ export default async function SeriesPage({ params }: Props) {
           </div>
         </div>
         </div>
+        </HideInIOSApp>
 
         {/* ---- Episode Dropdown ---- */}
         <EpisodeDropdown
