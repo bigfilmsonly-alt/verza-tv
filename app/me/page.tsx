@@ -6,6 +6,7 @@ import LanguagePicker from "@/components/LanguagePicker";
 import PushNotificationToggle from "@/components/PushNotificationToggle";
 import VipCard from "@/components/VipCard";
 import { checkVipStatusServer } from "@/lib/vip-server";
+import { getUser } from "@/lib/auth";
 import { SavedCount, WatchingCount, DarkModeToggle, SignOutButton, DeleteAccountButton } from "@/components/ProfileDynamic";
 
 export const metadata: Metadata = {
@@ -222,6 +223,7 @@ function SectionCard({ children }: { children: React.ReactNode }) {
 /* ------------------------------------------------------------------ */
 export default async function MePage() {
   const isVip = await checkVipStatusServer();
+  const user = await getUser();
   return (
     <section className="px-4 pt-6 pb-10 max-w-lg mx-auto">
       {/* ---- Guest header ---- */}
@@ -233,13 +235,14 @@ export default async function MePage() {
           <span style={{ color: T.accent }}>{Icons.user}</span>
         </div>
         <div className="flex-1 min-w-0">
-          <h1 className="text-xl font-bold" style={{ color: T.text }}>
-            Guest
+          <h1 className="text-xl font-bold truncate" style={{ color: T.text }}>
+            {user ? user.email.split("@")[0] : "Guest"}
           </h1>
-          <p className="text-sm mt-0.5" style={{ color: T.textDim }}>
-            Sign in to sync your library and purchases
+          <p className="text-sm mt-0.5 truncate" style={{ color: T.textDim }}>
+            {user ? user.email : "Sign in to sync your library and purchases"}
           </p>
         </div>
+        {user ? null : (
         <Link
           href="/sign-in"
           className="px-5 py-2 rounded-lg text-sm font-semibold no-underline whitespace-nowrap transition-opacity hover:opacity-90"
@@ -247,6 +250,7 @@ export default async function MePage() {
         >
           Sign In
         </Link>
+        )}
       </div>
 
       {/* ---- Browse shows CTA ---- */}

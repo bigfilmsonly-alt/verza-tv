@@ -1,4 +1,3 @@
-{/* DRAFT — flagged for legal review */}
 import type { Metadata } from "next";
 import Link from "next/link";
 import { T } from "@/lib/theme";
@@ -7,11 +6,11 @@ import { BRAND } from "@/lib/config";
 export const metadata: Metadata = {
   title: `Refund Policy | ${BRAND.name}`,
   description:
-    "Refund Policy for VERZA TV. Learn about our policies on coin refunds, in-app purchase refunds, and subscription cancellations.",
+    "Refund Policy for VERZA TV. Learn about our policies on series unlock refunds, in-app purchase refunds, and VIP subscription cancellations.",
   alternates: { canonical: "/refund-policy" },
 };
 
-const LAST_UPDATED = "June 2025";
+const LAST_UPDATED = "July 10, 2026";
 
 const sectionHeading = {
   color: T.text,
@@ -59,16 +58,16 @@ export default function RefundPolicyPage() {
         <div>
           <p className="text-sm leading-relaxed" style={bodyText}>
             Thank you for using {BRAND.name}. This Refund Policy explains our
-            practices regarding refunds for Coin purchases, in-app purchases,
-            and subscription cancellations. By making a purchase through the
+            practices regarding refunds for Series Unlock purchases, in-app
+            purchases, and VIP subscription cancellations. By making a purchase through the
             Service, you agree to this policy.
           </p>
         </div>
 
-        {/* 1. Coin Purchases */}
+        {/* 1. Series Unlock Purchases */}
         <div>
           <h2 className="text-base font-semibold mb-2" style={sectionHeading}>
-            1. Coin Purchases
+            1. Series Unlock Purchases
           </h2>
           <div
             className="rounded-xl p-4 mb-3"
@@ -81,22 +80,28 @@ export default function RefundPolicyPage() {
               className="text-sm font-medium leading-relaxed"
               style={{ color: T.text }}
             >
-              All Coin purchases are final and non-refundable.
+              Series Unlock purchases are final and non-refundable once any
+              locked episode of that series has been streamed, except as
+              required by applicable law.
             </p>
           </div>
           <p className="text-sm leading-relaxed" style={bodyText}>
-            Coins are a virtual currency used to unlock premium content within
-            the Service. Once purchased, Coins cannot be returned, exchanged
-            for cash, or transferred. Coins that have been used to unlock
-            episodes or other content cannot be restored or refunded under any
-            circumstances.
+            A Series Unlock is a one-time payment that permanently unlocks
+            every episode of a specific series for your account. If you were
+            charged in error, were charged more than once for the same series,
+            or cannot access content you paid for, contact{" "}
+            <a href="mailto:support@verzatv.com" style={{ color: T.accent }}>
+              support@verzatv.com
+            </a>{" "}
+            within 14 days of purchase and we will make it right — including a
+            full refund where appropriate.
           </p>
         </div>
 
         {/* 2. In-App Purchase Refunds */}
         <div>
           <h2 className="text-base font-semibold mb-2" style={sectionHeading}>
-            2. In-App Purchase Refunds (Apple &amp; Google)
+            2. App Store Purchases (where offered)
           </h2>
           <div className="flex flex-col gap-3">
             <p className="text-sm leading-relaxed" style={bodyText}>
@@ -175,15 +180,16 @@ export default function RefundPolicyPage() {
               </li>
               <li className="text-sm leading-relaxed" style={bodyText}>
                 After your VIP access expires, you will revert to a free
-                account and may continue to access any episodes previously
-                unlocked with Coins.
+                account and keep access to any series you previously purchased
+                with a one-time Series Unlock.
               </li>
             </ul>
             <p className="text-sm leading-relaxed" style={bodyText}>
-              To cancel your subscription, manage your subscription through
-              your device settings (Apple: Settings &gt; Apple ID &gt;
-              Subscriptions; Android: Google Play Store &gt; Subscriptions) or
-              through your account settings in the app.
+              To cancel your subscription, open your Profile page and tap
+              Manage Subscription — this opens your secure Stripe billing
+              portal where you can cancel or change your plan. You can also
+              email support@verzatv.com and we will process the cancellation
+              the same day.
             </p>
           </div>
         </div>

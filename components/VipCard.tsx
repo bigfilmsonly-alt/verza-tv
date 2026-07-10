@@ -105,11 +105,18 @@ export default function VipCard({ isVip = false, vipExpiresAt }: VipCardProps) {
             </p>
           )}
 
-          <a
-            href="https://billing.stripe.com/p/login/test_aEUaEXeXP4cMaYw288"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block w-full text-center py-2.5 rounded-lg text-sm font-semibold no-underline transition-opacity hover:opacity-90"
+          <button
+            onClick={async () => {
+              try {
+                const res = await fetch("/api/billing-portal", { method: "POST" });
+                const data = (await res.json()) as { url?: string; error?: string };
+                if (data.url) window.location.href = data.url;
+                else window.location.href = "mailto:support@verzatv.com?subject=Manage%20VIP%20Subscription";
+              } catch {
+                window.location.href = "mailto:support@verzatv.com?subject=Manage%20VIP%20Subscription";
+              }
+            }}
+            className="block w-full text-center py-2.5 rounded-lg text-sm font-semibold transition-opacity hover:opacity-90 cursor-pointer"
             style={{
               background: "rgba(255,255,255,0.06)",
               color: T.textDim,
@@ -117,8 +124,14 @@ export default function VipCard({ isVip = false, vipExpiresAt }: VipCardProps) {
             }}
           >
             Manage Subscription
-          </a>
+          </button>
         </div>
+
+        <p className="mt-3 text-[10px] leading-relaxed text-center" style={{ color: T.textMute }}>
+          Auto-renews at the selected price until cancelled. Cancel anytime via
+          Manage Subscription on your Profile — you keep access until the end
+          of the paid period.
+        </p>
       </div>
     );
   }

@@ -31,7 +31,7 @@ const SECTIONS = [
   },
   {
     title: "Age-Appropriate Ratings",
-    body: "Every series carries a content rating reviewed by our editorial team. Ratings reflect language, violence, sexual content, and thematic elements. We do not allow unrated content on the platform. Parents and guardians can use these ratings to make informed viewing decisions.",
+    body: "Every series is reviewed by our editorial team for language, violence, sexual content, and thematic elements before it is published. VERZA TV content is intended for viewers 13 and older; individual series may be best suited for mature audiences. Parents and guardians should preview content when in doubt.",
   },
   {
     title: "Reporting Issues",

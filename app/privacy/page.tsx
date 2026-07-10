@@ -88,7 +88,7 @@ export default function PrivacyPage() {
                 </li>
                 <li className="text-sm leading-relaxed" style={bodyText}>
                   <strong style={{ color: T.text }}>Purchase Information:</strong>{" "}
-                  Transaction details related to Coin purchases and
+                  Transaction details related to series unlock purchases and
                   subscription payments. Payment card information is processed
                   by third-party payment processors and is not stored on our
                   servers.
@@ -138,7 +138,7 @@ export default function PrivacyPage() {
               Provide, maintain, and improve the Service.
             </li>
             <li className="text-sm leading-relaxed" style={bodyText}>
-              Process transactions and manage your account, including Coin
+              Process transactions and manage your account, including purchase
               balances and subscription status.
             </li>
             <li className="text-sm leading-relaxed" style={bodyText}>
@@ -166,8 +166,11 @@ export default function PrivacyPage() {
             3. How We Share Your Information
           </h2>
           <p className="text-sm leading-relaxed mb-3" style={bodyText}>
-            We do not sell your personal information. We may share your
-            information in the following circumstances:
+            We do not sell your personal information for money. Some
+            third-party advertising integrations may involve &quot;sharing&quot;
+            for cross-context behavioral advertising as defined by California
+            law — you can opt out as described in Section 12. We may share
+            your information in the following circumstances:
           </p>
           <ul className="list-disc pl-5 flex flex-col gap-1.5">
             <li className="text-sm leading-relaxed" style={bodyText}>
@@ -180,7 +183,10 @@ export default function PrivacyPage() {
               playback analytics), <strong style={{ color: T.text }}>Vercel</strong>{" "}
               (application hosting and performance analytics), and{" "}
               <strong style={{ color: T.text }}>Google</strong> (analytics and
-              advertising services). Each provider is contractually required to
+              advertising services), and{" "}
+              <strong style={{ color: T.text }}>Resend</strong> (transactional
+              email delivery), and <strong style={{ color: T.text }}>Anthropic</strong>{" "}
+              (AI features, where you submit text to AI-powered tools). Each provider is contractually required to
               protect your information with safeguards that are the same as or
               equal to those described in this policy, and may only use it to
               provide services to us.
@@ -271,7 +277,7 @@ export default function PrivacyPage() {
                 disclosure of the categories and specific pieces of personal
                 information we have collected; request deletion of your
                 personal information; and opt out of the sale of personal
-                information (we do not sell personal information). To exercise
+                information; and opt out of &quot;sharing&quot; for cross-context behavioral advertising (see Section 12). To exercise
                 these rights, contact us at{" "}
                 <a
                   href="mailto:privacy@verzatv.com"

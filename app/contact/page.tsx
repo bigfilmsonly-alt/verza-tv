@@ -17,7 +17,7 @@ const CONTACTS = [
     title: "General Inquiries",
     email: "support@verzatv.com",
     description:
-      "Questions about your account, episodes, coins, or anything else? Our support team is here to help.",
+      "Questions about your account, episodes, purchases, or anything else? Our support team is here to help.",
   },
   {
     icon: "📰",

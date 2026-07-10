@@ -92,8 +92,12 @@ export function DeleteAccountButton() {
       try {
         localStorage.removeItem("verza-saved");
         localStorage.removeItem("verza-lang");
+        // Guest-purchase unlock tokens die with the account too.
+        for (const key of Object.keys(localStorage)) {
+          if (key.startsWith("verza-unlock:")) localStorage.removeItem(key);
+        }
       } catch {}
-      router.push("/");
+      window.location.replace("/"); // full reload — no stale session state
     } catch {
       setError("Deletion failed — contact support@verzatv.com");
       setLoading(false);

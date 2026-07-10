@@ -21,11 +21,11 @@ const faqs = [
   },
   {
     q: "How do I manage or cancel my VIP subscription?",
-    a: "VIP renews automatically until cancelled. To cancel or change your plan, contact support@verzatv.com from your account email and we'll process it same-day — you keep VIP access until the end of the paid period. If you subscribed through the App Store, manage it in your device's Settings → Apple ID → Subscriptions.",
+    a: "VIP renews automatically until cancelled. To cancel or change your plan, open your Profile page and tap Manage Subscription (under your VIP card) — it opens your secure Stripe billing portal. You keep VIP access until the end of the paid period. You can also email support@verzatv.com and we'll process it same-day.",
   },
   {
     q: "How do refunds work?",
-    a: "See our Refund Policy for full details. Purchases made through the App Store are refunded by Apple (reportaproblem.apple.com); purchases made on verzatv.com are handled by us — email support@verzatv.com.",
+    a: "See our Refund Policy for full details. All purchases are made securely through Stripe on verzatv.com and handled by our team — see the Refund Policy, then email support@verzatv.com with your checkout email.",
   },
   {
     q: "How do I delete my account?",

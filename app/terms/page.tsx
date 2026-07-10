@@ -1,4 +1,3 @@
-{/* DRAFT — flagged for legal review */}
 import type { Metadata } from "next";
 import Link from "next/link";
 import { T } from "@/lib/theme";
@@ -7,11 +6,11 @@ import { BRAND } from "@/lib/config";
 export const metadata: Metadata = {
   title: `Terms of Service | ${BRAND.name}`,
   description:
-    "Terms of Service for VERZA TV. Read our terms governing use of the platform, coin purchases, content licensing, and more.",
+    "Terms of Service for VERZA TV. Read our terms governing use of the platform, purchases, VIP subscriptions, content licensing, and more.",
   alternates: { canonical: "/terms" },
 };
 
-const LAST_UPDATED = "June 2025";
+const LAST_UPDATED = "July 10, 2026";
 
 const sectionHeading = {
   color: T.text,
@@ -105,39 +104,52 @@ export default function TermsPage() {
           </p>
         </div>
 
-        {/* 4. Coin Purchases & Virtual Currency */}
+        {/* 4. Purchases & Subscriptions */}
         <div>
           <h2 className="text-base font-semibold mb-2" style={sectionHeading}>
-            4. Coin Purchases &amp; Virtual Currency
+            4. Purchases &amp; Subscriptions
           </h2>
           <div className="flex flex-col gap-3">
             <p className="text-sm leading-relaxed" style={bodyText}>
-              The Service uses a virtual currency system (&quot;Coins&quot;)
-              that allows you to unlock premium content. Coins can be purchased
-              through the Service or through third-party app stores (Apple App
-              Store, Google Play Store).
+              The Service offers paid content in two forms: one-time{" "}
+              <strong style={{ color: T.text }}>Series Unlocks</strong> (a
+              single payment that permanently unlocks every episode of a
+              series for your account) and an auto-renewing{" "}
+              <strong style={{ color: T.text }}>VIP subscription</strong>{" "}
+              (unlimited streaming of all series while active). Purchases may
+              be made through the Service or, where offered, through
+              third-party app stores (Apple App Store, Google Play Store),
+              in which case that store&apos;s payment terms also apply.
             </p>
             <p className="text-sm leading-relaxed" style={bodyText}>
-              <strong style={{ color: T.text }}>Non-Refundable:</strong> All
-              Coin purchases are final and non-refundable, except as required
-              by applicable law.
+              <strong style={{ color: T.text }}>VIP Auto-Renewal:</strong> VIP
+              subscriptions automatically renew at the then-current price
+              (currently $9.99 per month or $79.99 per year) until cancelled.
+              You may cancel at any time via Manage Subscription on your
+              Profile page, through the app store you subscribed through, or
+              by contacting support@verzatv.com; you retain VIP access until
+              the end of the paid period, and cancellation stops future
+              charges but does not refund the current period except as
+              required by law.
             </p>
             <p className="text-sm leading-relaxed" style={bodyText}>
-              <strong style={{ color: T.text }}>No Cash Value:</strong> Coins
-              have no real-world monetary value and cannot be exchanged for
-              cash, transferred to other users, or redeemed outside the
-              Service.
+              <strong style={{ color: T.text }}>Series Unlocks:</strong> A
+              Series Unlock applies to the specific series purchased and is
+              tied to your account (or, for guest purchases, to the device and
+              checkout email used). Unlocks are licenses to view, not
+              ownership of content, and are non-transferable.
             </p>
             <p className="text-sm leading-relaxed" style={bodyText}>
-              <strong style={{ color: T.text }}>No Expiration:</strong> Coins
-              do not expire as long as your account remains in good standing.
-              However, if your account is terminated for violation of these
-              Terms, any remaining Coins may be forfeited.
+              <strong style={{ color: T.text }}>Refunds:</strong> Except as
+              required by applicable law or as described in our Refund Policy,
+              purchases are final. See the Refund Policy for details,
+              including how app-store-billed purchases are handled.
             </p>
             <p className="text-sm leading-relaxed" style={bodyText}>
-              <strong style={{ color: T.text }}>Price Changes:</strong> We
-              reserve the right to modify Coin pricing and pack offerings at
-              any time without prior notice.
+              <strong style={{ color: T.text }}>Price Changes:</strong> We may
+              modify pricing and promotional offers at any time. Price changes
+              to an active subscription take effect at the next renewal, with
+              notice where required by law.
             </p>
           </div>
         </div>
@@ -155,7 +167,7 @@ export default function TermsPage() {
             </p>
             <p className="text-sm leading-relaxed" style={bodyText}>
               <strong style={{ color: T.text }}>Viewing Rights:</strong> Your
-              purchase of Coins or a subscription grants you a limited,
+              purchase of a Series Unlock or a subscription grants you a limited,
               non-exclusive, non-transferable, revocable license to stream
               unlocked Content for personal, non-commercial use only.
             </p>
