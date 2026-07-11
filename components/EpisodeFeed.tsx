@@ -1649,12 +1649,13 @@ export default function EpisodeFeed({
                 {[
                   `All ${episodes.length} episodes, instantly`,
                   "Yours forever — watch anytime",
-                  "No subscription. No ads.",
+                  "No ads",
                 ].map((line) => (
                   <div key={line} className="flex items-center gap-2">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2ECC71" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
+                    <span
+                      className="rounded-full shrink-0"
+                      style={{ width: 6, height: 6, background: "linear-gradient(135deg, #E0115F, #8B5CF6)" }}
+                    />
                     <span className="text-[13px] font-medium" style={{ color: "rgba(255,255,255,0.8)" }}>{line}</span>
                   </div>
                 ))}
