@@ -1626,22 +1626,52 @@ export default function EpisodeFeed({
         >
           <div className="text-center px-8 max-w-xs" style={{ animation: "paywallIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both" }}>
             <div
-              className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5"
-              style={{ background: "rgba(224,17,95,0.12)" }}
+              className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+              style={{
+                background: "linear-gradient(135deg, rgba(224,17,95,0.25), rgba(139,92,246,0.25))",
+                boxShadow: "0 0 30px rgba(224,17,95,0.25)",
+              }}
             >
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#E0115F" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="#fff" stroke="none">
+                <polygon points="8 5 20 12 8 19" />
               </svg>
             </div>
-            <h3 className="text-xl font-bold mb-2" style={{ color: "#fff" }}>
-              {iosApp ? "Episode Unavailable" : "Keep Watching"}
+            <h3 className="text-2xl font-black mb-1.5 tracking-tight" style={{ color: "#fff" }}>
+              {iosApp ? "Episode Unavailable" : "Unlock All Episodes"}
             </h3>
-            <p className="text-sm mb-6" style={{ color: "rgba(255,255,255,0.45)" }}>
+            <p className="text-sm mb-4" style={{ color: "rgba(255,255,255,0.55)" }}>
               {iosApp
                 ? "This episode isn't available in this app."
-                : <>All {episodes.length} episodes of {seriesTitle} — yours forever</>}
+                : <>You just watched the free preview of {seriesTitle}. Don&apos;t stop now — the story is just getting good.</>}
             </p>
+            {!iosApp && (
+              <div className="flex flex-col gap-1.5 mb-5 text-left mx-auto" style={{ width: "fit-content" }}>
+                {[
+                  `All ${episodes.length} episodes, instantly`,
+                  "Yours forever — watch anytime",
+                  "No subscription. No ads.",
+                ].map((line) => (
+                  <div key={line} className="flex items-center gap-2">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2ECC71" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    <span className="text-[13px] font-medium" style={{ color: "rgba(255,255,255,0.8)" }}>{line}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            {!iosApp && (
+              <p className="mb-3">
+                <span className="text-base line-through mr-2 align-middle" style={{ color: "rgba(255,255,255,0.35)" }}>$4.99</span>
+                <span className="text-3xl font-black align-middle" style={{ color: "#fff" }}>$1.99</span>
+                <span
+                  className="ml-2 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase align-middle"
+                  style={{ letterSpacing: "0.06em", background: "rgba(224,17,95,0.2)", color: "#FF6EA9" }}
+                >
+                  Save 60%
+                </span>
+              </p>
+            )}
             {!iosApp && (
             <button
               onClick={async () => {
@@ -1670,20 +1700,27 @@ export default function EpisodeFeed({
                 boxShadow: "0 0 40px rgba(224,17,95,0.3)",
               }}
             >
-              {unlockLoading ? "Opening secure checkout…" : (<>Unlock Full Series — <span className="line-through mr-1" style={{ opacity: 0.55, fontWeight: 600 }}>$4.99</span>$1.99</>)}
+              {unlockLoading ? "Opening secure checkout…" : "Unlock All Episodes"}
             </button>
             )}
             {!iosApp && (
-            <p className="mt-2.5 text-[11px]" style={{ color: "rgba(255,255,255,0.35)" }}>
+            <p className="mt-2.5 text-[11px]" style={{ color: "rgba(255,255,255,0.4)" }}>
               One-time payment · Secure checkout via Stripe
             </p>
             )}
             <button
               onClick={handleBack}
-              className="mt-4 text-sm font-medium border-0 bg-transparent cursor-pointer"
-              style={{ color: "rgba(255,255,255,0.35)", opacity: 0, animation: iosApp ? "fadeIn 0.3s ease-out 0.1s forwards" : "fadeIn 0.4s ease-out 0.9s forwards" }}
+              className="mt-3.5 w-full py-3.5 rounded-2xl text-[15px] font-bold cursor-pointer transition-transform active:scale-[0.97]"
+              style={{
+                background: "rgba(255,255,255,0.1)",
+                border: "1.5px solid rgba(255,255,255,0.35)",
+                color: "#fff",
+                backdropFilter: "blur(8px)",
+                opacity: 0,
+                animation: "fadeIn 0.35s ease-out 0.25s forwards",
+              }}
             >
-              {iosApp ? "Go Back" : "Maybe later"}
+              Go Back
             </button>
           </div>
         </div>
