@@ -8,8 +8,6 @@ import { useTranslation } from "@/components/LangProvider";
 import { BROWSE_TABS, getSeriesByCategory, getEpisode, type Series, type BrowseCategory } from "@/lib/catalog";
 import { buildResumeUrl } from "@/lib/resume";
 import SummerSaleBadge from "@/components/SummerSaleBadge";
-import SponsoredTile from "@/components/SponsoredProducts";
-import { SPONSORED_PRODUCTS } from "@/lib/sponsors";
 import AmazonTile from "@/components/AmazonProducts";
 import { AMAZON_PRODUCTS } from "@/lib/amazon-sponsors";
 import { MUX_MAP } from "@/lib/mux-map";
@@ -741,28 +739,37 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                     <p className="text-[10px] mt-0.5 line-clamp-1" style={{ color: "#6B6B7B" }}>{s.genre}</p>
                   </div>
                 </Link>
-                {/* TikTok Shop sponsored ROW — three poster-sized tiles side by
-                    side filling one full grid row, inserted every 12 posters
-                    (4 rows) so it lands cleanly on a row boundary. Products
-                    cycle between blocks. StorageBlue stays under the hero. */}
-                {SPONSORED_PRODUCTS.length > 0 && (i + 1) % 12 === 0 && i < gridItems.length - 1 &&
-                  [0, 1, 2].map((k) => (
-                    <SponsoredTile
-                      key={`ad-${i}-${k}`}
-                      product={SPONSORED_PRODUCTS[(Math.floor(i / 12) * 3 + k) % SPONSORED_PRODUCTS.length]}
-                    />
-                  ))}
-                {/* Amazon sponsored ROW — three poster-sized tiles side by side
-                    filling one full grid row, inserted every 12 posters but
-                    offset by 6 from the TikTok row so the two alternate cleanly
-                    down the grid. Products cycle between blocks. */}
-                {AMAZON_PRODUCTS.length > 0 && (i + 1) % 12 === 6 && i < gridItems.length - 1 &&
-                  [0, 1, 2].map((k) => (
-                    <AmazonTile
-                      key={`amzn-${i}-${k}`}
-                      product={AMAZON_PRODUCTS[(Math.floor(i / 12) * 3 + k) % AMAZON_PRODUCTS.length]}
-                    />
-                  ))}
+                {/* Amazon sponsored SHELF — a labelled header plus three
+                    poster-sized tiles side by side filling one full grid row,
+                    inserted every 12 posters (4 rows) so it lands cleanly on a
+                    row boundary. Products cycle between shelves, and the header
+                    carries the "view all" route into the full Amazon page.
+                    StorageBlue stays under the hero. */}
+                {AMAZON_PRODUCTS.length > 0 && (i + 1) % 12 === 0 && i < gridItems.length - 1 && (
+                  <Fragment key={`amzn-shelf-${i}`}>
+                    <div className="col-span-3 flex items-center justify-between mt-3 mb-0.5">
+                      <p className="text-[11px] font-bold uppercase tracking-wider" style={{ color: "#FF9900" }}>
+                        Amazon Picks <span style={{ color: "#6B6B7B" }}>· Sponsored</span>
+                      </p>
+                      <Link
+                        href="/amazon"
+                        className="text-[11px] font-semibold no-underline flex items-center gap-1"
+                        style={{ color: "#FF9900" }}
+                      >
+                        View all
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                          <path d="M5 12h14M13 6l6 6-6 6" />
+                        </svg>
+                      </Link>
+                    </div>
+                    {[0, 1, 2].map((k) => (
+                      <AmazonTile
+                        key={`amzn-${i}-${k}`}
+                        product={AMAZON_PRODUCTS[(Math.floor(i / 12) * 3 + k) % AMAZON_PRODUCTS.length]}
+                      />
+                    ))}
+                  </Fragment>
+                )}
               </Fragment>
             ))}
           </div>

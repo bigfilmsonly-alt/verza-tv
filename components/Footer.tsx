@@ -139,6 +139,42 @@ export default function Footer() {
           ))}
         </div>
 
+        {/* Section 2.4 — Amazon store. It also sits in the Shop group of the
+            Sitemap sheet, but that group is thousands of pixels down past every
+            show, so a shop this is meant to earn from gets a visible row here. */}
+        <div className="mb-6 flex justify-center">
+          <Link
+            href="/amazon"
+            className="flex items-center justify-center gap-1.5 no-underline transition-opacity hover:opacity-80"
+            style={{
+              background: "transparent",
+              border: "1px solid rgba(255,153,0,0.35)",
+              color: "#FF9900",
+              fontSize: 12,
+              fontWeight: 600,
+              padding: "8px 18px",
+              borderRadius: 999,
+              letterSpacing: "0.04em",
+              textTransform: "uppercase",
+            }}
+          >
+            View the Amazon Product Store
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M5 12h14M13 6l6 6-6 6" />
+            </svg>
+          </Link>
+        </div>
+
         {/* Section 2.5 — Sitemap dropdown */}
         <FooterSitemap />
 

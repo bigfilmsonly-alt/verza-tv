@@ -2,53 +2,81 @@
 
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import Image from "next/image";
-import type { AmazonProduct, AmazonIcon } from "@/lib/amazon-sponsors";
+import { productImage, productSrcSet, isCartable, type AmazonProduct, type AmazonIcon } from "@/lib/amazon-sponsors";
+import { useAmazonBag } from "@/lib/amazon-bag";
 
 /* ------------------------------------------------------------------ */
 /*  Amazon sponsored tile + in-app product modal                       */
 /*                                                                      */
 /*  The tile is shaped EXACTLY like a movie poster (2:3) so it drops    */
 /*  straight into the 3-column poster grid. Tapping it opens an in-app  */
-/*  product modal (users stay inside Verza TV); the final "Buy on       */
-/*  Amazon" button hands off to the affiliate link.                     */
+/*  modal — shoppers stay inside Verza TV and add to the Verza bag.     */
+/*  Nothing leaves the app until the single Amazon cart handoff.        */
 /* ------------------------------------------------------------------ */
 
-// Category glyphs used for the branded placeholder when no photo is supplied.
-function CategoryGlyph({ icon, size = 48 }: { icon: AmazonIcon; size?: number }) {
-  const stroke = "rgba(255,255,255,0.95)";
+// Category glyphs, used for the placeholder when the product photo is missing
+// or fails to load.
+function CategoryGlyph({ icon, size = 44 }: { icon: AmazonIcon; size?: number }) {
   const common = {
     width: size,
     height: size,
     viewBox: "0 0 24 24",
     fill: "none",
-    stroke,
-    strokeWidth: 1.6,
+    stroke: "rgba(255,255,255,0.95)",
+    strokeWidth: 1.5,
     strokeLinecap: "round" as const,
     strokeLinejoin: "round" as const,
     "aria-hidden": true,
   };
   switch (icon) {
-    case "device":
+    case "skincare": // dropper bottle
       return (
         <svg {...common}>
-          <rect x="2" y="4" width="20" height="13" rx="2" />
-          <path d="M8 21h8M12 17v4" />
+          <path d="M9 2h6M10 2v3.5L7.5 9A4 4 0 0 0 7 11v8a3 3 0 0 0 3 3h4a3 3 0 0 0 3-3v-8a4 4 0 0 0-.5-2L14 5.5V2" />
+          <path d="M7 14h10" />
         </svg>
       );
-    case "audio":
+    case "body": // lotion pump bottle
       return (
         <svg {...common}>
-          <path d="M11 5 6 9H2v6h4l5 4V5z" />
-          <path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13" />
+          <path d="M9 7h6a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z" />
+          <path d="M10 7V5a1 1 0 0 1 1-1h2M13 4h3v2" />
         </svg>
       );
-    case "power":
+    case "makeup": // mascara wand
       return (
         <svg {...common}>
-          <rect x="2" y="7" width="17" height="10" rx="2" />
-          <path d="M22 10v4" />
-          <path d="M8 9l-2 3h3l-2 3" stroke="#FFD27A" />
+          <path d="M14 3.5l6.5 6.5" />
+          <rect x="2.5" y="13" width="9" height="9" rx="1.5" transform="rotate(-45 7 17.5)" />
+          <path d="M13 4.5l3 3M15.5 7l3 3" />
+        </svg>
+      );
+    case "dress":
+      return (
+        <svg {...common}>
+          <path d="M9 3l3 2 3-2" />
+          <path d="M9 3l-1 4 2 2-3 12h10L14 9l2-2-1-4" />
+        </svg>
+      );
+    case "top":
+      return (
+        <svg {...common}>
+          <path d="M8 3L4 6l2 3 2-1v10h8V8l2 1 2-3-4-3" />
+          <path d="M8 3h8a4 4 0 0 1-8 0z" />
+        </svg>
+      );
+    case "blanket":
+      return (
+        <svg {...common}>
+          <path d="M4 6h16v9a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V6z" />
+          <path d="M4 10c2 1.4 4 1.4 6 0s4-1.4 6 0 4 1.4 4 0" />
+        </svg>
+      );
+    case "drink": // tumbler
+      return (
+        <svg {...common}>
+          <path d="M8 3h8l-1 18H9L8 3z" />
+          <path d="M8.4 8h7.2" />
         </svg>
       );
     case "light":
@@ -58,33 +86,63 @@ function CategoryGlyph({ icon, size = 48 }: { icon: AmazonIcon; size?: number })
           <path d="M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.3 1 2.5h6c0-1.2.3-1.8 1-2.5A6 6 0 0 0 12 3z" />
         </svg>
       );
-    case "home":
-      return (
-        <svg {...common}>
-          <path d="M6 8h12l-1 12H7L6 8z" />
-          <path d="M9 8V6a3 3 0 0 1 6 0v2" />
-        </svg>
-      );
-    case "wear":
-      return (
-        <svg {...common}>
-          <circle cx="7" cy="12" r="3.2" />
-          <circle cx="17" cy="12" r="3.2" />
-          <path d="M10.2 12h3.6M2.5 11l1.8-1M21.5 11l-1.8-1" />
-        </svg>
-      );
     default:
       return null;
   }
 }
 
-// The product visual (photo if given, else gradient + category glyph). Shared
-// by the tile and the modal so they always match.
-function ProductVisual({ p, glyphSize }: { p: AmazonProduct; glyphSize: number }) {
+/**
+ * The product visual: a background-removed product photo on a black card,
+ * falling back to a branded gradient the moment the image 404s or is blocked.
+ *
+ * The photos are cutouts (see scripts/amazon-cutouts.py) precisely so this card
+ * can be black. Amazon shoots on a white sweep and bakes that white into the
+ * JPEG, so simply colouring the card black would leave a white slab floating on
+ * it — worse than leaving it white. No CSS blend mode can rescue that either,
+ * because a white backdrop pixel and a white product pixel (the eos bottle, the
+ * Mighty Patch box) are the very same colour.
+ *
+ * object-contain, never cover: cropping a lotion bottle to a 2:3 poster would
+ * cut the product in half.
+ */
+function ProductVisual({
+  p,
+  glyphSize,
+  sizes,
+  priority = false,
+}: {
+  p: AmazonProduct;
+  glyphSize: number;
+  /** How wide this image actually renders, so the browser picks the right file. */
+  sizes: string;
+  /** True for the modal hero: it is the thing being looked at, so fetch it now. */
+  priority?: boolean;
+}) {
+  const [failed, setFailed] = useState(false);
   const [from, to] = p.accent ?? ["#FF9900", "#232F3E"];
-  if (p.image) {
-    return <Image src={p.image} alt={p.title} fill sizes="(max-width: 440px) 90vw, 380px" className="object-cover" />;
+  const src = productImage(p, 800);
+  const srcSet = productSrcSet(p);
+
+  if (src && !failed) {
+    return (
+      <div className="absolute inset-0" style={{ background: "#000000" }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={src}
+          srcSet={srcSet}
+          sizes={sizes}
+          alt={p.title}
+          loading={priority ? "eager" : "lazy"}
+          fetchPriority={priority ? "high" : "auto"}
+          decoding="async"
+          onError={() => setFailed(true)}
+          className="w-full h-full object-contain"
+          style={{ padding: "8%" }}
+        />
+      </div>
+    );
   }
+
   return (
     <div
       className="absolute inset-0 flex items-center justify-center"
@@ -95,19 +153,45 @@ function ProductVisual({ p, glyphSize }: { p: AmazonProduct; glyphSize: number }
   );
 }
 
-export default function AmazonTile({ product: p }: { product: AmazonProduct }) {
+/** Rendered width of a tile, so the browser can pick the right file from srcset. */
+const TILE_SIZES = {
+  // Three across the browse grid and search results.
+  grid: "(max-width: 440px) 33vw, 146px",
+  // Two across on /amazon, where the products are the whole point of the page.
+  page: "(max-width: 440px) 50vw, 210px",
+} as const;
+
+export default function AmazonTile({
+  product: p,
+  layout = "grid",
+}: {
+  product: AmazonProduct;
+  layout?: keyof typeof TILE_SIZES;
+}) {
   const [open, setOpen] = useState(false);
+  const { has } = useAmazonBag();
+  const inBag = has(p.id);
 
   return (
     <>
       <button
+        // Anchor target for /amazon#<id>, which is what the footer Shop list
+        // points at. Only on the store page: the browse grid cycles the same
+        // products through several shelves, so an id here would be duplicated
+        // down the page.
+        id={layout === "page" ? p.id : undefined}
         onClick={() => setOpen(true)}
         className="group block w-full text-left no-underline min-w-0 transition-transform active:scale-[0.97] p-0 border-0 bg-transparent cursor-pointer"
         aria-label={`View ${p.title}`}
       >
-        {/* Poster-shaped tile (matches the movie tiles exactly) */}
-        <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
-          <ProductVisual p={p} glyphSize={48} />
+        {/* Poster-shaped tile (matches the movie tiles exactly). The hairline
+            border is what keeps a black card legible against the near-black
+            page; without it the tile edge simply disappears. */}
+        <div
+          className="relative overflow-hidden rounded-lg"
+          style={{ aspectRatio: "2 / 3", border: "1px solid rgba(255,255,255,0.08)" }}
+        >
+          <ProductVisual p={p} glyphSize={44} sizes={TILE_SIZES[layout]} />
 
           {/* Ad label (top-left) */}
           <span
@@ -117,13 +201,30 @@ export default function AmazonTile({ product: p }: { product: AmazonProduct }) {
             Ad
           </span>
 
-          {/* Price pill (bottom-right) */}
-          <span
-            className="absolute bottom-1.5 right-1.5 text-[11px] font-bold px-2 py-0.5 rounded-full"
-            style={{ background: "rgba(0,0,0,0.68)", color: "#fff", backdropFilter: "blur(4px)" }}
-          >
-            {p.price}
-          </span>
+          {/* In-bag check (top-right) — instant feedback that it is already in */}
+          {inBag && (
+            <span
+              className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full flex items-center justify-center"
+              style={{ background: "#FF9900" }}
+              aria-label="In your bag"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#232F3E" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </span>
+          )}
+
+          {/* Category badge (bottom-right). We show no price on purpose: Amazon
+              only permits displaying prices pulled live from their API, and a
+              hardcoded one would be wrong within the week. */}
+          {p.badge && (
+            <span
+              className="absolute bottom-1.5 right-1.5 text-[9px] font-bold px-2 py-0.5 rounded-full"
+              style={{ background: "rgba(0,0,0,0.68)", color: "#fff", backdropFilter: "blur(4px)" }}
+            >
+              {p.badge}
+            </span>
+          )}
 
           {/* CTA — always visible on touch, reveals on hover for desktop */}
           <div
@@ -131,7 +232,7 @@ export default function AmazonTile({ product: p }: { product: AmazonProduct }) {
             style={{ background: "linear-gradient(to top, rgba(0,0,0,0.55), transparent)" }}
           >
             <div className="px-3 py-1.5 rounded-full text-[11px] font-bold" style={{ background: "#FF9900", color: "#232F3E" }}>
-              View product
+              {inBag ? "In your bag" : "View product"}
             </div>
           </div>
         </div>
@@ -152,9 +253,13 @@ export default function AmazonTile({ product: p }: { product: AmazonProduct }) {
   );
 }
 
-/* ---- In-app product modal (stays inside Verza TV) ---- */
+/* ---- In-app product modal (shoppers stay inside Verza TV) ---- */
 function AmazonProductModal({ product: p, onClose }: { product: AmazonProduct; onClose: () => void }) {
   const [mounted, setMounted] = useState(false);
+  const { addItem, has } = useAmazonBag();
+  const inBag = has(p.id);
+  const cartable = isCartable(p);
+
   useEffect(() => setMounted(true), []);
 
   useEffect(() => {
@@ -195,9 +300,14 @@ function AmazonProductModal({ product: p, onClose }: { product: AmazonProduct; o
           </svg>
         </button>
 
-        {/* Product visual */}
-        <div className="relative w-full" style={{ aspectRatio: "16 / 10", background: "#000" }}>
-          <ProductVisual p={p} glyphSize={92} />
+        {/* Product visual — the hero of this sheet, so it loads at full density. */}
+        <div className="relative w-full" style={{ aspectRatio: "16 / 11", background: "#000" }}>
+          <ProductVisual
+            p={p}
+            glyphSize={84}
+            sizes="(max-width: 440px) 100vw, 420px"
+            priority
+          />
           <span
             className="absolute top-3 left-3 text-[9px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full"
             style={{ background: "rgba(0,0,0,0.6)", color: "#fff", backdropFilter: "blur(4px)" }}
@@ -219,31 +329,65 @@ function AmazonProductModal({ product: p, onClose }: { product: AmazonProduct; o
           <h2 className="text-lg font-bold leading-tight" style={{ color: "#F5F4F8" }}>
             {p.title}
           </h2>
-          <p className="mt-1 text-2xl font-extrabold" style={{ color: "#FF9900" }}>
-            {p.price}
-          </p>
           {p.description && (
-            <p className="mt-3 text-sm leading-relaxed" style={{ color: "rgba(245,244,248,0.7)" }}>
+            <p className="mt-2.5 text-sm leading-relaxed" style={{ color: "rgba(245,244,248,0.7)" }}>
               {p.description}
             </p>
           )}
 
-          <a
-            href={p.url}
-            target="_blank"
-            rel="noopener noreferrer sponsored"
-            className="mt-5 w-full flex items-center justify-center gap-2 no-underline rounded-2xl py-3.5 text-sm font-bold transition-transform active:scale-[0.98]"
-            style={{ background: "#FF9900", color: "#232F3E" }}
-          >
-            {/* Amazon smile arrow */}
-            <svg width="20" height="20" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-              <path d="M8 30c5.5 4 12 6 18 6s12.5-2 18-6" stroke="#232F3E" strokeWidth="3.4" strokeLinecap="round" />
-              <path d="M36 33c1.6-1 3-2.3 4-4" stroke="#232F3E" strokeWidth="3.4" strokeLinecap="round" />
-            </svg>
-            Buy on Amazon
-          </a>
-          <p className="mt-2.5 text-center text-[11px]" style={{ color: "rgba(245,244,248,0.4)" }}>
-            Secure checkout completes on Amazon · As an Amazon Associate, Verza TV earns from qualifying purchases.
+          {cartable ? (
+            <>
+              {/* Primary: keep them in the app. The bag batches everything into
+                  one Amazon trip instead of bouncing them out per product. */}
+              <button
+                onClick={() => {
+                  addItem(p);
+                  onClose();
+                }}
+                className="mt-5 w-full flex items-center justify-center gap-2 rounded-2xl py-3.5 text-sm font-bold border-0 cursor-pointer transition-transform active:scale-[0.98]"
+                style={{ background: "#FF9900", color: "#232F3E" }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#232F3E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <circle cx="9" cy="20" r="1.5" />
+                  <circle cx="18" cy="20" r="1.5" />
+                  <path d="M2 3h3l2.6 11.4a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.6L21 7H6" />
+                </svg>
+                {inBag ? "Add another to bag" : "Add to bag"}
+              </button>
+
+              <a
+                href={p.url}
+                target="_blank"
+                rel="noopener noreferrer sponsored"
+                className="mt-2.5 w-full flex items-center justify-center gap-2 no-underline rounded-2xl py-3 text-sm font-semibold transition-transform active:scale-[0.98]"
+                style={{ background: "rgba(255,255,255,0.07)", color: "#F5F4F8", border: "1px solid rgba(255,255,255,0.12)" }}
+              >
+                View on Amazon
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                  <path d="M15 3h6v6M10 14L21 3" />
+                </svg>
+              </a>
+            </>
+          ) : (
+            /* Search links have no single ASIN, so there is nothing for Amazon
+               to put in a cart. Send them straight to the results instead. */
+            <a
+              href={p.url}
+              target="_blank"
+              rel="noopener noreferrer sponsored"
+              className="mt-5 w-full flex items-center justify-center gap-2 no-underline rounded-2xl py-3.5 text-sm font-bold transition-transform active:scale-[0.98]"
+              style={{ background: "#FF9900", color: "#232F3E" }}
+            >
+              Shop on Amazon
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#232F3E" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M15 3h6v6M10 14L21 3" />
+              </svg>
+            </a>
+          )}
+
+          <p className="mt-3 text-center text-[11px] leading-relaxed" style={{ color: "rgba(245,244,248,0.4)" }}>
+            Price shown on Amazon. Checkout completes on Amazon. As an Amazon Associate, Verza TV earns from qualifying purchases.
           </p>
         </div>
       </div>

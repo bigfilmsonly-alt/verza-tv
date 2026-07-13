@@ -7,6 +7,8 @@ import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import { CartProvider } from "@/lib/cart";
 import CartDrawer from "@/components/CartDrawer";
+import { AmazonBagProvider } from "@/lib/amazon-bag";
+import AmazonBag from "@/components/AmazonBag";
 import { LangProvider } from "@/components/LangProvider";
 import ServiceWorker from "@/components/ServiceWorker";
 import ContentTranslator from "@/components/ContentTranslator";
@@ -128,6 +130,7 @@ export default function RootLayout({
         </noscript>
         <ServiceWorker />
         <CartProvider>
+        <AmazonBagProvider>
         <LangProvider>
           <ContentTranslator />
           <ScrollToTop />
@@ -143,10 +146,17 @@ export default function RootLayout({
             <div className="device-nav-dock">
               <BottomNav />
             </div>
+
+            {/* Amazon bag — follows shoppers across browse, search and /amazon.
+                Lives INSIDE the frame so that on desktop, where the nav is
+                docked rather than fixed, it anchors to the phone instead of
+                sliding under the nav. */}
+            <AmazonBag />
           </div>
 
           <CartDrawer />
         </LangProvider>
+        </AmazonBagProvider>
         </CartProvider>
         <Analytics />
         <SpeedInsights />

@@ -345,6 +345,21 @@ button:focus-visible {
   /* Mobile: default fixed positioning from .bottom-nav class */
 }
 
+/* ---- Amazon bag (floating pill + drawer) ----
+   Mobile: pinned to the viewport, sitting above the 72px fixed bottom nav.
+   z-60 keeps it over the nav (z-50), which would otherwise paint on top of it.
+   The desktop override lives in the iPhone-frame media query below. */
+.amazon-bag-layer {
+  position: fixed;
+  z-index: 60;
+}
+
+/* Clears the fixed bottom nav plus the home-indicator safe area. Lives here
+   rather than inline so the desktop media query can actually override it. */
+.amazon-bag-fab {
+  bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+}
+
 /* Desktop: iPhone frame wrapper */
 @media (min-width: 520px) and (orientation: portrait),
        (min-width: 520px) and (min-height: 600px) {
@@ -458,6 +473,19 @@ button:focus-visible {
     transform: none !important;
     max-width: none !important;
     width: 100% !important;
+  }
+
+  /* Amazon bag: here the nav is docked INSIDE the frame rather than fixed to
+     the viewport, so a viewport-fixed bag would slide underneath it and get
+     clipped. Anchor to the frame instead (it is position:relative), which also
+     lets the frame's overflow:hidden keep the drawer inside the phone. */
+  .amazon-bag-layer {
+    position: absolute;
+  }
+
+  /* Clear the docked nav: its own height plus the dock's 16px bottom padding. */
+  .amazon-bag-fab {
+    bottom: 88px;
   }
 }
 

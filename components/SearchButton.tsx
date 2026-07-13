@@ -7,8 +7,6 @@ import Image from "next/image";
 import { trackSearch } from "@/lib/track";
 import { getLiveSeries } from "@/lib/catalog";
 import { seriesMatchesQuery } from "@/lib/search-index";
-import { SPONSORED_PRODUCTS, productMatchesQuery } from "@/lib/sponsors";
-import SponsoredTile from "@/components/SponsoredProducts";
 import { AMAZON_PRODUCTS, amazonProductMatchesQuery } from "@/lib/amazon-sponsors";
 import AmazonTile from "@/components/AmazonProducts";
 
@@ -26,9 +24,6 @@ export default function SearchButton() {
   const q = query.trim();
   const filtered =
     q.length >= 2 ? series.filter((s) => seriesMatchesQuery(s, q)) : [];
-  // Sponsored TikTok Shop products — searching "tiktok" returns all of them.
-  const filteredProducts =
-    q.length >= 2 ? SPONSORED_PRODUCTS.filter((p) => productMatchesQuery(p, q)) : [];
   // Sponsored Amazon products — searching "amazon" returns all of them.
   const filteredAmazon =
     q.length >= 2 ? AMAZON_PRODUCTS.filter((p) => amazonProductMatchesQuery(p, q)) : [];
@@ -158,29 +153,23 @@ export default function SearchButton() {
                 </div>
               </>
             )}
-            {/* TikTok Shop sponsored products — searching "tiktok" (or a product
-                keyword like "projector") populates them here. */}
-            {filteredProducts.length > 0 && (
-              <>
-                <p className="px-4 pt-3 pb-2 text-[11px] font-semibold uppercase tracking-wider" style={{ color: "#6B6B7B" }}>
-                  TikTok Shop · {filteredProducts.length} product{filteredProducts.length === 1 ? "" : "s"}
-                </p>
-                <div className="grid grid-cols-3 gap-x-2.5 gap-y-4 px-3 pb-10">
-                  {filteredProducts.map((p) => (
-                    <div key={p.id} onClick={() => setOpen(false)}>
-                      <SponsoredTile product={p} />
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
-            {/* Amazon sponsored products — searching "amazon" (or a product
-                keyword like "projector") populates them here. */}
+            {/* Sponsored Amazon products — searching "amazon" (or a product
+                keyword like "mascara") populates them here. */}
             {filteredAmazon.length > 0 && (
               <>
-                <p className="px-4 pt-3 pb-2 text-[11px] font-semibold uppercase tracking-wider" style={{ color: "#6B6B7B" }}>
-                  Amazon · {filteredAmazon.length} product{filteredAmazon.length === 1 ? "" : "s"}
-                </p>
+                <div className="flex items-center justify-between px-4 pt-3 pb-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: "#6B6B7B" }}>
+                    Amazon · {filteredAmazon.length} product{filteredAmazon.length === 1 ? "" : "s"}
+                  </p>
+                  <Link
+                    href="/amazon"
+                    onClick={() => setOpen(false)}
+                    className="text-[11px] font-semibold no-underline"
+                    style={{ color: "#FF9900" }}
+                  >
+                    View all
+                  </Link>
+                </div>
                 <div className="grid grid-cols-3 gap-x-2.5 gap-y-4 px-3 pb-10">
                   {filteredAmazon.map((p) => (
                     <AmazonTile key={p.id} product={p} />
@@ -188,7 +177,7 @@ export default function SearchButton() {
                 </div>
               </>
             )}
-            {filtered.length === 0 && filteredProducts.length === 0 && filteredAmazon.length === 0 && (
+            {filtered.length === 0 && filteredAmazon.length === 0 && (
               <div className="px-4 py-10 text-center"><p className="text-sm" style={{ color: "#6B6B7B" }}>No results for &ldquo;{query.trim()}&rdquo;</p></div>
             )}
           </div>

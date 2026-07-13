@@ -10,6 +10,7 @@ export function GET() {
     { loc: "/discover", priority: "0.9", changefreq: "daily" },
     { loc: "/channels", priority: "0.8", changefreq: "weekly" },
     { loc: "/shop", priority: "0.7", changefreq: "monthly" },
+    { loc: "/amazon", priority: "0.6", changefreq: "weekly" },
     { loc: "/press", priority: "0.6", changefreq: "monthly" },
     { loc: "/about", priority: "0.6", changefreq: "monthly" },
     { loc: "/help", priority: "0.5", changefreq: "monthly" },
