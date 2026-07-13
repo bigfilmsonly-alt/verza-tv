@@ -8,10 +8,14 @@ import { useAmazonBag } from "@/lib/amazon-bag";
 /* ------------------------------------------------------------------ */
 /*  Amazon sponsored tile + in-app product modal                       */
 /*                                                                      */
-/*  The tile is shaped EXACTLY like a movie poster (2:3) so it drops    */
-/*  straight into the 3-column poster grid. Tapping it opens an in-app  */
-/*  modal — shoppers stay inside Verza TV and add to the Verza bag.     */
-/*  Nothing leaves the app until the single Amazon cart handoff.        */
+/*  Two layouts: the /amazon store page, and the shop section in the    */
+/*  footer. Products deliberately no longer appear in the poster grid   */
+/*  or in search — browsing stays editorial, and everything for sale    */
+/*  lives in the footer shop.                                           */
+/*                                                                      */
+/*  Tapping a tile opens an in-app modal: shoppers stay inside Verza TV */
+/*  and add to the Verza bag. Nothing leaves the app until the single   */
+/*  Amazon cart handoff.                                                */
 /* ------------------------------------------------------------------ */
 
 // Category glyphs, used for the placeholder when the product photo is missing
@@ -92,17 +96,14 @@ function CategoryGlyph({ icon, size = 44 }: { icon: AmazonIcon; size?: number })
 }
 
 /**
- * The product visual: a background-removed product photo on a black card,
- * falling back to a branded gradient the moment the image 404s or is blocked.
+ * The product visual: the product photo on a white card, matching the merch in
+ * /shop, and falling back to a branded gradient the moment the image 404s.
  *
- * The photos are cutouts (see scripts/amazon-cutouts.py) precisely so this card
- * can be black. Amazon shoots on a white sweep and bakes that white into the
- * JPEG, so simply colouring the card black would leave a white slab floating on
- * it — worse than leaving it white. No CSS blend mode can rescue that either,
- * because a white backdrop pixel and a white product pixel (the eos bottle, the
- * Mighty Patch box) are the very same colour.
+ * The photos are still the transparent cutouts from scripts/amazon-cutouts.py.
+ * On white they look exactly like Amazon's originals, and keeping them means the
+ * card can be recoloured (to the brand gradient, say) without redoing the assets.
  *
- * object-contain, never cover: cropping a lotion bottle to a 2:3 poster would
+ * object-contain, never cover: cropping a lotion bottle to fit the tile would
  * cut the product in half.
  */
 function ProductVisual({
@@ -125,7 +126,7 @@ function ProductVisual({
 
   if (src && !failed) {
     return (
-      <div className="absolute inset-0" style={{ background: "#000000" }}>
+      <div className="absolute inset-0" style={{ background: "#FFFFFF" }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={src}
@@ -153,45 +154,40 @@ function ProductVisual({
   );
 }
 
-/** Rendered width of a tile, so the browser can pick the right file from srcset. */
-const TILE_SIZES = {
-  // Three across the browse grid and search results.
-  grid: "(max-width: 440px) 33vw, 146px",
+/** Per-layout geometry, so the browser can pick the right file from srcset. */
+const LAYOUTS = {
   // Two across on /amazon, where the products are the whole point of the page.
-  page: "(max-width: 440px) 50vw, 210px",
+  page: { sizes: "(max-width: 440px) 50vw, 210px", aspect: "2 / 3", glyph: 44 },
+  // Three across inside the footer shop — small, so square and stripped back.
+  footer: { sizes: "(max-width: 440px) 30vw, 124px", aspect: "1 / 1", glyph: 30 },
 } as const;
 
 export default function AmazonTile({
   product: p,
-  layout = "grid",
+  layout = "page",
 }: {
   product: AmazonProduct;
-  layout?: keyof typeof TILE_SIZES;
+  layout?: keyof typeof LAYOUTS;
 }) {
   const [open, setOpen] = useState(false);
   const { has } = useAmazonBag();
   const inBag = has(p.id);
+  const { sizes, aspect, glyph } = LAYOUTS[layout];
+  const compact = layout === "footer";
 
   return (
     <>
       <button
-        // Anchor target for /amazon#<id>, which is what the footer Shop list
-        // points at. Only on the store page: the browse grid cycles the same
-        // products through several shelves, so an id here would be duplicated
-        // down the page.
+        // Anchor target for /amazon?p=<id>. Only on the store page: the footer
+        // renders the same products on every page, so an id here would collide
+        // with the store's whenever both are on screen.
         id={layout === "page" ? p.id : undefined}
         onClick={() => setOpen(true)}
         className="group block w-full text-left no-underline min-w-0 transition-transform active:scale-[0.97] p-0 border-0 bg-transparent cursor-pointer"
         aria-label={`View ${p.title}`}
       >
-        {/* Poster-shaped tile (matches the movie tiles exactly). The hairline
-            border is what keeps a black card legible against the near-black
-            page; without it the tile edge simply disappears. */}
-        <div
-          className="relative overflow-hidden rounded-lg"
-          style={{ aspectRatio: "2 / 3", border: "1px solid rgba(255,255,255,0.08)" }}
-        >
-          <ProductVisual p={p} glyphSize={44} sizes={TILE_SIZES[layout]} />
+        <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: aspect }}>
+          <ProductVisual p={p} glyphSize={glyph} sizes={sizes} />
 
           {/* Ad label (top-left) */}
           <span
@@ -216,8 +212,9 @@ export default function AmazonTile({
 
           {/* Category badge (bottom-right). We show no price on purpose: Amazon
               only permits displaying prices pulled live from their API, and a
-              hardcoded one would be wrong within the week. */}
-          {p.badge && (
+              hardcoded one would be wrong within the week. Dropped in the footer
+              — at ~124px a second pill just crowds the product. */}
+          {p.badge && !compact && (
             <span
               className="absolute bottom-1.5 right-1.5 text-[9px] font-bold px-2 py-0.5 rounded-full"
               style={{ background: "rgba(0,0,0,0.68)", color: "#fff", backdropFilter: "blur(4px)" }}
@@ -226,25 +223,35 @@ export default function AmazonTile({
             </span>
           )}
 
-          {/* CTA — always visible on touch, reveals on hover for desktop */}
-          <div
-            className="absolute inset-x-0 bottom-0 flex items-center justify-center pt-8 pb-2 md:opacity-0 md:group-hover:opacity-100 md:inset-0 md:pb-0 md:pt-0 md:transition-opacity md:duration-300 z-10"
-            style={{ background: "linear-gradient(to top, rgba(0,0,0,0.55), transparent)" }}
-          >
-            <div className="px-3 py-1.5 rounded-full text-[11px] font-bold" style={{ background: "#FF9900", color: "#232F3E" }}>
-              {inBag ? "In your bag" : "View product"}
+          {/* CTA — always visible on touch, reveals on hover for desktop. Also
+              dropped in the footer: its dark scrim reads as grime across the
+              bottom of a small white card. */}
+          {!compact && (
+            <div
+              className="absolute inset-x-0 bottom-0 flex items-center justify-center pt-8 pb-2 md:opacity-0 md:group-hover:opacity-100 md:inset-0 md:pb-0 md:pt-0 md:transition-opacity md:duration-300 z-10"
+              style={{ background: "linear-gradient(to top, rgba(0,0,0,0.55), transparent)" }}
+            >
+              <div className="px-3 py-1.5 rounded-full text-[11px] font-bold" style={{ background: "#FF9900", color: "#232F3E" }}>
+                {inBag ? "In your bag" : "View product"}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
-        {/* Caption block — same fixed height as the movie tiles so rows align */}
-        <div style={{ height: 36 }}>
-          <p className="mt-1.5 text-[11px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>
+        {/* Caption. The footer carries its "Sponsored · Amazon" line once at the
+            section header instead of repeating it under all twelve tiles. */}
+        <div style={{ height: compact ? 30 : 36 }}>
+          <p
+            className={`mt-1.5 font-semibold leading-tight line-clamp-2 ${compact ? "text-[10px]" : "text-[11px]"}`}
+            style={{ color: "#F5F4F8" }}
+          >
             {p.title}
           </p>
-          <p className="text-[10px] mt-0.5 line-clamp-1 font-semibold" style={{ color: "#FF9900" }}>
-            Sponsored · Amazon
-          </p>
+          {!compact && (
+            <p className="text-[10px] mt-0.5 line-clamp-1 font-semibold" style={{ color: "#FF9900" }}>
+              Sponsored · Amazon
+            </p>
+          )}
         </div>
       </button>
 
@@ -301,7 +308,7 @@ function AmazonProductModal({ product: p, onClose }: { product: AmazonProduct; o
         </button>
 
         {/* Product visual — the hero of this sheet, so it loads at full density. */}
-        <div className="relative w-full" style={{ aspectRatio: "16 / 11", background: "#000" }}>
+        <div className="relative w-full" style={{ aspectRatio: "16 / 11", background: "#fff" }}>
           <ProductVisual
             p={p}
             glyphSize={84}

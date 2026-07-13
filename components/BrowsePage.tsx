@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, useRef, Fragment } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import CategoryTabs from "@/components/CategoryTabs";
@@ -8,8 +8,6 @@ import { useTranslation } from "@/components/LangProvider";
 import { BROWSE_TABS, getSeriesByCategory, getEpisode, type Series, type BrowseCategory } from "@/lib/catalog";
 import { buildResumeUrl } from "@/lib/resume";
 import SummerSaleBadge from "@/components/SummerSaleBadge";
-import AmazonTile from "@/components/AmazonProducts";
-import { AMAZON_PRODUCTS } from "@/lib/amazon-sponsors";
 import { MUX_MAP } from "@/lib/mux-map";
 import { startInstantPlayer } from "@/lib/instant-player";
 import HideInIOSApp from "@/components/HideInIOSApp";
@@ -709,9 +707,12 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
       {gridItems.length > 0 && activeTab !== "music" && activeTab !== "reality" && activeTab !== "red-carpet" && (
         <section className="mt-4 pb-4 px-3">
           <div className="poster-grid stagger-children grid grid-cols-3 gap-1.5">
-            {gridItems.map((s, i) => (
-              <Fragment key={s.slug}>
+            {/* Posters only. Sponsored products used to be injected into this
+                grid every 12 tiles; they now live in the shop section of the
+                footer, so browsing stays purely editorial. */}
+            {gridItems.map((s) => (
                 <Link
+                  key={s.slug}
                   href={`/series/${s.slug}/1`}
                   className="group block no-underline min-w-0 transition-transform active:scale-[0.97]"
                   onClick={(e) => posterClick(e, s.slug)}
@@ -739,38 +740,6 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                     <p className="text-[10px] mt-0.5 line-clamp-1" style={{ color: "#6B6B7B" }}>{s.genre}</p>
                   </div>
                 </Link>
-                {/* Amazon sponsored SHELF — a labelled header plus three
-                    poster-sized tiles side by side filling one full grid row,
-                    inserted every 12 posters (4 rows) so it lands cleanly on a
-                    row boundary. Products cycle between shelves, and the header
-                    carries the "view all" route into the full Amazon page.
-                    StorageBlue stays under the hero. */}
-                {AMAZON_PRODUCTS.length > 0 && (i + 1) % 12 === 0 && i < gridItems.length - 1 && (
-                  <Fragment key={`amzn-shelf-${i}`}>
-                    <div className="col-span-3 flex items-center justify-between mt-3 mb-0.5">
-                      <p className="text-[11px] font-bold uppercase tracking-wider" style={{ color: "#FF9900" }}>
-                        Amazon Picks <span style={{ color: "#6B6B7B" }}>· Sponsored</span>
-                      </p>
-                      <Link
-                        href="/amazon"
-                        className="text-[11px] font-semibold no-underline flex items-center gap-1"
-                        style={{ color: "#FF9900" }}
-                      >
-                        View all
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                          <path d="M5 12h14M13 6l6 6-6 6" />
-                        </svg>
-                      </Link>
-                    </div>
-                    {[0, 1, 2].map((k) => (
-                      <AmazonTile
-                        key={`amzn-${i}-${k}`}
-                        product={AMAZON_PRODUCTS[(Math.floor(i / 12) * 3 + k) % AMAZON_PRODUCTS.length]}
-                      />
-                    ))}
-                  </Fragment>
-                )}
-              </Fragment>
             ))}
           </div>
         </section>

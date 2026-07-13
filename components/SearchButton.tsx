@@ -7,8 +7,6 @@ import Image from "next/image";
 import { trackSearch } from "@/lib/track";
 import { getLiveSeries } from "@/lib/catalog";
 import { seriesMatchesQuery } from "@/lib/search-index";
-import { AMAZON_PRODUCTS, amazonProductMatchesQuery } from "@/lib/amazon-sponsors";
-import AmazonTile from "@/components/AmazonProducts";
 
 export default function SearchButton() {
   const [open, setOpen] = useState(false);
@@ -22,11 +20,10 @@ export default function SearchButton() {
   useEffect(() => setMounted(true), []);
 
   const q = query.trim();
+  // Shows only. Sponsored products are confined to the shop section in the
+  // footer and the /amazon store page, so search stays purely editorial.
   const filtered =
     q.length >= 2 ? series.filter((s) => seriesMatchesQuery(s, q)) : [];
-  // Sponsored Amazon products — searching "amazon" returns all of them.
-  const filteredAmazon =
-    q.length >= 2 ? AMAZON_PRODUCTS.filter((p) => amazonProductMatchesQuery(p, q)) : [];
 
   useEffect(() => {
     if (open) setTimeout(() => inputRef.current?.focus(), 100);
@@ -153,31 +150,7 @@ export default function SearchButton() {
                 </div>
               </>
             )}
-            {/* Sponsored Amazon products — searching "amazon" (or a product
-                keyword like "mascara") populates them here. */}
-            {filteredAmazon.length > 0 && (
-              <>
-                <div className="flex items-center justify-between px-4 pt-3 pb-2">
-                  <p className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: "#6B6B7B" }}>
-                    Amazon · {filteredAmazon.length} product{filteredAmazon.length === 1 ? "" : "s"}
-                  </p>
-                  <Link
-                    href="/amazon"
-                    onClick={() => setOpen(false)}
-                    className="text-[11px] font-semibold no-underline"
-                    style={{ color: "#FF9900" }}
-                  >
-                    View all
-                  </Link>
-                </div>
-                <div className="grid grid-cols-3 gap-x-2.5 gap-y-4 px-3 pb-10">
-                  {filteredAmazon.map((p) => (
-                    <AmazonTile key={p.id} product={p} />
-                  ))}
-                </div>
-              </>
-            )}
-            {filtered.length === 0 && filteredAmazon.length === 0 && (
+            {filtered.length === 0 && (
               <div className="px-4 py-10 text-center"><p className="text-sm" style={{ color: "#6B6B7B" }}>No results for &ldquo;{query.trim()}&rdquo;</p></div>
             )}
           </div>

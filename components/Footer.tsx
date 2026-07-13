@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { T } from "@/lib/theme";
 import FooterSitemap from "@/components/FooterSitemap";
+import AmazonTile from "@/components/AmazonProducts";
+import { AMAZON_PRODUCTS } from "@/lib/amazon-sponsors";
 
 const socialLinks = [
   {
@@ -139,41 +141,55 @@ export default function Footer() {
           ))}
         </div>
 
-        {/* Section 2.4 — Amazon store. It also sits in the Shop group of the
-            Sitemap sheet, but that group is thousands of pixels down past every
-            show, so a shop this is meant to earn from gets a visible row here. */}
-        <div className="mb-6 flex justify-center">
-          <Link
-            href="/amazon"
-            className="flex items-center justify-center gap-1.5 no-underline transition-opacity hover:opacity-80"
-            style={{
-              background: "transparent",
-              border: "1px solid rgba(255,153,0,0.35)",
-              color: "#FF9900",
-              fontSize: 12,
-              fontWeight: 600,
-              padding: "8px 18px",
-              borderRadius: 999,
-              letterSpacing: "0.04em",
-              textTransform: "uppercase",
-            }}
-          >
-            View the Amazon Product Store
-            <svg
-              width="13"
-              height="13"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M5 12h14M13 6l6 6-6 6" />
-            </svg>
-          </Link>
-        </div>
+        {/* Section 2.4 — Shop. The only place products appear now: they are out
+            of the poster grid and out of search, so browsing stays purely
+            editorial and everything for sale lives down here. Images lazy load,
+            so the twelve of them cost nothing until the footer is scrolled to. */}
+        {AMAZON_PRODUCTS.length > 0 && (
+          <div className="mb-7">
+            <div className="flex items-baseline justify-between mb-1">
+              <h3
+                style={{
+                  color: T.text,
+                  fontSize: 12,
+                  fontWeight: 700,
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  margin: 0,
+                }}
+              >
+                Shop
+              </h3>
+              <Link
+                href="/amazon"
+                className="no-underline flex items-center gap-1 transition-opacity hover:opacity-80"
+                style={{ color: "#FF9900", fontSize: 11, fontWeight: 600 }}
+              >
+                View all
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M5 12h14M13 6l6 6-6 6" />
+                </svg>
+              </Link>
+            </div>
+
+            {/* One disclosure for the whole shelf, rather than repeating it under
+                every tile. It has to sit above the products to be the "clear and
+                conspicuous" placement the FTC asks for. */}
+            <p className="m-0 mb-3" style={{ color: T.textMute, fontSize: 10 }}>
+              Sponsored · Amazon
+            </p>
+
+            <div className="grid grid-cols-3 gap-x-2 gap-y-3">
+              {AMAZON_PRODUCTS.map((p) => (
+                <AmazonTile key={p.id} product={p} layout="footer" />
+              ))}
+            </div>
+
+            <p className="m-0 mt-3 text-center" style={{ color: T.textMute, fontSize: 10, lineHeight: 1.5 }}>
+              As an Amazon Associate, VERZA TV earns from qualifying purchases.
+            </p>
+          </div>
+        )}
 
         {/* Section 2.5 — Sitemap dropdown */}
         <FooterSitemap />

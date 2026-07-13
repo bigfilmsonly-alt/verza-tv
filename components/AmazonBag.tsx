@@ -121,7 +121,7 @@ function BagDrawer() {
                     style={{
                       width: 52,
                       height: 52,
-                      background: "#000",
+                      background: "#fff",
                       border: `1px solid ${T.line}`,
                     }}
                   >
