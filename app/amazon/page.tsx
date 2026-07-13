@@ -56,7 +56,7 @@ export default function AmazonPage() {
       ) : (
         <div className="grid grid-cols-2 gap-x-3 gap-y-5">
           {AMAZON_PRODUCTS.map((p) => (
-            <AmazonTile key={p.id} product={p} layout="page" />
+            <AmazonTile key={p.id} product={p} />
           ))}
         </div>
       )}

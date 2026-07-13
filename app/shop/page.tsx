@@ -7,10 +7,13 @@ import { BRAND } from "@/lib/config";
 import CartButton from "@/components/CartButton";
 import { organizationSchema } from "@/lib/seo/schema";
 import JsonLd from "@/components/JsonLd";
+import AmazonTile from "@/components/AmazonProducts";
+import { AMAZON_PRODUCTS } from "@/lib/amazon-sponsors";
 
 export const metadata: Metadata = {
   title: `Shop | ${BRAND.name}`,
-  description: "Official VERZA TV merch — hoodies, mugs, socks, water bottles, and more.",
+  description:
+    "Official VERZA TV merch — hoodies, mugs, socks, water bottles — plus the beauty, skincare and cozy Amazon picks the team is loving.",
   alternates: { canonical: "/shop" },
 };
 
@@ -91,6 +94,46 @@ export default function ShopPage() {
           </Link>
         ))}
       </div>
+
+      {/* Amazon Picks — the only place products live now, alongside the merch
+          above. Kept visibly apart on purpose: the merch checks out through our
+          own Stripe cart, while these settle on Amazon via the Verza bag. Two
+          payment paths on one page is only honest if it is obvious which is
+          which, hence its own header, the Sponsored label and the disclosure. */}
+      {AMAZON_PRODUCTS.length > 0 && (
+        <div className="mt-10 pt-8" style={{ borderTop: `1px solid ${T.line}` }}>
+          <div className="flex items-baseline justify-between mb-1">
+            <h2 className="text-xl font-bold" style={{ color: T.text }}>
+              Amazon Picks
+            </h2>
+            <Link
+              href="/amazon"
+              className="no-underline flex items-center gap-1 transition-opacity hover:opacity-80"
+              style={{ color: "#FF9900", fontSize: 12, fontWeight: 600 }}
+            >
+              View all
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M5 12h14M13 6l6 6-6 6" />
+              </svg>
+            </Link>
+          </div>
+          <p className="text-sm mb-5" style={{ color: T.textMute }}>
+            Sponsored · Beauty, skincare and cozy essentials on Amazon
+          </p>
+
+          <div className="grid grid-cols-2 gap-x-3 gap-y-5">
+            {AMAZON_PRODUCTS.map((p) => (
+              <AmazonTile key={p.id} product={p} />
+            ))}
+          </div>
+
+          <p className="mt-7 text-center text-[11px] leading-relaxed" style={{ color: T.textMute }}>
+            Add anything here to your bag without leaving Verza TV, then one tap sends the whole bag
+            to your Amazon cart. Checkout completes on Amazon. As an Amazon Associate, VERZA TV earns
+            from qualifying purchases.
+          </p>
+        </div>
+      )}
     </section>
   );
 }

@@ -154,40 +154,28 @@ function ProductVisual({
   );
 }
 
-/** Per-layout geometry, so the browser can pick the right file from srcset. */
-const LAYOUTS = {
-  // Two across on /amazon, where the products are the whole point of the page.
-  page: { sizes: "(max-width: 440px) 50vw, 210px", aspect: "2 / 3", glyph: 44 },
-  // Three across inside the footer shop — small, so square and stripped back.
-  footer: { sizes: "(max-width: 440px) 30vw, 124px", aspect: "1 / 1", glyph: 30 },
-} as const;
+// Two across wherever it renders (/shop and /amazon), so one size hint serves
+// both. Square, not poster-shaped: these are product shots, and it lines the
+// tiles up with the square merch cards on /shop.
+const TILE_SIZES = "(max-width: 440px) 50vw, 210px";
 
-export default function AmazonTile({
-  product: p,
-  layout = "page",
-}: {
-  product: AmazonProduct;
-  layout?: keyof typeof LAYOUTS;
-}) {
+export default function AmazonTile({ product: p }: { product: AmazonProduct }) {
   const [open, setOpen] = useState(false);
   const { has } = useAmazonBag();
   const inBag = has(p.id);
-  const { sizes, aspect, glyph } = LAYOUTS[layout];
-  const compact = layout === "footer";
 
   return (
     <>
       <button
-        // Anchor target for /amazon?p=<id>. Only on the store page: the footer
-        // renders the same products on every page, so an id here would collide
-        // with the store's whenever both are on screen.
-        id={layout === "page" ? p.id : undefined}
+        // Anchor target for /amazon?p=<id>, so a product can be linked directly.
+        // Safe on both pages: each product renders at most once per page.
+        id={p.id}
         onClick={() => setOpen(true)}
         className="group block w-full text-left no-underline min-w-0 transition-transform active:scale-[0.97] p-0 border-0 bg-transparent cursor-pointer"
         aria-label={`View ${p.title}`}
       >
-        <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: aspect }}>
-          <ProductVisual p={p} glyphSize={glyph} sizes={sizes} />
+        <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "1 / 1" }}>
+          <ProductVisual p={p} glyphSize={44} sizes={TILE_SIZES} />
 
           {/* Ad label (top-left) */}
           <span
@@ -212,9 +200,8 @@ export default function AmazonTile({
 
           {/* Category badge (bottom-right). We show no price on purpose: Amazon
               only permits displaying prices pulled live from their API, and a
-              hardcoded one would be wrong within the week. Dropped in the footer
-              — at ~124px a second pill just crowds the product. */}
-          {p.badge && !compact && (
+              hardcoded one would be wrong within the week. */}
+          {p.badge && (
             <span
               className="absolute bottom-1.5 right-1.5 text-[9px] font-bold px-2 py-0.5 rounded-full"
               style={{ background: "rgba(0,0,0,0.68)", color: "#fff", backdropFilter: "blur(4px)" }}
@@ -223,35 +210,26 @@ export default function AmazonTile({
             </span>
           )}
 
-          {/* CTA — always visible on touch, reveals on hover for desktop. Also
-              dropped in the footer: its dark scrim reads as grime across the
-              bottom of a small white card. */}
-          {!compact && (
-            <div
-              className="absolute inset-x-0 bottom-0 flex items-center justify-center pt-8 pb-2 md:opacity-0 md:group-hover:opacity-100 md:inset-0 md:pb-0 md:pt-0 md:transition-opacity md:duration-300 z-10"
-              style={{ background: "linear-gradient(to top, rgba(0,0,0,0.55), transparent)" }}
-            >
-              <div className="px-3 py-1.5 rounded-full text-[11px] font-bold" style={{ background: "#FF9900", color: "#232F3E" }}>
-                {inBag ? "In your bag" : "View product"}
-              </div>
+          {/* CTA — always visible on touch, reveals on hover for desktop */}
+          <div
+            className="absolute inset-x-0 bottom-0 flex items-center justify-center pt-8 pb-2 md:opacity-0 md:group-hover:opacity-100 md:inset-0 md:pb-0 md:pt-0 md:transition-opacity md:duration-300 z-10"
+            style={{ background: "linear-gradient(to top, rgba(0,0,0,0.55), transparent)" }}
+          >
+            <div className="px-3 py-1.5 rounded-full text-[11px] font-bold" style={{ background: "#FF9900", color: "#232F3E" }}>
+              {inBag ? "In your bag" : "View product"}
             </div>
-          )}
+          </div>
         </div>
 
-        {/* Caption. The footer carries its "Sponsored · Amazon" line once at the
-            section header instead of repeating it under all twelve tiles. */}
-        <div style={{ height: compact ? 30 : 36 }}>
-          <p
-            className={`mt-1.5 font-semibold leading-tight line-clamp-2 ${compact ? "text-[10px]" : "text-[11px]"}`}
-            style={{ color: "#F5F4F8" }}
-          >
+        {/* Caption. Each tile carries its own "Sponsored · Amazon" line, so the
+            disclosure travels with the product wherever the tile is used. */}
+        <div style={{ height: 36 }}>
+          <p className="mt-1.5 text-[11px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>
             {p.title}
           </p>
-          {!compact && (
-            <p className="text-[10px] mt-0.5 line-clamp-1 font-semibold" style={{ color: "#FF9900" }}>
-              Sponsored · Amazon
-            </p>
-          )}
+          <p className="text-[10px] mt-0.5 line-clamp-1 font-semibold" style={{ color: "#FF9900" }}>
+            Sponsored · Amazon
+          </p>
         </div>
       </button>
 

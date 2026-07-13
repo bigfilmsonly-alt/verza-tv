@@ -11,7 +11,6 @@ import { COMPARISONS } from "@/lib/data/compare";
 import { ALAN_SUBPAGES } from "@/lib/data/alan";
 import { getApprovedGenreHubs } from "@/lib/content/genres";
 import { getLiveSeries } from "@/lib/catalog";
-import { AMAZON_PRODUCTS } from "@/lib/amazon-sponsors";
 
 export interface SitemapLink {
   label: string;
@@ -209,21 +208,11 @@ export const SITEMAP_SECTIONS: SitemapSection[] = [
   {
     title: "Shop",
     hub: { label: "Shop All", href: "/shop" },
+    // Two destinations, no product list. Everything here renders in the footer
+    // of every page, and products do not belong in the footer.
     links: [
       { label: "Shop All", href: "/shop" },
-      { label: "View the Amazon Product Store", href: "/amazon" },
-      // Every Amazon product, deep linked into the store page so the tile opens
-      // in the in-app modal and can go straight into the bag.
-      //
-      // Deliberately NOT the raw affiliate URLs. This section renders in the
-      // footer of every page, so pointing these at Amazon would put a dozen
-      // affiliate links sitewide — and the footer renders external links with
-      // rel="noopener noreferrer", missing the rel="sponsored" that Google
-      // requires on paid links. It would also bypass the bag entirely.
-      ...AMAZON_PRODUCTS.map((p) => ({
-        label: p.title,
-        href: `/amazon?p=${p.id}`,
-      })),
+      { label: "Amazon Picks", href: "/amazon" },
     ],
   },
   {
