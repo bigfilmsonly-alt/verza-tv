@@ -25,9 +25,11 @@ export default function AmazonPage() {
       </Suspense>
 
       <div className="mb-5">
-        <h1 className="text-2xl font-bold leading-snug" style={{ color: T.text }}>
-          Your favorite shows. Your favorite finds.
-        </h1>
+        <div className="headline-oneline">
+          <h1 className="font-bold" style={{ color: T.text }}>
+            Your favorite shows, your favorite finds
+          </h1>
+        </div>
         <p className="text-sm mt-1.5" style={{ color: T.textDim }}>
           Everything you love, all in one place.
         </p>

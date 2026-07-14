@@ -345,6 +345,27 @@ button:focus-visible {
   /* Mobile: default fixed positioning from .bottom-nav class */
 }
 
+/* ---- Shop headline: always exactly one line ----
+   "Your favorite shows, your favorite finds" is 39 characters, and in Inter Bold
+   it renders about 19.25x the font size wide. No fixed size can hold one line
+   across the range: 18px fits a 390px iPhone but overflows a 360px Android, and
+   anything small enough for a 320px SE stops reading as a headline.
+
+   So size it against the container instead. Container query units resolve to the
+   440px app shell, which is what actually bounds the text — viewport units would
+   blow up inside the desktop iPhone frame, where the viewport is the whole
+   browser window and the frame is only 400px. 5cqw sits just under the 5.19cqw
+   break-even, leaving ~4% of headroom for kerning. */
+.headline-oneline {
+  container-type: inline-size;
+}
+
+.headline-oneline > h1,
+.headline-oneline > h2 {
+  white-space: nowrap;
+  font-size: clamp(14px, 5cqw, 20px);
+}
+
 /* ---- Amazon bag (floating pill + drawer) ----
    Mobile: pinned to the viewport, sitting above the 72px fixed bottom nav.
    z-60 keeps it over the nav (z-50), which would otherwise paint on top of it.

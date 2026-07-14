@@ -107,13 +107,27 @@ export default function ShopPage() {
           Associates disclosure below the grid. */}
       {AMAZON_PRODUCTS.length > 0 && (
         <div className="mt-10 pt-8" style={{ borderTop: `1px solid ${T.line}` }}>
-          <div className="flex items-start justify-between gap-3 mb-1">
-            <h2 className="text-xl font-bold leading-snug" style={{ color: T.text }}>
-              Your favorite shows. Your favorite finds.
+          {/* The headline needs the full width to hold one line, so "View all"
+              sits on the sponsored row below rather than beside it. */}
+          <div className="headline-oneline">
+            <h2 className="font-bold" style={{ color: T.text }}>
+              Your favorite shows, your favorite finds
             </h2>
+          </div>
+          <p className="text-sm mt-1" style={{ color: T.textDim }}>
+            Everything you love, all in one place.
+          </p>
+
+          <div className="flex items-center justify-between mt-2.5 mb-5">
+            <p
+              className="text-[10px] font-semibold uppercase tracking-wider m-0"
+              style={{ color: "#FF9900" }}
+            >
+              Sponsored · Amazon
+            </p>
             <Link
               href="/amazon"
-              className="no-underline flex items-center gap-1 flex-shrink-0 mt-1 transition-opacity hover:opacity-80"
+              className="no-underline flex items-center gap-1 flex-shrink-0 transition-opacity hover:opacity-80"
               style={{ color: "#FF9900", fontSize: 12, fontWeight: 600 }}
             >
               View all
@@ -122,15 +136,6 @@ export default function ShopPage() {
               </svg>
             </Link>
           </div>
-          <p className="text-sm" style={{ color: T.textDim }}>
-            Everything you love, all in one place.
-          </p>
-          <p
-            className="text-[10px] font-semibold uppercase tracking-wider mt-2 mb-5"
-            style={{ color: "#FF9900" }}
-          >
-            Sponsored · Amazon
-          </p>
 
           <div className="grid grid-cols-2 gap-x-3 gap-y-5">
             {AMAZON_PRODUCTS.map((p) => (
