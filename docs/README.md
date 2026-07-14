@@ -19,6 +19,7 @@ Two docs stay at the `docs/` root: this index and the ones below.
 
 | Doc | What it covers |
 | --- | --- |
+| [guides/REACT-NATIVE-SYNC.md](guides/REACT-NATIVE-SYNC.md) | **⚛️ Building or updating the React Native app? Start here.** Written for the agent in the native repo: what changed on web, what to port, what to skip, and the three App Store rules that will get the app rejected if you get them wrong |
 | [reports/DEV-REPORT-CURRENT.md](reports/DEV-REPORT-CURRENT.md) | **Latest pre-share master audit** — snapshot, audit table, fixes, open items, secret sweep, test checklist, RN-migration readiness |
 | [`../README.md`](../README.md) | Repo readme — quick start |
 | [`../AGENTS.md`](../AGENTS.md) | House rules for anyone (human or AI) editing the code |
@@ -48,6 +49,7 @@ Two docs stay at the `docs/` root: this index and the ones below.
 | [guides/MUX.md](guides/MUX.md) | Mux video playback + upload pipeline |
 | [guides/PAYMENTS.md](guides/PAYMENTS.md) | Stripe checkout, webhooks, revenue truth |
 | [guides/AMAZON-SHOP.md](guides/AMAZON-SHOP.md) | Amazon affiliate shop — adding products, refreshing images, and the four constraints that will bite you |
+| [guides/REACT-NATIVE-SYNC.md](guides/REACT-NATIVE-SYNC.md) | **Web → React Native sync** — what to port, what to skip, the App Store rules, and the platform mapping |
 | [guides/CREATOR-SETUP.md](guides/CREATOR-SETUP.md) | Creator (UGC) pipeline setup & go-live |
 | [guides/CONTENT.md](guides/CONTENT.md) | Catalog structure, series data flow |
 | [guides/seo.md](guides/seo.md) | SEO & content infrastructure |

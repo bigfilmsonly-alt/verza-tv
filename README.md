@@ -207,8 +207,26 @@ The complete, grouped index is in **[`docs/README.md`](docs/README.md)**. Highli
 
 ## React Native migration notes
 
-This repo is intended as the foundation for a React Native app. The
-server-side business logic (pricing, entitlements, revenue, creator splits) is
-portable as-is; the web-specific `"use client"` components, `hls.js` playback,
-`createPortal` overlays, and CSS layout tricks need native re-implementation.
+> ### ⚛️ Building or updating the React Native app? Read [`docs/guides/REACT-NATIVE-SYNC.md`](docs/guides/REACT-NATIVE-SYNC.md) first.
+>
+> It is written **for the AI agent working in the native repo**: everything that
+> changed on web, what to port, what to deliberately skip, the web → RN platform
+> mapping, and the **three App Store rules that will get the app rejected** if you
+> get them wrong. Start there, not here.
+
+This repo is the source of truth for product behaviour, content, pricing and App
+Store compliance. The server-side business logic (pricing, entitlements, revenue,
+creator splits) is portable as-is, and **the native app should call this app's
+existing API routes rather than re-implementing them**. The web-specific
+`"use client"` components, `hls.js` playback, `createPortal` overlays, and CSS
+layout tricks need native re-implementation.
+
+Three things that are easy to get wrong and expensive to get wrong:
+
+1. **Digital purchases must not appear inside the iOS app** (Apple 3.1.1). The web
+   app already runs a reader mode — see `lib/platform.ts` and `components/HideInIOSApp.tsx`.
+2. **Physical goods must not use IAP** (Apple 3.1.5(a)). Merch and the Amazon shop
+   are physical, so they use external checkout — deliberately.
+3. **In-app account deletion is mandatory** (Apple 5.1.1(v)). `POST /api/account/delete`.
+
 Full readiness assessment: [`docs/reports/DEV-REPORT-CURRENT.md`](docs/reports/DEV-REPORT-CURRENT.md) §7.

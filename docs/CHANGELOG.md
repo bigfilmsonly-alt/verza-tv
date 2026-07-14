@@ -24,6 +24,71 @@
   (7 bugs found and fixed, live verification)
 - Moved the loose `VERZA_*` audit files from the repo root into `docs/reports/`
 
+## 2026-07-08 → 07-11 -- App Store Compliance, Video Reliability & Paywall
+- **iOS reader mode (Apple Guideline 3.1.1)**: `lib/platform.ts` + `HideInIOSApp`
+  hide ALL digital purchase UI inside the iOS app — Summer Sale badge, episode
+  unlock CTA, VIP card, Unlock Full Series. Physical goods (merch, Amazon) stay
+  visible, because Apple forbids IAP for them (3.1.5(a))
+- **In-app account deletion** (`/api/account/delete`) — hard App Store requirement
+- Support page + privacy policy upgrade; ad/tracking stack (GTM, GA4, AdSense)
+  skipped entirely inside the iOS app (ATT)
+- **Fixed videos pausing/failing from episode 4 onward** — too many `<video>`
+  elements alive at once
+- Keep the paused frame visible; no black screen on pause
+- Paywall redesign for conversion: prominent Go Back, gradient bullets, "No ads"
+- **+362 episodes**: 5 new series live, 3 series completed; episode counts
+  reconciled against real Mux inventory; 6 trailer episodes removed
+- Supabase schema reconciled to match app code; AdSense loader + `ads.txt`
+
+## 2026-07-03 → 07-04 -- Amazon Affiliate v1, Watermark, Swipe Tabs, Re-engagement
+- First Amazon sponsored sections + per-product affiliate deep links + in-app
+  product modal (mirroring the TikTok Shop ads; both later replaced — see 07-13)
+- VERZA emblem **watermark** on videos; auto-hide all video chrome after 10s,
+  watermark stays permanent; back arrow crossfades into the logo after 10s idle
+- **Horizontal swipe between category tabs** (right = next, left = previous)
+- Resume playback + Continue Watching re-engagement reminder; install /
+  turn-on-reminders prompt
+- Official white-inside VERZA logo everywhere; brand capitalised to **VERZA**;
+  app icons + favicon regenerated
+- Dedicated `/share` URL and versioned OG image for clean link previews
+- Instant playback groundwork: video starts at click time, poster never shown
+
+## 2026-06-30 → 07-02 -- Summer Sale, Search, Creator Pipeline
+- **Summer Sale**: per-movie unlock, price settled at **$1.99** (was $2); badge
+  moved into the header so it never clips on scroll
+- **Search**: genre/keyword index so searching a category surfaces every show;
+  drop-down search over a dimmed page instead of a black takeover
+- **Creator / UGC pipeline end-to-end**: apply, upload, review, watch, payouts,
+  plus an application approval flow (`/api/creator/*`)
+- TikTok Shop sponsored products woven through the poster grid *(all removed
+  2026-07-13 — see that entry)*
+- Docs: master index, reference catalogs, pre-share master audit, root README
+
+## 2026-06-29 -- Purchase & Revenue Funnel
+- Closed the purchase + revenue funnel end to end in analytics
+
+## 2026-06-25 → 06-27 -- StorageBlue Sponsorship & pSEO Architecture
+- StorageBlue sponsored ad ribbons on the browse page (Drama / New / Hot only)
+- Studio-grade programmatic SEO architecture + footer Sitemap
+- Sticky category tabs; back button returns to the last viewed page
+
+## 2026-06-18 → 06-23 -- Money, Auth, i18n, Immersive Player, Shorts, Security
+- **Stripe**: merch checkout, series unlock, webhook → Supabase purchases +
+  entitlements; sign-in required before purchase; persistent entitlements
+- **Supabase auth** + Google/Apple OAuth; saved list for guests *and* signed-in
+  users; Continue Watching; purchases auto-saved to My List
+- **VIP subscription** ($9.99/mo, $79.99/yr) + push notifications
+- **20 languages** fully translated (`lib/i18n.ts`)
+- **ReelShort-style immersive full-screen episode player**: vertical swipe,
+  auto-advance, haptics, preload, unified sound persistence
+- **Shorts rewritten several times** to stop freezes: single persistent video
+  element with source swapping (the naive per-card player froze iOS)
+- **CRITICAL**: CSP was blocking all video playback on every device
+- PWA support; Resend emails; GA4; Vercel Analytics + Speed Insights
+- Security hardening: 7 critical/high vulnerabilities, rate limiting, input validation
+- Ask Verza AI chatbot + Creator AI Studio (Claude integration)
+- Desktop iPhone frame wraps the app like a real device *(web-only)*
+
 ## 2026-06-28 -- Analytics Stream, Video Perf & Reality Polish
 - Built `analytics_events` persistence: migration 004, server-only `persistEvent()`,
   `/api/events` client sink, anon_id beacon in `emit()`, webhook revenue rows
