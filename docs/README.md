@@ -47,6 +47,7 @@ Two docs stay at the `docs/` root: this index and the ones below.
 | [guides/ENV.md](guides/ENV.md) | Env var notes (copy `.env.example`) |
 | [guides/MUX.md](guides/MUX.md) | Mux video playback + upload pipeline |
 | [guides/PAYMENTS.md](guides/PAYMENTS.md) | Stripe checkout, webhooks, revenue truth |
+| [guides/AMAZON-SHOP.md](guides/AMAZON-SHOP.md) | Amazon affiliate shop — adding products, refreshing images, and the four constraints that will bite you |
 | [guides/CREATOR-SETUP.md](guides/CREATOR-SETUP.md) | Creator (UGC) pipeline setup & go-live |
 | [guides/CONTENT.md](guides/CONTENT.md) | Catalog structure, series data flow |
 | [guides/seo.md](guides/seo.md) | SEO & content infrastructure |
@@ -58,8 +59,15 @@ Two docs stay at the `docs/` root: this index and the ones below.
 
 | Doc | What it covers |
 | --- | --- |
+| [reports/DEV-REPORT-2026-07-13-AMAZON-SHOP.md](reports/DEV-REPORT-2026-07-13-AMAZON-SHOP.md) | **Amazon affiliate shop** — what shipped, decisions, 7 bugs found and fixed, live verification |
 | [reports/DEV-REPORT-CURRENT.md](reports/DEV-REPORT-CURRENT.md) | Latest pre-share master audit (RN-migration foundation) |
 | [reports/DEV-REPORT.md](reports/DEV-REPORT.md) | Developer status report |
+| [reports/VERZA_CURRENT_STATE_AUDIT.md](reports/VERZA_CURRENT_STATE_AUDIT.md) | Current-state audit (2026-07-11) |
+| [reports/VERZA_LAUNCH_BLOCKERS.md](reports/VERZA_LAUNCH_BLOCKERS.md) | Launch blockers |
+| [reports/VERZA_ENVIRONMENT_VARIABLES.md](reports/VERZA_ENVIRONMENT_VARIABLES.md) | Env var audit (names and purposes only — no secrets) |
+| [reports/VERZA_FEATURE_MATRIX.csv](reports/VERZA_FEATURE_MATRIX.csv) | Feature matrix (CSV) |
+| [reports/VERZA_ROUTE_INVENTORY.csv](reports/VERZA_ROUTE_INVENTORY.csv) | Route inventory (CSV) |
+| [reports/VERZA_CONTENT_CATALOG_AUDIT.csv](reports/VERZA_CONTENT_CATALOG_AUDIT.csv) | Content catalog audit (CSV) |
 | [reports/AUDIT.md](reports/AUDIT.md) | Codebase audit — orphans, duplicates, structural notes |
 | [reports/MOBILE-WEB-VERIFICATION.md](reports/MOBILE-WEB-VERIFICATION.md) | Live production mobile-web verification |
 | [reports/gate-0-verification.md](reports/gate-0-verification.md) | Money-path launch gate checklist |

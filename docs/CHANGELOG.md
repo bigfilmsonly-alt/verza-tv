@@ -1,5 +1,29 @@
 # Changelog
 
+## 2026-07-13 -- Amazon Affiliate Shop (replaces TikTok Shop)
+- Replaced the placeholder TikTok Shop products with 12 real Amazon products
+  (Associates tag `verzatv-20`); deleted `lib/sponsors.ts` and
+  `components/SponsoredProducts.tsx`
+- **Verza bag** (`lib/amazon-bag.tsx`): shoppers add products without leaving the
+  app, then one handoff pushes the whole bag into their real Amazon cart. Amazon
+  gives affiliates no checkout API, so payment always settles on Amazon — this is
+  the closest the program allows
+- Two storefronts: an Amazon section on `/shop` under the VERZA merch, and
+  `/amazon` as the full store
+- **Products removed from the poster grid, from search, and from the footer.**
+  Browsing stays editorial; everything for sale lives on the Shop tab
+- **No prices displayed** — Amazon only permits prices pulled live from PA-API and
+  refreshed every 24h, so a hardcoded price is stale and a terms violation
+- Product photos come from `m.media-amazon.com`, NOT the Associates image widget
+  on `ws-na.amazon-adsystem.com` (an ad-network domain that ad blockers drop,
+  leaving empty product cards)
+- `scripts/amazon-cutouts.py`: removes the white studio backdrop from each product
+  photo by flood filling inward from the corners, so white products keep their white
+- Docs: [`guides/AMAZON-SHOP.md`](guides/AMAZON-SHOP.md) (operations) and
+  [`reports/DEV-REPORT-2026-07-13-AMAZON-SHOP.md`](reports/DEV-REPORT-2026-07-13-AMAZON-SHOP.md)
+  (7 bugs found and fixed, live verification)
+- Moved the loose `VERZA_*` audit files from the repo root into `docs/reports/`
+
 ## 2026-06-28 -- Analytics Stream, Video Perf & Reality Polish
 - Built `analytics_events` persistence: migration 004, server-only `persistEvent()`,
   `/api/events` client sink, anon_id beacon in `emit()`, webhook revenue rows

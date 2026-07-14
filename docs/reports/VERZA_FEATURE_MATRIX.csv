@@ -1,0 +1,40 @@
+Feature,Status,Evidence,Dependencies,Risks,Next Action
+Episode player (vertical feed),Working but Untested,components/EpisodeFeed.tsx — muted-first autoplay + iOS guard + bounded HLS recovery + 10s watchdog + virtual windowing,Mux + hls.js,No runtime test on real iOS device,Real-device QA pass
+Poster-to-video instant playback,Working but Untested,lib/instant-player.ts adoption path,Mux,Timing under real navigation unverified,Device QA
+Horizontal/widescreen playback,Working but Untested,storage-pirates 16:9 mode in EpisodeFeed,Mux,Single show only,Device QA
+$1.99 series unlock (checkout),Working but Untested,/api/unlock -> Stripe -> /api/stripe/webhook:141 writes entitlement; /api/unlock/confirm safety net,Stripe live + Supabase,Never proven end-to-end since 2026-07-10 repair; 0 rows in live DB,Do a real $1.99 test purchase
+Entitlement persistence,Working but Untested,entitlements table upsert in webhook + confirm route,Supabase,0 entitlement rows exist,Verify after test purchase
+Paywall enforcement,Broken,EpisodeFeed client overlay only; locked m3u8 fetchable HTTP 200 with no auth (verified),Mux signed URLs (not configured),ENTIRE PAID CATALOG STREAMABLE FREE via view-source,Configure Mux signed playback OR accept as freemium
+VIP subscription activation,Broken,Webhook subscribes to only 3 event types; subscription.* handlers never fire,Stripe webhook config,Cancelled VIPs keep access forever; 0 subs ever sold,Add subscription events in Stripe dashboard
+VIP billing portal (self-service cancel),Broken,/api/billing-portal 404s — no profile has stripe_customer_id,Stripe,No self-service cancel path,Depends on VIP activation fix
+Guest purchase (device-remembered),Working but Untested,localStorage verza-unlock: + /api/unlock/confirm,Stripe,Untested,Device QA
+Account creation (email + OAuth),Working but Untested,Supabase auth; OAuthButtons Google/Apple,Supabase,OAuth provider config UNVERIFIED — possible dead-end,Verify Supabase Google/Apple providers enabled
+Account deletion (in-app),Working but Untested,/api/account/delete cancels sub + wipes tables,Supabase + Stripe,Creator deletion destroys sales ledger (migration 009 unapplied),Apply migration 009
+Watch progress / resume,Working but Untested,/api/watch-progress + ?t= + visibilitychange,Supabase,Guest saves 401 silently; 0 rows verified,Verify signed-in persistence
+Continue Watching row,Working but Untested,BrowsePage fetch /api/watch-progress,Supabase,Depends on watch-progress rows,Verify
+Push notifications (resume),Working but Untested,lib/resume + VAPID keys set,Web Push,iOS push unverified,Device QA
+Search,Production Ready,SearchBar.tsx client substring+tag AND-match,lib/catalog,No fuzzy/typo handling; /discover surfaces coming_soon,Optional: fuzzy matching
+Category tabs / discovery,Production Ready,BrowsePage 6 tabs + seeded shuffle,lib/catalog,None,None
+Trending / ranking,UI Only,popularRank hardcoded in catalog.ts,None,Not data-driven,Optional
+Recommendations / related,Not Started,No implementation found,-,Missing growth lever,Post-launch
+Merch shop,Partial,app/shop + /api/checkout real Stripe; NO shipping address collected,Stripe,Orders unfulfillable (no address); 6/10 prices are TODOs,Add shipping collection + confirm prices OR hide shop
+TikTok Shop tiles,UI Only,lib/sponsors.ts 16 fabricated products -> generic tiktok.com/shop,None,Fake prices; zero attribution,Replace with real products or remove
+Amazon affiliate tiles,Partial,lib/amazon-sponsors.ts real verzatv-20 tag but placeholder prices + search links,Amazon Associates,Price divergence; not product pages,Use real product URLs
+StorageBlue sponsor,Production Ready,static banner BrowsePage/Reality,None,No 'Ad' label (FTC),Add Ad label
+Creator apply/onboarding,Working but Untested,app/studio + /api/creators + migration 005/007 applied live,Supabase,0 creators exist; never exercised,Test with a real creator
+Creator video upload (Mux ingest),Working but Untested,Real Mux direct upload (not metadata-only),Mux,Unsigned webhook risk; never used,Test upload
+Creator revenue share 80/20,Working but Untested,creator_sales ledger + Stripe split,Stripe + Supabase,creator-unlock omits userId (access loss risk); 0 sales,Fix creator-unlock linkage
+Creator approval email,Broken,admin/creators/route.ts:95 emails TEAM not creator despite UI promise,Resend,Creators never notified,Fix recipient
+Creator AI tools (script gen),UI Only,CreatorAITools -> /api/studio/generate 501 stub; @anthropic-ai/sdk NOT installed; no ANTHROPIC_API_KEY,Anthropic,UI returns canned answers,Install SDK + set key OR remove UI
+Payout tracking,Not Started,No payout system,-,Manual payouts only,Post-launch
+Admin analytics dashboard,Broken,app/api/admin/stats queries nonexistent columns (watch_progress.id etc) -> silent zeros,Supabase,Dashboard shows all zeros,Fix column names
+Admin creator review queue,Working but Untested,AdminReview + /api/admin/creators; never processed a row,Supabase,0 rows,Test
+Admin content management,Not Started,All catalog/pricing/posters are hardcoded TS requiring redeploy,-,No non-dev content ops,Build a CMS (post-launch)
+Analytics event capture,Broken,analytics_events has ONLY 121 paywall_viewed rows (verified live); play/search/purchase never persisted,GTM/Supabase,No conversion funnel computable; window.gtag undefined,Wire event persistence + define gtag
+Server-side revenue telemetry,Working but Untested,emitServerEvent in webhook (Stripe-verified),Supabase,0 purchase rows observed,Verify after test purchase
+Legal pages (privacy/terms/refund/support),Production Ready,Rewritten 2026-07-10/11; verified accurate + live,-,Needs lawyer sign-off,Legal review
+iOS reader mode (App Store 3.1.1),Working but Untested,lib/platform.ts hides purchase UI + ad scripts in-app,-,$1.99 badges leak in SeriesInfoDrawer/EpisodeDropdown; permanent localStorage flag,Fix badge leaks; verify in app build
+Account/data deletion (Apple 5.1.1),Working but Untested,/api/account/delete + Profile button,Supabase+Stripe,Creator ledger cascade,Apply migration 009
+PWA (installable web app),Production Ready,manifest + sw.js + apple icons all 200 on prod,-,None,None
+Email (purchase confirmations),Working but Untested,lib/email.ts Resend,Resend,No purchase has triggered one,Verify after test purchase
+Native iOS/Android app,Not Started,No native code in repo (no Capacitor/RN/Expo),External wrapper,Entire app-store distribution depends on external build,Build/commission the wrapper

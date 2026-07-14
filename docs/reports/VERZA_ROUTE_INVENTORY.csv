@@ -1,0 +1,103 @@
+Route,Purpose,DataSource,Auth,Status,Notes
+/,Home browse (6 category tabs + hero),SSG (lib/catalog) + client fetch /api/watch-progress,None,Production Ready,"Linked: BottomNav Home. BrowsePage.tsx client component; tab state via ?tab= param; live 200"
+/about,Company about page (SEO),SSG (static + lib/catalog count),None,Production Ready,Linked: Footer
+/admin/dashboard,Executive analytics dashboard,Client fetch /api/admin/stats (Supabase + Stripe),Admin (Bearer token; ADMIN_EMAILS allowlist),Working but Untested,"Orphaned by design (no nav link, noindex); page shell publicly reachable (200) but data 403-gated"
+/admin/review,Creator application + content review queue,Client fetch /api/admin/review + /api/admin/creators,Admin (Bearer token),Working but Untested,Orphaned by design; approve/reject actions live
+/alan-mruvka,Founder SEO hub,SSG (lib/data/alan),None,Production Ready,Linked: FooterSitemap Founder section
+/alan-mruvka/[slug],Founder SEO subpages (~7),SSG (lib/data/alan),None,Production Ready,Linked: FooterSitemap
+/best,Best-of list hub (SEO),SSG (lib/data/best-lists + catalog),None,Production Ready,Linked: FooterSitemap
+/best/[slug],Individual best-of lists (~17),SSG,None,Production Ready,Linked: FooterSitemap
+/brand-assets,Brand/press asset guidelines,SSG (lib/data/company),None,Production Ready,Linked: FooterSitemap
+/c/[slug],Clip share deep-link pages,SSG (lib/clips — small hardcoded clip set),None,Working but Untested,Orphaned from nav (external share use); depends on real playbackIds in lib/clips.ts
+/careers,Careers page,SSG (lib/data/company OPEN_ROLES),None,Production Ready,Linked: FooterSitemap; roles are hardcoded data
+/channels,Channel directory,SSG (lib/catalog getChannels),None,Production Ready,Linked: FooterSitemap + LibraryPage
+/collections,Collections hub (SEO),SSG (lib/data/collections),None,Production Ready,Linked: FooterSitemap
+/collections/[slug],Curated collections (~14),SSG,None,Production Ready,Linked: FooterSitemap
+/company,Company overview hub,SSG,None,Production Ready,Linked: FooterSitemap
+/compare,Comparison hub (SEO),SSG (lib/data/compare),None,Production Ready,Linked: FooterSitemap
+/compare/[slug],VERZA vs competitor pages (~8),SSG,None,Production Ready,Linked: FooterSitemap
+/contact,Contact emails page,SSG (hardcoded contacts),None,Production Ready,Linked: FooterSitemap; mailto links only — no contact form
+/creator,Creator dashboard (LEGACY duplicate of /studio),Client (CreatorDashboard → /api/creator/*),Supabase session (client-checked),Partial,"ORPHANED — zero internal links; duplicate of /studio minus AI tools; app/creator/page.tsx"
+/dev/perf,Performance test harness,Client (PerfHarness),None,Blocked,Gated by PERF_TEST_MODE — returns 404 in production (verified live 404); dev-only by design
+/discover,Browse/discover hub,SSG (lib/catalog BROWSE_TABS),None,Production Ready,Linked: FooterSitemap Watch section
+/discover/[genre],Category browse pages (per BROWSE_TABS),SSG,None,Production Ready,Linked from /discover
+/editorial-standards,Editorial standards (SEO/trust),SSG (hardcoded sections),None,Production Ready,Linked: FooterSitemap
+/founder,Founder bio page,SSG,None,Production Ready,Linked: FooterSitemap (Founder's Note)
+/genre/[genre],OLDER genre SEO pages (romance/revenge/etc),SSG (GENRE_DATA hardcoded in page),None,Working but Untested,"No internal links anywhere (grep href=\"/genre/\" = 0) — reachable only via sitemaps/genres.xml; duplicates /genres/[slug] and /discover/[genre] — 3 parallel genre systems"
+/genres,Genre hub (SEO),SSG (lib/content/genres 27 approved hubs),None,Production Ready,Linked: FooterSitemap
+/genres/[slug],Genre hub pages (27),SSG,None,Production Ready,Linked: FooterSitemap
+/guides,Guides hub (SEO),SSG (lib/data/guides ~10),None,Production Ready,Linked: FooterSitemap
+/guides/[slug],Individual guides,SSG,None,Production Ready,Linked: FooterSitemap
+/help,FAQ / help center,SSG (FAQ_ITEMS hardcoded),None,Production Ready,Linked: Footer + /me
+/horizontal,Storage Pirates landscape feed (LEGACY),Client (HorizontalFeed ← lib/horizontal-map static),None,Partial,"ORPHANED — reality tab now links /series/storage-pirates/1 instead; only self-referencing canonical; still live (200)"
+/investors,Investor relations,SSG (lib/data/company),None,Production Ready,Linked: FooterSitemap
+/leadership,Leadership team,SSG (lib/data/company),None,Production Ready,Linked: FooterSitemap
+/learn/[slug],Educational SEO articles (3 approved),SSG (lib/content/learn),None,Working but Untested,"FULLY ORPHANED — zero internal links AND zero sitemap entries (verified live pages.xml has 0 /learn/ URLs); crawlers cannot discover these pages; no /learn hub page exists"
+/library,Channels + saved list browser,Client (lib/catalog + fetch /api/saved-list),Optional (guest = localStorage),Production Ready,Linked: BottomNav Library
+/me,Account / profile page,Server (getUser dynamic SSR) + client fetches (saved-list/watch-progress/subscribe/billing-portal/account-delete),Optional (guest view w/ sign-in prompt),Production Ready,Linked: BottomNav Profile; VipCard now uses /api/billing-portal (old TEST-mode hardcoded portal URL removed)
+/me/list,My List page (saved + recent tabs),NONE — renders hardcoded empty states only,None,UI Only,"NEVER fetches saved_list/watch_progress — always shows 'No saved shows yet' even for signed-in users with data (app/me/list/page.tsx:154-166); also ORPHANED (only ref is BottomNav.tsx:78 active-state check, no link points here)"
+/media-kit,Press media kit,SSG,None,Production Ready,Linked: FooterSitemap
+/newsroom,Press releases + coverage,SSG (lib/data/company PRESS_RELEASES),None,Production Ready,Linked: FooterSitemap
+/partnerships,Partnership info,SSG (lib/data/company),None,Production Ready,Linked: FooterSitemap
+/press,Press facts page,SSG,None,Production Ready,Linked: Footer
+/privacy,Privacy policy (updated Jul 10 2026),SSG,None,Production Ready,Linked: Footer
+/refund-policy,Refund policy (updated Jul 10 2026),SSG,None,Production Ready,Linked: Footer
+/search,Server-rendered search results,Dynamic SSR (searchParams → lib/search-index static match),None,Production Ready,Linked: FooterSitemap + SearchButton/FeedSearch
+/series/[slug],Series detail page,SSG (lib/catalog + lib/series-detail),None,Production Ready,Linked from home grid; purchase UI hidden in iOS app (HideInIOSApp)
+/series/[slug]/[episode],Episode player (CORE PRODUCT),SSG (first 25 eps) + client EpisodeFeed → /api/access /api/unlock/confirm /api/unlock /api/watch-progress /api/saved-list,"Optional; paywall after ep 5 (FREE_EPISODES=5, lib/config.ts:17)",Production Ready,Verified payment pipeline endpoints exist and are wired (EpisodeFeed.tsx:799/819/1683)
+/share,OG link-preview card + JS redirect to /,SSG + client redirect (ShareRedirect),None,Production Ready,Orphaned from nav (external share URL by design); noindex
+/shop,Merch shop grid,SSG (lib/products hardcoded 10 products),None,Production Ready,Linked: BottomNav Shop; prices hardcoded in lib/products.ts — user confirmation of 6 prices still pending per project memory
+/shop/[slug],Product detail + add to cart,SSG + client cart (lib/cart localStorage) → /api/checkout Stripe,None,Production Ready,Checkout creates real Stripe session; fulfillment process UNVERIFIED (no fulfillment integration in repo)
+/shorts,Vertical shorts/preview feed,SSG series props + client ShortsFeed (fetch /api/saved-list),None,Production Ready,Linked: BottomNav Shorts
+/sign-in,Email/password + OAuth sign-in,Server Action signInAction + OAuthButtons (google/apple via Supabase),None,Working but Untested,"Email/password path verified in code incl. pending-entitlement claim; Google/Apple OAuth provider configuration in Supabase UNVERIFIED — Apple button ships regardless (OAuthButtons.tsx:86)"
+/sign-up,Account creation,Server Action signUpAction + OAuth,None,Working but Untested,Sends welcome email via Resend (lib/email)
+/sitemap,HTML sitemap page,SSG (lib/data/sitemap),None,Production Ready,Linked: FooterSitemap bottom link
+/studio,Creator Studio (apply/upload/manage + AI tools),Client (CreatorDashboard + CreatorAITools → /api/creator/* + /api/ai-host),Supabase session (client-checked; approval gate server-side),Partial,"Linked: Footer 'Become a Creator' + /me. Upload requires MUX_TOKEN_ID/SECRET (present in .env.local; prod Vercel env UNVERIFIED). AI tools call /api/ai-host which silently degrades to scripted responses when ANTHROPIC_API_KEY unset (route.ts:242-249) — key NOT in .env.local"
+/support,Support FAQ page,SSG (hardcoded faqs),None,Production Ready,Linked: Footer
+/terms,Terms of service (updated Jul 10 2026),SSG,None,Production Ready,Linked: Footer
+/watch-in,Location availability hub (SEO),SSG (lib/data/locations ~70),None,Production Ready,Linked: FooterSitemap
+/watch-in/[slug],Per-location pages,SSG (deterministic shuffle of live catalog),None,Production Ready,Linked: FooterSitemap
+/watch/[...slug],Creator content player (handle/title),Dynamic SSR (Supabase creator_content status=published) + client CreatorWatch → /api/creator-unlock,None (paid titles gated via Stripe),Working but Untested,"Depends on published creator content existing in DB — UNVERIFIED that any published rows exist; linked only from CreatorDashboard.tsx:676"
+/api/access,VIP/entitlement check for a slug,Supabase (profiles + entitlements) via getUser cookie,Optional,Production Ready,Verified live: anonymous → 200 {full:false}
+/api/account/delete,Full account deletion (Apple 5.1.1v),Supabase service role + Stripe subscription cancel,Required,Working but Untested,Cancels VIP before deleting profile; purchases retained
+/api/admin/creators,List/decide creator applications,Supabase creators table,Admin Bearer,Working but Untested,ADMIN_EMAILS allowlist in lib/admin.ts:6-10
+/api/admin/review,List/approve/reject creator content,Supabase creator_content,Admin Bearer,Working but Untested,Sends decision emails via lib/email
+/api/admin/stats,Aggregated exec analytics,Supabase + Stripe,Admin Bearer,Working but Untested,"DUPLICATE admin email list hardcoded at app/api/admin/stats/route.ts:8-12 (also in lib/admin.ts:6-10) — drift risk"
+/api/ai-host,Multi-mode AI endpoint (chat/creator/seo/marketing/moderate),Anthropic API (ANTHROPIC_API_KEY),None (rate-limited 5/min),Partial,Falls back to scripted responses when key missing — key not in .env.local; prod key UNVERIFIED
+/api/auth/callback,OAuth code exchange + pending entitlement claim,Supabase auth,None,Working but Untested,Open-redirect guarded (relative paths only)
+/api/billing-portal,Stripe customer portal session for VIP,Stripe + Supabase profiles.stripe_customer_id,Required,Working but Untested,Replaced hardcoded TEST portal URL in VipCard — verified VipCard.tsx:119 now calls this
+/api/checkout,Merch Stripe Checkout session,Stripe; prices resolved server-side from lib/products,None,Production Ready,Client sends only productId+quantity
+/api/coins/balance,Coin balance (DEFUNCT),None,None,Not Started,Returns 501 (verified live); COIN_PACKS still in lib/config.ts:9 — dead config
+/api/coins/purchase,Coin purchase (DEFUNCT),None,None,Not Started,Returns 501 hardcoded
+/api/creator-unlock,Stripe checkout for paid creator titles,Stripe + Supabase creator_content (server-side price),None,Working but Untested,80/20 split metadata for webhook ledger
+/api/creator/analytics,Per-title creator views + earnings,Supabase analytics_events + creator_sales,Creator session,Working but Untested,Earnings only from Stripe-written ledger
+/api/creator/apply,Creator application submit/update,Supabase creators,Required,Working but Untested,Manual admin approval; sends notification email
+/api/creator/content,List own content,Supabase creator_content,Creator session,Working but Untested,
+/api/creator/content/[id],Get/update/delete own content item,Supabase + Mux asset polling,Creator session,Working but Untested,
+/api/creator/content/[id]/submit,Submit title for review,Supabase,Creator session,Working but Untested,
+/api/creator/me,Creator profile + approval state,Supabase,Required,Production Ready,Verified live: anonymous → 401; reports muxReady flag
+/api/creator/upload,Mux direct-upload URL creation,Mux (MUX_TOKEN_ID/SECRET) + Supabase,Approved creator,Working but Untested,Fails loudly if Mux unconfigured; prod Mux env UNVERIFIED
+/api/entitlements,List user entitlements,Supabase entitlements,Required,Production Ready,Verified live: anonymous → 401
+/api/entitlements/check,Per-episode entitlement check,Supabase + FREE_EPISODES gate,Optional,Working but Untested,
+/api/events,Client analytics sink,Supabase analytics_events,None (30/min rate limit),Production Ready,Revenue events rejected client-side (server-only via Stripe webhook)
+/api/mux/webhook,Mux asset lifecycle → creator_content status,Mux signature (MUX_WEBHOOK_SECRET) + Supabase,Webhook signature (skipped if secret unset),Partial,MUX_WEBHOOK_SECRET NOT in .env.local — signature verification silently skipped when absent (route.ts:21-27); prod env UNVERIFIED
+/api/og/[slug],OG image redirect to series poster,lib/catalog static,None,Production Ready,Verified live: 302
+/api/playback/[episode],Playback ID resolution w/ entitlement gate,mux-map + Supabase VIP/purchase check,Optional,Working but Untested,
+/api/push/send,Send web push (internal),web-push + Supabase push_subscriptions,PUSH_API_KEY header,Working but Untested,VAPID keys present in .env.local
+/api/push/subscribe,Save/remove push subscription,Supabase,Optional,Working but Untested,
+/api/saved-list,Get/add/remove saved series,Supabase saved_list,Optional (anonymous → empty),Production Ready,Verified live: anonymous → 200
+/api/stripe/webhook,Payment fulfillment (entitlements/VIP/creator sales/refunds),Stripe signature + Supabase service role,Stripe signature,Production Ready,"Handles checkout.session.completed, subscription created/updated/deleted, invoice paid/failed, charge.refunded (route.ts:36-483); repaired 2026-07-10 per session context"
+/api/studio/generate,AI generation (DEAD endpoint),None,None,Not Started,Returns 501; CreatorAITools uses /api/ai-host instead — dead code
+/api/subscribe,VIP subscription Stripe checkout,Stripe + VIP_PLANS config,Optional (guest → pending entitlement),Production Ready,Wired from VipCard.tsx:32
+/api/unlock,Series unlock Stripe checkout ($1.99),Stripe + lib/catalog,Optional,Production Ready,Wired from EpisodeFeed.tsx:1683
+/api/unlock/confirm,Server-side Stripe session verification post-checkout,Stripe sessions.retrieve + idempotent entitlement write,None,Production Ready,Replaces old blind ?unlocked=true; wired from EpisodeFeed.tsx:799
+/api/unlock/season-pass,Season pass via coins (DEAD STUB),None — auth stubbed `const user = null` (route.ts:22),None,Not Started,Always returns 401; no UI references it; TODO comment says wire to Supabase+Stripe
+/api/uploads,Legacy upload endpoint (DEAD),None,None,Not Started,Returns 501 hardcoded
+/api/watch-progress,Save/list watch progress,Supabase watch_progress,Required (POST) / optional,Production Ready,Wired from EpisodeFeed + BrowsePage + ProfileDynamic
+/llms.txt,LLM crawler manifest,Static generation,None,Production Ready,Verified live: 200
+/robots.txt,Robots directives,Static,None,Production Ready,Verified live: 200
+/sitemap.xml,Sitemap index,Static,None,Production Ready,Verified live: 200
+/sitemaps/pages.xml,Static pages sitemap (169 URLs live),lib/data/sitemap allProgrammaticPaths(),None,Production Ready,"Verified live: includes best/collections/guides/compare/watch-in/alan-mruvka hubs; OMITS /learn/* entirely (0 entries)"
+/sitemaps/shows.xml,Series sitemap,lib/catalog,None,Working but Untested,
+/sitemaps/episodes.xml,Episode sitemap,lib/catalog + mux-map,None,Working but Untested,
+/sitemaps/genres.xml,Genre sitemap,lib data,None,Working but Untested,
