@@ -14,7 +14,10 @@ export async function getUser() {
     const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
     if (token) {
       const { data: { user }, error } = await getServiceClient().auth.getUser(token);
-      if (error || !user) return null;
+      if (error || !user) {
+        console.error("[auth] Bearer token rejected:", error?.message ?? "no user");
+        return null;
+      }
       return { id: user.id, email: user.email ?? "" };
     }
 
@@ -22,7 +25,8 @@ export async function getUser() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return null;
     return { id: user.id, email: user.email ?? "" };
-  } catch {
+  } catch (err) {
+    console.error("[auth] getUser failed:", err instanceof Error ? err.message : err);
     return null;
   }
 }
