@@ -11,7 +11,9 @@ export async function GET() {
     const supabase = getServiceClient();
     const { data, error } = await supabase
       .from("entitlements")
-      .select("id, series_slug, created_at")
+      // Table column is granted_at (see migrations); alias keeps the
+      // response shape stable for existing consumers.
+      .select("id, series_slug, created_at:granted_at")
       .eq("user_id", user.id);
 
     if (error) {
