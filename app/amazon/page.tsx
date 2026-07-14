@@ -8,9 +8,9 @@ import AmazonTile from "@/components/AmazonProducts";
 import AmazonDeepLink from "@/components/AmazonDeepLink";
 
 export const metadata: Metadata = {
-  title: `Amazon Picks | ${BRAND.name}`,
+  title: `Your Favorite Finds | ${BRAND.name}`,
   description:
-    "Every Amazon product the VERZA TV team is loving right now. Beauty, skincare, dresses and cozy essentials. Add them to your bag and send the whole thing to your Amazon cart in one tap.",
+    "Your favorite shows, your favorite finds, everything you love in one place. Beauty, skincare, dresses and cozy essentials. Add them to your bag and send the whole thing to your Amazon cart in one tap.",
   alternates: { canonical: "/amazon" },
 };
 
@@ -25,11 +25,17 @@ export default function AmazonPage() {
       </Suspense>
 
       <div className="mb-5">
-        <h1 className="text-2xl font-bold" style={{ color: T.text }}>
-          Amazon Picks
+        <h1 className="text-2xl font-bold leading-snug" style={{ color: T.text }}>
+          Your favorite shows. Your favorite finds.
         </h1>
-        <p className="text-sm mt-1" style={{ color: T.textMute }}>
-          Beauty, skincare, dresses and cozy essentials we are loving right now.
+        <p className="text-sm mt-1.5" style={{ color: T.textDim }}>
+          Everything you love, all in one place.
+        </p>
+        <p
+          className="text-[10px] font-semibold uppercase tracking-wider mt-2"
+          style={{ color: "#FF9900" }}
+        >
+          Sponsored · Amazon
         </p>
       </div>
 

@@ -212,7 +212,7 @@ export const SITEMAP_SECTIONS: SitemapSection[] = [
     // of every page, and products do not belong in the footer.
     links: [
       { label: "Shop All", href: "/shop" },
-      { label: "Amazon Picks", href: "/amazon" },
+      { label: "Your Favorite Finds", href: "/amazon" },
     ],
   },
   {

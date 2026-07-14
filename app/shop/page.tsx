@@ -95,20 +95,25 @@ export default function ShopPage() {
         ))}
       </div>
 
-      {/* Amazon Picks — the only place products live now, alongside the merch
-          above. Kept visibly apart on purpose: the merch checks out through our
-          own Stripe cart, while these settle on Amazon via the Verza bag. Two
-          payment paths on one page is only honest if it is obvious which is
-          which, hence its own header, the Sponsored label and the disclosure. */}
+      {/* The affiliate shop, alongside the merch above. Kept visibly apart on
+          purpose: the merch checks out through our own Stripe cart, while these
+          settle on Amazon via the Verza bag. Two payment paths on one page is
+          only honest if it is obvious which is which, hence its own header, the
+          Sponsored label and the disclosure.
+
+          The header sells the connection to the shows rather than naming the
+          retailer — "Amazon Picks" read like a filing label. The sponsored
+          labelling all stays: its own line here, on every tile, and the
+          Associates disclosure below the grid. */}
       {AMAZON_PRODUCTS.length > 0 && (
         <div className="mt-10 pt-8" style={{ borderTop: `1px solid ${T.line}` }}>
-          <div className="flex items-baseline justify-between mb-1">
-            <h2 className="text-xl font-bold" style={{ color: T.text }}>
-              Amazon Picks
+          <div className="flex items-start justify-between gap-3 mb-1">
+            <h2 className="text-xl font-bold leading-snug" style={{ color: T.text }}>
+              Your favorite shows. Your favorite finds.
             </h2>
             <Link
               href="/amazon"
-              className="no-underline flex items-center gap-1 transition-opacity hover:opacity-80"
+              className="no-underline flex items-center gap-1 flex-shrink-0 mt-1 transition-opacity hover:opacity-80"
               style={{ color: "#FF9900", fontSize: 12, fontWeight: 600 }}
             >
               View all
@@ -117,8 +122,14 @@ export default function ShopPage() {
               </svg>
             </Link>
           </div>
-          <p className="text-sm mb-5" style={{ color: T.textMute }}>
-            Sponsored · Beauty, skincare and cozy essentials on Amazon
+          <p className="text-sm" style={{ color: T.textDim }}>
+            Everything you love, all in one place.
+          </p>
+          <p
+            className="text-[10px] font-semibold uppercase tracking-wider mt-2 mb-5"
+            style={{ color: "#FF9900" }}
+          >
+            Sponsored · Amazon
           </p>
 
           <div className="grid grid-cols-2 gap-x-3 gap-y-5">
