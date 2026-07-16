@@ -4,12 +4,18 @@
 
 import { MUX_MAP } from "./mux-map";
 
-export type BrowseCategory = "drama" | "new" | "popular" | "music" | "reality" | "red-carpet";
+export type BrowseCategory = "drama" | "new" | "popular" | "anime" | "espanol" | "music" | "reality" | "red-carpet";
 
 export const BROWSE_TABS: { key: BrowseCategory; label: string }[] = [
   { key: "drama", label: "Drama" },
   { key: "new", label: "New" },
   { key: "popular", label: "Hot" },
+  // Anime + Español launch in a "Coming Soon" state: no series carry these
+  // categories yet, so getSeriesByCategory() returns [] and BrowsePage shows
+  // the branded placeholder. Adding live Series with categories: ["anime"] /
+  // ["espanol"] later makes them render through the standard grid automatically.
+  { key: "anime", label: "Anime" },
+  { key: "espanol", label: "Español" },
   { key: "music", label: "Music" },
   { key: "reality", label: "Reality" },
   { key: "red-carpet", label: "Red Carpet" },

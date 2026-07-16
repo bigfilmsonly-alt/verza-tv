@@ -410,8 +410,20 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </div>
       )}
 
-      {/* Coming Soon — for empty categories (skip Reality/Music/Red Carpet since they show inline) */}
-      {filtered.length === 0 && activeTab !== "reality" && activeTab !== "music" && activeTab !== "red-carpet" && (
+      {/* Coming Soon — for empty categories (skip Reality/Music/Red Carpet since they show inline).
+          Anime & Español launch here: a branded placeholder that auto-hides the
+          moment their posters exist. Other empty categories fall back to the
+          generic message. Same card, icon, colors and spacing as the rest of the
+          site — no new design language. */}
+      {filtered.length === 0 && activeTab !== "reality" && activeTab !== "music" && activeTab !== "red-carpet" && (() => {
+        // Per-category Coming Soon copy. Anything not listed here uses the
+        // generic fallback text below.
+        const COMING_SOON: Partial<Record<BrowseCategory, { name: string; subtext: string }>> = {
+          anime: { name: "Anime", subtext: "Premium anime, coming soon to Verza." },
+          espanol: { name: "Español", subtext: "Premium Spanish-language microdramas. Coming soon to Verza." },
+        };
+        const cs = COMING_SOON[activeTab];
+        return (
         <section className="px-4 py-8">
           <div
             className="rounded-2xl py-16 flex flex-col items-center justify-center gap-4 text-center"
@@ -423,13 +435,28 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                 <polyline points="12 6 12 12 16 14" />
               </svg>
             </div>
+            {/* Category name above the status, per spec (Anime / Español). */}
+            {cs && (
+              <h2 className="text-2xl font-black uppercase tracking-wide" style={{ color: "#F5F4F8" }}>{cs.name}</h2>
+            )}
             <h3 className="text-lg font-bold" style={{ color: "#F5F4F8" }}>Coming Soon</h3>
             <p className="text-sm max-w-[280px] leading-relaxed" style={{ color: "#6B6B7B" }}>
-              New content for this category is being produced. Check back soon for exclusive releases.
+              {cs ? cs.subtext : "New content for this category is being produced. Check back soon for exclusive releases."}
             </p>
           </div>
+
+          {/* ── POSTER GRID DROP-IN ─────────────────────────────────────────────
+              Anime & Español have no shows yet (~6 Español posters land later,
+              titles TBD). To go live: add each show as a live Series in
+              lib/catalog.ts with categories: ["espanol"] (or ["anime"]).
+              getSeriesByCategory() then fills tabData[activeTab], this whole
+              Coming Soon block disappears (it is gated on filtered.length === 0),
+              and the shows render in the standard 3-column poster grid further
+              down — the SAME card component every other category uses. No markup
+              change is needed here; the grid is already wired for these tabs. */}
         </section>
-      )}
+        );
+      })()}
 
       {/* Reality tab — full-width hero slideshow */}
       {activeTab === "reality" && (() => {

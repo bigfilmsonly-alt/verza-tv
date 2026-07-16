@@ -23,6 +23,10 @@ const GENRE_DESCRIPTIONS: Record<string, string> = {
     "Reality-style micro-dramas on VERZA TV. Power games, talk shows, and unscripted entertainment in vertical format.",
   "red-carpet":
     "Glamour and awards on VERZA TV. Red carpet events, award shows, and celebrity micro-drama specials.",
+  anime:
+    "Premium anime, coming soon to VERZA TV. Vertical, binge-worthy anime micro-dramas built for phone-first viewing.",
+  espanol:
+    "Premium Spanish-language microdramas, coming soon to VERZA TV. Vertical dramas en español, free to start and binge-worthy from the first scene.",
   romance:
     "Sweeping love stories, billionaire romances, and forbidden attractions. VERZA TV romance micro-dramas deliver heart-racing chemistry in every 60-second episode.",
   thriller:
@@ -40,6 +44,17 @@ const GENRE_DESCRIPTIONS: Record<string, string> = {
   fantasy:
     "Supernatural connections and otherworldly love stories. VERZA TV fantasy micro-dramas blend magic with cinematic storytelling.",
 };
+
+/* Display-label overrides where the URL slug can't carry the real label.
+   The slug stays ASCII for clean URLs (/discover/espanol) while the page shows
+   the accented brand label ("Español") everywhere it appears. */
+const CATEGORY_LABELS: Record<string, string> = {
+  espanol: "Español",
+};
+
+function labelFor(slug: string): string {
+  return CATEGORY_LABELS[slug] ?? slug.charAt(0).toUpperCase() + slug.slice(1);
+}
 
 const KNOWN_GENRES = [
   ...BROWSE_TABS.map((t) => t.key),
@@ -73,7 +88,7 @@ export async function generateMetadata({
   params: Promise<{ genre: string }>;
 }): Promise<Metadata> {
   const { genre } = await params;
-  const label = genre.charAt(0).toUpperCase() + genre.slice(1);
+  const label = labelFor(genre);
   const description =
     GENRE_DESCRIPTIONS[genre] ??
     `Stream the best ${label.toLowerCase()} micro-dramas on VERZA TV.`;
@@ -110,7 +125,7 @@ export default async function GenrePage({
   params: Promise<{ genre: string }>;
 }) {
   const { genre } = await params;
-  const label = genre.charAt(0).toUpperCase() + genre.slice(1);
+  const label = labelFor(genre);
   const description = GENRE_DESCRIPTIONS[genre];
 
   const BASE_URL =

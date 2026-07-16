@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 // Category enum
-export const CategoryEnum = z.enum(["drama", "new", "popular", "reality", "music", "red-carpet"]);
+export const CategoryEnum = z.enum(["drama", "new", "popular", "anime", "espanol", "reality", "music", "red-carpet"]);
 export type Category = z.infer<typeof CategoryEnum>;
 
 // Person
