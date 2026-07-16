@@ -141,12 +141,15 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
   // ranked, everything else is shuffled fresh each load for variety.
   const filtered = useMemo(() => {
     // Drama shows the whole library EXCEPT tab-exclusive titles: Too Much Junk
-    // (Music tab) and red-carpet events (Red Carpet tab only — the carpet
-    // flyer must never appear in the Drama grid).
+    // (Music tab), red-carpet events (Red Carpet tab only), and reality titles
+    // like Storage Pirates (Reality tab only — must not appear in the Drama grid).
     const base =
       activeTab === "drama"
         ? liveSeries.filter(
-            (s) => s.slug !== "too-much-junk" && !s.categories.includes("red-carpet"),
+            (s) =>
+              s.slug !== "too-much-junk" &&
+              !s.categories.includes("red-carpet") &&
+              !s.categories.includes("reality"),
           )
         : tabData[activeTab] ?? [];
     if (shuffleSeed === 0 || activeTab === "popular") return base;
