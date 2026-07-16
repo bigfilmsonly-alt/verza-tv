@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-16 -- Storage Pirates shows in the Reality tab only
+- Storage Pirates (the only live series tagged `categories: ["reality"]`) was
+  appearing in the Drama grid, which renders the whole live library. Reality
+  titles are now excluded from the Drama grid — the same pattern already used to
+  keep Red Carpet titles out — so Storage Pirates shows only in the Reality tab.
+  Any future reality titles stay out of Drama automatically. No catalog/content,
+  Mux, or payment/auth change (`components/BrowsePage.tsx`). Verified live.
+
 ## 2026-07-16 -- Anime & Español browse tabs (Coming Soon)
 - Two new header tabs, additive navigation only. Final order:
   Drama · New · Hot · **Anime** · **Español** · Reality · Red Carpet · Music.

@@ -144,7 +144,7 @@ Series appear in browse tabs based on their `categories` array. A series can app
 | `new` | Recently added series |
 | `popular` | Top-ranked series (sorted by `popularRank`) |
 | `music` | Music-related content (tab exists, no series yet) |
-| `reality` | Reality/unscripted style dramas |
+| `reality` | Reality/unscripted style (e.g. Storage Pirates). Renders in the Reality tab only — reality titles are excluded from the Drama grid. |
 | `red-carpet` | Red carpet / celebrity content (tab exists, no series yet) |
 | `anime` | Anime vertical — **Coming Soon** (tab live, no series yet) |
 | `espanol` | Spanish-language vertical ("Español") — **Coming Soon** (tab live, ~6 posters planned) |
