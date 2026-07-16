@@ -15,8 +15,8 @@ export const BROWSE_TABS: { key: BrowseCategory; label: string }[] = [
   // the branded placeholder. Adding live Series with categories: ["anime"] /
   // ["espanol"] later makes them render through the standard grid automatically.
   { key: "anime", label: "Anime" },
-  { key: "espanol", label: "Español" },
   { key: "music", label: "Music" },
+  { key: "espanol", label: "Español" },
   { key: "reality", label: "Reality" },
   { key: "red-carpet", label: "Red Carpet" },
 ];
