@@ -150,7 +150,7 @@ Series appear in browse tabs based on their `categories` array. A series can app
 | `espanol` | Spanish-language vertical ("Español") — **Coming Soon** (tab live, ~6 posters planned) |
 
 The `BROWSE_TABS` constant defines the tab order and display labels. Current
-order: Drama, New, Hot, Anime, Music, Español, Reality, Red Carpet. Anime and
+order: Drama, New, Hot, Anime, Español, Reality, Red Carpet, Music. Anime and
 Español are Coming Soon placeholders — adding live `Series` with
 `categories: ["anime"]` / `["espanol"]` makes them render in the standard grid
 automatically (the Coming Soon card auto-hides).

@@ -2,7 +2,7 @@
 
 ## 2026-07-16 -- Anime & Español browse tabs (Coming Soon)
 - Two new header tabs, additive navigation only. Final order:
-  Drama · New · Hot · **Anime** · Music · **Español** · Reality · Red Carpet.
+  Drama · New · Hot · **Anime** · **Español** · Reality · Red Carpet · Music.
   No change to the episode catalog, Mux mapping, or payment/auth.
 - Both launch in a branded **Coming Soon** state: no series carry the new
   categories yet, so `getSeriesByCategory()` returns `[]` and `BrowsePage`
