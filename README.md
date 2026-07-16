@@ -36,8 +36,8 @@ Verza TV delivers **vertical micro-dramas** — full serialized shows told in
 (think TikTok's format applied to premium scripted drama). The platform
 combines:
 
-- A **curated catalog** of 80 titles (77 currently marked live in
-  `lib/catalog.ts`), delivered as HLS via Mux (~4,150 playback assets mapped in
+- A **curated catalog** of 80 titles (79 currently marked live in
+  `lib/catalog.ts`), delivered as HLS via Mux (~4,262 playback assets mapped in
   `lib/mux-map.ts`).
 - A **creator pipeline (UGC)** where approved creators upload, price, and
   publish their own vertical content with an 80/20 revenue split.
@@ -52,7 +52,7 @@ combines:
 | --- | --- |
 | **Playback** | Mux HLS via `hls.js`, signed playback URLs, muted-first autoplay (iOS-safe), immersive vertical swipe feed, horizontal 16:9 feed, shorts carousel |
 | **Browse / discovery** | Hero slideshow (pause-on-hover), category tabs (Drama, New, Hot, Anime, Español, Reality, Red Carpet, Music — Anime and Español are Coming Soon placeholders), poster grid, genre/keyword search (header popover + `/search`) |
-| **Monetization** | $1.99 per-title unlock, VIP ($9.99/mo · $79.99/yr), 10-product merch shop, woven TikTok Shop sponsored ad tiles, StorageBlue sponsor ribbons |
+| **Monetization** | $1.99 per-title unlock, VIP ($9.99/mo · $79.99/yr), 10-product merch shop, Amazon affiliate store (Associates tag `verzatv-20`) on the Shop tab, StorageBlue sponsor ribbons |
 | **Creator (UGC)** | Apply → admin approve → Mux upload (XHR progress) → edit/price → submit → admin review → publish → public `/watch`; 80/20 sales ledger |
 | **AI (optional)** | Ask Verza chatbot; Creator AI Studio; multi-mode API (chat/creator/seo/marketing/moderate) |
 | **Accounts** | Supabase auth (email + OAuth), library / My List, watch progress, entitlements, guest-purchase claim on sign-up |
@@ -88,8 +88,9 @@ verification — prices are computed server-side (never client-controlled).
 - **Merch** — 10 products ($15–$110) in the shop.
 - **Creator UGC** — pay-per-view / premium pricing, **80/20 split** to
   creators, recorded in a server-only `creator_sales` ledger.
-- **Sponsored ads** — TikTok Shop product tiles woven into the grid + search;
-  StorageBlue sponsor ribbons.
+- **Amazon affiliate store** — 12 products (Associates tag `verzatv-20`) on the
+  Shop tab / `/amazon`; deliberately kept out of the browse grid and search so
+  browsing stays editorial. Plus StorageBlue sponsor ribbons on browse.
 
 Details: [`docs/guides/PAYMENTS.md`](docs/guides/PAYMENTS.md) ·
 [`docs/strategy/HIGH-CONVERSION-PLAYBOOK.md`](docs/strategy/HIGH-CONVERSION-PLAYBOOK.md).
@@ -112,11 +113,11 @@ Full write-up: [`docs/reference/ARCHITECTURE.md`](docs/reference/ARCHITECTURE.md
 ## Repository layout
 
 ```
-app/            Next.js App Router — pages + 32 API routes (app/api/*)
-components/     47 React components (players, browse, paywalls, creator, admin)
-lib/            catalog, products, theme, schemas, search-index, sponsors,
+app/            Next.js App Router — pages + 36 API routes (app/api/*)
+components/     56 React components (players, browse, paywalls, creator, admin)
+lib/            catalog, products, theme, schemas, search-index, amazon-sponsors,
                 mux-map, env, auth, supabase clients, analytics
-supabase/       migrations/ (7 SQL files) + seed
+supabase/       migrations/ (9 migrations, 001–009) + seed
 scripts/        reconcile-mux.ts, attach-transcript.ts (+ README-reconcile.md)
 docs/           all documentation (see index below)
 public/         static assets, ads, icons, service worker
@@ -126,20 +127,21 @@ Full map: [`docs/reference/PROJECT-STRUCTURE.md`](docs/reference/PROJECT-STRUCTU
 
 ## Project metrics
 
-_Verified from source / git / build as of the latest audit (commit `c5f1610`)._
+_Verified from source / git as of 2026-07-16 (`main`)._
 
 | Metric | Value |
 | --- | --- |
-| Commits | 307 |
-| App/lib/components code | 38,269 lines TS/TSX |
-| Components | 47 |
-| API routes | 32 |
-| Pages (`page.tsx`) | 57 |
-| DB migrations | 7 |
-| Catalog titles / live | 80 / 77 |
-| Mux playback assets | ~4,146 |
-| Merch products | 10 |
-| Build | ✅ green — 1085 pages prerendered |
+| Commits | 408 |
+| App/lib/components code | ~42,500 lines TS/TSX |
+| Components | 56 |
+| API routes | 36 |
+| Pages (`page.tsx`) | 60 |
+| DB migrations | 9 (`001`–`009`) |
+| Catalog titles / live | 80 / 79 (+1 coming soon) |
+| Mux playback assets | ~4,262 |
+| Merch products | 10 (+ 12 Amazon affiliate) |
+| Browse tabs | 8 — Drama · New · Hot · Anime · Español · Reality · Red Carpet · Music (Anime + Español Coming Soon) |
+| Build | ✅ green — ~2,100 pages prerendered |
 
 ## Local development
 
@@ -172,7 +174,7 @@ Full table: [`docs/reference/ENVIRONMENT.md`](docs/reference/ENVIRONMENT.md).
 Supabase Postgres with RLS on all tables (`profiles`, `entitlements`,
 `purchases`, `watch_progress`, `saved_list`, `pending_entitlements`, plus
 creator + analytics tables). Migrations live in `supabase/migrations/`
-(`001`–`006`). Run pending migrations via the Supabase SQL editor or
+(`001`–`009`). Run pending migrations via the Supabase SQL editor or
 `supabase db push`. See [`docs/reference/DATA-MODEL.md`](docs/reference/DATA-MODEL.md) and
 [`docs/reports/DEV-REPORT-CURRENT.md`](docs/reports/DEV-REPORT-CURRENT.md) §4 for the current
 run/provision checklist.
