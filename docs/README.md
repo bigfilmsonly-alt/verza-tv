@@ -11,7 +11,7 @@ folders by purpose:
 - **[reports/](reports/)** — dev reports, audits, and launch-readiness verifications.
 - **[strategy/](strategy/)** — business, valuation, and monetization playbooks.
 
-Two docs stay at the `docs/` root: this index and the ones below.
+This index plus **CHANGELOG.md** and **REFACTORS.md** stay at the `docs/` root; every other doc lives in the folders above.
 
 ---
 
@@ -50,6 +50,7 @@ Two docs stay at the `docs/` root: this index and the ones below.
 | [guides/PAYMENTS.md](guides/PAYMENTS.md) | Stripe checkout, webhooks, revenue truth |
 | [guides/AMAZON-SHOP.md](guides/AMAZON-SHOP.md) | Amazon affiliate shop — adding products, refreshing images, and the four constraints that will bite you |
 | [guides/REACT-NATIVE-SYNC.md](guides/REACT-NATIVE-SYNC.md) | **Web → React Native sync** — what to port, what to skip, the App Store rules, and the platform mapping |
+| [guides/PORTING-VERZA-TV-TAB.md](guides/PORTING-VERZA-TV-TAB.md) | Copy-paste guide to embed the Verza browse + video-playback core as a "TV" tab in a separate project |
 | [guides/CREATOR-SETUP.md](guides/CREATOR-SETUP.md) | Creator (UGC) pipeline setup & go-live |
 | [guides/CONTENT.md](guides/CONTENT.md) | Catalog structure, series data flow |
 | [guides/seo.md](guides/seo.md) | SEO & content infrastructure |
@@ -64,6 +65,8 @@ Two docs stay at the `docs/` root: this index and the ones below.
 | [reports/DEV-REPORT-2026-07-13-AMAZON-SHOP.md](reports/DEV-REPORT-2026-07-13-AMAZON-SHOP.md) | **Amazon affiliate shop** — what shipped, decisions, 7 bugs found and fixed, live verification |
 | [reports/DEV-REPORT-CURRENT.md](reports/DEV-REPORT-CURRENT.md) | Latest pre-share master audit (RN-migration foundation) |
 | [reports/DEV-REPORT.md](reports/DEV-REPORT.md) | Developer status report |
+| [reports/DEV-REPORT-2026-07-03.md](reports/DEV-REPORT-2026-07-03.md) | Dated dev report — 2026-07-03 (historical) |
+| [reports/DEV-REPORT-2026-07-03-POLISH.md](reports/DEV-REPORT-2026-07-03-POLISH.md) | Dated dev report — 2026-07-03 polish pass (historical) |
 | [reports/VERZA_CURRENT_STATE_AUDIT.md](reports/VERZA_CURRENT_STATE_AUDIT.md) | Current-state audit (2026-07-11) |
 | [reports/VERZA_LAUNCH_BLOCKERS.md](reports/VERZA_LAUNCH_BLOCKERS.md) | Launch blockers |
 | [reports/VERZA_ENVIRONMENT_VARIABLES.md](reports/VERZA_ENVIRONMENT_VARIABLES.md) | Env var audit (names and purposes only — no secrets) |
@@ -105,10 +108,11 @@ Two docs stay at the `docs/` root: this index and the ones below.
 ## Project at a glance
 
 - **Production URL:** https://www.verzatv.com (LIVE)
-- **Deployment:** Vercel (`codevibes/verza-tv`) — `npx vercel deploy --prod`
-- **Repo:** GitHub `bigfilmsonly-alt/verza-tv` (`main`)
+- **Deployment:** Vercel (`codevibes/verza-tv`). The live domain is promoted by the **CLI** (`npx vercel --prod`); a git push builds a production-target deploy but does **not** move the live alias. See [guides/DEPLOYMENT.md](guides/DEPLOYMENT.md).
+- **Repo:** GitHub `Splash-Studio/verza-tv` (`main`, private — canonical). A public fork `bigfilmsonly-alt/verza-tv` also feeds Vercel but leaks `lib/mux-map.ts`; Splash-Studio is the source of truth.
 - **Domain path:** GoDaddy → Cloudflare (DNS) → Vercel (hosting)
-- **Catalog:** 76 live series, thousands of Mux HLS streams
+- **Catalog:** 79 live series + 1 coming soon (~4,262 Mux HLS episodes)
+- **Browse tabs (8):** Drama · New · Hot · Anime · Español · Reality · Red Carpet · Music (Anime + Español are Coming Soon)
 - **Monetization:** $1.99 series unlock · VIP $9.99/mo or $79.99/yr · merch · 80/20 creator rev-share
 
 See [reference/TECH-STACK.md](reference/TECH-STACK.md) and
