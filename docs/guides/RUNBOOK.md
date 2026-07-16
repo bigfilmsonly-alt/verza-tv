@@ -106,19 +106,18 @@ The sitemap index at `/sitemap.xml` links to child sitemaps for pages, shows, ep
 
 ## Deploy
 
-**Auto-deploy (recommended):**
-
-```bash
-git push origin main
-```
-
-Vercel auto-deploys on push to `main`. Preview deploys are created for all other branches.
-
-**Manual deploy:**
+**Deploy to production (the live domain):**
 
 ```bash
 npx vercel --prod --yes
 ```
+
+Only the Vercel CLI promotes the live domain (`www.verzatv.com` / `verzatv.com`).
+A `git push origin main` builds a production-target deployment but does NOT move
+the live alias; non-main branches get preview deploys at unique URLs. Push to
+`main` to keep the repo in sync, then run the CLI to go live. (Verify in a
+browser or the Vercel API — the live domain returns a 403 "Security Checkpoint"
+to `curl`.)
 
 ## Rotate API Keys
 

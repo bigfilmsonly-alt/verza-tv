@@ -146,8 +146,14 @@ Series appear in browse tabs based on their `categories` array. A series can app
 | `music` | Music-related content (tab exists, no series yet) |
 | `reality` | Reality/unscripted style dramas |
 | `red-carpet` | Red carpet / celebrity content (tab exists, no series yet) |
+| `anime` | Anime vertical — **Coming Soon** (tab live, no series yet) |
+| `espanol` | Spanish-language vertical ("Español") — **Coming Soon** (tab live, ~6 posters planned) |
 
-The `BROWSE_TABS` constant defines the tab order and display labels.
+The `BROWSE_TABS` constant defines the tab order and display labels. Current
+order: Drama, New, Hot, Anime, Music, Español, Reality, Red Carpet. Anime and
+Español are Coming Soon placeholders — adding live `Series` with
+`categories: ["anime"]` / `["espanol"]` makes them render in the standard grid
+automatically (the Coming Soon card auto-hides).
 
 ---
 

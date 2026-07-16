@@ -51,7 +51,7 @@ combines:
 | Area | What's built |
 | --- | --- |
 | **Playback** | Mux HLS via `hls.js`, signed playback URLs, muted-first autoplay (iOS-safe), immersive vertical swipe feed, horizontal 16:9 feed, shorts carousel |
-| **Browse / discovery** | Hero slideshow (pause-on-hover), category tabs (Drama, New, Hot, Music, Reality, Red Carpet), poster grid, genre/keyword search (header popover + `/search`) |
+| **Browse / discovery** | Hero slideshow (pause-on-hover), category tabs (Drama, New, Hot, Anime, Music, Español, Reality, Red Carpet — Anime and Español are Coming Soon placeholders), poster grid, genre/keyword search (header popover + `/search`) |
 | **Monetization** | $1.99 per-title unlock, VIP ($9.99/mo · $79.99/yr), 10-product merch shop, woven TikTok Shop sponsored ad tiles, StorageBlue sponsor ribbons |
 | **Creator (UGC)** | Apply → admin approve → Mux upload (XHR progress) → edit/price → submit → admin review → publish → public `/watch`; 80/20 sales ledger |
 | **AI (optional)** | Ask Verza chatbot; Creator AI Studio; multi-mode API (chat/creator/seo/marketing/moderate) |
@@ -179,7 +179,7 @@ run/provision checklist.
 
 ## Deployment
 
-Hosted on Vercel (`codevibes/verza-tv`), auto-aliased to `www.verzatv.com`.
+Hosted on Vercel (`codevibes/verza-tv`). The live domain `www.verzatv.com` is promoted by the CLI below (`npx vercel --prod`) — a git push alone does **not** move the live alias.
 
 ```bash
 npx vercel deploy --prod

@@ -15,7 +15,9 @@
 
 ## Branch Strategy
 
-- `main` is the production branch. Pushes to `main` auto-deploy to Vercel.
+- `main` is the production branch. A push to `main` builds a production-target
+  deployment but does NOT promote the live domain — run `npx vercel --prod` to go
+  live at www.verzatv.com. See `guides/DEPLOYMENT.md`.
 - Create feature branches off `main`: `feature/your-feature-name`
 - Preview deploys are created automatically for non-main branches.
 

@@ -1,5 +1,31 @@
 # Changelog
 
+## 2026-07-16 -- Anime & Español browse tabs (Coming Soon)
+- Two new header tabs, additive navigation only. Final order:
+  Drama · New · Hot · **Anime** · Music · **Español** · Reality · Red Carpet.
+  No change to the episode catalog, Mux mapping, or payment/auth.
+- Both launch in a branded **Coming Soon** state: no series carry the new
+  categories yet, so `getSeriesByCategory()` returns `[]` and `BrowsePage`
+  renders the existing Coming Soon card (category name → "Coming Soon" →
+  subtext) using the site's existing tokens — no new design language. Copy:
+  Anime — "Premium anime, coming soon to Verza."; Español — "Premium
+  Spanish-language microdramas. Coming soon to Verza." "Español" keeps its ñ
+  in both the tab and the heading.
+- **Poster drop-in path:** when the ~6 Español posters (or Anime titles) are
+  ready, add each as a live `Series` in `lib/catalog.ts` with
+  `categories: ["espanol"]` / `["anime"]`; they then render through the
+  standard poster grid and the Coming Soon card auto-hides. No layout change.
+- Not surfaced in the genres sitemap or the Discover index while empty (no
+  dead links / empty category pages). `/discover/espanol` + `/discover/anime`
+  are statically generated and render a clean, accented Coming Soon page on
+  direct navigation. `lib/content/schemas.ts` `CategoryEnum` widened to include
+  the two keys so the content layer type-checks.
+- **Deploy note (corrected):** the live domain `www.verzatv.com` / `verzatv.com`
+  is promoted only by the Vercel **CLI** (`npx vercel --prod`), NOT by `git
+  push` — a push builds a production-*target* deployment that does not take over
+  the live alias. Shipped via CLI (deployment `dpl_GWBK4S1…`, commit `8a07501`);
+  verified live in a real browser.
+
 ## 2026-07-13 -- Amazon Affiliate Shop (replaces TikTok Shop)
 - Replaced the placeholder TikTok Shop products with 12 real Amazon products
   (Associates tag `verzatv-20`); deleted `lib/sponsors.ts` and

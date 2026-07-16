@@ -6,15 +6,17 @@ The deployment chain from local development to production.
 
 ## Repository
 
-- **GitHub:** `bigfilmsonly-alt/verza-tv`
-- **Branch:** `main` (single trunk -- all deploys come from here)
+- **GitHub:** `Splash-Studio/verza-tv` (private, canonical — remote `origin`).
+  A public fork `bigfilmsonly-alt/verza-tv` (remote `bigfilmsonly`) also feeds
+  the same Vercel project but leaks `lib/mux-map.ts` — do not treat it as canonical.
+- **Branch:** `main` (single trunk)
 
 ---
 
 ## Vercel Project
 
-- **Project ID:** `prj_Nio9LZnB47XRYATkr0uA9BCWXq0c`
-- **Team ID:** `team_dH3gjHuiMOEBasjWn3GwQcYf`
+- **Project ID:** `prj_0HX6x5Vi64r9Y3YIa3W6KpIwDLKG`
+- **Team ID:** `team_uikUPkCBtl8h84khAOFJJWpz`
 - **Framework:** Next.js 16 (auto-detected)
 - **Build tool:** Turbopack
 - **Build time:** ~30 seconds
@@ -23,22 +25,29 @@ The deployment chain from local development to production.
 
 ## Deploy Flow
 
+The **live domain is promoted only by the Vercel CLI**, run from the repo root:
+
 ```
-git push origin main
+npx vercel --prod --yes
        |
        v
-  Vercel detects push (GitHub integration)
+  Remote build on Vercel (next build, Turbopack)
        |
        v
-  next build (Turbopack)
+  Deployment reaches READY (target: production, source: "cli")
        |
        v
-  Production deploy -> verza-tv.vercel.app
+  CLI aliases it to www.verzatv.com + verzatv.com
 ```
 
-Every push to `main` triggers an automatic production deploy. Pull requests
-and non-main branches get preview deploys at unique URLs
-(`verza-tv-<hash>.vercel.app`).
+**A `git push` does NOT promote the live site.** Pushing to `main` builds a
+production-*target* deployment (it reaches READY) but does NOT take over the
+`www.verzatv.com` / `verzatv.com` aliases — only `npx vercel --prod` does.
+Non-main branches / PRs still get preview deploys at unique
+`verza-tv-<hash>.vercel.app` URLs. Keep the repo in sync by pushing to `main`
+too, then run the CLI to go live. Verify a deploy in a browser or via the Vercel
+API — not `curl`: the live domain returns a "Vercel Security Checkpoint" (HTTP
+403) to bot-like clients even when the site is healthy.
 
 ---
 
@@ -95,9 +104,9 @@ Static assets under `/posters/` and `/shop/` are served with
 
 ## Production Domain
 
-The production domain will be `verzatv.com`. This is NOT yet active --
-cutover is planned after full feature completion. Until then, the app is
-accessible at `verza-tv.vercel.app`.
+The production domain is **`www.verzatv.com`** (apex `verzatv.com` is also
+aliased) and is **LIVE**. New builds are promoted to it with `npx vercel --prod`
+(see Deploy Flow above).
 
 ---
 

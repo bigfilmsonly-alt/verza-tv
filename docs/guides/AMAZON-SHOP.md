@@ -228,7 +228,7 @@ retailer back in the header.
 
 ## Deploying
 
-The project is **not** git-connected to Vercel. Pushing does not deploy anything.
+A `git push` builds a production-target deployment but does **not** promote the live domain. Only the Vercel CLI aliases `www.verzatv.com`:
 
 ```bash
 npx vercel --prod --yes    # → verzatv.com

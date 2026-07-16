@@ -46,7 +46,7 @@ The following mechanisms are already built and operational.
 
 - `robots.txt` blocks all crawlers on non-production deployments (Vercel preview URLs).
 - `X-Robots-Tag: noindex` header is set on all preview deploy responses.
-- Production is defined as the `verzatv.com` domain (not yet cut over) and `verza-tv.vercel.app` (current staging).
+- Production is the live `www.verzatv.com` / `verzatv.com` domain; preview deploys at `verza-tv-<hash>.vercel.app` are `noindex`.
 
 ### Search Results Page
 
