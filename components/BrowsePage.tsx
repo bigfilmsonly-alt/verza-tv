@@ -223,20 +223,6 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
     return () => clearInterval(t);
   }, [slideCount, heroPaused]);
 
-  // Safe wrap in BOTH directions so the back/next arrows always work regardless
-  // of how many slides the current tab has (never produces a negative index).
-  const goPrev = useCallback(() => {
-    const len = heroSlides.length;
-    if (len <= 0) return;
-    setHeroIdx((i) => (((i - 1) % len) + len) % len);
-  }, [heroSlides.length]);
-
-  const goNext = useCallback(() => {
-    const len = heroSlides.length;
-    if (len <= 0) return;
-    setHeroIdx((i) => (((i + 1) % len) + len) % len);
-  }, [heroSlides.length]);
-
   const selectTab = useCallback(
     (key: BrowseCategory) => {
       const keys = activeTabs.map((tb) => tb.key);
@@ -481,23 +467,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                 <Image src={currentShow.poster} alt={currentShow.title} fill priority sizes="(max-width: 440px) 80vw, 320px" className="object-cover" />
               </div>
 
-              {/* Arrows */}
-              <button
-                onClick={() => setHeroIdx((i) => (((i - 1) % realityShows.length) + realityShows.length) % realityShows.length)}
-                className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center border-0 cursor-pointer z-10"
-                style={{ background: "rgba(7,7,14,0.55)", color: "#fff", backdropFilter: "blur(6px)" }}
-                aria-label="Previous"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
-              </button>
-              <button
-                onClick={() => setHeroIdx((i) => (((i + 1) % realityShows.length) + realityShows.length) % realityShows.length)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center border-0 cursor-pointer z-10"
-                style={{ background: "rgba(7,7,14,0.55)", color: "#fff", backdropFilter: "blur(6px)" }}
-                aria-label="Next"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
-              </button>
+              {/* Arrows removed — slides change via the dots below + auto-rotate. */}
             </div>
 
             {/* Dot indicators */}
@@ -665,26 +635,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               </div>
             </Link>
 
-            {heroSlides.length > 1 && (
-              <>
-                <button
-                  onClick={goPrev}
-                  className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center border-0 cursor-pointer z-10"
-                  style={{ background: "rgba(7,7,14,0.55)", color: "#fff", backdropFilter: "blur(6px)" }}
-                  aria-label="Previous"
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
-                </button>
-                <button
-                  onClick={goNext}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center border-0 cursor-pointer z-10"
-                  style={{ background: "rgba(7,7,14,0.55)", color: "#fff", backdropFilter: "blur(6px)" }}
-                  aria-label="Next"
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
-                </button>
-              </>
-            )}
+            {/* Hero arrows removed — slides change via the dots below + auto-rotate. */}
           </div>
 
           {/* Dot indicators overlaid on hero bottom */}
