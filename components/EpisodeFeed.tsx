@@ -345,6 +345,9 @@ function EpisodeSlide({
   /* Last-resort recovery: tear the player down completely and re-attach.
      Bounded (2 per slide) so a truly broken stream can't loop forever. */
   const fullReattach = useCallback(() => {
+    // Never rebuild a paywalled episode's player — the user can't watch it yet,
+    // and a looping reattach behind the unlock overlay reads as a "blink".
+    if (blockedRef.current) return;
     if (reattachCountRef.current >= 2) return;
     reattachCountRef.current += 1;
     if (hlsRef.current) { try { hlsRef.current.destroy(); } catch {} hlsRef.current = null; }
@@ -787,6 +790,10 @@ export default function EpisodeFeed({
     }
     return false;
   });
+  // True once the entitlement check (/api/access + session confirm) resolves.
+  // The paywall must not surface until then, or VIP/owners see a flash-then-hide
+  // while the async check is in flight.
+  const [authResolved, setAuthResolved] = useState(false);
 
   useEffect(() => {
     let stale = false;
@@ -825,7 +832,7 @@ export default function EpisodeFeed({
         const remembered = localStorage.getItem(storageKey);
         if (remembered && !stale && (await confirmSession(remembered))) setAuthFree(true);
       } catch {}
-    })();
+    })().finally(() => { if (!stale) setAuthResolved(true); });
 
     return () => { stale = true; };
   }, [seriesSlug]);
@@ -849,6 +856,26 @@ export default function EpisodeFeed({
   // Reader mode (Apple 3.1.1): inside the iOS app, no purchase UI may appear.
   const [iosApp, setIosApp] = useState(false);
   useEffect(() => { if (isIOSApp()) setIosApp(true); }, []);
+
+  // Surface the paywall from the SETTLED active episode, debounced. The
+  // IntersectionObserver can flap activeIndex as a swipe settles; deriving +
+  // debouncing here (instead of toggling inside the observer callback) means
+  // the overlay fades in ONCE and never blinks, and paywall_viewed fires once
+  // per settle rather than once per observer tick.
+  useEffect(() => {
+    const ep = episodes[activeIndex];
+    const locked = !!ep && !ep.isFree && !authFree;
+    // Wait for the entitlement check to resolve before showing the paywall —
+    // otherwise VIP/owners flash the overlay while /api/access is in flight.
+    if (!locked || !authResolved) { setShowUnlock(false); return; }
+    const t = setTimeout(() => {
+      setShowUnlock(true);
+      trackUnlockPrompt(seriesSlug);
+      emit("paywall_viewed", { show_id: seriesSlug, episode_number: ep.number, plan_type: "series_unlock", surface: "episode_feed" });
+    }, 250);
+    return () => clearTimeout(t);
+  }, [activeIndex, authFree, authResolved, episodes, seriesSlug]);
+
   const [unlockLoading, setUnlockLoading] = useState(false);
   const [epProgress, setEpProgress] = useState(0);
   const [showToast, setShowToast] = useState(false);
@@ -1011,20 +1038,15 @@ export default function EpisodeFeed({
             const qs = qp.toString();
             window.history.replaceState(null, "", `/series/${seriesSlug}/${ep.number}${qs ? `?${qs}` : ""}`);
 
-            // First locked episode → surface the $1.99 unlock-all popup.
-            // authFree (VIP / entitled) bypasses the paywall entirely.
-            if (!ep.isFree && !authFree) {
-              trackUnlockPrompt(seriesSlug);
-              emit("paywall_viewed", { show_id: seriesSlug, episode_number: ep.number, plan_type: "series_unlock", surface: "episode_feed" });
-              setShowUnlock(true);
-            } else {
-              setShowUnlock(false);
-            }
+            // Paywall visibility is derived from the SETTLED active episode in
+            // a debounced effect (search: "Surface the paywall") — NOT toggled
+            // here — so transient observer flaps as a swipe settles can't blink
+            // the overlay.
           }
         }
       }
     },
-    [episodes, seriesSlug, authFree],
+    [episodes, seriesSlug, startEpisode],
   );
 
   useEffect(() => {
