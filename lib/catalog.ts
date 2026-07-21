@@ -4,18 +4,19 @@
 
 import { MUX_MAP } from "./mux-map";
 
-export type BrowseCategory = "drama" | "new" | "popular" | "anime" | "espanol" | "music" | "reality" | "red-carpet";
+export type BrowseCategory = "drama" | "new" | "popular" | "anime" | "espanol" | "bollywood" | "creators" | "music" | "reality" | "red-carpet";
 
 export const BROWSE_TABS: { key: BrowseCategory; label: string }[] = [
   { key: "drama", label: "Drama" },
-  { key: "new", label: "New" },
   { key: "popular", label: "Hot" },
-  // Anime + Español launch in a "Coming Soon" state: no series carry these
-  // categories yet, so getSeriesByCategory() returns [] and BrowsePage shows
-  // the branded placeholder. Adding live Series with categories: ["anime"] /
-  // ["espanol"] later makes them render through the standard grid automatically.
+  // Anime, Español, Bollywood and Creators launch in a "Coming Soon" state: no
+  // series carry these categories yet, so getSeriesByCategory() returns [] and
+  // BrowsePage shows the branded placeholder. Adding live Series with the matching
+  // category (e.g. categories: ["bollywood"]) later renders them in the standard grid.
   { key: "anime", label: "Anime" },
   { key: "espanol", label: "Español" },
+  { key: "bollywood", label: "Bollywood" },
+  { key: "creators", label: "Creators" },
   { key: "reality", label: "Reality" },
   { key: "red-carpet", label: "Red Carpet" },
   { key: "music", label: "Music" },
@@ -1031,13 +1032,15 @@ export function getComingSoonSeries(): Series[] {
 }
 
 export function getSeriesByCategory(cat: BrowseCategory): Series[] {
-  const filtered = catalog.filter(
-    (s) => s.status === "live" && s.categories.includes(cat),
-  );
+  // Hot consolidates Hot + New: the standalone "New" tab was removed, so the
+  // Hot (popular) tab shows every live series tagged "popular" OR "new",
+  // ranked-popular first (by popularRank), then the newer, unranked titles.
   if (cat === "popular") {
-    return filtered.sort((a, b) => (a.popularRank ?? 99) - (b.popularRank ?? 99));
+    return catalog
+      .filter((s) => s.status === "live" && (s.categories.includes("popular") || s.categories.includes("new")))
+      .sort((a, b) => (a.popularRank ?? 99) - (b.popularRank ?? 99));
   }
-  return filtered;
+  return catalog.filter((s) => s.status === "live" && s.categories.includes(cat));
 }
 
 export function getSeriesByChannel(channel: string): Series[] {

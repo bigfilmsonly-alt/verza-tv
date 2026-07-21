@@ -27,6 +27,10 @@ const GENRE_DESCRIPTIONS: Record<string, string> = {
     "Premium anime, coming soon to VERZA TV. Vertical, binge-worthy anime micro-dramas built for phone-first viewing.",
   espanol:
     "Premium Spanish-language microdramas, coming soon to VERZA TV. Vertical dramas en español, free to start and binge-worthy from the first scene.",
+  bollywood:
+    "Premium Bollywood microdramas, coming soon to VERZA TV. Vertical, binge-worthy Bollywood drama built for phone-first viewing.",
+  creators:
+    "Original vertical series from independent creators, coming soon to VERZA TV — the creator channel program in short-form.",
   romance:
     "Sweeping love stories, billionaire romances, and forbidden attractions. VERZA TV romance micro-dramas deliver heart-racing chemistry in every 60-second episode.",
   thriller:
