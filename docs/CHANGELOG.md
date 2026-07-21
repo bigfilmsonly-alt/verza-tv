@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-07-20 -- Nav rework: New→Hot, + Bollywood & Creators; hero arrows removed
+- **New tab removed, folded into Hot.** `getSeriesByCategory("popular")` now
+  returns `popular ∪ new` (ranked-popular first), so Hot shows Hot+New as one
+  section (~20 titles, was 10). `new` stays a category, so the "New" badge still
+  flags fresh titles inside the grid.
+- **Bollywood and Creators tabs added** after Español (before Reality), both
+  branded Coming Soon placeholders like Anime/Español — no content yet; drop in
+  live `Series` with `categories: ["bollywood"|"creators"]` to go live.
+- **Final tab order:** Drama · Hot · Anime · Español · Bollywood · Creators ·
+  Reality · Red Carpet · Music (9 tabs; 4 Coming Soon).
+- **Hero slideshow arrows removed** (main + Reality heroes); slides change via
+  the dot indicators, auto-rotate, and tab swipe.
+
 ## 2026-07-16 -- Storage Pirates shows in the Reality tab only
 - Storage Pirates (the only live series tagged `categories: ["reality"]`) was
   appearing in the Drama grid, which renders the whole live library. Reality

@@ -37,7 +37,7 @@ interface Series {
 }
 ```
 
-**BrowseCategory**: `"drama" | "new" | "popular" | "anime" | "espanol" | "music" | "reality" | "red-carpet"` (`anime` + `espanol` are Coming Soon browse tabs with no series yet)
+**BrowseCategory**: `"drama" | "new" | "popular" | "anime" | "espanol" | "bollywood" | "creators" | "music" | "reality" | "red-carpet"` (`new` has no standalone tab — folded into Hot; `anime`/`espanol`/`bollywood`/`creators` are Coming Soon tabs with no series yet)
 
 **PosterMood**: `"ballroom" | "noir" | "rose" | "sunset" | "ice" | "blood" | "emerald" | "violet" | "gold" | "storage"`
 

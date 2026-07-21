@@ -141,19 +141,21 @@ Series appear in browse tabs based on their `categories` array. A series can app
 | Category | Description |
 |----------|-------------|
 | `drama` | Primary drama catalog |
-| `new` | Recently added series |
-| `popular` | Top-ranked series (sorted by `popularRank`) |
+| `new` | Recently added series. No standalone tab — folded into **Hot**; still drives the "New" badge. |
+| `popular` | Top-ranked series (by `popularRank`). The **Hot** tab shows `popular` ∪ `new`. |
 | `music` | Music-related content (tab exists, no series yet) |
 | `reality` | Reality/unscripted style (e.g. Storage Pirates). Renders in the Reality tab only — reality titles are excluded from the Drama grid. |
 | `red-carpet` | Red carpet / celebrity content (tab exists, no series yet) |
 | `anime` | Anime vertical — **Coming Soon** (tab live, no series yet) |
 | `espanol` | Spanish-language vertical ("Español") — **Coming Soon** (tab live, ~6 posters planned) |
+| `bollywood` | Bollywood vertical — **Coming Soon** (tab live, no series yet) |
+| `creators` | Creator channels — **Coming Soon** (tab live, no series yet) |
 
 The `BROWSE_TABS` constant defines the tab order and display labels. Current
-order: Drama, New, Hot, Anime, Español, Reality, Red Carpet, Music. Anime and
-Español are Coming Soon placeholders — adding live `Series` with
-`categories: ["anime"]` / `["espanol"]` makes them render in the standard grid
-automatically (the Coming Soon card auto-hides).
+order: Drama, Hot, Anime, Español, Bollywood, Creators, Reality, Red Carpet,
+Music. Anime, Español, Bollywood and Creators are Coming Soon placeholders —
+adding live `Series` with the matching `categories` (e.g. `["bollywood"]`) makes
+them render in the standard grid automatically (the Coming Soon card auto-hides).
 
 ---
 
