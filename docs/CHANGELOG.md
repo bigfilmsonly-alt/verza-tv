@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-07-20 -- Fix the paywall blink at the first locked episode
+- The $1.99 unlock overlay "blinked a few times" on reaching a locked episode.
+  Cause: `showUnlock` was toggled imperatively inside the IntersectionObserver
+  callback, which fires repeatedly as a swipe settles, replaying the overlay's
+  fade-in. Now derived from the SETTLED active episode via a 250ms-debounced
+  effect (`paywall_viewed` fires once per settle, not per tick).
+- `fullReattach()` returns early when blocked, so a paywalled episode's player
+  can't loop-reattach behind the overlay.
+- Paywall gated on `authResolved`: it never surfaces until the `/api/access`
+  entitlement check resolves, so VIP/owners no longer see a flash-then-hide.
+  Found via a 6-angle adversarial verification pass.
+- Note: "This page cannot load / Go Back" is not a bug — it's the intended iOS
+  reader-mode paywall ("Episode Unavailable", Apple Guideline 3.1.1).
+
 ## 2026-07-20 -- Nav rework: New→Hot, + Bollywood & Creators; hero arrows removed
 - **New tab removed, folded into Hot.** `getSeriesByCategory("popular")` now
   returns `popular ∪ new` (ranked-popular first), so Hot shows Hot+New as one
