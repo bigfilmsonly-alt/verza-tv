@@ -37,7 +37,7 @@ interface Series {
 }
 ```
 
-**BrowseCategory**: `"drama" | "new" | "popular" | "tubi" | "anime" | "espanol" | "bollywood" | "creators" | "music" | "reality" | "red-carpet"` (`new` folded into Hot; `tubi` = authorized partner logo tab; `tubi`/`anime`/`espanol`/`bollywood`/`creators` are Coming Soon with no series yet)
+**BrowseCategory**: `"drama" | "new" | "popular" | "tubi" | "anime" | "espanol" | "bollywood" | "creators" | "music" | "reality" | "red-carpet"` (`new` folded into Hot; `tubi` = authorized partner tab linking out to tubitv.com; `anime`/`espanol`/`bollywood`/`creators` are Coming Soon with no series yet)
 
 **PosterMood**: `"ballroom" | "noir" | "rose" | "sunset" | "ice" | "blood" | "emerald" | "violet" | "gold" | "storage"`
 

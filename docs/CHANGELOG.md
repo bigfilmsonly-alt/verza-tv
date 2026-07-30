@@ -1,13 +1,20 @@
 # Changelog
 
-## 2026-07-30 -- Tubi partner tab (3rd): logo + Coming Soon
+## 2026-07-30 -- Tubi partner tab (3rd): logo → click-through to tubitv.com
 - Added a **Tubi** tab (authorized partner, signed contract) as the 3rd tab,
   between Hot and Anime. Order: Drama · Hot · Tubi · Anime · Español · Bollywood ·
   Creators · Reality · Red Carpet · Music (10 tabs).
 - The tab renders the Tubi wordmark logo (`public/tubi-logo.png` — the licensed
   asset center-cropped to a chip) instead of a text label, sized taller than the
-  text tabs so it stands out, with a small "Soon" pill. Coming Soon state on tap
-  until the integration is live. `CategoryEnum` + `/discover/tubi` updated.
+  text tabs so it stands out. Tapping it opens a high-converting promo panel that
+  links to **tubitv.com** in a new tab (`rel="sponsored"`) with first-party
+  value-prop copy + a "Watch Free on Tubi" CTA. `CategoryEnum` + `/discover/tubi`
+  updated. (Interim states during the day — a "Soon" pill, a Coming Soon card, a
+  Tubi logo beside StorageBlue in the sponsor ribbon — were all removed.)
+- A true in-site *embed* of tubitv.com is **blocked by Tubi's `X-Frame-Options:
+  SAMEORIGIN`** (browser-enforced; not overridable from our side). The real
+  embedded experience needs Tubi to whitelist verzatv.com for framing or provide
+  a partner embed URL; the native app can show Tubi live in a WebView.
 
 ## 2026-07-20 -- Fix the paywall blink at the first locked episode
 - The $1.99 unlock overlay "blinked a few times" on reaching a locked episode.

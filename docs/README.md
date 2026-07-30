@@ -112,7 +112,7 @@ This index plus **CHANGELOG.md** and **REFACTORS.md** stay at the `docs/` root; 
 - **Repo:** GitHub `Splash-Studio/verza-tv` (`main`, private — canonical). A public fork `bigfilmsonly-alt/verza-tv` also feeds Vercel but leaks `lib/mux-map.ts`; Splash-Studio is the source of truth.
 - **Domain path:** GoDaddy → Cloudflare (DNS) → Vercel (hosting)
 - **Catalog:** 79 live series + 1 coming soon (~4,262 Mux HLS episodes)
-- **Browse tabs (10):** Drama · Hot · Tubi · Anime · Español · Bollywood · Creators · Reality · Red Carpet · Music (Tubi = authorized-partner logo tab, Coming Soon; New folded into Hot; Anime · Español · Bollywood · Creators are Coming Soon)
+- **Browse tabs (10):** Drama · Hot · Tubi · Anime · Español · Bollywood · Creators · Reality · Red Carpet · Music (Tubi = authorized-partner tab, logo → click-through to tubitv.com; New folded into Hot; Anime · Español · Bollywood · Creators are Coming Soon)
 - **Monetization:** $1.99 series unlock · VIP $9.99/mo or $79.99/yr · merch · 80/20 creator rev-share
 
 See [reference/TECH-STACK.md](reference/TECH-STACK.md) and

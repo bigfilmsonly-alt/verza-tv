@@ -10,7 +10,7 @@ concern.
 | `Header.tsx` | Sticky top bar (logo, search). Has `backdropFilter: blur(16px)` — a containing block for `position:fixed` descendants (see SearchButton note). |
 | `Footer.tsx` / `FooterSitemap.tsx` | Footer + sitemap links. "Become a Creator" → `/studio`. |
 | `BottomNav.tsx` | Mobile bottom navigation. |
-| `CategoryTabs.tsx` | Category tab bar (Drama, Hot, Tubi, Anime, Español, Bollywood, Creators, Reality, Red Carpet, Music). Tubi renders its partner logo (`public/tubi-logo.png`); Tubi/Anime/Español/Bollywood/Creators are Coming Soon. Sticky `top:48`. |
+| `CategoryTabs.tsx` | Category tab bar (Drama, Hot, Tubi, Anime, Español, Bollywood, Creators, Reality, Red Carpet, Music). Tubi renders its partner logo (`public/tubi-logo.png`) and links out to tubitv.com; Anime/Español/Bollywood/Creators are Coming Soon. Sticky `top:48`. |
 
 ## Home / browse
 
