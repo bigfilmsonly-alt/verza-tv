@@ -36,21 +36,13 @@ export default function CategoryTabs({ active, onSelect, tabs }: CategoryTabsPro
             >
               {tab.key === "tubi" ? (
                 /* Authorized Tubi partner logo (signed contract). Rendered taller
-                   than the text labels so it stands out as a feature; a small
-                   "Soon" pill marks the coming-soon partnership. */
-                <span className="inline-flex items-center gap-1.5">
-                  <img
-                    src="/tubi-logo.png"
-                    alt="Tubi"
-                    style={{ height: 30, width: "auto", display: "block", borderRadius: 7, opacity: isActive ? 1 : 0.7, transition: "opacity 0.2s ease" }}
-                  />
-                  <span
-                    className="px-1 py-0.5 rounded text-[8px] font-bold uppercase tracking-wide"
-                    style={{ background: "rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.7)" }}
-                  >
-                    Soon
-                  </span>
-                </span>
+                   than the text labels so it stands out as a feature. "Coming
+                   Soon" appears on tap (the overlay), not in the tab bar. */
+                <img
+                  src="/tubi-logo.png"
+                  alt="Tubi"
+                  style={{ height: 30, width: "auto", display: "block", borderRadius: 7, opacity: isActive ? 1 : 0.7, transition: "opacity 0.2s ease" }}
+                />
               ) : (
                 <span
                   className="text-[17px] font-black uppercase tracking-wide"
