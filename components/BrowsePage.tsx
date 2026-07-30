@@ -416,6 +416,20 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
           className="px-5 pt-8 pb-12 flex flex-col items-center text-center"
           style={{ background: "radial-gradient(circle at 50% 28%, rgba(116,1,203,0.16), transparent 68%)" }}
         >
+          {/* Hero — featured free titles on Tubi */}
+          <div
+            className="w-full max-w-[420px] mb-6"
+            style={{ padding: 2, borderRadius: 20, background: "linear-gradient(135deg, #4B01A5, #7401CB)", boxShadow: "0 0 50px rgba(116,1,203,0.4)" }}
+          >
+            <div style={{ borderRadius: 18, overflow: "hidden" }}>
+              <img
+                src="/tubi-hero.webp"
+                alt="Featured free movies and shows on Tubi"
+                style={{ width: "100%", height: "auto", display: "block" }}
+              />
+            </div>
+          </div>
+
           {/* Polished framed logo — gradient ring + glow */}
           <div
             className="w-full max-w-[300px] mb-6"
