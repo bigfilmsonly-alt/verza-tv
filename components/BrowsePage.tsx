@@ -404,7 +404,22 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
           moment their posters exist. Other empty categories fall back to the
           generic message. Same card, icon, colors and spacing as the rest of the
           site — no new design language. */}
-      {filtered.length === 0 && activeTab !== "reality" && activeTab !== "music" && activeTab !== "red-carpet" && (() => {
+      {/* Tubi — authorized partner. Integrated Tubi-branded panel (their logo)
+          inside the Verza layout; no "Coming Soon" wording. (Embedding Tubi's
+          live site is blocked by their X-Frame-Options: SAMEORIGIN; the native
+          app shows the live site in a WebView instead.) */}
+      {activeTab === "tubi" && (
+        <section className="px-4 py-12 flex flex-col items-center justify-center">
+          <div
+            className="w-full max-w-[340px] rounded-2xl overflow-hidden"
+            style={{ boxShadow: "0 0 50px rgba(124,58,237,0.35)" }}
+          >
+            <img src="/tubi-logo.png" alt="Tubi" style={{ width: "100%", height: "auto", display: "block" }} />
+          </div>
+        </section>
+      )}
+
+      {filtered.length === 0 && activeTab !== "reality" && activeTab !== "music" && activeTab !== "red-carpet" && activeTab !== "tubi" && (() => {
         // Per-category Coming Soon copy. Anything not listed here uses the
         // generic fallback text below.
         const COMING_SOON: Partial<Record<BrowseCategory, { name: string; subtext: string }>> = {
@@ -412,7 +427,6 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
           espanol: { name: "Español", subtext: "Premium Spanish-language microdramas. Coming soon to Verza." },
           bollywood: { name: "Bollywood", subtext: "Premium Bollywood microdramas. Coming soon to Verza." },
           creators: { name: "Creators", subtext: "Original series from independent creators. Coming soon to Verza." },
-          tubi: { name: "Tubi", subtext: "Free movies and shows from Tubi — coming soon to Verza." },
         };
         const cs = COMING_SOON[activeTab];
         return (
@@ -546,7 +560,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                   <img src="/ads/storageblue-logo.png" alt="StorageBlue" style={{ height: 52, objectFit: "contain" }} />
                 </a>
                 <div style={{ width: 1, height: 36, background: "rgba(255,255,255,0.12)" }} />
-                <button onClick={() => selectTab("tubi")} className="border-0 bg-transparent p-0 cursor-pointer flex items-center transition-transform active:scale-[0.98]" aria-label="Tubi — coming soon">
+                <button onClick={() => selectTab("tubi")} className="border-0 bg-transparent p-0 cursor-pointer flex items-center transition-transform active:scale-[0.98]" aria-label="Tubi">
                   <img src="/tubi-logo.png" alt="Tubi" style={{ height: 40, width: "auto", borderRadius: 6, objectFit: "contain", display: "block" }} />
                 </button>
               </div>
@@ -686,7 +700,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               <img src="/ads/storageblue-logo.png" alt="StorageBlue" style={{ height: 52, objectFit: "contain" }} />
             </a>
             <div style={{ width: 1, height: 36, background: "rgba(255,255,255,0.12)" }} />
-            <button onClick={() => selectTab("tubi")} className="border-0 bg-transparent p-0 cursor-pointer flex items-center transition-transform active:scale-[0.98]" aria-label="Tubi — coming soon">
+            <button onClick={() => selectTab("tubi")} className="border-0 bg-transparent p-0 cursor-pointer flex items-center transition-transform active:scale-[0.98]" aria-label="Tubi">
               <img src="/tubi-logo.png" alt="Tubi" style={{ height: 40, width: "auto", borderRadius: 6, objectFit: "contain", display: "block" }} />
             </button>
           </div>
