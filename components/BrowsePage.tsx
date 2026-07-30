@@ -546,25 +546,22 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               </div>
             </section>
 
-            {/* Sponsored Ad Ribbon — StorageBlue (original sponsor, kept first + linked, unchanged) + Tubi (authorized partner) */}
-            <div
-              className="mx-3 mt-3 mb-0 rounded-xl overflow-hidden"
+            {/* Sponsored Ad Ribbon */}
+            <a
+              href="https://www.storageblue.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block mx-3 mt-3 mb-0 rounded-xl overflow-hidden transition-transform active:scale-[0.98]"
               style={{
                 background: "linear-gradient(135deg, rgba(10,10,20,0.95), rgba(15,15,25,0.95))",
                 border: "1px solid rgba(100,180,220,0.12)",
                 boxShadow: "0 0 20px rgba(100,180,220,0.04)",
               }}
             >
-              <div className="flex items-center justify-center gap-4 py-2.5 px-6">
-                <a href="https://www.storageblue.com" target="_blank" rel="noopener noreferrer" className="flex items-center transition-transform active:scale-[0.98]">
-                  <img src="/ads/storageblue-logo.png" alt="StorageBlue" style={{ height: 52, objectFit: "contain" }} />
-                </a>
-                <div style={{ width: 1, height: 36, background: "rgba(255,255,255,0.12)" }} />
-                <button onClick={() => selectTab("tubi")} className="border-0 bg-transparent p-0 cursor-pointer flex items-center transition-transform active:scale-[0.98]" aria-label="Tubi">
-                  <img src="/tubi-logo.png" alt="Tubi" style={{ height: 40, width: "auto", borderRadius: 6, objectFit: "contain", display: "block" }} />
-                </button>
+              <div className="flex items-center justify-center py-2.5 px-6">
+                <img src="/ads/storageblue-logo.png" alt="StorageBlue" style={{ height: 52, objectFit: "contain" }} />
               </div>
-            </div>
+            </a>
           </div>
         );
       })()}
@@ -685,26 +682,23 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </div>
       )}
 
-      {/* Sponsored Ad Ribbon #1 — Drama/Hot. StorageBlue (original sponsor, kept first + linked, unchanged) + Tubi (authorized partner) */}
+      {/* Sponsored Ad Ribbon #1 — only on Drama, New, Hot */}
       {(activeTab === "drama" || activeTab === "new" || activeTab === "popular") && (
-        <div
-          className="mx-3 mt-0 mb-4 rounded-xl overflow-hidden"
+        <a
+          href="https://www.storageblue.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block mx-3 mt-0 mb-4 rounded-xl overflow-hidden transition-transform active:scale-[0.98]"
           style={{
             background: "linear-gradient(135deg, rgba(10,10,20,0.95), rgba(15,15,25,0.95))",
             border: "1px solid rgba(100,180,220,0.12)",
             boxShadow: "0 0 20px rgba(100,180,220,0.04)",
           }}
         >
-          <div className="flex items-center justify-center gap-4 py-2.5 px-6">
-            <a href="https://www.storageblue.com" target="_blank" rel="noopener noreferrer" className="flex items-center transition-transform active:scale-[0.98]">
-              <img src="/ads/storageblue-logo.png" alt="StorageBlue" style={{ height: 52, objectFit: "contain" }} />
-            </a>
-            <div style={{ width: 1, height: 36, background: "rgba(255,255,255,0.12)" }} />
-            <button onClick={() => selectTab("tubi")} className="border-0 bg-transparent p-0 cursor-pointer flex items-center transition-transform active:scale-[0.98]" aria-label="Tubi">
-              <img src="/tubi-logo.png" alt="Tubi" style={{ height: 40, width: "auto", borderRadius: 6, objectFit: "contain", display: "block" }} />
-            </button>
+          <div className="flex items-center justify-center py-2.5 px-6">
+            <img src="/ads/storageblue-logo.png" alt="StorageBlue" style={{ height: 52, objectFit: "contain" }} />
           </div>
-        </div>
+        </a>
       )}
 
       {/* Tab Row — 3-column grid (not on Music/Reality/Red Carpet — they have custom sections) */}
