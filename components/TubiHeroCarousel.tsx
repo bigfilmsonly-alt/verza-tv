@@ -90,7 +90,11 @@ export default function TubiHeroCarousel({
                 draggable={false}
                 className="shrink-0"
                 style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                loading={i === 0 ? "eager" : "lazy"}
+                /* Eager-load every slide: they're small webp banners and sit
+                   translated off-screen inside overflow:hidden, so lazy would
+                   flash blank on the first auto-rotate. */
+                loading="eager"
+                fetchPriority={i === 0 ? "high" : "low"}
               />
             ))}
           </div>

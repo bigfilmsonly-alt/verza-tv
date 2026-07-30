@@ -427,12 +427,19 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
             background: "radial-gradient(circle at 50% 32%, rgba(116,1,203,0.22), transparent 66%)",
           }}
         >
-          {/* 1. Cinematic wide-banner carousel. Native 1000x420 ratio so the two
-                 featured cards show FULLY (no cover-crop of the titles); height
-                 auto-derives from width and stays inside the no-scroll budget. */}
+          {/* 1. Cinematic wide-banner carousel — 5 featured-title slides. Native
+                 1280x400 ratio so the two featured cards on each slide show FULLY
+                 (no cover-crop of the titles); height auto-derives from width and
+                 stays inside the no-scroll budget. */}
           <TubiHeroCarousel
-            images={["/tubi-hero-wide.webp", "/tubi-hero-2-wide.webp"]}
-            aspectRatio="1000 / 420"
+            images={[
+              "/tubi-hero-1.webp",
+              "/tubi-hero-2.webp",
+              "/tubi-hero-3.webp",
+              "/tubi-hero-4.webp",
+              "/tubi-hero-5.webp",
+            ]}
+            aspectRatio="1280 / 400"
           />
 
           {/* 2. Framed gold wordmark — trust cue */}
