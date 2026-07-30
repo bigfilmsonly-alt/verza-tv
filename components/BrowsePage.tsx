@@ -328,8 +328,9 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </div>
       )}
 
-      {/* Continue Watching row */}
-      {continueWatching.length > 0 && (
+      {/* Continue Watching row — hidden on the Tubi tab so the partner panel
+          starts flush under the tabs and fills the fold with no scroll. */}
+      {continueWatching.length > 0 && activeTab !== "tubi" && (
         <section className="pb-4 animate-slideUp">
           <h2 className="text-sm font-semibold uppercase tracking-wider mb-3 px-4" style={{ color: "#8A8A9A" }}>Continue Watching</h2>
           <div
@@ -414,59 +415,120 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
           not Tubi's trademarked taglines. */}
       {activeTab === "tubi" && (
         <section
-          className="px-5 pt-8 pb-12 flex flex-col items-center text-center"
-          style={{ background: "radial-gradient(circle at 50% 28%, rgba(116,1,203,0.16), transparent 68%)" }}
+          className="relative flex flex-col items-center justify-center text-center overflow-hidden"
+          style={{
+            // Fill exactly the visible band: below the sticky header+tabs (108px)
+            // and above the fixed BottomNav (72px + safe area). Content centers in
+            // this box, so it stays balanced and the CTA never tucks under the nav.
+            height: "calc(100dvh - 108px - 72px - env(safe-area-inset-bottom, 0px))",
+            minHeight: "420px",
+            padding: "clamp(8px, 2dvh, 20px) 20px",
+            gap: "clamp(8px, 1.6dvh, 16px)",
+            background: "radial-gradient(circle at 50% 32%, rgba(116,1,203,0.22), transparent 66%)",
+          }}
         >
-          {/* Hero — sliding carousel of featured free titles on Tubi */}
-          <TubiHeroCarousel images={["/tubi-hero.webp", "/tubi-hero-2.webp"]} />
+          {/* 1. Cinematic wide-banner carousel. Native 1000x420 ratio so the two
+                 featured cards show FULLY (no cover-crop of the titles); height
+                 auto-derives from width and stays inside the no-scroll budget. */}
+          <TubiHeroCarousel
+            images={["/tubi-hero-wide.webp", "/tubi-hero-2-wide.webp"]}
+            aspectRatio="1000 / 420"
+          />
 
-          {/* Polished framed logo — gradient ring + glow */}
+          {/* 2. Framed gold wordmark — trust cue */}
           <div
-            className="w-full max-w-[300px] mb-6"
-            style={{ padding: 2, borderRadius: 22, background: "linear-gradient(135deg, #7401CB, #FFFF12)", boxShadow: "0 0 60px rgba(116,1,203,0.5)" }}
+            className="tubi-rise shrink-0"
+            style={{
+              animationDelay: "60ms",
+              padding: 2,
+              borderRadius: 14,
+              background: "linear-gradient(135deg, #7401CB, #FFFF12)",
+              boxShadow: "0 0 34px rgba(116,1,203,0.45)",
+            }}
           >
-            <div style={{ borderRadius: 20, overflow: "hidden" }}>
-              <img src="/tubi-logo.png" alt="Tubi" style={{ width: "100%", height: "auto", display: "block" }} />
+            <div style={{ borderRadius: 12, overflow: "hidden", background: "#0A0A14" }}>
+              <img
+                src="/tubi-logo.png"
+                alt="Tubi"
+                draggable={false}
+                style={{ height: "clamp(26px, 4.6dvh, 40px)", width: "auto", display: "block", padding: "4px 10px" }}
+              />
             </div>
           </div>
 
-          {/* Headline — one line, scales to panel width */}
-          <div className="w-full max-w-[360px]" style={{ containerType: "inline-size" }}>
-            <h2 className="font-black leading-tight mb-2" style={{ color: "#F5F4F8", whiteSpace: "nowrap", fontSize: "clamp(14px, 4.4cqi, 22px)" }}>
-              Thousands of free movies and shows
+          {/* 3. Headline with yellow keyword isolate + honest urgency line */}
+          <div
+            className="tubi-rise w-full max-w-[360px] flex flex-col items-center gap-1.5 shrink-0"
+            style={{ animationDelay: "120ms", containerType: "inline-size" }}
+          >
+            <h2 className="font-black leading-tight" style={{ color: "#F5F4F8", whiteSpace: "nowrap", fontSize: "clamp(15px, 4.7cqi, 23px)" }}>
+              Thousands of <span style={{ color: "#FFFF12" }}>free</span> movies and shows
             </h2>
+            <div className="flex items-center gap-1.5" style={{ color: "#CFCED8" }}>
+              <span className="tubi-live-dot rounded-full shrink-0" style={{ width: 7, height: 7, background: "#FFFF12" }} />
+              <span className="font-medium" style={{ fontSize: "clamp(11px, 3.2cqi, 13px)" }}>
+                Free to stream right now. No card, no account.
+              </span>
+            </div>
           </div>
 
-          {/* High-converting statement */}
-          <p className="text-sm mb-6 leading-relaxed" style={{ color: "#A0A0B0", maxWidth: 300 }}>
-            Watch it all free, right now on Tubi.
-          </p>
-
-          {/* Benefit bullets */}
-          <div className="flex flex-col gap-2.5 mb-7 text-left" style={{ width: "fit-content" }}>
+          {/* 4. Benefit chips with yellow SVG icons; wraps on very narrow frames so it never clips */}
+          <div className="tubi-rise flex items-center justify-center flex-wrap gap-1.5 shrink-0" style={{ animationDelay: "180ms" }}>
             {[
-              "Hit movies and full seasons",
-              "Live TV channels, always on",
-              "100% free, no subscription, no sign up",
-            ].map((line) => (
-              <div key={line} className="flex items-center gap-2.5">
-                <span className="rounded-full shrink-0" style={{ width: 7, height: 7, background: "linear-gradient(135deg, #7401CB, #FFFF12)" }} />
-                <span className="text-[13px] font-medium" style={{ color: "#D8D8E0" }}>{line}</span>
-              </div>
+              { label: "100% free", icon: "check" },
+              { label: "No sign up", icon: "bolt" },
+              { label: "Live TV", icon: "play" },
+            ].map(({ label, icon }) => (
+              <span
+                key={label}
+                className="inline-flex items-center gap-1 rounded-full whitespace-nowrap"
+                style={{
+                  padding: "5px 9px",
+                  fontSize: "11.5px",
+                  fontWeight: 700,
+                  color: "#F0EFF6",
+                  background: "rgba(116,1,203,0.24)",
+                  border: "1px solid rgba(255,255,18,0.28)",
+                }}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true" style={{ color: "#FFFF12", flexShrink: 0 }}>
+                  {icon === "check" && (
+                    <polyline points="4 12.5 9 17.5 20 6.5" fill="none" stroke="currentColor" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" />
+                  )}
+                  {icon === "bolt" && (
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" fill="currentColor" />
+                  )}
+                  {icon === "play" && (
+                    <polygon points="6 4 20 12 6 20" fill="currentColor" />
+                  )}
+                </svg>
+                {label}
+              </span>
             ))}
           </div>
 
-          {/* CTA */}
-          <a
-            href="https://tubitv.com/"
-            target="_blank"
-            rel="noopener noreferrer sponsored"
-            className="glow-pulse block w-full max-w-[320px] py-4 rounded-2xl text-base font-black uppercase tracking-wide no-underline transition-transform active:scale-[0.97]"
-            style={{ background: "linear-gradient(135deg, #4B01A5, #7401CB)", color: "#FFFF12", boxShadow: "0 0 45px rgba(116,1,203,0.5)" }}
-          >
-            Watch Free on Tubi →
-          </a>
-          <p className="mt-3.5 text-[11px]" style={{ color: "#6B6B7B" }}>Streaming free on Tubi. Verza sponsored partner.</p>
+          {/* 5. Primary CTA + trust line grouped so the CTA can never be the clipped child */}
+          <div className="tubi-rise flex flex-col items-center w-full shrink-0" style={{ animationDelay: "240ms" }}>
+            <a
+              href="https://tubitv.com/"
+              target="_blank"
+              rel="noopener noreferrer sponsored"
+              className="tubi-glow block w-full max-w-[340px] rounded-2xl font-black uppercase tracking-wide no-underline transition-transform active:scale-[0.97]"
+              style={{
+                containerType: "inline-size",
+                padding: "clamp(13px, 1.7dvh, 17px) 0",
+                fontSize: "clamp(15px, 4.6cqi, 18px)",
+                background: "linear-gradient(135deg, #4B01A5, #7401CB)",
+                color: "#FFFF12",
+                border: "1px solid rgba(255,255,18,0.35)",
+              }}
+            >
+              Watch Free on Tubi →
+            </a>
+            <p style={{ marginTop: 10, fontSize: "11px", color: "#7A7A8A" }}>
+              Streaming free on Tubi. Verza sponsored partner.
+            </p>
+          </div>
         </section>
       )}
 

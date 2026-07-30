@@ -751,3 +751,54 @@ img {
     animation: none;
   }
 }
+
+/* ============================================================
+   Tubi partner panel (authorized partner). Uses Tubi brand
+   colors ONLY (purple #4B01A5 -> #7401CB, yellow #FFFF12).
+   Do NOT reuse the site-wide .glow-pulse here: it animates
+   box-shadow to Verza pink rgba(224,17,95) and would override
+   any inline purple shadow, pulsing the CTA pink on a purple
+   panel. These are scoped, purple-only replacements.
+   ============================================================ */
+
+/* CTA — continuous purple brand glow (NOT the pink .glow-pulse) */
+@keyframes tubiPulse {
+  0%, 100% { box-shadow: 0 0 22px rgba(116, 1, 203, 0.45); }
+  50%      { box-shadow: 0 0 48px rgba(116, 1, 203, 0.78); }
+}
+.tubi-glow {
+  animation: tubiPulse 2s ease-in-out infinite;
+}
+
+/* Honest "free right now" live dot */
+@keyframes tubiLiveDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.35; transform: scale(0.7); }
+}
+.tubi-live-dot {
+  animation: tubiLiveDot 1.4s ease-in-out infinite;
+  box-shadow: 0 0 8px rgba(255, 255, 18, 0.8);
+}
+
+/* Staggered entrance for the panel content (transform/opacity only,
+   no layout cost, so it never affects the no-scroll budget) */
+@keyframes tubiRise {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.tubi-rise {
+  animation: tubiRise 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tubi-glow {
+    animation: none;
+    box-shadow: 0 0 30px rgba(116, 1, 203, 0.6);
+  }
+  .tubi-live-dot {
+    animation: none;
+  }
+  .tubi-rise {
+    animation: none;
+  }
+}
