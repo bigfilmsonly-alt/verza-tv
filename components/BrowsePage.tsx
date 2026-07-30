@@ -312,17 +312,20 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
 
       {/* Summer Sale $1.99 ribbon — top-level sticky + zero-height so it pins
           directly under the tabs bar and stays visible for the ENTIRE page
-          scroll (not just over the hero), without pushing any content down */}
-      <div
-        className="sticky z-20 flex justify-center pointer-events-none"
-        style={{ top: "calc(108px + env(safe-area-inset-top, 0px))", height: 0 }}
-      >
-        <div className="pointer-events-auto mt-0">
-          <HideInIOSApp>
-            <SummerSaleBadge />
-          </HideInIOSApp>
+          scroll (not just over the hero), without pushing any content down.
+          Hidden on the Tubi tab — Tubi is free, so the $1.99 unlock is off-message there. */}
+      {activeTab !== "tubi" && (
+        <div
+          className="sticky z-20 flex justify-center pointer-events-none"
+          style={{ top: "calc(108px + env(safe-area-inset-top, 0px))", height: 0 }}
+        >
+          <div className="pointer-events-auto mt-0">
+            <HideInIOSApp>
+              <SummerSaleBadge />
+            </HideInIOSApp>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Continue Watching row */}
       {continueWatching.length > 0 && (
