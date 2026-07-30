@@ -417,36 +417,22 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         <section
           className="relative flex flex-col items-center justify-center text-center overflow-hidden"
           style={{
-            // Fill exactly the visible band: below the sticky header+tabs (108px)
-            // and above the fixed BottomNav (72px + safe area). Content centers in
-            // this box, so it stays balanced and the CTA never tucks under the nav.
-            height: "calc(100dvh - 108px - 72px - env(safe-area-inset-bottom, 0px))",
-            minHeight: "420px",
-            padding: "clamp(8px, 2dvh, 20px) 20px",
-            gap: "clamp(8px, 1.6dvh, 16px)",
+            // Fill the visible band: below the sticky header+tabs (108px) and
+            // above the bottom nav. Reserve 96px for the nav — the mobile fixed
+            // bar is ~72px, but the desktop phone-frame's docked nav sits taller,
+            // so 96 keeps the trust line clear of it in both. Content centers.
+            height: "calc(100dvh - 108px - 96px - env(safe-area-inset-bottom, 0px))",
+            minHeight: "400px",
+            padding: "clamp(6px, 1.6dvh, 16px) 20px",
+            gap: "clamp(6px, 1.4dvh, 14px)",
             background: "radial-gradient(circle at 50% 32%, rgba(116,1,203,0.22), transparent 66%)",
           }}
         >
-          {/* 1. Cinematic wide-banner carousel — 5 featured-title slides. Native
-                 1280x400 ratio so the two featured cards on each slide show FULLY
-                 (no cover-crop of the titles); height auto-derives from width and
-                 stays inside the no-scroll budget. */}
-          <TubiHeroCarousel
-            images={[
-              "/tubi-hero-1.webp",
-              "/tubi-hero-2.webp",
-              "/tubi-hero-3.webp",
-              "/tubi-hero-4.webp",
-              "/tubi-hero-5.webp",
-            ]}
-            aspectRatio="1280 / 400"
-          />
-
-          {/* 2. Framed gold wordmark — trust cue */}
+          {/* 1. Framed gold wordmark — trust cue */}
           <div
             className="tubi-rise shrink-0"
             style={{
-              animationDelay: "60ms",
+              animationDelay: "40ms",
               padding: 2,
               borderRadius: 14,
               background: "linear-gradient(135deg, #7401CB, #FFFF12)",
@@ -458,15 +444,15 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                 src="/tubi-logo.png"
                 alt="Tubi"
                 draggable={false}
-                style={{ height: "clamp(26px, 4.6dvh, 40px)", width: "auto", display: "block", padding: "4px 10px" }}
+                style={{ height: "clamp(24px, 4dvh, 36px)", width: "auto", display: "block", padding: "4px 10px" }}
               />
             </div>
           </div>
 
-          {/* 3. Headline with yellow keyword isolate + honest urgency line */}
+          {/* 2. Headline with yellow keyword isolate + honest urgency line */}
           <div
             className="tubi-rise w-full max-w-[360px] flex flex-col items-center gap-1.5 shrink-0"
-            style={{ animationDelay: "120ms", containerType: "inline-size" }}
+            style={{ animationDelay: "100ms", containerType: "inline-size" }}
           >
             <h2 className="font-black leading-tight" style={{ color: "#F5F4F8", whiteSpace: "nowrap", fontSize: "clamp(15px, 4.7cqi, 23px)" }}>
               Thousands of <span style={{ color: "#FFFF12" }}>free</span> movies and shows
@@ -479,7 +465,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
             </div>
           </div>
 
-          {/* 4. Benefit chips with yellow SVG icons; wraps on very narrow frames so it never clips */}
+          {/* 3. Benefit chips with yellow SVG icons; wraps on very narrow frames so it never clips */}
           <div className="tubi-rise flex items-center justify-center flex-wrap gap-1.5 shrink-0" style={{ animationDelay: "180ms" }}>
             {[
               { label: "100% free", icon: "check" },
@@ -514,28 +500,47 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
             ))}
           </div>
 
-          {/* 5. Primary CTA + trust line grouped so the CTA can never be the clipped child */}
-          <div className="tubi-rise flex flex-col items-center w-full shrink-0" style={{ animationDelay: "240ms" }}>
-            <a
-              href="https://tubitv.com/"
-              target="_blank"
-              rel="noopener noreferrer sponsored"
-              className="tubi-glow block w-full max-w-[340px] rounded-2xl font-black uppercase tracking-wide no-underline transition-transform active:scale-[0.97]"
-              style={{
-                containerType: "inline-size",
-                padding: "clamp(13px, 1.7dvh, 17px) 0",
-                fontSize: "clamp(15px, 4.6cqi, 18px)",
-                background: "linear-gradient(135deg, #4B01A5, #7401CB)",
-                color: "#FFFF12",
-                border: "1px solid rgba(255,255,18,0.35)",
-              }}
-            >
-              Watch Free on Tubi →
-            </a>
-            <p style={{ marginTop: 10, fontSize: "11px", color: "#7A7A8A" }}>
-              Streaming free on Tubi. Verza sponsored partner.
-            </p>
+          {/* 4. Primary CTA — placed ABOVE the carousel per request; the purple
+                 glow + gold text keeps it the clear focal action. */}
+          <a
+            href="https://tubitv.com/"
+            target="_blank"
+            rel="noopener noreferrer sponsored"
+            className="tubi-glow tubi-rise block w-full max-w-[340px] rounded-2xl font-black uppercase tracking-wide no-underline transition-transform active:scale-[0.97] shrink-0"
+            style={{
+              animationDelay: "220ms",
+              containerType: "inline-size",
+              padding: "clamp(13px, 1.7dvh, 17px) 0",
+              fontSize: "clamp(15px, 4.6cqi, 18px)",
+              background: "linear-gradient(135deg, #4B01A5, #7401CB)",
+              color: "#FFFF12",
+              border: "1px solid rgba(255,255,18,0.35)",
+            }}
+          >
+            Watch Free on Tubi →
+          </a>
+
+          {/* 5. Cinematic carousel — 6 big single-feature slides. Taller 1100x500
+                 (2.2) ratio: bigger than before, and each crop keeps the full
+                 head + title in frame. Sits below the CTA per request. */}
+          <div className="tubi-rise w-full flex justify-center shrink-0" style={{ animationDelay: "280ms" }}>
+            <TubiHeroCarousel
+              images={[
+                "/tubi-hero-1.webp",
+                "/tubi-hero-2.webp",
+                "/tubi-hero-3.webp",
+                "/tubi-hero-4.webp",
+                "/tubi-hero-5.webp",
+                "/tubi-hero-6.webp",
+              ]}
+              aspectRatio="1100 / 500"
+            />
           </div>
+
+          {/* 6. Trust line */}
+          <p className="tubi-rise shrink-0" style={{ animationDelay: "340ms", fontSize: "11px", color: "#7A7A8A" }}>
+            Streaming free on Tubi. Verza sponsored partner.
+          </p>
         </section>
       )}
 
