@@ -404,18 +404,35 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
           moment their posters exist. Other empty categories fall back to the
           generic message. Same card, icon, colors and spacing as the rest of the
           site — no new design language. */}
-      {/* Tubi — authorized partner. Integrated Tubi-branded panel (their logo)
-          inside the Verza layout; no "Coming Soon" wording. (Embedding Tubi's
-          live site is blocked by their X-Frame-Options: SAMEORIGIN; the native
-          app shows the live site in a WebView instead.) */}
+      {/* Tubi — authorized partner. High-converting click-through to tubitv.com
+          (opens in a new tab — Tubi's X-Frame-Options: SAMEORIGIN blocks a true
+          in-site embed; the native app uses a WebView). Conversion copy is
+          original value-prop, not Tubi's trademarked taglines. */}
       {activeTab === "tubi" && (
-        <section className="px-4 py-12 flex flex-col items-center justify-center">
-          <div
-            className="w-full max-w-[340px] rounded-2xl overflow-hidden"
-            style={{ boxShadow: "0 0 50px rgba(124,58,237,0.35)" }}
+        <section className="px-4 py-10 flex flex-col items-center justify-center text-center">
+          <a
+            href="https://tubitv.com/"
+            target="_blank"
+            rel="noopener noreferrer sponsored"
+            className="block w-full max-w-[360px] no-underline transition-transform active:scale-[0.98]"
           >
-            <img src="/tubi-logo.png" alt="Tubi" style={{ width: "100%", height: "auto", display: "block" }} />
-          </div>
+            <div className="rounded-2xl overflow-hidden mb-5" style={{ boxShadow: "0 0 50px rgba(124,58,237,0.35)" }}>
+              <img src="/tubi-logo.png" alt="Tubi" style={{ width: "100%", height: "auto", display: "block" }} />
+            </div>
+            <h2 className="text-2xl font-black mb-1.5 leading-tight" style={{ color: "#F5F4F8" }}>
+              Thousands of free movies &amp; shows
+            </h2>
+            <p className="text-sm mb-5" style={{ color: "#8A8A9A" }}>
+              Stream it all free on Tubi — no subscription, no sign-up.
+            </p>
+            <span
+              className="glow-pulse inline-block w-full py-4 rounded-2xl text-base font-black uppercase tracking-wide"
+              style={{ background: "linear-gradient(135deg, #7C3AED, #A855F7)", color: "#FDE047", boxShadow: "0 0 40px rgba(124,58,237,0.4)" }}
+            >
+              Watch Free on Tubi →
+            </span>
+          </a>
+          <p className="mt-3 text-[11px]" style={{ color: "#6B6B7B" }}>Opens tubitv.com · Sponsored partner</p>
         </section>
       )}
 
