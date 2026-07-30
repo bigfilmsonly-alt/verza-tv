@@ -419,13 +419,17 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
             <div className="rounded-2xl overflow-hidden mb-5" style={{ boxShadow: "0 0 50px rgba(124,58,237,0.35)" }}>
               <img src="/tubi-logo.png" alt="Tubi" style={{ width: "100%", height: "auto", display: "block" }} />
             </div>
-            <h2 className="text-2xl font-black mb-1.5 leading-tight" style={{ color: "#F5F4F8" }}>
-              Thousands of free movies &amp; shows
-            </h2>
-            <p className="text-sm mb-5" style={{ color: "#8A8A9A" }}>
-              Stream it all free on Tubi.<br />
-              <span style={{ whiteSpace: "nowrap" }}>No subscription, no sign up.</span>
-            </p>
+            {/* Font scales to the panel width (container query units) + nowrap,
+                so each line always stays whole — no stray "shows"/"up" wrapping
+                onto its own line, on any screen. */}
+            <div style={{ containerType: "inline-size" }}>
+              <h2 className="font-black mb-1.5 leading-tight" style={{ color: "#F5F4F8", whiteSpace: "nowrap", fontSize: "clamp(13px, 4.2cqi, 20px)" }}>
+                Thousands of free movies &amp; shows
+              </h2>
+              <p className="mb-5" style={{ color: "#8A8A9A", whiteSpace: "nowrap", fontSize: "clamp(9px, 3.15cqi, 14px)" }}>
+                Stream it all free on Tubi, no subscription, no sign up.
+              </p>
+            </div>
             <span
               className="glow-pulse inline-block w-full py-4 rounded-2xl text-base font-black uppercase tracking-wide"
               style={{ background: "linear-gradient(135deg, #7C3AED, #A855F7)", color: "#FDE047", boxShadow: "0 0 40px rgba(124,58,237,0.4)" }}
