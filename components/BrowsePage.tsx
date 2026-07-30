@@ -419,15 +419,11 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
             <div className="rounded-2xl overflow-hidden mb-5" style={{ boxShadow: "0 0 50px rgba(124,58,237,0.35)" }}>
               <img src="/tubi-logo.png" alt="Tubi" style={{ width: "100%", height: "auto", display: "block" }} />
             </div>
-            {/* Font scales to the panel width (container query units) + nowrap,
-                so each line always stays whole — no stray "shows"/"up" wrapping
-                onto its own line, on any screen. */}
+            {/* One cohesive sentence on a single line — scales to the panel
+                width (container query units) + nowrap so it never wraps. */}
             <div style={{ containerType: "inline-size" }}>
-              <h2 className="font-black mb-1.5 leading-tight" style={{ color: "#F5F4F8", whiteSpace: "nowrap", fontSize: "clamp(13px, 4.2cqi, 20px)" }}>
-                Thousands of free movies &amp; shows
-              </h2>
-              <p className="mb-5" style={{ color: "#8A8A9A", whiteSpace: "nowrap", fontSize: "clamp(9px, 3.15cqi, 14px)" }}>
-                Stream it all free on Tubi, no subscription, no sign up.
+              <p className="font-bold mb-5 leading-snug" style={{ color: "#F5F4F8", whiteSpace: "nowrap", fontSize: "clamp(12px, 3.6cqi, 18px)" }}>
+                Thousands of free movies and shows on Tubi.
               </p>
             </div>
             <span
