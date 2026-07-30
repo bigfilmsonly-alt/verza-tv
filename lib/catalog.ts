@@ -4,11 +4,15 @@
 
 import { MUX_MAP } from "./mux-map";
 
-export type BrowseCategory = "drama" | "new" | "popular" | "anime" | "espanol" | "bollywood" | "creators" | "music" | "reality" | "red-carpet";
+export type BrowseCategory = "drama" | "new" | "popular" | "tubi" | "anime" | "espanol" | "bollywood" | "creators" | "music" | "reality" | "red-carpet";
 
 export const BROWSE_TABS: { key: BrowseCategory; label: string }[] = [
   { key: "drama", label: "Drama" },
   { key: "popular", label: "Hot" },
+  // Tubi — authorized partner (signed contract). The tab renders the Tubi logo
+  // (see components/CategoryTabs.tsx) and shows a Coming Soon state until the
+  // integration is live.
+  { key: "tubi", label: "Tubi" },
   // Anime, Español, Bollywood and Creators launch in a "Coming Soon" state: no
   // series carry these categories yet, so getSeriesByCategory() returns [] and
   // BrowsePage shows the branded placeholder. Adding live Series with the matching

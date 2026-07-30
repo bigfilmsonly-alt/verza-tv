@@ -412,6 +412,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
           espanol: { name: "Español", subtext: "Premium Spanish-language microdramas. Coming soon to Verza." },
           bollywood: { name: "Bollywood", subtext: "Premium Bollywood microdramas. Coming soon to Verza." },
           creators: { name: "Creators", subtext: "Original series from independent creators. Coming soon to Verza." },
+          tubi: { name: "Tubi", subtext: "Free movies and shows from Tubi — coming soon to Verza." },
         };
         const cs = COMING_SOON[activeTab];
         return (

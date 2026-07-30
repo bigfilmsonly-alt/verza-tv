@@ -34,12 +34,31 @@ export default function CategoryTabs({ active, onSelect, tabs }: CategoryTabsPro
               onClick={() => onSelect(tab.key)}
               className="relative border-0 cursor-pointer bg-transparent whitespace-nowrap flex-shrink-0 p-0 pb-1.5"
             >
-              <span
-                className="text-[17px] font-black uppercase tracking-wide"
-                style={{ color: isActive ? "#E0115F" : "rgba(255,255,255,0.5)" }}
-              >
-                {label}
-              </span>
+              {tab.key === "tubi" ? (
+                /* Authorized Tubi partner logo (signed contract). Rendered taller
+                   than the text labels so it stands out as a feature; a small
+                   "Soon" pill marks the coming-soon partnership. */
+                <span className="inline-flex items-center gap-1.5">
+                  <img
+                    src="/tubi-logo.png"
+                    alt="Tubi"
+                    style={{ height: 30, width: "auto", display: "block", borderRadius: 7, opacity: isActive ? 1 : 0.7, transition: "opacity 0.2s ease" }}
+                  />
+                  <span
+                    className="px-1 py-0.5 rounded text-[8px] font-bold uppercase tracking-wide"
+                    style={{ background: "rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.7)" }}
+                  >
+                    Soon
+                  </span>
+                </span>
+              ) : (
+                <span
+                  className="text-[17px] font-black uppercase tracking-wide"
+                  style={{ color: isActive ? "#E0115F" : "rgba(255,255,255,0.5)" }}
+                >
+                  {label}
+                </span>
+              )}
               {isActive && (
                 <div
                   className="absolute bottom-0 left-0 right-0 rounded-full"

@@ -31,6 +31,8 @@ const GENRE_DESCRIPTIONS: Record<string, string> = {
     "Premium Bollywood microdramas, coming soon to VERZA TV. Vertical, binge-worthy Bollywood drama built for phone-first viewing.",
   creators:
     "Original vertical series from independent creators, coming soon to VERZA TV — the creator channel program in short-form.",
+  tubi:
+    "Tubi's free movies and shows, coming soon to VERZA TV via the Tubi partnership.",
   romance:
     "Sweeping love stories, billionaire romances, and forbidden attractions. VERZA TV romance micro-dramas deliver heart-racing chemistry in every 60-second episode.",
   thriller:
