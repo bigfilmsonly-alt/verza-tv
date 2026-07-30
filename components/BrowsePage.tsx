@@ -423,7 +423,8 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               Thousands of free movies &amp; shows
             </h2>
             <p className="text-sm mb-5" style={{ color: "#8A8A9A" }}>
-              Stream it all free on Tubi — no subscription, no sign-up.
+              Stream it all free on Tubi.<br />
+              <span style={{ whiteSpace: "nowrap" }}>No subscription, no sign up.</span>
             </p>
             <span
               className="glow-pulse inline-block w-full py-4 rounded-2xl text-base font-black uppercase tracking-wide"
