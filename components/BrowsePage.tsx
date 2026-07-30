@@ -404,36 +404,62 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
           moment their posters exist. Other empty categories fall back to the
           generic message. Same card, icon, colors and spacing as the rest of the
           site — no new design language. */}
-      {/* Tubi — authorized partner. High-converting click-through to tubitv.com
-          (opens in a new tab — Tubi's X-Frame-Options: SAMEORIGIN blocks a true
-          in-site embed; the native app uses a WebView). Conversion copy is
-          original value-prop, not Tubi's trademarked taglines. */}
+      {/* Tubi — authorized partner. Full, polished, high-converting promo that
+          click-throughs to tubitv.com in a new tab (X-Frame-Options blocks a true
+          in-site embed; native app uses a WebView). Copy is original value-prop,
+          not Tubi's trademarked taglines. */}
       {activeTab === "tubi" && (
-        <section className="px-4 py-10 flex flex-col items-center justify-center text-center">
+        <section
+          className="px-5 pt-8 pb-12 flex flex-col items-center text-center"
+          style={{ background: "radial-gradient(circle at 50% 28%, rgba(116,1,203,0.16), transparent 68%)" }}
+        >
+          {/* Polished framed logo — gradient ring + glow */}
+          <div
+            className="w-full max-w-[300px] mb-6"
+            style={{ padding: 2, borderRadius: 22, background: "linear-gradient(135deg, #7401CB, #FFFF12)", boxShadow: "0 0 60px rgba(116,1,203,0.5)" }}
+          >
+            <div style={{ borderRadius: 20, overflow: "hidden" }}>
+              <img src="/tubi-logo.png" alt="Tubi" style={{ width: "100%", height: "auto", display: "block" }} />
+            </div>
+          </div>
+
+          {/* Headline — one line, scales to panel width */}
+          <div className="w-full max-w-[360px]" style={{ containerType: "inline-size" }}>
+            <h2 className="font-black leading-tight mb-2" style={{ color: "#F5F4F8", whiteSpace: "nowrap", fontSize: "clamp(14px, 4.4cqi, 22px)" }}>
+              Thousands of free movies and shows
+            </h2>
+          </div>
+
+          {/* High-converting statement */}
+          <p className="text-sm mb-6 leading-relaxed" style={{ color: "#A0A0B0", maxWidth: 300 }}>
+            Watch it all free, right now on Tubi.
+          </p>
+
+          {/* Benefit bullets */}
+          <div className="flex flex-col gap-2.5 mb-7 text-left" style={{ width: "fit-content" }}>
+            {[
+              "Hit movies and full seasons",
+              "Live TV channels, always on",
+              "100% free, no subscription, no sign up",
+            ].map((line) => (
+              <div key={line} className="flex items-center gap-2.5">
+                <span className="rounded-full shrink-0" style={{ width: 7, height: 7, background: "linear-gradient(135deg, #7401CB, #FFFF12)" }} />
+                <span className="text-[13px] font-medium" style={{ color: "#D8D8E0" }}>{line}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* CTA */}
           <a
             href="https://tubitv.com/"
             target="_blank"
             rel="noopener noreferrer sponsored"
-            className="block w-full max-w-[360px] no-underline transition-transform active:scale-[0.98]"
+            className="glow-pulse block w-full max-w-[320px] py-4 rounded-2xl text-base font-black uppercase tracking-wide no-underline transition-transform active:scale-[0.97]"
+            style={{ background: "linear-gradient(135deg, #4B01A5, #7401CB)", color: "#FFFF12", boxShadow: "0 0 45px rgba(116,1,203,0.5)" }}
           >
-            <div className="rounded-2xl overflow-hidden mb-5" style={{ boxShadow: "0 0 50px rgba(124,58,237,0.35)" }}>
-              <img src="/tubi-logo.png" alt="Tubi" style={{ width: "100%", height: "auto", display: "block" }} />
-            </div>
-            {/* One cohesive sentence on a single line — scales to the panel
-                width (container query units) + nowrap so it never wraps. */}
-            <div style={{ containerType: "inline-size" }}>
-              <p className="font-bold mb-5 leading-snug" style={{ color: "#F5F4F8", whiteSpace: "nowrap", fontSize: "clamp(12px, 3.6cqi, 18px)" }}>
-                Thousands of free movies and shows on Tubi.
-              </p>
-            </div>
-            <span
-              className="glow-pulse inline-block w-full py-4 rounded-2xl text-base font-black uppercase tracking-wide"
-              style={{ background: "linear-gradient(135deg, #7C3AED, #A855F7)", color: "#FDE047", boxShadow: "0 0 40px rgba(124,58,237,0.4)" }}
-            >
-              Watch Free on Tubi →
-            </span>
+            Watch Free on Tubi →
           </a>
-          <p className="mt-3 text-[11px]" style={{ color: "#6B6B7B" }}>Opens tubitv.com · Sponsored partner</p>
+          <p className="mt-3.5 text-[11px]" style={{ color: "#6B6B7B" }}>Streaming free on Tubi. Verza sponsored partner.</p>
         </section>
       )}
 
