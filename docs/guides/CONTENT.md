@@ -150,10 +150,12 @@ Series appear in browse tabs based on their `categories` array. A series can app
 | `espanol` | Spanish-language vertical ("Español") — **Coming Soon** (tab live, ~6 posters planned) |
 | `bollywood` | Bollywood vertical — **Coming Soon** (tab live, no series yet) |
 | `creators` | Creator channels — **Coming Soon** (tab live, no series yet) |
+| `tubi` | Tubi (authorized partner) — logo tab, **Coming Soon** until the integration is live |
 
 The `BROWSE_TABS` constant defines the tab order and display labels. Current
-order: Drama, Hot, Anime, Español, Bollywood, Creators, Reality, Red Carpet,
-Music. Anime, Español, Bollywood and Creators are Coming Soon placeholders —
+order: Drama, Hot, Tubi, Anime, Español, Bollywood, Creators, Reality, Red
+Carpet, Music. Tubi is an authorized partner tab (logo, Coming Soon); Anime,
+Español, Bollywood and Creators are Coming Soon placeholders —
 adding live `Series` with the matching `categories` (e.g. `["bollywood"]`) makes
 them render in the standard grid automatically (the Coming Soon card auto-hides).
 

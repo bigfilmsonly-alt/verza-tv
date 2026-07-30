@@ -51,7 +51,7 @@ combines:
 | Area | What's built |
 | --- | --- |
 | **Playback** | Mux HLS via `hls.js`, signed playback URLs, muted-first autoplay (iOS-safe), immersive vertical swipe feed, horizontal 16:9 feed, shorts carousel |
-| **Browse / discovery** | Hero slideshow (pause-on-hover), category tabs (Drama, Hot, Anime, Español, Bollywood, Creators, Reality, Red Carpet, Music — New is folded into Hot; Anime/Español/Bollywood/Creators are Coming Soon placeholders), poster grid, genre/keyword search (header popover + `/search`) |
+| **Browse / discovery** | Hero slideshow (pause-on-hover), category tabs (Drama, Hot, Tubi, Anime, Español, Bollywood, Creators, Reality, Red Carpet, Music — Tubi is an authorized-partner logo tab (Coming Soon); New is folded into Hot; Anime/Español/Bollywood/Creators are Coming Soon placeholders), poster grid, genre/keyword search (header popover + `/search`) |
 | **Monetization** | $1.99 per-title unlock, VIP ($9.99/mo · $79.99/yr), 10-product merch shop, Amazon affiliate store (Associates tag `verzatv-20`) on the Shop tab, StorageBlue sponsor ribbons |
 | **Creator (UGC)** | Apply → admin approve → Mux upload (XHR progress) → edit/price → submit → admin review → publish → public `/watch`; 80/20 sales ledger |
 | **AI (optional)** | Ask Verza chatbot; Creator AI Studio; multi-mode API (chat/creator/seo/marketing/moderate) |
@@ -140,7 +140,7 @@ _Verified from source / git as of 2026-07-16 (`main`)._
 | Catalog titles / live | 80 / 79 (+1 coming soon) |
 | Mux playback assets | ~4,262 |
 | Merch products | 10 (+ 12 Amazon affiliate) |
-| Browse tabs | 9 — Drama · Hot · Anime · Español · Bollywood · Creators · Reality · Red Carpet · Music (New folded into Hot; 4 Coming Soon) |
+| Browse tabs | 10 — Drama · Hot · Tubi · Anime · Español · Bollywood · Creators · Reality · Red Carpet · Music (Tubi = partner logo tab; New folded into Hot; 5 Coming Soon) |
 | Build | ✅ green — ~2,100 pages prerendered |
 
 ## Local development

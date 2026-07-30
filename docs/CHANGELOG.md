@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-07-30 -- Tubi partner tab (3rd): logo + Coming Soon
+- Added a **Tubi** tab (authorized partner, signed contract) as the 3rd tab,
+  between Hot and Anime. Order: Drama · Hot · Tubi · Anime · Español · Bollywood ·
+  Creators · Reality · Red Carpet · Music (10 tabs).
+- The tab renders the Tubi wordmark logo (`public/tubi-logo.png` — the licensed
+  asset center-cropped to a chip) instead of a text label, sized taller than the
+  text tabs so it stands out, with a small "Soon" pill. Coming Soon state on tap
+  until the integration is live. `CategoryEnum` + `/discover/tubi` updated.
+
 ## 2026-07-20 -- Fix the paywall blink at the first locked episode
 - The $1.99 unlock overlay "blinked a few times" on reaching a locked episode.
   Cause: `showUnlock` was toggled imperatively inside the IntersectionObserver
