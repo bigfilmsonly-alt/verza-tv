@@ -504,7 +504,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
 
       {activeTab === "creators" && (
         <section
-          className="mx-auto w-full"
+          className="mx-auto w-full text-center"
           style={{
             maxWidth: "440px",
             padding: "clamp(20px, 4vw, 28px) 20px",
@@ -559,7 +559,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
             </h2>
 
             <p
-              className="relative mt-4 text-[15px] leading-relaxed"
+              className="relative mt-4 mx-auto text-[15px] leading-relaxed"
               style={{ color: "#A0A0B0", maxWidth: "34ch" }}
             >
               Bring your own show to Verza. Upload it, build an audience, and earn from every viewer who unlocks your work.
@@ -595,7 +595,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               ].map((chip) => (
                 <div
                   key={chip.label}
-                  className="flex items-center gap-3 rounded-xl px-3.5 py-3"
+                  className="flex items-center justify-center gap-3 rounded-xl px-3.5 py-3"
                   style={{
                     background: "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))",
                     border: "1px solid rgba(224,17,95,0.16)",
@@ -631,7 +631,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                 background: "linear-gradient(180deg, #12121C, #0A0A14)",
               }}
             >
-              <div className="flex items-start gap-3.5">
+              <div className="flex flex-col items-center gap-3">
                 <span
                   className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full"
                   style={{
@@ -645,8 +645,8 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                     <path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
                   </svg>
                 </span>
-                <div className="min-w-0">
-                  <h3 className="text-[19px] font-black leading-tight" style={{ color: "#F5F4F8" }}>
+                <div className="w-full" style={{ containerType: "inline-size" }}>
+                  <h3 className="font-black leading-tight" style={{ color: "#F5F4F8", whiteSpace: "nowrap", fontSize: "clamp(15px, 6cqi, 22px)" }}>
                     Make your own show on Verza
                   </h3>
                   <p

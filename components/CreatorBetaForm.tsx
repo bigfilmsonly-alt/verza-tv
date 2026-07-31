@@ -105,6 +105,7 @@ export default function CreatorBetaForm() {
             background: "#07070E",
             border: "1px solid rgba(224,17,95,0.2)",
             color: "#F5F4F8",
+            textAlign: "left",
           }}
         />
       </div>
@@ -131,6 +132,7 @@ export default function CreatorBetaForm() {
             background: "#07070E",
             border: "1px solid rgba(224,17,95,0.2)",
             color: "#F5F4F8",
+            textAlign: "left",
           }}
         />
       </div>
