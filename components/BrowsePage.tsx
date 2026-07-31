@@ -9,6 +9,7 @@ import { BROWSE_TABS, getSeriesByCategory, getEpisode, type Series, type BrowseC
 import { buildResumeUrl } from "@/lib/resume";
 import SummerSaleBadge from "@/components/SummerSaleBadge";
 import TubiHeroCarousel from "@/components/TubiHeroCarousel";
+import CreatorBetaForm from "@/components/CreatorBetaForm";
 import { MUX_MAP } from "@/lib/mux-map";
 import { startInstantPlayer } from "@/lib/instant-player";
 import HideInIOSApp from "@/components/HideInIOSApp";
@@ -314,8 +315,10 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
       {/* Summer Sale $1.99 ribbon — top-level sticky + zero-height so it pins
           directly under the tabs bar and stays visible for the ENTIRE page
           scroll (not just over the hero), without pushing any content down.
-          Hidden on the Tubi tab — Tubi is free, so the $1.99 unlock is off-message there. */}
-      {activeTab !== "tubi" && (
+          Hidden on the Tubi tab — Tubi is free, so the $1.99 unlock is off-message there.
+          Also hidden on the Creators tab — it is a creator-recruitment landing, so a
+          viewer movie-unlock badge is off-message there too. */}
+      {activeTab !== "tubi" && activeTab !== "creators" && (
         <div
           className="sticky z-20 flex justify-center pointer-events-none"
           style={{ top: "calc(108px + env(safe-area-inset-top, 0px))", height: 0 }}
@@ -330,7 +333,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
 
       {/* Continue Watching row — hidden on the Tubi tab so the partner panel
           starts flush under the tabs and fills the fold with no scroll. */}
-      {continueWatching.length > 0 && activeTab !== "tubi" && (
+      {continueWatching.length > 0 && activeTab !== "tubi" && activeTab !== "creators" && (
         <section className="pb-4 animate-slideUp">
           <h2 className="text-sm font-semibold uppercase tracking-wider mb-3 px-4" style={{ color: "#8A8A9A" }}>Continue Watching</h2>
           <div
@@ -499,7 +502,188 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </section>
       )}
 
-      {filtered.length === 0 && activeTab !== "reality" && activeTab !== "music" && activeTab !== "red-carpet" && activeTab !== "tubi" && (() => {
+      {activeTab === "creators" && (
+        <section
+          className="mx-auto w-full"
+          style={{
+            maxWidth: "440px",
+            padding: "clamp(20px, 4vw, 28px) 20px",
+            paddingBottom: "calc(88px + env(safe-area-inset-bottom, 0px))",
+          }}
+        >
+          {/* ── (A) EDITORIAL HERO ─────────────────────────────────────────
+              Aspirational only. No fabricated creators, no invented stats.
+              The three chips below state true program facts only. */}
+          <div className="relative overflow-hidden">
+            {/* Soft brand glow, decorative */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute"
+              style={{
+                top: "-40px",
+                left: "-10%",
+                width: "120%",
+                height: "240px",
+                background: "radial-gradient(60% 100% at 50% 0%, rgba(224,17,95,0.18), transparent 70%)",
+              }}
+            />
+
+            <p
+              className="relative text-[11px] font-bold uppercase"
+              style={{ color: "#E0115F", letterSpacing: "0.18em" }}
+            >
+              Verza for Creators
+            </p>
+
+            <h2
+              className="relative mt-3 font-black"
+              style={{
+                color: "#F5F4F8",
+                fontSize: "clamp(28px, 8.5vw, 38px)",
+                lineHeight: 1.05,
+                letterSpacing: "-0.02em",
+              }}
+            >
+              Become one of{" "}
+              <span
+                style={{
+                  background: "linear-gradient(135deg, #E0115F, #8B5CF6)",
+                  WebkitBackgroundClip: "text",
+                  backgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  color: "transparent",
+                }}
+              >
+                Verza&apos;s top creators
+              </span>
+            </h2>
+
+            <p
+              className="relative mt-4 text-[15px] leading-relaxed"
+              style={{ color: "#A0A0B0", maxWidth: "34ch" }}
+            >
+              Bring your own show to Verza. Upload it, build an audience, and earn from every viewer who unlocks your work.
+            </p>
+
+            {/* Three compact benefit chips — honest program facts only. */}
+            <div className="relative mt-6 flex flex-col gap-2.5">
+              {[
+                {
+                  label: "Keep up to 80% of every sale",
+                  icon: (
+                    <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                  ),
+                },
+                {
+                  label: "Upload vertical or horizontal shows",
+                  icon: (
+                    <>
+                      <rect x="3" y="5" width="8" height="14" rx="1.5" />
+                      <rect x="13" y="8" width="8" height="8" rx="1.5" />
+                    </>
+                  ),
+                },
+                {
+                  label: "Earn directly from your viewers",
+                  icon: (
+                    <>
+                      <circle cx="9" cy="8" r="3.5" />
+                      <path d="M3 20a6 6 0 0 1 12 0M17 5a3.5 3.5 0 0 1 0 6.5M21 20a6 6 0 0 0-4-5.66" />
+                    </>
+                  ),
+                },
+              ].map((chip) => (
+                <div
+                  key={chip.label}
+                  className="flex items-center gap-3 rounded-xl px-3.5 py-3"
+                  style={{
+                    background: "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))",
+                    border: "1px solid rgba(224,17,95,0.16)",
+                  }}
+                >
+                  <span
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+                    style={{ background: "rgba(224,17,95,0.14)" }}
+                  >
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#E0115F" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      {chip.icon}
+                    </svg>
+                  </span>
+                  <span className="text-[14px] font-semibold" style={{ color: "#F5F4F8" }}>
+                    {chip.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ── (B) APPLY CARD — Profit-Sharing Beta ───────────────────────── */}
+          <div
+            className="relative mt-9 overflow-hidden rounded-3xl"
+            style={{
+              padding: "1px",
+              background: "linear-gradient(160deg, rgba(224,17,95,0.5), rgba(139,92,246,0.28) 45%, rgba(224,17,95,0.1))",
+            }}
+          >
+            <div
+              className="rounded-3xl px-5 py-6"
+              style={{
+                background: "linear-gradient(180deg, #12121C, #0A0A14)",
+              }}
+            >
+              <div className="flex items-start gap-3.5">
+                <span
+                  className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full"
+                  style={{
+                    background: "linear-gradient(135deg, #E0115F, #8B5CF6)",
+                    boxShadow: "0 6px 22px rgba(224,17,95,0.35)",
+                  }}
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M12 15V4" />
+                    <path d="m7.5 8.5 4.5-4.5 4.5 4.5" />
+                    <path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
+                  </svg>
+                </span>
+                <div className="min-w-0">
+                  <h3 className="text-[19px] font-black leading-tight" style={{ color: "#F5F4F8" }}>
+                    Make your own show on Verza
+                  </h3>
+                  <p
+                    className="mt-1 text-[11px] font-bold uppercase"
+                    style={{ color: "#E0115F", letterSpacing: "0.16em" }}
+                  >
+                    Profit-Sharing Beta
+                  </p>
+                </div>
+              </div>
+
+              <p className="mt-4 text-[14px] leading-relaxed" style={{ color: "#A0A0B0" }}>
+                We split revenue with creators. Make your own channel, upload vertical or horizontal shows, and earn directly from viewers. We review every application and reach out to the collaborators we want to work with.
+              </p>
+
+              <div className="mt-5">
+                <CreatorBetaForm />
+              </div>
+
+              <div
+                className="mt-5 flex items-center justify-center border-t pt-4"
+                style={{ borderColor: "rgba(255,255,255,0.06)" }}
+              >
+                <Link
+                  href="/studio"
+                  className="text-[13px] font-semibold no-underline transition-opacity active:opacity-70"
+                  style={{ color: "#A0A0B0" }}
+                >
+                  Ready to build now? Open Creator Studio →
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {filtered.length === 0 && activeTab !== "reality" && activeTab !== "music" && activeTab !== "red-carpet" && activeTab !== "tubi" && activeTab !== "creators" && (() => {
         // Per-category Coming Soon copy. Anything not listed here uses the
         // generic fallback text below.
         const COMING_SOON: Partial<Record<BrowseCategory, { name: string; subtext: string }>> = {
