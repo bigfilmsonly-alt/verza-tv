@@ -2,13 +2,12 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
 import { T } from "@/lib/theme";
-import { BRAND } from "@/lib/config";
 import { AMAZON_PRODUCTS, AMAZON_STOREFRONT } from "@/lib/amazon-sponsors";
 import AmazonTile from "@/components/AmazonProducts";
 import AmazonDeepLink from "@/components/AmazonDeepLink";
 
 export const metadata: Metadata = {
-  title: `Your Favorite Finds | ${BRAND.name}`,
+  title: "Your Favorite Finds",
   description:
     "Your favorite shows, your favorite finds, everything you love in one place. Beauty, skincare, dresses and cozy essentials. Add them to your bag and send the whole thing to your Amazon cart in one tap.",
   alternates: { canonical: "/amazon" },

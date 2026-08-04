@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { T } from "@/lib/theme";
-import { BRAND } from "@/lib/config";
 import LanguagePicker from "@/components/LanguagePicker";
 import PushNotificationToggle from "@/components/PushNotificationToggle";
 import VipCard from "@/components/VipCard";
@@ -15,7 +14,7 @@ import {
 import { SavedCount, WatchingCount, DarkModeToggle, SignOutButton, DeleteAccountButton } from "@/components/ProfileDynamic";
 
 export const metadata: Metadata = {
-  title: `My Account | ${BRAND.name}`,
+  title: "My Account",
   description:
     "Manage your VERZA TV account, library, purchases, and settings.",
 };
@@ -407,7 +406,7 @@ export default async function MePage({
       {/* ---- Sign out + version ---- */}
       <div className="mt-8 flex flex-col items-center gap-3">
         <SignOutButton />
-      <DeleteAccountButton />
+      <DeleteAccountButton expectedUserId={user?.id ?? null} />
         <p className="text-xs" style={{ color: T.textMute }}>
           VERZA TV v1.0.0
         </p>

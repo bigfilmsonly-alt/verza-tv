@@ -1,4 +1,5 @@
 import { getCreatorContext } from "@/lib/creator";
+import { privateJson } from "@/lib/private-json";
 import { getServiceClient } from "@/lib/supabase/server";
 
 /**
@@ -7,8 +8,8 @@ import { getServiceClient } from "@/lib/supabase/server";
  */
 export async function GET() {
   const ctx = await getCreatorContext();
-  if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
-  if (!ctx.creator) return Response.json({ items: [] });
+  if (!ctx) return privateJson({ error: "Unauthorized" }, { status: 401 });
+  if (!ctx.creator) return privateJson({ items: [] });
 
   const supabase = getServiceClient();
   const { data, error } = await supabase
@@ -21,8 +22,8 @@ export async function GET() {
 
   if (error) {
     console.error("[creator/content] list failed:", error);
-    return Response.json({ error: "Could not load content" }, { status: 500 });
+    return privateJson({ error: "Could not load content" }, { status: 500 });
   }
 
-  return Response.json({ items: data ?? [] });
+  return privateJson({ items: data ?? [] });
 }

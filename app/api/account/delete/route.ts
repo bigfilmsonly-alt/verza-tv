@@ -1,5 +1,6 @@
 import Stripe from "stripe";
 import { getUser } from "@/lib/auth";
+import { privateJson } from "@/lib/private-json";
 import {
   isStripeResourceMissing,
   upsertPaymentAccountTombstone,
@@ -114,11 +115,37 @@ async function clearDeletionGuard(
  * account-owned because this project's legacy autoconfirm setting does not
  * prove mailbox ownership; support clears them only after independent proof.
  */
-export async function POST() {
+export async function POST(request: Request) {
   try {
     const user = await getUser();
     if (!user) {
-      return Response.json({ error: "Not signed in" }, { status: 401 });
+      return privateJson({ error: "Not signed in" }, { status: 401 });
+    }
+
+    // Native sends the exact account ID that was visible when the destructive
+    // confirmation was accepted. Compare it with the authoritative bearer-token
+    // identity before constructing the service client or writing a deletion
+    // marker, so an A -> B session transition can never delete B on A's prompt.
+    // An absent body remains accepted for already-shipped web/native clients.
+    const rawBody = await request.json().catch(() => null) as {
+      expectedUserId?: unknown;
+    } | null;
+    const suppliedExpectedUserId = rawBody?.expectedUserId;
+    if (
+      suppliedExpectedUserId !== undefined &&
+      (typeof suppliedExpectedUserId !== "string" ||
+        suppliedExpectedUserId.length === 0)
+    ) {
+      return privateJson({ error: "Invalid account confirmation" }, { status: 400 });
+    }
+    if (
+      typeof suppliedExpectedUserId === "string" &&
+      suppliedExpectedUserId !== user.id
+    ) {
+      return privateJson(
+        { error: "Account changed. Please confirm deletion again." },
+        { status: 409 },
+      );
     }
 
     const supabase = getServiceClient();
@@ -336,7 +363,7 @@ export async function POST() {
       }
       authDeleted = true;
 
-      return Response.json({ ok: true });
+      return privateJson({ ok: true });
     } finally {
       if (deletionGuardSet && !authDeleted) {
         await clearDeletionGuard(supabase, user.id);
@@ -344,6 +371,6 @@ export async function POST() {
     }
   } catch (err) {
     console.error("[account-delete] Error:", err);
-    return Response.json({ error: "Deletion failed — contact support@verzatv.com" }, { status: 500 });
+    return privateJson({ error: "Deletion failed — contact support@verzatv.com" }, { status: 500 });
   }
 }

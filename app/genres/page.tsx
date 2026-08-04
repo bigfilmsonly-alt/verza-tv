@@ -3,7 +3,6 @@ import Link from "next/link";
 import JsonLd from "@/components/JsonLd";
 import { itemListSchema, breadcrumbSchema } from "@/lib/schemas";
 import { T } from "@/lib/theme";
-import { BRAND } from "@/lib/config";
 import { getLiveSeries } from "@/lib/catalog";
 import { GENRE_HUBS } from "@/lib/content/genres";
 
@@ -12,7 +11,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
 const approvedHubs = GENRE_HUBS.filter((g) => g.editorialApproved);
 
 export const metadata: Metadata = {
-  title: `Browse by Genre | ${BRAND.name}`,
+  title: "Browse by Genre",
   description:
     "Explore every VERZA TV genre — billionaire romance, mafia romance, psychological thrillers, revenge dramas, time travel and more. Cinematic vertical micro-dramas, free to start.",
   alternates: { canonical: "/genres" },

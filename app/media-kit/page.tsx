@@ -5,7 +5,7 @@ import { BRAND } from "@/lib/config";
 import { getLiveSeries } from "@/lib/catalog";
 
 export const metadata: Metadata = {
-  title: `Media Kit | ${BRAND.name}`,
+  title: "Media Kit",
   description:
     "VERZA TV media kit. Logos, brand guidelines, key facts, and press resources.",
   alternates: { canonical: "/media-kit" },

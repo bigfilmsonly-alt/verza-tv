@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { getCreatorContext } from "@/lib/creator";
+import { privateJson } from "@/lib/private-json";
 import { getServiceClient } from "@/lib/supabase/server";
 import { getUploadAssetId, getAsset, muxConfigured } from "@/lib/mux-upload";
 
@@ -31,7 +32,7 @@ async function ownContent(id: string) {
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const owned = await ownContent(id);
-  if (!owned) return Response.json({ error: "Not found" }, { status: 404 });
+  if (!owned) return privateJson({ error: "Not found" }, { status: 404 });
 
   let { content } = owned;
   const { supabase } = owned;
@@ -71,7 +72,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     }
   }
 
-  return Response.json({ content });
+  return privateJson({ content });
 }
 
 /**
@@ -82,18 +83,18 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const owned = await ownContent(id);
-  if (!owned) return Response.json({ error: "Not found" }, { status: 404 });
+  if (!owned) return privateJson({ error: "Not found" }, { status: 404 });
   const { content, supabase } = owned;
 
   if (content.status === "pending_review" || content.status === "published") {
-    return Response.json({ error: "Locked while in review or live" }, { status: 409 });
+    return privateJson({ error: "Locked while in review or live" }, { status: 409 });
   }
 
   let body: Record<string, unknown>;
   try {
     body = await req.json();
   } catch {
-    return Response.json({ error: "Invalid JSON" }, { status: 400 });
+    return privateJson({ error: "Invalid JSON" }, { status: 400 });
   }
 
   const update: Record<string, unknown> = { updated_at: new Date().toISOString() };
@@ -103,13 +104,13 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (body.poster_url !== undefined) update.poster_url = clamp(body.poster_url, 500).trim();
   if (body.category !== undefined) {
     const c = String(body.category);
-    if (!CATEGORIES.includes(c)) return Response.json({ error: "Bad category" }, { status: 400 });
+    if (!CATEGORIES.includes(c)) return privateJson({ error: "Bad category" }, { status: 400 });
     update.category = c;
   }
 
   if (body.pricing_type !== undefined) {
     const pt = String(body.pricing_type);
-    if (!PRICING.includes(pt)) return Response.json({ error: "Bad pricing type" }, { status: 400 });
+    if (!PRICING.includes(pt)) return privateJson({ error: "Bad pricing type" }, { status: 400 });
     update.pricing_type = pt;
     if (pt === "free") {
       update.price_cents = 0;
@@ -117,7 +118,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       // Price is server-validated; client can't set arbitrary/negative money.
       const cents = Math.round(Number(body.price_cents));
       if (!Number.isFinite(cents) || cents < 99 || cents > 50000) {
-        return Response.json({ error: "Price must be $0.99–$500" }, { status: 400 });
+        return privateJson({ error: "Price must be $0.99–$500" }, { status: 400 });
       }
       update.price_cents = cents;
     }
@@ -126,7 +127,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const { error } = await supabase.from("creator_content").update(update).eq("id", id);
   if (error) {
     console.error("[creator/content PATCH] failed:", error);
-    return Response.json({ error: "Could not save" }, { status: 500 });
+    return privateJson({ error: "Could not save" }, { status: 500 });
   }
-  return Response.json({ ok: true });
+  return privateJson({ ok: true });
 }

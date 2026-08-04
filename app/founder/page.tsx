@@ -4,7 +4,7 @@ import { T } from "@/lib/theme";
 import { BRAND } from "@/lib/config";
 
 export const metadata: Metadata = {
-  title: `Alan Mruvka — Founder | ${BRAND.name}`,
+  title: "Alan Mruvka — Founder",
   description:
     "Alan Mruvka, co-founder of E! Entertainment Television, founded VERZA TV to bring premium micro-drama entertainment to the mobile-first generation.",
   alternates: { canonical: "/founder" },

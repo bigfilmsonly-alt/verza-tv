@@ -9,7 +9,7 @@ import { PRESS_RELEASES, IN_THE_NEWS } from "@/lib/data/company";
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
 
 export const metadata: Metadata = {
-  title: `Newsroom | ${BRAND.name}`,
+  title: "Newsroom",
   description:
     "The VERZA TV newsroom: verified company announcements, media resources, and press contact information.",
   alternates: { canonical: "/newsroom" },

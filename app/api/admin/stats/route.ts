@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import Stripe from "stripe";
 import { getServiceClient } from "@/lib/supabase/server";
+import { privateJson } from "@/lib/private-json";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -22,7 +23,7 @@ export async function GET(req: NextRequest) {
   // Auth check — verify user is admin
   const authHeader = req.headers.get("authorization");
   if (!authHeader?.startsWith("Bearer ")) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
+    return privateJson({ error: "Unauthorized" }, { status: 401 });
   }
 
   const token = authHeader.slice(7);
@@ -32,7 +33,7 @@ export async function GET(req: NextRequest) {
   } = await supabase.auth.getUser(token);
 
   if (authErr || !user || !ADMIN_EMAILS.includes(user.email ?? "")) {
-    return Response.json({ error: "Forbidden" }, { status: 403 });
+    return privateJson({ error: "Forbidden" }, { status: 403 });
   }
 
   const range = req.nextUrl.searchParams.get("range") || "30d";
@@ -299,7 +300,7 @@ export async function GET(req: NextRequest) {
     const grossRevenue = seriesUnlockRevenue + vipRevenue + otherRevenue;
     const netRevenue = grossRevenue + refundRevenue;
 
-    return Response.json({
+    return privateJson({
       range,
       generatedAt: new Date().toISOString(),
       revenue: {
@@ -378,6 +379,6 @@ export async function GET(req: NextRequest) {
     });
   } catch (err) {
     console.error("[admin/stats] Error:", err);
-    return Response.json({ error: "Failed to fetch stats" }, { status: 500 });
+    return privateJson({ error: "Failed to fetch stats" }, { status: 500 });
   }
 }

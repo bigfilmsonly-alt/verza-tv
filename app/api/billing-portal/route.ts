@@ -1,5 +1,6 @@
 import Stripe from "stripe";
 import { getUser } from "@/lib/auth";
+import { privateJson } from "@/lib/private-json";
 import { getServiceClient } from "@/lib/supabase/server";
 import {
   assertOwnedLiveStripeCustomer,
@@ -20,7 +21,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 export async function POST() {
   try {
     const user = await getUser();
-    if (!user) return Response.json({ error: "Not signed in" }, { status: 401 });
+    if (!user) return privateJson({ error: "Not signed in" }, { status: 401 });
 
     const supabase = getServiceClient();
     const { data: profile, error: profileError } = await supabase
@@ -30,10 +31,10 @@ export async function POST() {
       .maybeSingle();
 
     if (profileError || !profile || profile.deletion_requested_at) {
-      return Response.json({ error: "Billing account is unavailable" }, { status: 409 });
+      return privateJson({ error: "Billing account is unavailable" }, { status: 409 });
     }
     if (!profile.stripe_customer_id) {
-      return Response.json(
+      return privateJson(
         { error: "No billing profile found — contact support@verzatv.com" },
         { status: 404 },
       );
@@ -70,7 +71,7 @@ export async function POST() {
       .is("deletion_requested_at", null)
       .maybeSingle();
     if (recheck.error || !recheck.data) {
-      return Response.json({ error: "Billing account changed" }, { status: 409 });
+      return privateJson({ error: "Billing account changed" }, { status: 409 });
     }
 
     const session = await stripe.billingPortal.sessions.create({
@@ -80,10 +81,10 @@ export async function POST() {
     });
     assertStripePortalUrl(session.url);
 
-    return Response.json({ url: session.url });
+    return privateJson({ url: session.url });
   } catch (err) {
     console.error("[billing-portal] Error:", err);
-    return Response.json(
+    return privateJson(
       { error: "Could not open billing portal — contact support@verzatv.com" },
       { status: 500 },
     );

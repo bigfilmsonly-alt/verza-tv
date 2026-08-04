@@ -58,7 +58,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!series || !ep) return { title: "Not Found" };
 
   return {
-    title: `${series.title} — ${ep.title} | VERZA TV`,
+    title: `${series.title} — ${ep.title}`,
     description: `Watch ${ep.title} of ${series.title}. ${series.logline}`,
     alternates: { canonical: `/series/${slug}/${epStr}` },
     openGraph: {

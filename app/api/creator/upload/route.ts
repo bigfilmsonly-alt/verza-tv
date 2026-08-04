@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { getCreatorContext, buildContentSlug } from "@/lib/creator";
+import { privateJson } from "@/lib/private-json";
 import { getServiceClient } from "@/lib/supabase/server";
 import { createDirectUpload, muxConfigured } from "@/lib/mux-upload";
 
@@ -14,13 +15,13 @@ const clamp = (v: unknown, n = 280) => (typeof v === "string" ? v.slice(0, n) : 
  */
 export async function POST(req: NextRequest) {
   const ctx = await getCreatorContext();
-  if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
+  if (!ctx) return privateJson({ error: "Unauthorized" }, { status: 401 });
   if (!ctx.creator || ctx.creator.status !== "approved") {
-    return Response.json({ error: "Creator not approved" }, { status: 403 });
+    return privateJson({ error: "Creator not approved" }, { status: 403 });
   }
   if (!muxConfigured()) {
     // No Mux token provisioned yet — fail loudly so it's never silently fake.
-    return Response.json(
+    return privateJson(
       { error: "Uploads are not configured yet (missing Mux token). Contact the VERZA team." },
       { status: 503 },
     );
@@ -53,7 +54,7 @@ export async function POST(req: NextRequest) {
 
   if (insErr || !content) {
     console.error("[creator/upload] insert failed:", insErr);
-    return Response.json({ error: "Could not create content" }, { status: 500 });
+    return privateJson({ error: "Could not create content" }, { status: 500 });
   }
 
   const origin =
@@ -68,7 +69,7 @@ export async function POST(req: NextRequest) {
       .update({ mux_upload_id: uploadId, updated_at: new Date().toISOString() })
       .eq("id", content.id);
 
-    return Response.json({ contentId: content.id, slug, uploadUrl, uploadId });
+    return privateJson({ contentId: content.id, slug, uploadUrl, uploadId });
   } catch (err) {
     console.error("[creator/upload] mux upload create failed:", err);
     // Roll the row back to draft so the creator can retry without orphaning it.
@@ -76,6 +77,6 @@ export async function POST(req: NextRequest) {
       .from("creator_content")
       .update({ status: "draft" })
       .eq("id", content.id);
-    return Response.json({ error: "Could not start upload" }, { status: 502 });
+    return privateJson({ error: "Could not start upload" }, { status: 502 });
   }
 }

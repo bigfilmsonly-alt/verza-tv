@@ -1,6 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import Stripe from "stripe";
 import { VIP_PLANS } from "@/lib/config";
+import { privateJson } from "@/lib/private-json";
 import { getServiceClient } from "@/lib/supabase/server";
 import { assertVipCheckoutConsentRecorded } from "@/lib/vip-checkout-consent-ledger";
 import {
@@ -105,10 +106,10 @@ async function sendAnnualNoticeWithRetries(
  */
 export async function GET(request: Request) {
   if (!authorized(request)) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
+    return privateJson({ error: "Unauthorized" }, { status: 401 });
   }
   if (!vipAnnualNoticeDeliveryReady()) {
-    return Response.json(
+    return privateJson(
       { error: "Annual VIP notice delivery is not release-ready" },
       { status: 503 },
     );
@@ -127,7 +128,7 @@ export async function GET(request: Request) {
     }
   } catch (error) {
     console.error("[vip-renewal-cron] Stripe subscription listing failed:", error);
-    return Response.json(
+    return privateJson(
       { error: "Could not load provider subscriptions" },
       { status: 500 },
     );
@@ -238,10 +239,10 @@ export async function GET(request: Request) {
   }
 
   if (failed > 0) {
-    return Response.json(
+    return privateJson(
       { checked: subscriptions.length, eligible, skipped, failed },
       { status: 500 },
     );
   }
-  return Response.json({ checked: subscriptions.length, eligible, skipped, failed });
+  return privateJson({ checked: subscriptions.length, eligible, skipped, failed });
 }

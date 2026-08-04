@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!list) return { title: "Not Found" };
 
   return {
-    title: `${list.title} | ${BRAND.name}`,
+    title: list.title,
     description: list.blurb,
     alternates: { canonical: `/best/${slug}` },
     openGraph: {

@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!collection) return { title: "Not Found" };
 
   return {
-    title: `${collection.title} | ${BRAND.name}`,
+    title: collection.title,
     description: collection.blurb,
     alternates: { canonical: `/collections/${slug}` },
     openGraph: {

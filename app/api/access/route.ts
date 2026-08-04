@@ -1,6 +1,7 @@
 import { getUser } from "@/lib/auth";
 import { getServiceClient } from "@/lib/supabase/server";
 import { type NextRequest } from "next/server";
+import { privateJson } from "@/lib/private-json";
 
 /**
  * Lightweight auth check — returns { full: true } if the caller is VIP or
@@ -17,7 +18,7 @@ export async function GET(request: NextRequest) {
     // cookie name was never set by anything — every user read as logged-out,
     // so paying customers were re-paywalled on reload).
     const user = await getUser();
-    if (!user) return Response.json({ full: false });
+    if (!user) return privateJson({ full: false });
 
     const supabase = getServiceClient();
 
@@ -49,8 +50,8 @@ export async function GET(request: NextRequest) {
         new Date(vipData.vip_expires_at) >= new Date());
     const hasEntitlement = (entResult.data ?? []).length > 0;
 
-    return Response.json({ full: isVip || hasEntitlement });
+    return privateJson({ full: isVip || hasEntitlement });
   } catch {
-    return Response.json({ full: false });
+    return privateJson({ full: false });
   }
 }

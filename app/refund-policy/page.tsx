@@ -4,7 +4,7 @@ import { T } from "@/lib/theme";
 import { BRAND } from "@/lib/config";
 
 export const metadata: Metadata = {
-  title: `Refund Policy | ${BRAND.name}`,
+  title: "Refund Policy",
   description:
     "Refund Policy for VERZA TV Series Unlocks, VIP subscriptions, and merchandise orders.",
   alternates: { canonical: "/refund-policy" },

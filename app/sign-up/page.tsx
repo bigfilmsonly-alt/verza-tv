@@ -6,7 +6,7 @@ import { signUpAction } from "@/app/actions/auth";
 import OAuthButtons from "@/components/OAuthButtons";
 
 export const metadata: Metadata = {
-  title: `Sign Up | ${BRAND.name}`,
+  title: "Sign Up",
   description: `Create your ${BRAND.name} account to stream vertical series, sync eligible access, and build your watchlist.`,
   alternates: { canonical: "/sign-up" },
 };

@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { getAdminEmail } from "@/lib/admin";
+import { privateJson } from "@/lib/private-json";
 import { getServiceClient } from "@/lib/supabase/server";
 import { sendCreatorDecisionEmail } from "@/lib/email";
 
@@ -11,7 +12,7 @@ import { sendCreatorDecisionEmail } from "@/lib/email";
  */
 export async function GET(req: NextRequest) {
   const admin = await getAdminEmail(req);
-  if (!admin) return Response.json({ error: "Forbidden" }, { status: 403 });
+  if (!admin) return privateJson({ error: "Forbidden" }, { status: 403 });
 
   const status = req.nextUrl.searchParams.get("status") || "pending_review";
 
@@ -26,10 +27,10 @@ export async function GET(req: NextRequest) {
 
   if (error) {
     console.error("[admin/review] list failed:", error);
-    return Response.json({ error: "Could not load queue" }, { status: 500 });
+    return privateJson({ error: "Could not load queue" }, { status: 500 });
   }
 
-  return Response.json({ items: data ?? [] });
+  return privateJson({ items: data ?? [] });
 }
 
 /**
@@ -42,23 +43,23 @@ export async function GET(req: NextRequest) {
  */
 export async function POST(req: NextRequest) {
   const admin = await getAdminEmail(req);
-  if (!admin) return Response.json({ error: "Forbidden" }, { status: 403 });
+  if (!admin) return privateJson({ error: "Forbidden" }, { status: 403 });
 
   let body: Record<string, unknown>;
   try {
     body = await req.json();
   } catch {
-    return Response.json({ error: "Invalid JSON" }, { status: 400 });
+    return privateJson({ error: "Invalid JSON" }, { status: 400 });
   }
 
   const id = typeof body.id === "string" ? body.id : "";
   const action = body.action === "approve" ? "approve" : body.action === "reject" ? "reject" : "";
   if (!id || !action) {
-    return Response.json({ error: "id and action required" }, { status: 400 });
+    return privateJson({ error: "id and action required" }, { status: 400 });
   }
   const reason = typeof body.reason === "string" ? body.reason.slice(0, 500).trim() : "";
   if (action === "reject" && !reason) {
-    return Response.json({ error: "A rejection reason is required" }, { status: 400 });
+    return privateJson({ error: "A rejection reason is required" }, { status: 400 });
   }
 
   const supabase = getServiceClient();
@@ -68,9 +69,9 @@ export async function POST(req: NextRequest) {
     .eq("id", id)
     .maybeSingle();
 
-  if (!content) return Response.json({ error: "Not found" }, { status: 404 });
+  if (!content) return privateJson({ error: "Not found" }, { status: 404 });
   if (content.status !== "pending_review") {
-    return Response.json({ error: "Title is not awaiting review" }, { status: 409 });
+    return privateJson({ error: "Title is not awaiting review" }, { status: 409 });
   }
 
   const now = new Date().toISOString();
@@ -82,7 +83,7 @@ export async function POST(req: NextRequest) {
   const { error } = await supabase.from("creator_content").update(update).eq("id", id);
   if (error) {
     console.error("[admin/review] update failed:", error);
-    return Response.json({ error: "Could not save decision" }, { status: 500 });
+    return privateJson({ error: "Could not save decision" }, { status: 500 });
   }
 
   // Notify the creator (best-effort).
@@ -97,5 +98,5 @@ export async function POST(req: NextRequest) {
     }).catch(() => {});
   }
 
-  return Response.json({ ok: true, status: update.status });
+  return privateJson({ ok: true, status: update.status });
 }

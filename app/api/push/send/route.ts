@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import webPush from "web-push";
+import { privateJson } from "@/lib/private-json";
 import { getServiceClient } from "@/lib/supabase/server";
 
 /* ------------------------------------------------------------------ */
@@ -11,6 +12,15 @@ const VAPID_SUBJECT = process.env.VAPID_SUBJECT ?? "mailto:support@verzatv.com";
 
 if (VAPID_PUBLIC && VAPID_PRIVATE) {
   webPush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC, VAPID_PRIVATE);
+}
+
+function privatePushJson(
+  body: unknown,
+  init: ResponseInit = {},
+): Response {
+  const headers = new Headers(init.headers);
+  headers.append("Vary", "X-Push-Api-Key");
+  return privateJson(body, { ...init, headers });
 }
 
 /**
@@ -30,11 +40,11 @@ export async function POST(req: NextRequest) {
   const authHeader = req.headers.get("x-push-api-key");
   const apiKey = process.env.PUSH_API_KEY;
   if (!apiKey || authHeader !== apiKey) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
+    return privatePushJson({ error: "Unauthorized" }, { status: 401 });
   }
 
   if (!VAPID_PUBLIC || !VAPID_PRIVATE) {
-    return Response.json(
+    return privatePushJson(
       { error: "VAPID keys not configured" },
       { status: 500 },
     );
@@ -42,7 +52,7 @@ export async function POST(req: NextRequest) {
 
   const { title, body, url, userId } = await req.json();
   if (!title || !body) {
-    return Response.json(
+    return privatePushJson(
       { error: "Missing title or body" },
       { status: 400 },
     );
@@ -64,11 +74,11 @@ export async function POST(req: NextRequest) {
 
   if (error) {
     console.error("[push/send] Fetch subscriptions error:", error);
-    return Response.json({ error: "Failed to fetch subscriptions" }, { status: 500 });
+    return privatePushJson({ error: "Failed to fetch subscriptions" }, { status: 500 });
   }
 
   if (!subs || subs.length === 0) {
-    return Response.json({ sent: 0, failed: 0, message: "No subscribers" });
+    return privatePushJson({ sent: 0, failed: 0, message: "No subscribers" });
   }
 
   // Send to all matching subscriptions
@@ -107,7 +117,7 @@ export async function POST(req: NextRequest) {
       .in("endpoint", staleEndpoints);
   }
 
-  return Response.json({
+  return privatePushJson({
     sent,
     failed,
     cleaned: staleEndpoints.length,

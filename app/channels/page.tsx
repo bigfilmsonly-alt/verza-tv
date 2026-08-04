@@ -10,7 +10,7 @@ import JsonLd from "@/components/JsonLd";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
 
 export const metadata: Metadata = {
-  title: `Channels | ${BRAND.name}`,
+  title: "Channels",
   description:
     "Creators, brands, and studios on VERZA TV. Browse channels and discover original micro-dramas, reality shows, and more.",
   alternates: { canonical: `${SITE_URL}/channels` },

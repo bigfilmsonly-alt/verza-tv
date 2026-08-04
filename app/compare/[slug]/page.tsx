@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!cmp) return { title: "Not Found" };
 
   return {
-    title: `${cmp.title} | ${BRAND.name}`,
+    title: cmp.title,
     description: cmp.blurb,
     alternates: { canonical: `/compare/${slug}` },
     openGraph: {

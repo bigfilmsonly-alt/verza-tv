@@ -9,7 +9,7 @@ import { PARTNERSHIPS, PARTNERSHIPS_EMAIL } from "@/lib/data/company";
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
 
 export const metadata: Metadata = {
-  title: `Partnerships | ${BRAND.name}`,
+  title: "Partnerships",
   description:
     "Partner with VERZA TV across distribution, brand integrations, advertising, and licensing — a vertically integrated American vertical micro-drama studio.",
   alternates: { canonical: "/partnerships" },

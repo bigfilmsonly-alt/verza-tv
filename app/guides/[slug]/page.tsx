@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!guide) return { title: "Not Found" };
 
   return {
-    title: `${guide.title} | ${BRAND.name}`,
+    title: guide.title,
     description: guide.blurb,
     alternates: { canonical: `/guides/${slug}` },
     openGraph: {

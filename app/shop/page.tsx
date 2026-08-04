@@ -3,7 +3,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { T } from "@/lib/theme";
 import { products } from "@/lib/products";
-import { BRAND } from "@/lib/config";
 import CartButton from "@/components/CartButton";
 import { organizationSchema } from "@/lib/seo/schema";
 import JsonLd from "@/components/JsonLd";
@@ -11,7 +10,7 @@ import AmazonTile from "@/components/AmazonProducts";
 import { AMAZON_PRODUCTS } from "@/lib/amazon-sponsors";
 
 export const metadata: Metadata = {
-  title: `Shop | ${BRAND.name}`,
+  title: "Shop",
   description:
     "Browse VERZA TV's sponsored beauty, skincare, entertainment, and cozy picks from Amazon.",
   alternates: { canonical: "/shop" },

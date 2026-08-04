@@ -2,10 +2,12 @@
 
 /** Static regression contract for catalog playback security. */
 
+import { createHash } from "node:crypto";
 import { readFile, readdir } from "node:fs/promises";
 import { extname, resolve } from "node:path";
 import process from "node:process";
 import { spawnSync } from "node:child_process";
+import { parseLiteralCatalog } from "./parse-catalog-source.mjs";
 
 const ROOT = resolve(import.meta.dirname, "..");
 const failures = [];
@@ -22,6 +24,26 @@ function requireText(name, text, expected) {
   if (!text.includes(expected)) failures.push(name);
 }
 
+function parseCompleteMuxMap(text) {
+  const result = new Map();
+  const seriesPattern = /^\s*"([a-z0-9]+(?:-[a-z0-9]+)*)":\s*\[([\s\S]*?)^\s*\],/gm;
+  let seriesMatch;
+  while ((seriesMatch = seriesPattern.exec(text)) !== null) {
+    const episodes = [];
+    const episodePattern = /\{\s*episode:\s*(\d+),\s*playbackId:\s*"([A-Za-z0-9]+)",\s*duration:\s*(\d+)\s*\}/g;
+    let episodeMatch;
+    while ((episodeMatch = episodePattern.exec(seriesMatch[2])) !== null) {
+      episodes.push({
+        episode: Number(episodeMatch[1]),
+        playbackId: episodeMatch[2],
+      });
+    }
+    if (episodes.length === 0 || result.has(seriesMatch[1])) return null;
+    result.set(seriesMatch[1], episodes);
+  }
+  return result.size > 0 ? result : null;
+}
+
 async function codeFiles(directory) {
   const result = [];
   for (const entry of await readdir(resolve(ROOT, directory), { withFileTypes: true })) {
@@ -33,7 +55,7 @@ async function codeFiles(directory) {
 }
 
 const [route, episodePage, episodeFeed, playbackClient, playbackServer,
-  signedMap, privateMap, publicMap, catalog, browse, legacyPlayer, shorts,
+  signedMap, privateMap, completeMap, publicMap, catalog, browse, legacyPlayer, shorts,
   clipPage, sitemap, codeSource, migration] = await Promise.all([
   source("app/api/playback/[episode]/route.ts"),
   source("app/series/[slug]/[episode]/page.tsx"),
@@ -42,6 +64,7 @@ const [route, episodePage, episodeFeed, playbackClient, playbackServer,
   source("lib/mux-playback.ts"),
   source("lib/mux-signed-map.ts"),
   source("lib/mux-private-map.ts"),
+  source("lib/mux-map.ts"),
   source("lib/mux-public-map.ts"),
   source("lib/catalog.ts"),
   source("components/BrowsePage.tsx"),
@@ -71,6 +94,61 @@ requireText("signed mode must require generated mapping", playbackServer, "getSi
 requireText("signed video token must be generated", playbackServer, 'type: "video"');
 requireText("signed thumbnail token must be generated", playbackServer, 'type: "thumbnail"');
 requireText("signed map must be server-only", signedMap, 'import "server-only"');
+const expectedSignedMapFingerprint = createHash("sha256")
+  .update("mux-map\0")
+  .update(completeMap)
+  .update("\0catalog\0")
+  .update(catalog)
+  .digest("hex");
+const embeddedFingerprintMatches = [
+  ...signedMap.matchAll(/Source fingerprint:\s*([a-f0-9]{64})/g),
+];
+if (
+  embeddedFingerprintMatches.length !== 1 ||
+  embeddedFingerprintMatches[0][1] !== expectedSignedMapFingerprint
+) {
+  failures.push("signed map fingerprint must match current complete map plus catalog");
+}
+
+const completeMuxMap = parseCompleteMuxMap(completeMap);
+let catalogEntries;
+try {
+  catalogEntries = parseLiteralCatalog(catalog);
+} catch {
+  failures.push("signed map key audit must parse the literal catalog");
+}
+if (!completeMuxMap) {
+  failures.push("signed map key audit must parse the complete Mux map");
+} else if (catalogEntries) {
+  const paidLiveIds = new Set();
+  for (const [slug, episodes] of completeMuxMap) {
+    const series = catalogEntries.get(slug);
+    if (!series || series.status !== "live") continue;
+    for (const episode of episodes) {
+      if (episode.episode > series.freeEpisodes) paidLiveIds.add(episode.playbackId);
+    }
+  }
+
+  const signedEntries = [
+    ...signedMap.matchAll(/^\s*"([A-Za-z0-9]+)":\s*"[A-Za-z0-9]+",$/gm),
+  ];
+  const signedKeys = signedEntries.map((entry) => entry[1]);
+  const signedKeySet = new Set(signedKeys);
+  if (signedKeySet.size !== signedKeys.length) {
+    failures.push("signed map must not contain duplicate public-ID keys");
+  }
+  const missingKeyCount = [...paidLiveIds].filter((id) => !signedKeySet.has(id)).length;
+  const extraKeyCount = [...signedKeySet].filter((id) => !paidLiveIds.has(id)).length;
+  if (
+    signedEntries.length === 0 ||
+    missingKeyCount !== 0 ||
+    extraKeyCount !== 0
+  ) {
+    failures.push(
+      `signed map key set must exactly equal paid-live IDs (missing ${missingKeyCount}, extra ${extraKeyCount})`,
+    );
+  }
+}
 requireText("complete-map runtime gateway must be server-only", privateMap,
   'import "server-only"');
 requireText("playback route must use complete-map server gateway", route,

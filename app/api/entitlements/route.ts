@@ -1,10 +1,11 @@
 import { getUser } from "@/lib/auth";
 import { getServiceClient } from "@/lib/supabase/server";
+import { privateJson } from "@/lib/private-json";
 
 export async function GET() {
   const user = await getUser();
   if (!user) {
-    return Response.json({ error: "Authentication required" }, { status: 401 });
+    return privateJson({ error: "Authentication required" }, { status: 401 });
   }
 
   try {
@@ -18,16 +19,16 @@ export async function GET() {
 
     if (error) {
       console.error("[entitlements] DB error:", error.message);
-      return Response.json({ error: "Internal server error" }, { status: 500 });
+      return privateJson({ error: "Internal server error" }, { status: 500 });
     }
 
-    return Response.json({ entitlements: data ?? [] });
+    return privateJson({ entitlements: data ?? [] });
   } catch (err) {
     console.error("[entitlements] Error:", err);
-    return Response.json({ error: "Internal server error" }, { status: 500 });
+    return privateJson({ error: "Internal server error" }, { status: 500 });
   }
 }
 
 export async function POST() {
-  return Response.json({ error: "Method not allowed" }, { status: 405 });
+  return privateJson({ error: "Method not allowed" }, { status: 405 });
 }

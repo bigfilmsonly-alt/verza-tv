@@ -6,7 +6,7 @@ import { organizationSchema } from "@/lib/seo/schema";
 import JsonLd from "@/components/JsonLd";
 
 export const metadata: Metadata = {
-  title: `Press | ${BRAND.name}`,
+  title: "Press",
   description:
     "VERZA TV press page with current brand facts and media contact information.",
   alternates: { canonical: "/press" },

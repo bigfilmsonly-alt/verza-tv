@@ -6,7 +6,7 @@ import { T } from "@/lib/theme";
 import { BRAND } from "@/lib/config";
 
 export const metadata: Metadata = {
-  title: `Editorial Standards | ${BRAND.name}`,
+  title: "Editorial Standards",
   description:
     "Our commitment to quality content, editorial integrity, and responsible storytelling.",
   alternates: { canonical: "/editorial-standards" },

@@ -5,7 +5,7 @@ import { websiteSchema } from "@/lib/seo/schema";
 import JsonLd from "@/components/JsonLd";
 
 export const metadata: Metadata = {
-  title: "Shorts | VERZA TV",
+  title: "Shorts",
   description:
     "Swipe through short cliffhanger previews of VERZA TV originals — vertical micro-dramas, reality, and more.",
   alternates: { canonical: "/shorts" },

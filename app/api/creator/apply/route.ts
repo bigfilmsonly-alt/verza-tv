@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { getUser } from "@/lib/auth";
+import { privateJson } from "@/lib/private-json";
 import { getServiceClient } from "@/lib/supabase/server";
 import { normalizeHandle } from "@/lib/creator";
 import { sendFormNotification } from "@/lib/email";
@@ -15,13 +16,13 @@ const clamp = (v: unknown, n = 280) => (typeof v === "string" ? v.slice(0, n) : 
  */
 export async function POST(req: NextRequest) {
   const user = await getUser();
-  if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
+  if (!user) return privateJson({ error: "Unauthorized" }, { status: 401 });
 
   let body: Record<string, unknown>;
   try {
     body = await req.json();
   } catch {
-    return Response.json({ error: "Invalid JSON" }, { status: 400 });
+    return privateJson({ error: "Invalid JSON" }, { status: 400 });
   }
 
   const displayName = clamp(body.displayName, 80).trim();
@@ -34,8 +35,8 @@ export async function POST(req: NextRequest) {
   const filmLink = clamp(body.filmLink, 500).trim();
   const handle = normalizeHandle(clamp(body.handle, 40) || displayName);
 
-  if (!displayName) return Response.json({ error: "Display name required" }, { status: 400 });
-  if (!handle) return Response.json({ error: "A valid handle is required" }, { status: 400 });
+  if (!displayName) return privateJson({ error: "Display name required" }, { status: 400 });
+  if (!handle) return privateJson({ error: "A valid handle is required" }, { status: 400 });
 
   const supabase = getServiceClient();
 
@@ -47,7 +48,7 @@ export async function POST(req: NextRequest) {
     .maybeSingle();
 
   if (existing?.status === "approved") {
-    return Response.json({ error: "Already an approved creator" }, { status: 409 });
+    return privateJson({ error: "Already an approved creator" }, { status: 409 });
   }
 
   // Handle uniqueness (allow keeping your own).
@@ -58,7 +59,7 @@ export async function POST(req: NextRequest) {
     .neq("user_id", user.id)
     .maybeSingle();
   if (handleTaken) {
-    return Response.json({ error: "That handle is taken" }, { status: 409 });
+    return privateJson({ error: "That handle is taken" }, { status: 409 });
   }
 
   const row = {
@@ -83,7 +84,7 @@ export async function POST(req: NextRequest) {
     .upsert(row, { onConflict: "user_id" });
   if (upsertErr) {
     console.error("[creator/apply] upsert failed:", upsertErr);
-    return Response.json({ error: "Could not save application" }, { status: 500 });
+    return privateJson({ error: "Could not save application" }, { status: 500 });
   }
 
   // Mirror onto profile for quick role checks.
@@ -104,5 +105,5 @@ export async function POST(req: NextRequest) {
     filmLink: filmLink || "—",
   }).catch(() => {});
 
-  return Response.json({ ok: true, status: "pending", handle });
+  return privateJson({ ok: true, status: "pending", handle });
 }

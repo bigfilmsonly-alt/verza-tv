@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!page) return { title: "Not Found" };
 
   return {
-    title: `${page.title} | ${BRAND.name}`,
+    title: page.title,
     description: page.description,
     alternates: { canonical: `/learn/${slug}` },
     robots: { index: page.editorialApproved, follow: true },

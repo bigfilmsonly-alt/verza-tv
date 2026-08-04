@@ -9,7 +9,7 @@ import { BRAND_VOICE, TYPOGRAPHY_NOTES } from "@/lib/data/company";
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
 
 export const metadata: Metadata = {
-  title: `Brand Assets | ${BRAND.name}`,
+  title: "Brand Assets",
   description:
     "VERZA TV brand and press assets: logo usage, color palette, typography, and voice guidelines for media, partners, and creators.",
   alternates: { canonical: "/brand-assets" },

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { catalog, BROWSE_TABS } from "@/lib/catalog";
+import { catalog } from "@/lib/catalog";
+import { DISCOVER_CATEGORY_SLUGS } from "@/lib/discover-categories";
 import { breadcrumbSchema } from "@/lib/schemas";
 import JsonLd from "@/components/JsonLd";
 import { T } from "@/lib/theme";
@@ -62,26 +63,12 @@ function labelFor(slug: string): string {
   return CATEGORY_LABELS[slug] ?? slug.charAt(0).toUpperCase() + slug.slice(1);
 }
 
-const KNOWN_GENRES = [
-  ...BROWSE_TABS.map((t) => t.key),
-  "romance",
-  "thriller",
-  "drama",
-  "comedy",
-  "reality",
-  "mystery",
-  "sci-fi",
-  "horror",
-  "crime",
-  "fantasy",
-];
-
 /* ------------------------------------------------------------------ */
 /*  Static params                                                      */
 /* ------------------------------------------------------------------ */
 
 export function generateStaticParams() {
-  return KNOWN_GENRES.map((genre) => ({ genre }));
+  return DISCOVER_CATEGORY_SLUGS.map((genre) => ({ genre }));
 }
 
 /* ------------------------------------------------------------------ */

@@ -7,7 +7,7 @@ import { BRAND } from "@/lib/config";
 import { getLiveSeries } from "@/lib/catalog";
 
 export const metadata: Metadata = {
-  title: `Company | ${BRAND.name}`,
+  title: "Company",
   description:
     "VERZA TV company overview. A phone-first short-form entertainment platform founded by Alan Mruvka, co-founder of E! Entertainment Television.",
   alternates: { canonical: "/company" },

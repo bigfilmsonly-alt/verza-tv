@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!page) return { title: "Not Found" };
 
   return {
-    title: `${page.title} | ${BRAND.name}`,
+    title: page.title,
     description: page.blurb,
     keywords: ["Alan Mruvka", "E! co-founder", "VERZA TV founder"],
     alternates: { canonical: `/alan-mruvka/${slug}` },

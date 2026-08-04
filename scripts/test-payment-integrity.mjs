@@ -51,6 +51,7 @@ function checkoutSession({ subtotal, tax = 0, automaticTax = tax > 0 }) {
 }
 
 function runCodeAndCatalogSuite() {
+  const privateResponse = loadTypeScriptModule("lib/private-json.ts");
   const stripeTax = loadTypeScriptModule("lib/stripe-tax.ts");
   const billingPortalPolicy = loadTypeScriptModule(
     "lib/billing-portal-policy.ts",
@@ -75,6 +76,45 @@ function runCodeAndCatalogSuite() {
     "@/lib/stripe-tax": stripeTax,
   });
   const config = loadTypeScriptModule("lib/config.ts");
+
+  const mergedPrivateResponse = privateResponse.privateJson(
+    { ok: true },
+    {
+      status: 202,
+      headers: {
+        Vary: "Accept-Encoding, accept-encoding, authorization, COOKIE",
+        "X-Verza-Test": "preserved",
+      },
+    },
+  );
+  assert.equal(mergedPrivateResponse.status, 202);
+  assert.equal(
+    mergedPrivateResponse.headers.get("cache-control"),
+    "private, no-store, max-age=0",
+  );
+  assert.equal(
+    mergedPrivateResponse.headers.get("vary"),
+    "Accept-Encoding, authorization, COOKIE",
+  );
+  assert.equal(mergedPrivateResponse.headers.get("x-verza-test"), "preserved");
+  assert.equal(
+    privateResponse.privateJson({ ok: true }).headers.get("vary"),
+    "Authorization, Cookie",
+  );
+  assert.equal(
+    privateResponse.privateJson(
+      { ok: true },
+      { headers: { Vary: "X-Push-Api-Key" } },
+    ).headers.get("vary"),
+    "X-Push-Api-Key, Authorization, Cookie",
+  );
+  assert.equal(
+    privateResponse.privateJson(
+      { ok: true },
+      { headers: { Vary: "*" } },
+    ).headers.get("vary"),
+    "*",
+  );
 
   assert.equal(stripeTax.SERIES_UNLOCK_TAX_CODE, "txcd_10402000");
   assert.equal(stripeTax.VIP_SUBSCRIPTION_TAX_CODE, "txcd_10402200");
@@ -648,10 +688,50 @@ function runCodeAndCatalogSuite() {
     join(ROOT, "app/api/unlock/confirm/route.ts"),
     "utf8",
   );
+  const privateJsonSource = readFileSync(
+    join(ROOT, "lib/private-json.ts"),
+    "utf8",
+  );
+  const privateAuthenticatedRoutes = [
+    "app/api/account/delete/route.ts",
+    "app/api/unlock/route.ts",
+    "app/api/unlock/confirm/route.ts",
+    "app/api/subscribe/route.ts",
+    "app/api/subscribe/confirm/route.ts",
+    "app/api/billing-portal/route.ts",
+    "app/api/watch-progress/route.ts",
+    "app/api/saved-list/route.ts",
+    "app/api/entitlements/route.ts",
+    "app/api/entitlements/check/route.ts",
+    "app/api/access/route.ts",
+    "app/api/admin/stats/route.ts",
+    "app/api/admin/creators/route.ts",
+    "app/api/admin/review/route.ts",
+    "app/api/creator/me/route.ts",
+    "app/api/creator/content/route.ts",
+    "app/api/creator/content/[id]/route.ts",
+    "app/api/creator/content/[id]/submit/route.ts",
+    "app/api/creator/analytics/route.ts",
+    "app/api/creator/apply/route.ts",
+    "app/api/creator/upload/route.ts",
+    "app/api/push/subscribe/route.ts",
+    "app/api/cron/vip-renewal-reminders/route.ts",
+    "app/api/push/send/route.ts",
+  ].map((relativePath) => [
+    relativePath,
+    readFileSync(join(ROOT, relativePath), "utf8"),
+  ]);
   const subscribeRoute = readFileSync(join(ROOT, "app/api/subscribe/route.ts"), "utf8");
   const billingPortalRoute = readFileSync(
     join(ROOT, "app/api/billing-portal/route.ts"),
     "utf8",
+  );
+  const accountDeleteRoute = readFileSync(
+    join(ROOT, "app/api/account/delete/route.ts"),
+    "utf8",
+  );
+  const accountDeletePost = accountDeleteRoute.slice(
+    accountDeleteRoute.indexOf("export async function POST"),
   );
   const webhookRoute = readFileSync(
     join(ROOT, "app/api/stripe/webhook/route.ts"),
@@ -675,6 +755,10 @@ function runCodeAndCatalogSuite() {
   );
   const renewalCron = readFileSync(
     join(ROOT, "app/api/cron/vip-renewal-reminders/route.ts"),
+    "utf8",
+  );
+  const pushSendRoute = readFileSync(
+    join(ROOT, "app/api/push/send/route.ts"),
     "utf8",
   );
   const paymentCapabilities = readFileSync(
@@ -726,6 +810,19 @@ function runCodeAndCatalogSuite() {
   assert.match(billingPortalRoute, /configuration:\s*configurationId/);
   assert.match(billingPortalRoute, /assertCanonicalBillingPortalConfiguration/);
   assert.match(billingPortalRoute, /Billing account changed/);
+  assert.match(accountDeletePost, /request\.json\(\)/);
+  assert.match(accountDeletePost, /suppliedExpectedUserId !== user\.id/);
+  assert.match(accountDeletePost, /status:\s*409/);
+  assert.ok(
+    accountDeletePost.indexOf("suppliedExpectedUserId !== user.id") <
+      accountDeletePost.indexOf("const supabase = getServiceClient()"),
+    "account identity mismatch must fail before service-client deletion access",
+  );
+  assert.ok(
+    accountDeletePost.indexOf("suppliedExpectedUserId !== user.id") <
+      accountDeletePost.indexOf("deletion_requested_at:"),
+    "account identity mismatch must fail before the deletion marker write",
+  );
   assert.match(unlockRoute, /consent_collection:\s*consentCollection/);
   assert.match(subscribeRoute, /consent_collection:\s*consentCollection/);
   assert.match(unlockRoute, /This is not a subscription and does not renew/);
@@ -746,6 +843,28 @@ function runCodeAndCatalogSuite() {
     "a missing persisted Customer must not be silently replaced",
   );
   assert.match(unlockConfirmRoute, /const belongsToUser = checkoutUserId === user\.id/);
+  assert.match(privateJsonSource, /private, no-store, max-age=0/);
+  assert.match(privateJsonSource, /headers\.get\("Vary"\)/);
+  assert.match(privateJsonSource, /"Authorization",[\s\S]*?"Cookie"/);
+  assert.match(privateJsonSource, /normalizedToken = token\.toLowerCase\(\)/);
+  assert.doesNotMatch(
+    privateJsonSource,
+    /headers\.set\("Vary",\s*"Authorization, Cookie"\)/,
+    "privateJson must merge with existing Vary tokens instead of overwriting them",
+  );
+  assert.match(unlockConfirmRoute, /privateJson\(/);
+  for (const [relativePath, source] of privateAuthenticatedRoutes) {
+    assert.match(
+      source,
+      /privateJson\(/,
+      `${relativePath} must prevent shared caching of account-derived JSON`,
+    );
+    assert.doesNotMatch(
+      source,
+      /(?:Response|NextResponse)\.json\(/,
+      `${relativePath} must not bypass private JSON response headers`,
+    );
+  }
   assert.match(
     unlockConfirmRoute,
     /checkoutCustomerId === profile\.data\.stripe_customer_id/,
@@ -787,6 +906,8 @@ function runCodeAndCatalogSuite() {
   assert.match(renewalCron, /timingSafeEqual/);
   assert.match(renewalCron, /sendAnnualNoticeWithRetries/);
   assert.match(renewalCron, /attempt <= 3/);
+  assert.match(pushSendRoute, /headers\.append\("Vary", "X-Push-Api-Key"\)/);
+  assert.match(pushSendRoute, /return privateJson\(body, \{ \.\.\.init, headers \}\)/);
   assert.match(paymentCapabilities, /await getUser\(\)/);
   assert.match(paymentCapabilities, /stripeCheckoutConsentReadiness/);
   assert.match(paymentCapabilities, /seriesUnlock/);

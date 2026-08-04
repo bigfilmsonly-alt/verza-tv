@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { getCreatorContext } from "@/lib/creator";
+import { privateJson } from "@/lib/private-json";
 import { getServiceClient } from "@/lib/supabase/server";
 import { sendFormNotification } from "@/lib/email";
 
@@ -11,7 +12,7 @@ import { sendFormNotification } from "@/lib/email";
 export async function POST(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const ctx = await getCreatorContext();
-  if (!ctx?.creator) return Response.json({ error: "Unauthorized" }, { status: 401 });
+  if (!ctx?.creator) return privateJson({ error: "Unauthorized" }, { status: 401 });
 
   const supabase = getServiceClient();
   const { data: content } = await supabase
@@ -21,18 +22,18 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
     .eq("creator_id", ctx.creator.id)
     .maybeSingle();
 
-  if (!content) return Response.json({ error: "Not found" }, { status: 404 });
+  if (!content) return privateJson({ error: "Not found" }, { status: 404 });
   if (content.status !== "ready") {
-    return Response.json(
+    return privateJson(
       { error: "Video must finish processing before submitting" },
       { status: 409 },
     );
   }
   if (!content.title || content.title === "Untitled") {
-    return Response.json({ error: "Add a title before submitting" }, { status: 400 });
+    return privateJson({ error: "Add a title before submitting" }, { status: 400 });
   }
   if (content.pricing_type !== "free" && content.price_cents < 99) {
-    return Response.json({ error: "Set a price for paid content" }, { status: 400 });
+    return privateJson({ error: "Set a price for paid content" }, { status: 400 });
   }
 
   const { error } = await supabase
@@ -46,7 +47,7 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
 
   if (error) {
     console.error("[creator/content/submit] failed:", error);
-    return Response.json({ error: "Could not submit" }, { status: 500 });
+    return privateJson({ error: "Could not submit" }, { status: 500 });
   }
 
   sendFormNotification("Creator Content Submitted for Review", ctx.email, {
@@ -55,5 +56,5 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
     pricing: content.pricing_type,
   }).catch(() => {});
 
-  return Response.json({ ok: true, status: "pending_review" });
+  return privateJson({ ok: true, status: "pending_review" });
 }

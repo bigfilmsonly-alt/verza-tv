@@ -43,7 +43,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       : series.posterUrl;
 
     return {
-      title: `${series.title} — ${ep?.title ?? `Episode ${epNum}`} | ${BRAND.name}`,
+      title: `${series.title} — ${ep?.title ?? `Episode ${epNum}`}`,
       description: `Watch ${series.title} on ${BRAND.name}. ${series.logline}`,
       alternates: { canonical: `/c/${slug}` },
       openGraph: {
@@ -61,7 +61,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         images: thumb ? [thumb] : [],
       },
       ...(APP_ID ? { itunes: { appId: APP_ID, appArgument: `verzatv://series/${seriesSlug}/${epNum}` } } : {}),
-      other: { "google-play-app": "app-id=com.verzatv.app" },
     };
   }
 
@@ -73,7 +72,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     : series?.posterUrl;
 
   return {
-    title: `${clip.hookText} | ${series?.title ?? clip.seriesSlug} | ${BRAND.name}`,
+    title: `${clip.hookText} | ${series?.title ?? clip.seriesSlug}`,
     description: `${clip.hookText} — Watch the full episode on ${BRAND.name}.`,
     alternates: { canonical: `/c/${slug}` },
     openGraph: {
@@ -86,7 +85,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     twitter: { card: "summary_large_image", title: clip.hookText, images: thumb ? [thumb] : [] },
     ...(APP_ID ? { itunes: { appId: APP_ID, appArgument: clipAppScheme(clip) } } : {}),
-    other: { "google-play-app": "app-id=com.verzatv.app" },
   };
 }
 
@@ -233,27 +231,6 @@ export default async function ClipPage({ params }: Props) {
             Watch the Full Episode
           </Link>
 
-          {/* App store badges */}
-          <div className="flex items-center justify-center gap-3 mt-3">
-            <span
-              className="text-xs px-3 py-1.5 rounded-lg font-medium"
-              style={{ background: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.7)" }}
-            >
-              Available on iOS
-            </span>
-            <span
-              className="text-xs px-3 py-1.5 rounded-lg font-medium"
-              style={{ background: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.7)" }}
-            >
-              Available on Android
-            </span>
-            <span
-              className="text-xs px-3 py-1.5 rounded-lg font-medium"
-              style={{ background: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.7)" }}
-            >
-              Watch on Web
-            </span>
-          </div>
         </div>
       </div>
 

@@ -68,12 +68,17 @@ export function DarkModeToggle() {
  * Two-step permanent account deletion (Apple App Review 5.1.1(v) requires an
  * in-app path). First tap arms the confirmation; second tap deletes.
  */
-export function DeleteAccountButton() {
+export function DeleteAccountButton({
+  expectedUserId,
+}: {
+  expectedUserId: string | null;
+}) {
   const [confirming, setConfirming] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleDelete() {
+    if (!expectedUserId) return;
     if (!confirming) {
       setConfirming(true);
       setTimeout(() => setConfirming(false), 6000); // disarm after 6s
@@ -82,7 +87,11 @@ export function DeleteAccountButton() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/account/delete", { method: "POST" });
+      const res = await fetch("/api/account/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ expectedUserId }),
+      });
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as { error?: string };
         setError(body.error ?? "Deletion failed — contact support@verzatv.com");
@@ -106,6 +115,8 @@ export function DeleteAccountButton() {
       setConfirming(false);
     }
   }
+
+  if (!expectedUserId) return null;
 
   return (
     <div className="mt-3">

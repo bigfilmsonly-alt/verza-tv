@@ -1,3 +1,5 @@
+import { DISCOVER_CATEGORY_SLUGS } from "@/lib/discover-categories";
+
 export function GET() {
   const baseUrl =
     process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
@@ -15,24 +17,6 @@ export function GET() {
     "forbidden",
   ];
 
-  /* Browse category slugs for /discover/[genre] */
-  const discoverSlugs = [
-    "drama",
-    "new",
-    "popular",
-    "music",
-    "reality",
-    "red-carpet",
-    "romance",
-    "thriller",
-    "comedy",
-    "mystery",
-    "sci-fi",
-    "horror",
-    "crime",
-    "fantasy",
-  ];
-
   const genreUrls = genreSlugs.map(
     (g) => `  <url>
     <loc>${baseUrl}/genre/${g}</loc>
@@ -42,8 +26,7 @@ export function GET() {
   </url>`,
   );
 
-  /* Deduplicate: only add /discover/[slug] if it wasn't already covered by /genre/[slug] */
-  const discoverUrls = discoverSlugs.map(
+  const discoverUrls = DISCOVER_CATEGORY_SLUGS.map(
     (g) => `  <url>
     <loc>${baseUrl}/discover/${g}</loc>
     <lastmod>${now}</lastmod>

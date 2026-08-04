@@ -14,7 +14,7 @@ import {
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
 
 export const metadata: Metadata = {
-  title: `Careers | ${BRAND.name}`,
+  title: "Careers",
   description:
     "Join VERZA TV — a studio and software company in one building. Explore open roles in engineering, production, content, and growth at the vertical micro-drama studio.",
   alternates: { canonical: "/careers" },

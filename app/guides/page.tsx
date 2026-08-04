@@ -8,7 +8,8 @@ import { GUIDES } from "@/lib/data/guides";
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
 
-const PAGE_TITLE = `Microdrama Guides | ${BRAND.name}`;
+const PAGE_TITLE = "Microdrama Guides";
+const SOCIAL_TITLE = `${PAGE_TITLE} | ${BRAND.name}`;
 const PAGE_DESC =
   "Plain-English guides to microdramas and vertical drama: what they are, how to watch, how access models differ, and the history of the format.";
 
@@ -17,7 +18,7 @@ export const metadata: Metadata = {
   description: PAGE_DESC,
   alternates: { canonical: "/guides" },
   openGraph: {
-    title: PAGE_TITLE,
+    title: SOCIAL_TITLE,
     description: PAGE_DESC,
     url: `${BASE_URL}/guides`,
     type: "website",
@@ -25,7 +26,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: PAGE_TITLE,
+    title: SOCIAL_TITLE,
     description: PAGE_DESC,
   },
 };

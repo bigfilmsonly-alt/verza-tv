@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import Stripe from "stripe";
 import { getUser } from "@/lib/auth";
 import { VIP_PLANS } from "@/lib/config";
+import { privateJson } from "@/lib/private-json";
 import { getServiceClient } from "@/lib/supabase/server";
 import { canonicalCheckoutFinancials } from "@/lib/stripe-tax";
 import { stripeCheckoutTermsConsentSatisfied } from "@/lib/stripe-checkout-consent";
@@ -15,11 +16,11 @@ export async function POST(request: NextRequest) {
   try {
     const user = await getUser();
     if (!user) {
-      return Response.json({ vip: false, error: "Authentication required" }, { status: 401 });
+      return privateJson({ vip: false, error: "Authentication required" }, { status: 401 });
     }
     const sessionId = request.nextUrl.searchParams.get("session_id");
     if (!sessionId?.startsWith("cs_")) {
-      return Response.json({ vip: false, error: "Invalid Checkout session" }, { status: 400 });
+      return privateJson({ vip: false, error: "Invalid Checkout session" }, { status: 400 });
     }
 
     const supabase = getServiceClient();
@@ -31,7 +32,7 @@ export async function POST(request: NextRequest) {
       .eq("id", user.id)
       .maybeSingle();
     if (profile.error || !profile.data || profile.data.deletion_requested_at) {
-      return Response.json({ vip: false, error: "Account is unavailable" }, { status: 409 });
+      return privateJson({ vip: false, error: "Account is unavailable" }, { status: 409 });
     }
 
     const session = await stripe.checkout.sessions.retrieve(sessionId);
@@ -60,14 +61,14 @@ export async function POST(request: NextRequest) {
       !subscriptionId ||
       !stripeCheckoutTermsConsentSatisfied(session)
     ) {
-      return Response.json({ vip: false }, { status: 409 });
+      return privateJson({ vip: false }, { status: 409 });
     }
 
     const expected = VIP_PLANS[plan];
     try {
       canonicalCheckoutFinancials(session, expected.cents);
     } catch {
-      return Response.json({ vip: false }, { status: 409 });
+      return privateJson({ vip: false }, { status: 409 });
     }
 
     const subscription = await stripe.subscriptions.retrieve(subscriptionId);
@@ -88,7 +89,7 @@ export async function POST(request: NextRequest) {
       item?.price.recurring?.interval !== expected.interval ||
       item?.price.recurring?.interval_count !== expected.intervalCount
     ) {
-      return Response.json({ vip: false }, { status: 409 });
+      return privateJson({ vip: false }, { status: 409 });
     }
 
     await recordVipCheckoutConsent(supabase, session, subscription);
@@ -104,19 +105,19 @@ export async function POST(request: NextRequest) {
       );
     } catch (error) {
       console.error("[subscribe/confirm] Payment verification refused:", error);
-      return Response.json(
+      return privateJson(
         { vip: false, error: "Subscription payment is unavailable" },
         { status: 409 },
       );
     }
 
-    return Response.json({
+    return privateJson({
       vip: true,
       expiresAt: recovered.expiresAt,
       cancelAtPeriodEnd: recovered.cancelAtPeriodEnd,
     });
   } catch (error) {
     console.error("[subscribe/confirm] Error:", error);
-    return Response.json({ vip: false, error: "Could not confirm subscription" }, { status: 500 });
+    return privateJson({ vip: false, error: "Could not confirm subscription" }, { status: 500 });
   }
 }

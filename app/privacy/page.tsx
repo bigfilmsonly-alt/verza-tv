@@ -4,7 +4,7 @@ import { T } from "@/lib/theme";
 import { BRAND } from "@/lib/config";
 
 export const metadata: Metadata = {
-  title: `Privacy Policy | ${BRAND.name}`,
+  title: "Privacy Policy",
   description:
     "Privacy Policy for VERZA TV. Learn how we collect, use, and protect your personal information.",
   alternates: { canonical: "/privacy" },

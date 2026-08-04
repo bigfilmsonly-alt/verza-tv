@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import Stripe from "stripe";
 import { getSeriesBySlug } from "@/lib/catalog";
 import { getUser } from "@/lib/auth";
+import { privateJson } from "@/lib/private-json";
 import { getServiceClient } from "@/lib/supabase/server";
 import { createCheckoutSessionWithRecovery } from "@/lib/stripe-idempotency";
 import {
@@ -44,10 +45,10 @@ export async function POST(req: NextRequest) {
     try {
       body = await req.json();
     } catch {
-      return Response.json({ error: "Invalid JSON body" }, { status: 400 });
+      return privateJson({ error: "Invalid JSON body" }, { status: 400 });
     }
     if (typeof body !== "object" || body === null || Array.isArray(body)) {
-      return Response.json(
+      return privateJson(
         { error: "Request body must be a JSON object" },
         { status: 400 },
       );
@@ -55,17 +56,17 @@ export async function POST(req: NextRequest) {
     const { seriesSlug, client } = body as Record<string, unknown>;
 
     if (typeof seriesSlug !== "string" || !seriesSlug) {
-      return Response.json({ error: "seriesSlug is required" }, { status: 400 });
+      return privateJson({ error: "seriesSlug is required" }, { status: 400 });
     }
     if (client !== undefined && client !== "native_android") {
-      return Response.json({ error: "Unsupported checkout client" }, { status: 400 });
+      return privateJson({ error: "Unsupported checkout client" }, { status: 400 });
     }
     const nativeAndroid = client === "native_android";
     const hasBearerToken = /^Bearer [^\s]+$/.test(
       req.headers.get("authorization") ?? "",
     );
     if (nativeAndroid && !hasBearerToken) {
-      return Response.json(
+      return privateJson(
         { error: "Native checkout requires Bearer authentication" },
         { status: 401 },
       );
@@ -73,16 +74,16 @@ export async function POST(req: NextRequest) {
 
     const series = getSeriesBySlug(seriesSlug);
     if (!series) {
-      return Response.json({ error: "Series not found" }, { status: 404 });
+      return privateJson({ error: "Series not found" }, { status: 404 });
     }
 
     const user = await getUser();
     if (!user) {
-      return Response.json({ error: "Authentication required" }, { status: 401 });
+      return privateJson({ error: "Authentication required" }, { status: 401 });
     }
 
     if (!isSeriesPurchasable(series)) {
-      return Response.json({ error: "Series is not available for purchase" }, { status: 409 });
+      return privateJson({ error: "Series is not available for purchase" }, { status: 409 });
     }
 
     // Refuse a second checkout for content the verified account already owns.
@@ -98,10 +99,10 @@ export async function POST(req: NextRequest) {
 
     if (entitlementError) {
       console.error("[unlock] Entitlement lookup failed:", entitlementError.message);
-      return Response.json({ error: "Could not verify purchase eligibility" }, { status: 500 });
+      return privateJson({ error: "Could not verify purchase eligibility" }, { status: 500 });
     }
     if (existing) {
-      return Response.json(
+      return privateJson(
         { error: "You already own this series", alreadyOwned: true },
         { status: 409 },
       );
@@ -122,7 +123,7 @@ export async function POST(req: NextRequest) {
       );
     }
     if (profile.data.deletion_requested_at) {
-      return Response.json({ error: "Account deletion is in progress" }, { status: 409 });
+      return privateJson({ error: "Account deletion is in progress" }, { status: 409 });
     }
     const customerId = await ensureStripeCustomer(
       supabase,
@@ -161,7 +162,7 @@ export async function POST(req: NextRequest) {
         priorCheckout.sessionId,
         priorCheckout.reason,
       );
-      return Response.json(
+      return privateJson(
         {
           error: "An earlier checkout is still being resolved. Contact support before trying another payment.",
           paymentReviewRequired: true,
@@ -252,7 +253,7 @@ export async function POST(req: NextRequest) {
     if (
       !(await checkoutAccountStillActive(supabase, stripe, user.id, session))
     ) {
-      return Response.json(
+      return privateJson(
         { error: "Account deletion is in progress" },
         { status: 409 },
       );
@@ -273,7 +274,7 @@ export async function POST(req: NextRequest) {
       !ownsSession ||
       !matchesSeries
     ) {
-      return Response.json(
+      return privateJson(
         { error: "Existing checkout could not be safely used" },
         { status: 409 },
       );
@@ -282,19 +283,19 @@ export async function POST(req: NextRequest) {
     if (session.status === "complete") {
       const paid = session.payment_status === "paid";
       if (!paid) {
-        return Response.json(
+        return privateJson(
           { error: "Existing checkout could not be safely recovered" },
           { status: 409 },
         );
       }
       if (!stripeCheckoutTermsConsentSatisfied(session)) {
-        return Response.json(
+        return privateJson(
           { error: "Checkout Terms acceptance could not be verified" },
           { status: 409 },
         );
       }
       if (!(await hasUnrefundedSeriesPayment(stripe, session))) {
-        return Response.json(
+        return privateJson(
           { error: "This payment is refunded or disputed" },
           { status: 409 },
         );
@@ -328,7 +329,7 @@ export async function POST(req: NextRequest) {
         series.slug,
       );
 
-      return Response.json({
+      return privateJson({
         url: `${successUrl}?session_id=${encodeURIComponent(session.id)}`,
         sessionId: session.id,
         recovered: true,
@@ -339,9 +340,9 @@ export async function POST(req: NextRequest) {
       throw new Error(`Checkout ${session.id} has no usable URL`);
     }
 
-    return Response.json({ url: session.url, sessionId: session.id });
+    return privateJson({ url: session.url, sessionId: session.id });
   } catch (err) {
     console.error("[unlock] Error:", err);
-    return Response.json({ error: "Failed to create checkout session" }, { status: 500 });
+    return privateJson({ error: "Failed to create checkout session" }, { status: 500 });
   }
 }

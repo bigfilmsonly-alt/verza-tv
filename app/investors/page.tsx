@@ -14,7 +14,7 @@ import {
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
 
 export const metadata: Metadata = {
-  title: `Investor Relations | ${BRAND.name}`,
+  title: "Investor Relations",
   description:
     "VERZA TV investor relations: company overview, traction, and the market thesis for vertical micro-drama — a vertically integrated American entertainment studio.",
   alternates: { canonical: "/investors" },

@@ -5,7 +5,6 @@ import Image from "next/image";
 import JsonLd from "@/components/JsonLd";
 import { itemListSchema, breadcrumbSchema } from "@/lib/schemas";
 import { T } from "@/lib/theme";
-import { BRAND } from "@/lib/config";
 import { getLiveSeries } from "@/lib/catalog";
 import { GENRE_HUBS, getGenreHub } from "@/lib/content/genres";
 
@@ -23,7 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!genre) return { title: "Not Found" };
 
   return {
-    title: `${genre.name} Shows | ${BRAND.name}`,
+    title: `${genre.name} Shows`,
     description: genre.description,
     alternates: { canonical: `/genres/${slug}` },
     robots: { index: genre.editorialApproved, follow: true },

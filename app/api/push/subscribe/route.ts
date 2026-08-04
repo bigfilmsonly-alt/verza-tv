@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { getUser } from "@/lib/auth";
+import { privateJson } from "@/lib/private-json";
 import { getServiceClient } from "@/lib/supabase/server";
 
 /**
@@ -13,43 +14,43 @@ export async function POST(req: NextRequest) {
   try {
     body = await req.json();
   } catch {
-    return Response.json({ error: "Invalid JSON body" }, { status: 400 });
+    return privateJson({ error: "Invalid JSON body" }, { status: 400 });
   }
 
   // --- Input validation ---
   if (typeof body !== "object" || body === null || Array.isArray(body)) {
-    return Response.json({ error: "Request body must be a JSON object" }, { status: 400 });
+    return privateJson({ error: "Request body must be a JSON object" }, { status: 400 });
   }
 
   const { endpoint, keys } = body as Record<string, unknown>;
 
   if (typeof endpoint !== "string" || !endpoint) {
-    return Response.json({ error: "endpoint must be a non-empty string" }, { status: 400 });
+    return privateJson({ error: "endpoint must be a non-empty string" }, { status: 400 });
   }
   try {
     const parsed = new URL(endpoint);
     if (parsed.protocol !== "https:") {
-      return Response.json({ error: "endpoint must be an HTTPS URL" }, { status: 400 });
+      return privateJson({ error: "endpoint must be an HTTPS URL" }, { status: 400 });
     }
   } catch {
-    return Response.json({ error: "endpoint must be a valid URL" }, { status: 400 });
+    return privateJson({ error: "endpoint must be a valid URL" }, { status: 400 });
   }
   if (endpoint.length > 2000) {
-    return Response.json({ error: "endpoint must be at most 2000 characters" }, { status: 400 });
+    return privateJson({ error: "endpoint must be at most 2000 characters" }, { status: 400 });
   }
 
   if (typeof keys !== "object" || keys === null || Array.isArray(keys)) {
-    return Response.json({ error: "keys must be an object with p256dh and auth" }, { status: 400 });
+    return privateJson({ error: "keys must be an object with p256dh and auth" }, { status: 400 });
   }
   const { p256dh, auth } = keys as Record<string, unknown>;
   if (typeof p256dh !== "string" || !p256dh) {
-    return Response.json({ error: "keys.p256dh must be a non-empty string" }, { status: 400 });
+    return privateJson({ error: "keys.p256dh must be a non-empty string" }, { status: 400 });
   }
   if (typeof auth !== "string" || !auth) {
-    return Response.json({ error: "keys.auth must be a non-empty string" }, { status: 400 });
+    return privateJson({ error: "keys.auth must be a non-empty string" }, { status: 400 });
   }
   if (p256dh.length > 500 || auth.length > 500) {
-    return Response.json({ error: "keys.p256dh and keys.auth must be at most 500 characters each" }, { status: 400 });
+    return privateJson({ error: "keys.p256dh and keys.auth must be at most 500 characters each" }, { status: 400 });
   }
 
   const supabase = getServiceClient();
@@ -66,10 +67,10 @@ export async function POST(req: NextRequest) {
 
   if (error) {
     console.error("[push/subscribe] Upsert error:", error);
-    return Response.json({ error: "Failed to save subscription" }, { status: 500 });
+    return privateJson({ error: "Failed to save subscription" }, { status: 500 });
   }
 
-  return Response.json({ subscribed: true });
+  return privateJson({ subscribed: true });
 }
 
 /**
@@ -81,25 +82,25 @@ export async function DELETE(req: NextRequest) {
   try {
     body = await req.json();
   } catch {
-    return Response.json({ error: "Invalid JSON body" }, { status: 400 });
+    return privateJson({ error: "Invalid JSON body" }, { status: 400 });
   }
 
   const { endpoint } = body as Record<string, unknown>;
 
   // --- Input validation ---
   if (typeof endpoint !== "string" || !endpoint) {
-    return Response.json({ error: "endpoint must be a non-empty string" }, { status: 400 });
+    return privateJson({ error: "endpoint must be a non-empty string" }, { status: 400 });
   }
   try {
     const parsed = new URL(endpoint);
     if (parsed.protocol !== "https:") {
-      return Response.json({ error: "endpoint must be an HTTPS URL" }, { status: 400 });
+      return privateJson({ error: "endpoint must be an HTTPS URL" }, { status: 400 });
     }
   } catch {
-    return Response.json({ error: "endpoint must be a valid URL" }, { status: 400 });
+    return privateJson({ error: "endpoint must be a valid URL" }, { status: 400 });
   }
   if (endpoint.length > 2000) {
-    return Response.json({ error: "endpoint must be at most 2000 characters" }, { status: 400 });
+    return privateJson({ error: "endpoint must be at most 2000 characters" }, { status: 400 });
   }
 
   const supabase = getServiceClient();
@@ -110,8 +111,8 @@ export async function DELETE(req: NextRequest) {
 
   if (error) {
     console.error("[push/subscribe] Delete error:", error);
-    return Response.json({ error: "Failed to remove subscription" }, { status: 500 });
+    return privateJson({ error: "Failed to remove subscription" }, { status: 500 });
   }
 
-  return Response.json({ removed: true });
+  return privateJson({ removed: true });
 }

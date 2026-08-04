@@ -54,7 +54,7 @@ const FAQ_ITEMS = [
 ];
 
 export const metadata: Metadata = {
-  title: `Help & FAQ | ${BRAND.name}`,
+  title: "Help & FAQ",
   description:
     "Help with VERZA TV viewing, account access, purchases, subscriptions, supported devices, and account deletion.",
   alternates: { canonical: "/help" },

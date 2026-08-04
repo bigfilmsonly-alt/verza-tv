@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { getSeriesBySlug } from "@/lib/catalog";
 import { checkVipStatus } from "@/lib/vip";
 import { getUser } from "@/lib/auth";
 import { getServiceClient } from "@/lib/supabase/server";
+import { privateJson } from "@/lib/private-json";
 
 type EntitlementReason = "free" | "purchased" | "season_pass" | "vip";
 
@@ -20,7 +21,7 @@ export async function GET(request: NextRequest) {
   const epNum = parseInt(epStr || "", 10);
 
   if (!series || isNaN(epNum) || epNum < 1) {
-    return NextResponse.json(
+    return privateJson(
       { error: "Missing or invalid series/episode params" },
       { status: 400 },
     );
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest) {
 
   const catalogSeries = getSeriesBySlug(series);
   if (!catalogSeries || catalogSeries.status !== "live" || epNum > catalogSeries.episodeCount) {
-    return NextResponse.json(
+    return privateJson(
       { error: "Series or episode not found" },
       { status: 404 },
     );
@@ -43,7 +44,7 @@ export async function GET(request: NextRequest) {
       series,
       episode: epNum,
     };
-    return NextResponse.json(res);
+    return privateJson(res);
   }
 
   // VIP check: if user is VIP, all episodes are entitled
@@ -55,7 +56,7 @@ export async function GET(request: NextRequest) {
       series,
       episode: epNum,
     };
-    return NextResponse.json(res);
+    return privateJson(res);
   }
 
   // Check if user has purchased this series
@@ -75,7 +76,7 @@ export async function GET(request: NextRequest) {
         series,
         episode: epNum,
       };
-      return NextResponse.json(res);
+      return privateJson(res);
     }
   }
 
@@ -85,5 +86,5 @@ export async function GET(request: NextRequest) {
     series,
     episode: epNum,
   };
-  return NextResponse.json(res);
+  return privateJson(res);
 }

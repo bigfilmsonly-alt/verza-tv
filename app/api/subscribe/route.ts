@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import Stripe from "stripe";
 import { VIP_PLANS } from "@/lib/config";
 import { getUser } from "@/lib/auth";
+import { privateJson } from "@/lib/private-json";
 import { getServiceClient } from "@/lib/supabase/server";
 import { createCheckoutSessionWithRecovery } from "@/lib/stripe-idempotency";
 import {
@@ -115,11 +116,11 @@ export async function POST(req: NextRequest) {
     try {
       body = await req.json();
     } catch {
-      return Response.json({ error: "Invalid JSON body" }, { status: 400 });
+      return privateJson({ error: "Invalid JSON body" }, { status: 400 });
     }
 
     if (typeof body !== "object" || body === null || Array.isArray(body)) {
-      return Response.json(
+      return privateJson(
         { error: "Request body must be a JSON object" },
         { status: 400 },
       );
@@ -127,19 +128,19 @@ export async function POST(req: NextRequest) {
 
     const { plan, client } = body as Record<string, unknown>;
     if (plan !== "monthly" && plan !== "yearly") {
-      return Response.json(
+      return privateJson(
         { error: 'Invalid plan. Must be "monthly" or "yearly".' },
         { status: 400 },
       );
     }
     if (client !== undefined && client !== "native_android") {
-      return Response.json({ error: "Unsupported checkout client" }, { status: 400 });
+      return privateJson({ error: "Unsupported checkout client" }, { status: 400 });
     }
     try {
       assertVipCheckoutReleaseReady(plan);
     } catch (error) {
       console.error("[subscribe] Release gate refused Checkout:", error);
-      return Response.json(
+      return privateJson(
         { error: "This VIP plan is not currently available" },
         { status: 503 },
       );
@@ -149,7 +150,7 @@ export async function POST(req: NextRequest) {
       req.headers.get("authorization") ?? "",
     );
     if (nativeAndroid && !hasBearerToken) {
-      return Response.json(
+      return privateJson(
         { error: "Native checkout requires Bearer authentication" },
         { status: 401 },
       );
@@ -157,7 +158,7 @@ export async function POST(req: NextRequest) {
 
     const user = await getUser();
     if (!user) {
-      return Response.json({ error: "Authentication required" }, { status: 401 });
+      return privateJson({ error: "Authentication required" }, { status: 401 });
     }
 
     const selected = VIP_PLANS[plan];
@@ -191,13 +192,13 @@ export async function POST(req: NextRequest) {
         "[subscribe] Profile lookup failed:",
         profileError?.message ?? "missing profile",
       );
-      return Response.json(
+      return privateJson(
         { error: "Could not verify subscription eligibility" },
         { status: 500 },
       );
     }
     if (profile.deletion_requested_at) {
-      return Response.json({ error: "Account deletion is in progress" }, { status: 409 });
+      return privateJson({ error: "Account deletion is in progress" }, { status: 409 });
     }
 
     const vipStillCurrent =
@@ -205,7 +206,7 @@ export async function POST(req: NextRequest) {
       (!profile.vip_expires_at ||
         new Date(profile.vip_expires_at) >= new Date());
     if (vipStillCurrent) {
-      return Response.json(
+      return privateJson(
         {
           error: "You already have an active VIP subscription",
           alreadySubscribed: true,
@@ -241,20 +242,20 @@ export async function POST(req: NextRequest) {
         checkoutCustomerId = subscriptionCustomerId(existing);
         if (ACTIVE_SUBSCRIPTION_STATUSES.has(existing.status)) {
           if (profile.vip_payment_blocked) {
-            return Response.json(
+            return privateJson(
               { error: "VIP access is unavailable while a payment is under review" },
               { status: 409 },
             );
           }
           await activateExistingSubscription(supabase, user.id, existing);
-          return Response.json({
+          return privateJson({
             url: successUrl,
             recovered: true,
             alreadySubscribed: true,
           });
         }
         if (BLOCKING_SUBSCRIPTION_STATUSES.has(existing.status)) {
-          return Response.json(
+          return privateJson(
             {
               error: `Your existing VIP subscription is ${existing.status}`,
               alreadySubscribed: true,
@@ -299,13 +300,13 @@ export async function POST(req: NextRequest) {
             profile.vip_payment_blocked &&
             active.id === profile.stripe_subscription_id
           ) {
-            return Response.json(
+            return privateJson(
               { error: "VIP access is unavailable while a payment is under review" },
               { status: 409 },
             );
           }
           await activateExistingSubscription(supabase, user.id, active);
-          return Response.json({
+          return privateJson({
             url: successUrl,
             recovered: true,
             alreadySubscribed: true,
@@ -316,7 +317,7 @@ export async function POST(req: NextRequest) {
         );
         if (blocking) {
           assertSubscriptionOwner(blocking, user.id);
-          return Response.json(
+          return privateJson(
             {
               error: `Your existing VIP subscription is ${blocking.status}`,
               alreadySubscribed: true,
@@ -431,7 +432,7 @@ export async function POST(req: NextRequest) {
     if (
       !(await checkoutAccountStillActive(supabase, stripe, user.id, session))
     ) {
-      return Response.json(
+      return privateJson(
         { error: "Account deletion is in progress" },
         { status: 409 },
       );
@@ -455,7 +456,7 @@ export async function POST(req: NextRequest) {
         !subscriptionId ||
         !stripeCheckoutTermsConsentSatisfied(session)
       ) {
-        return Response.json(
+        return privateJson(
           { error: "Existing checkout could not be safely recovered" },
           { status: 409 },
         );
@@ -469,7 +470,7 @@ export async function POST(req: NextRequest) {
       }
       await recordVipCheckoutConsent(supabase, session, subscription);
       await activateExistingSubscription(supabase, user.id, subscription);
-      return Response.json({
+      return privateJson({
         url: successUrl,
         sessionId: session.id,
         recovered: true,
@@ -480,10 +481,10 @@ export async function POST(req: NextRequest) {
     if (!session.url) {
       throw new Error(`Checkout ${session.id} has no usable URL`);
     }
-    return Response.json({ url: session.url, sessionId: session.id });
+    return privateJson({ url: session.url, sessionId: session.id });
   } catch (error) {
     console.error("[subscribe] Error:", error);
-    return Response.json(
+    return privateJson(
       { error: "Failed to create subscription checkout" },
       { status: 500 },
     );

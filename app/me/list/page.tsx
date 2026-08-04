@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { T } from "@/lib/theme";
-import { BRAND } from "@/lib/config";
 
 export const metadata: Metadata = {
-  title: `My List | ${BRAND.name}`,
+  title: "My List",
   description: "Your saved shows and watchlist on VERZA TV.",
 };
 

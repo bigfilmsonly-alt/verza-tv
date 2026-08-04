@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = getProductBySlug(slug);
   if (!product) return { title: "Not Found" };
   return {
-    title: `${product.name} | VERZA TV Shop`,
+    title: `${product.name} — Shop`,
     description: `Get the ${product.name} for $${product.price.toFixed(2)}`,
   };
 }

@@ -6,7 +6,7 @@ import { signInAction } from "@/app/actions/auth";
 import OAuthButtons from "@/components/OAuthButtons";
 
 export const metadata: Metadata = {
-  title: `Sign In | ${BRAND.name}`,
+  title: "Sign In",
   description: `Sign in to ${BRAND.name} to access your library, purchases, and personalized recommendations.`,
   alternates: { canonical: "/sign-in" },
 };

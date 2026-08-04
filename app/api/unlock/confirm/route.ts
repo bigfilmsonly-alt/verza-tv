@@ -14,6 +14,7 @@ import {
   grantSeriesEntitlementForPurchase,
   recordRecoveredSeriesPurchase,
 } from "@/lib/series-purchase-ledger";
+import { privateJson } from "@/lib/private-json";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -40,13 +41,13 @@ export async function GET(request: NextRequest) {
   try {
     const user = await getUser();
     if (!user) {
-      return Response.json({ full: false }, { status: 401 });
+      return privateJson({ full: false }, { status: 401 });
     }
 
     const sessionId = request.nextUrl.searchParams.get("session_id");
     const slug = request.nextUrl.searchParams.get("slug");
     if (!sessionId || !slug || !sessionId.startsWith("cs_")) {
-      return Response.json({ full: false });
+      return privateJson({ full: false });
     }
 
     const supabase = getServiceClient();
@@ -60,7 +61,7 @@ export async function GET(request: NextRequest) {
       !profile.data ||
       profile.data.deletion_requested_at
     ) {
-      return Response.json({ full: false }, { status: 409 });
+      return privateJson({ full: false }, { status: 409 });
     }
 
     const session = await stripe.checkout.sessions.retrieve(sessionId);
@@ -105,7 +106,7 @@ export async function GET(request: NextRequest) {
       !canonicalPurchase ||
       !stripeCheckoutTermsConsentSatisfied(session)
     ) {
-      return Response.json({ full: false });
+      return privateJson({ full: false });
     }
 
     const paymentState = await getSeriesPaymentState(stripe, session);
@@ -114,7 +115,7 @@ export async function GET(request: NextRequest) {
         "[unlock/confirm] Refused refunded/disputed entitlement recovery:",
         session.id,
       );
-      return Response.json({ full: false }, { status: 409 });
+      return privateJson({ full: false }, { status: 409 });
     }
 
     const purchaseId = await recordRecoveredSeriesPurchase(
@@ -132,7 +133,7 @@ export async function GET(request: NextRequest) {
       .is("deletion_requested_at", null)
       .maybeSingle();
     if (stillActive.error || !stillActive.data) {
-      return Response.json({ full: false }, { status: 409 });
+      return privateJson({ full: false }, { status: 409 });
     }
 
     try {
@@ -144,11 +145,11 @@ export async function GET(request: NextRequest) {
       );
     } catch (error) {
       console.error("[unlock/confirm] Entitlement write failed:", error);
-      return Response.json({ full: false }, { status: 500 });
+      return privateJson({ full: false }, { status: 500 });
     }
 
-    return Response.json({ full: true });
+    return privateJson({ full: true });
   } catch {
-    return Response.json({ full: false });
+    return privateJson({ full: false });
   }
 }

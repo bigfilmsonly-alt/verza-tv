@@ -4,7 +4,7 @@ import { T } from "@/lib/theme";
 import { BRAND } from "@/lib/config";
 
 export const metadata: Metadata = {
-  title: `Support | ${BRAND.name}`,
+  title: "Support",
   description:
     "Get help with VERZA TV playback, purchases, VIP subscriptions, refunds, and account questions.",
   alternates: { canonical: "/support" },

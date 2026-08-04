@@ -1,5 +1,6 @@
 import { getCreatorContext } from "@/lib/creator";
 import { muxConfigured } from "@/lib/mux-upload";
+import { privateJson } from "@/lib/private-json";
 
 /**
  * GET /api/creator/me
@@ -10,9 +11,9 @@ import { muxConfigured } from "@/lib/mux-upload";
 export async function GET() {
   const ctx = await getCreatorContext();
   if (!ctx) {
-    return Response.json({ authenticated: false }, { status: 401 });
+    return privateJson({ authenticated: false }, { status: 401 });
   }
-  return Response.json({
+  return privateJson({
     authenticated: true,
     email: ctx.email,
     muxReady: muxConfigured(),

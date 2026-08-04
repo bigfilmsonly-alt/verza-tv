@@ -1,4 +1,5 @@
 import { getCreatorContext } from "@/lib/creator";
+import { privateJson } from "@/lib/private-json";
 import { getServiceClient } from "@/lib/supabase/server";
 
 /**
@@ -10,7 +11,7 @@ import { getServiceClient } from "@/lib/supabase/server";
  */
 export async function GET() {
   const ctx = await getCreatorContext();
-  if (!ctx?.creator) return Response.json({ error: "Unauthorized" }, { status: 401 });
+  if (!ctx?.creator) return privateJson({ error: "Unauthorized" }, { status: 401 });
 
   const supabase = getServiceClient();
 
@@ -76,7 +77,7 @@ export async function GET() {
     })
     .sort((a, b) => b.creatorCents - a.creatorCents || b.views - a.views);
 
-  return Response.json({
+  return privateJson({
     payoutSplit: ctx.creator.payout_split,
     payoutEmail: ctx.creator.payout_email,
     totals: {

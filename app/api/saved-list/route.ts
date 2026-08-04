@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { getUser } from "@/lib/auth";
 import { getServiceClient } from "@/lib/supabase/server";
 import { getSeriesBySlug } from "@/lib/catalog";
+import { privateJson } from "@/lib/private-json";
 
 /**
  * GET /api/saved-list — list all saved series for current user
@@ -9,7 +10,7 @@ import { getSeriesBySlug } from "@/lib/catalog";
 export async function GET() {
   const user = await getUser();
   if (!user) {
-    return Response.json({ items: [] });
+    return privateJson({ items: [] });
   }
 
   const supabase = getServiceClient();
@@ -21,7 +22,7 @@ export async function GET() {
 
   if (error) {
     console.error("[saved-list] List error:", error);
-    return Response.json({ items: [] });
+    return privateJson({ items: [] });
   }
 
   const items = (data ?? []).map((row) => {
@@ -36,7 +37,7 @@ export async function GET() {
     };
   });
 
-  return Response.json({ items });
+  return privateJson({ items });
 }
 
 /**
@@ -46,27 +47,27 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   const user = await getUser();
   if (!user) {
-    return Response.json({ error: "Not signed in" }, { status: 401 });
+    return privateJson({ error: "Not signed in" }, { status: 401 });
   }
 
   let body: unknown;
   try {
     body = await req.json();
   } catch {
-    return Response.json({ error: "Invalid JSON body" }, { status: 400 });
+    return privateJson({ error: "Invalid JSON body" }, { status: 400 });
   }
 
   const { seriesSlug } = body as Record<string, unknown>;
 
   // --- Input validation ---
   if (typeof seriesSlug !== "string" || !seriesSlug) {
-    return Response.json({ error: "seriesSlug must be a non-empty string" }, { status: 400 });
+    return privateJson({ error: "seriesSlug must be a non-empty string" }, { status: 400 });
   }
   if (seriesSlug.length > 100) {
-    return Response.json({ error: "seriesSlug must be at most 100 characters" }, { status: 400 });
+    return privateJson({ error: "seriesSlug must be at most 100 characters" }, { status: 400 });
   }
   if (!/^[a-z0-9-]+$/.test(seriesSlug)) {
-    return Response.json({ error: "seriesSlug must contain only lowercase letters, digits, and hyphens" }, { status: 400 });
+    return privateJson({ error: "seriesSlug must contain only lowercase letters, digits, and hyphens" }, { status: 400 });
   }
 
   const supabase = getServiceClient();
@@ -83,10 +84,10 @@ export async function POST(req: NextRequest) {
 
   if (error) {
     console.error("[saved-list] Save error:", error);
-    return Response.json({ error: "Failed to save" }, { status: 500 });
+    return privateJson({ error: "Failed to save" }, { status: 500 });
   }
 
-  return Response.json({ saved: true });
+  return privateJson({ saved: true });
 }
 
 /**
@@ -96,27 +97,27 @@ export async function POST(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   const user = await getUser();
   if (!user) {
-    return Response.json({ error: "Not signed in" }, { status: 401 });
+    return privateJson({ error: "Not signed in" }, { status: 401 });
   }
 
   let body: unknown;
   try {
     body = await req.json();
   } catch {
-    return Response.json({ error: "Invalid JSON body" }, { status: 400 });
+    return privateJson({ error: "Invalid JSON body" }, { status: 400 });
   }
 
   const { seriesSlug } = body as Record<string, unknown>;
 
   // --- Input validation ---
   if (typeof seriesSlug !== "string" || !seriesSlug) {
-    return Response.json({ error: "seriesSlug must be a non-empty string" }, { status: 400 });
+    return privateJson({ error: "seriesSlug must be a non-empty string" }, { status: 400 });
   }
   if (seriesSlug.length > 100) {
-    return Response.json({ error: "seriesSlug must be at most 100 characters" }, { status: 400 });
+    return privateJson({ error: "seriesSlug must be at most 100 characters" }, { status: 400 });
   }
   if (!/^[a-z0-9-]+$/.test(seriesSlug)) {
-    return Response.json({ error: "seriesSlug must contain only lowercase letters, digits, and hyphens" }, { status: 400 });
+    return privateJson({ error: "seriesSlug must contain only lowercase letters, digits, and hyphens" }, { status: 400 });
   }
 
   const supabase = getServiceClient();
@@ -128,8 +129,8 @@ export async function DELETE(req: NextRequest) {
 
   if (error) {
     console.error("[saved-list] Delete error:", error);
-    return Response.json({ error: "Failed to remove" }, { status: 500 });
+    return privateJson({ error: "Failed to remove" }, { status: 500 });
   }
 
-  return Response.json({ removed: true });
+  return privateJson({ removed: true });
 }

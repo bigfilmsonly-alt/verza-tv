@@ -9,7 +9,7 @@ import { LEADERSHIP } from "@/lib/data/company";
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
 
 export const metadata: Metadata = {
-  title: `Leadership | ${BRAND.name}`,
+  title: "Leadership",
   description:
     "Meet the VERZA TV leadership team, led by founder Alan Mruvka, co-founder of E! Entertainment Television, building a vertically integrated micro-drama studio.",
   alternates: { canonical: "/leadership" },
