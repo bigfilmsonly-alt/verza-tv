@@ -1,10 +1,14 @@
-export function getSignedPlaybackUrl(videoId: string): string {
-  const keyId = process.env.MUX_SIGNING_KEY_ID;
-  const keySecret = process.env.MUX_SIGNING_KEY_SECRET;
-  if (!keyId || !keySecret) {
-    // Stub: return a placeholder when Mux keys aren't configured
-    return `https://stream.mux.com/${videoId}.m3u8`;
-  }
-  // Real signing would go here with @mux/mux-node JWT signing
-  return `https://stream.mux.com/${videoId}.m3u8?token=signed`;
-}
+import "server-only";
+
+/**
+ * Compatibility entry point. New catalog playback code uses
+ * `lib/mux-playback.ts`; this module intentionally exposes no synchronous or
+ * unsigned "signed URL" stub.
+ */
+export {
+  MuxPlaybackConfigurationError,
+  SIGNED_PLAYBACK_TTL_SECONDS,
+  getPaidPlaybackDelivery,
+  getPublicPlaybackDelivery,
+  signedCatalogPlaybackEnabled,
+} from "@/lib/mux-playback";

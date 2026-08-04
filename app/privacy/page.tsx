@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/privacy" },
 };
 
-const LAST_UPDATED = "July 10, 2026";
+const LAST_UPDATED = "August 3, 2026";
 
 const sectionHeading = {
   color: T.text,
@@ -57,13 +57,13 @@ export default function PrivacyPage() {
         {/* Introduction */}
         <div>
           <p className="text-sm leading-relaxed" style={bodyText}>
-            {BRAND.name} (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;)
-            is committed to protecting your privacy. This Privacy Policy
-            explains how we collect, use, disclose, and safeguard your
-            information when you use our mobile application, website, and
-            related services (collectively, the &quot;Service&quot;). Please
-            read this policy carefully. By using the Service, you consent to
-            the practices described herein.
+            VERZA TV LLC, doing business as {BRAND.name} (&quot;we,&quot;
+            &quot;us,&quot; or &quot;our&quot;), is committed to protecting your
+            privacy. This Privacy Policy explains how we collect, use,
+            disclose, and safeguard your information when you use our mobile
+            application, website, and related services (collectively, the
+            &quot;Service&quot;). Please read this policy carefully so you
+            understand our practices and the choices available to you.
           </p>
         </div>
 
@@ -83,20 +83,34 @@ export default function PrivacyPage() {
               <ul className="list-disc pl-5 flex flex-col gap-1.5">
                 <li className="text-sm leading-relaxed" style={bodyText}>
                   <strong style={{ color: T.text }}>Account Information:</strong>{" "}
-                  Name, email address, password, and profile details when you
-                  create an account.
+                  Display name, email address, authentication credentials, and
+                  profile details when you create or use an account.
                 </li>
                 <li className="text-sm leading-relaxed" style={bodyText}>
                   <strong style={{ color: T.text }}>Purchase Information:</strong>{" "}
-                  Transaction details related to series unlock purchases and
-                  subscription payments. Payment card information is processed
-                  by third-party payment processors and is not stored on our
-                  servers.
+                  Transaction and entitlement details related to Series
+                  Unlocks, VIP subscriptions, and physical merchandise.
+                  Payment card information is entered with Stripe outside the
+                  native app and is not stored on our servers. Limited legacy
+                  purchase-recovery records may remain keyed to the checkout
+                  email when a historical purchase was never linked to an
+                  authenticated account. For VIP, we also retain the accepted
+                  Terms version and provider identifiers, plus a delivery
+                  record for required billing notices. That notice record uses
+                  a one-way digest of the recipient email rather than storing
+                  the address again.
                 </li>
                 <li className="text-sm leading-relaxed" style={bodyText}>
                   <strong style={{ color: T.text }}>Communications:</strong>{" "}
                   Information you provide when contacting customer support or
                   communicating with us.
+                </li>
+                <li className="text-sm leading-relaxed" style={bodyText}>
+                  <strong style={{ color: T.text }}>Creator Information:</strong>{" "}
+                  If you apply to the Creator Program, information in your
+                  application and materials you choose to submit, such as
+                  contact details, portfolio links, project information, and
+                  payout details.
                 </li>
               </ul>
             </div>
@@ -110,18 +124,21 @@ export default function PrivacyPage() {
               <ul className="list-disc pl-5 flex flex-col gap-1.5">
                 <li className="text-sm leading-relaxed" style={bodyText}>
                   <strong style={{ color: T.text }}>Device Information:</strong>{" "}
-                  Device type, operating system, unique device identifiers, and
-                  mobile network information.
+                  Device type, operating system, app or browser version, IP
+                  address, request timestamps, and diagnostic information
+                  generated when the Service is used.
                 </li>
                 <li className="text-sm leading-relaxed" style={bodyText}>
                   <strong style={{ color: T.text }}>Usage Data:</strong>{" "}
-                  Viewing history, episodes watched, watch time, interactions,
-                  search queries, and feature usage patterns.
+                  Watch progress, saved titles, episodes viewed, interactions,
+                  and, on the website and Android app, search and feature-usage
+                  events. The iOS app does not create a persistent analytics
+                  identifier or send first-party analytics events.
                 </li>
                 <li className="text-sm leading-relaxed" style={bodyText}>
-                  <strong style={{ color: T.text }}>Log Data:</strong> IP
-                  address, browser type, referring/exit pages, timestamps, and
-                  clickstream data.
+                  <strong style={{ color: T.text }}>Log Data:</strong> Browser
+                  type, referring page, request and error records, and security
+                  logs created by our hosting and service providers.
                 </li>
               </ul>
             </div>
@@ -138,18 +155,19 @@ export default function PrivacyPage() {
               Provide, maintain, and improve the Service.
             </li>
             <li className="text-sm leading-relaxed" style={bodyText}>
-              Process transactions and manage your account, including purchase
-              balances and subscription status.
+              Process transactions and manage your account, entitlements, and
+              subscription status.
             </li>
             <li className="text-sm leading-relaxed" style={bodyText}>
-              Personalize your experience, including content recommendations.
+              Sync your saved list and watch progress across signed-in devices.
             </li>
             <li className="text-sm leading-relaxed" style={bodyText}>
               Send you transactional communications (purchase receipts, account
               notifications) and, with your consent, promotional messages.
             </li>
             <li className="text-sm leading-relaxed" style={bodyText}>
-              Analyze usage patterns to improve content and features.
+              On the website and Android app, analyze usage patterns to improve
+              content and features.
             </li>
             <li className="text-sm leading-relaxed" style={bodyText}>
               Detect, prevent, and address fraud, abuse, and security issues.
@@ -166,30 +184,30 @@ export default function PrivacyPage() {
             3. How We Share Your Information
           </h2>
           <p className="text-sm leading-relaxed mb-3" style={bodyText}>
-            We do not sell your personal information for money. Some
-            third-party advertising integrations may involve &quot;sharing&quot;
-            for cross-context behavioral advertising as defined by California
-            law — you can opt out as described in Section 12. We may share
-            your information in the following circumstances:
+            We do not sell your personal information for money. Our website may
+            use advertising technologies that qualify as &quot;sharing&quot; for
+            cross-context behavioral advertising under some laws; the native
+            iOS app does not use data for tracking across other companies&apos;
+            apps or websites. We disclose information in the following limited
+            circumstances:
           </p>
           <ul className="list-disc pl-5 flex flex-col gap-1.5">
             <li className="text-sm leading-relaxed" style={bodyText}>
               <strong style={{ color: T.text }}>Service Providers:</strong>{" "}
               With third-party vendors who assist in operating the Service.
               These currently include: <strong style={{ color: T.text }}>Stripe</strong>{" "}
-              (payment processing), <strong style={{ color: T.text }}>Supabase</strong>{" "}
-              (account authentication and database hosting),{" "}
-              <strong style={{ color: T.text }}>Mux</strong> (video streaming and
-              playback analytics), <strong style={{ color: T.text }}>Vercel</strong>{" "}
-              (application hosting and performance analytics), and{" "}
-              <strong style={{ color: T.text }}>Google</strong> (analytics and
-              advertising services), and{" "}
-              <strong style={{ color: T.text }}>Resend</strong> (transactional
-              email delivery), and <strong style={{ color: T.text }}>Anthropic</strong>{" "}
-              (AI features, where you submit text to AI-powered tools). Each provider is contractually required to
-              protect your information with safeguards that are the same as or
-              equal to those described in this policy, and may only use it to
-              provide services to us.
+              (external checkout and payment processing),{" "}
+              <strong style={{ color: T.text }}>Supabase</strong> (account
+              authentication and database hosting),{" "}
+              <strong style={{ color: T.text }}>Mux</strong> (video delivery and
+              playback operations), <strong style={{ color: T.text }}>Vercel</strong>{" "}
+              (website and API hosting and performance),{" "}
+              <strong style={{ color: T.text }}>Google</strong> (website-only
+              analytics and advertising),{" "}
+              and <strong style={{ color: T.text }}>Resend</strong>{" "}
+              (transactional email delivery). We require service providers to protect personal data
+              consistently with this policy and applicable law and to process
+              it only for the services they provide to us.
             </li>
             <li className="text-sm leading-relaxed" style={bodyText}>
               <strong style={{ color: T.text }}>Legal Requirements:</strong>{" "}
@@ -215,13 +233,14 @@ export default function PrivacyPage() {
             4. Cookies &amp; Analytics
           </h2>
           <p className="text-sm leading-relaxed" style={bodyText}>
-            We use cookies, pixels, and similar tracking technologies to
-            collect usage data, remember your preferences, and analyze how the
-            Service is used. Third-party analytics providers (such as Google
-            Analytics) may also collect information about your use of the
-            Service. You can manage cookie preferences through your browser
-            settings, though some features of the Service may not function
-            properly if cookies are disabled.
+            The website uses cookies, local storage, pixels, and analytics
+            technologies to maintain sessions, remember preferences, measure
+            usage, and support advertising. You can manage these technologies
+            through your browser and applicable privacy controls, although
+            disabling required storage can affect account features. The Android
+            app sends limited first-party analytics events to our own API. The
+            iOS app does not send those analytics events and does not load
+            Google analytics or advertising SDKs.
           </p>
         </div>
 
@@ -239,23 +258,24 @@ export default function PrivacyPage() {
           </p>
         </div>
 
-        {/* 6. Children's Privacy (COPPA) */}
+        {/* 6. Adults-only service */}
         <div>
           <h2 className="text-base font-semibold mb-2" style={sectionHeading}>
-            6. Children&apos;s Privacy
+            6. Adults-Only Service
           </h2>
           <p className="text-sm leading-relaxed" style={bodyText}>
-            The Service is not directed to children under 13 years of age. We
-            do not knowingly collect personal information from children under
-            13. If we become aware that we have collected personal information
-            from a child under 13 without verification of parental consent, we
-            will take steps to delete that information. If you believe we have
-            inadvertently collected information from a child under 13, please
-            contact us at{" "}
+            The Service is intended only for adults age 18 and older and is not
+            directed to children or minors. We do not knowingly collect
+            personal information from anyone under 18. If we learn that an
+            underage person provided personal information, we will take
+            appropriate steps to delete it and disable the associated account,
+            subject to applicable law. If you believe an underage person has
+            provided information to us, contact us at{" "}
             <a href="mailto:privacy@verzatv.com" style={{ color: T.accent }}>
               privacy@verzatv.com
             </a>
-            .
+            , or by mail at VERZA TV LLC, 650 E Palisade Ave, Ste 2329,
+            Englewood Cliffs, NJ 07632, United States.
           </p>
         </div>
 
@@ -276,8 +296,9 @@ export default function PrivacyPage() {
                 If you are a California resident, you have the right to: request
                 disclosure of the categories and specific pieces of personal
                 information we have collected; request deletion of your
-                personal information; and opt out of the sale of personal
-                information; and opt out of &quot;sharing&quot; for cross-context behavioral advertising (see Section 12). To exercise
+                personal information; opt out of the sale of personal
+                information; and opt out of qualifying &quot;sharing&quot; for
+                cross-context behavioral advertising (see Section 12). To exercise
                 these rights, contact us at{" "}
                 <a
                   href="mailto:privacy@verzatv.com"
@@ -320,12 +341,17 @@ export default function PrivacyPage() {
             8. Data Retention
           </h2>
           <p className="text-sm leading-relaxed" style={bodyText}>
-            We retain your personal information for as long as your account is
-            active or as needed to provide the Service. We may also retain
-            certain information as necessary to comply with legal obligations,
-            resolve disputes, enforce agreements, and support business
-            operations. When personal information is no longer needed, we will
-            securely delete or anonymize it.
+            Account, entitlement, saved-list, and watch-progress information is
+            retained while your account is active or as needed to provide the
+            Service. Operational and analytics records are retained only as
+            reasonably needed for security, reliability, and business
+            analysis. We may retain completed transaction records as required
+            for tax, accounting, dispute, fraud-prevention, and subscription
+            consent/notice-compliance purposes. When information is no longer
+            needed, we delete or anonymize it. Legacy
+            unlinked purchase-recovery records may be retained for support and
+            fraud prevention until ownership is independently verified or the
+            record is no longer needed.
           </p>
         </div>
 
@@ -336,10 +362,10 @@ export default function PrivacyPage() {
           </h2>
           <p className="text-sm leading-relaxed" style={bodyText}>
             The Service may contain links to third-party websites or services
-            that are not owned or controlled by {BRAND.name}. We are not
-            responsible for the privacy practices of such third parties. We
-            encourage you to read the privacy policies of any third-party
-            services you access.
+            that are not owned or controlled by {BRAND.name}, including Amazon
+            affiliate links. Those links may contain our affiliate tag. After
+            you leave the Service, the third party&apos;s own privacy terms apply;
+            we encourage you to review them before providing information.
           </p>
         </div>
 
@@ -352,29 +378,35 @@ export default function PrivacyPage() {
             You can permanently delete your account at any time from within the
             Service: open your <strong style={{ color: T.text }}>Profile</strong>{" "}
             page and tap <strong style={{ color: T.text }}>Delete Account</strong>.
-            Deletion removes your account, profile, watch history, saved list,
-            push notification subscriptions, and access to purchases, and cannot
-            be undone. You may also request deletion by emailing{" "}
+            Deletion removes your authentication account, profile, watch
+            history, saved list, browser notification subscriptions, analytics
+            records tied to your user ID, and access entitlements, and cannot be
+            undone. You may also request assistance by emailing{" "}
             <a href="mailto:privacy@verzatv.com" style={{ color: T.accent }}>
               privacy@verzatv.com
             </a>{" "}
-            from your account email; we process such requests within 30 days.
-            Records of completed financial transactions may be retained where
-            required for tax, accounting, and fraud-prevention purposes.
+            from your account email. Records of completed financial
+            transactions and required subscription consent/notice evidence may
+            be retained, separated from the deleted account, where required for
+            tax, accounting, dispute, fraud-prevention, or legal-compliance
+            purposes. Deleting an authenticated account does not automatically
+            delete a separate legacy recovery record that is keyed only to a
+            checkout email and has never been linked to that account. To claim
+            or delete such a record, contact us so we can independently verify
+            the purchase or mailbox before changing it.
           </p>
         </div>
 
-        {/* 11. Push Notifications */}
+        {/* 11. Browser Notifications */}
         <div>
           <h2 className="text-base font-semibold mb-2" style={sectionHeading}>
-            11. Push Notifications
+            11. Browser Notifications
           </h2>
           <p className="text-sm leading-relaxed" style={bodyText}>
-            With your permission, we may send push notifications (for example,
-            to resume an episode you were watching or announce new releases).
-            You can withdraw this permission at any time in your device or
-            browser notification settings, or from the Profile page; doing so
-            deletes the associated push subscription token.
+            The website may offer browser notifications only after you grant
+            permission. You can withdraw permission through your browser or
+            Profile settings. The native iOS app does not register for or send
+            push notifications.
           </p>
         </div>
 
@@ -384,14 +416,13 @@ export default function PrivacyPage() {
             12. Advertising &amp; Tracking
           </h2>
           <p className="text-sm leading-relaxed" style={bodyText}>
-            The Service displays sponsored content and may use third-party
-            advertising services. Where our iOS application would track your
-            activity across other companies&apos; apps or websites, we will
-            first request your permission through Apple&apos;s App Tracking
-            Transparency prompt, and we honor your choice. We do not sell your
-            personal information; California residents may nonetheless opt out
-            of any &quot;sharing&quot; for cross-context behavioral advertising
-            by emailing{" "}
+            The Service identifies sponsored Amazon products and uses an
+            affiliate tag on outbound Amazon links. The native iOS app does not
+            use advertising SDKs or data to track you across other companies&apos;
+            apps or websites. The website may use third-party advertising and
+            analytics technologies. We do not sell personal information for
+            money; where applicable, you may request to opt out of qualifying
+            cross-context behavioral advertising by emailing{" "}
             <a href="mailto:privacy@verzatv.com" style={{ color: T.accent }}>
               privacy@verzatv.com
             </a>
@@ -406,9 +437,8 @@ export default function PrivacyPage() {
           </h2>
           <p className="text-sm leading-relaxed" style={bodyText}>
             We may update this Privacy Policy from time to time. If we make
-            material changes, we will notify you through the Service or by
-            other means. Your continued use of the Service after any changes
-            constitutes your acceptance of the updated policy.
+            material changes, we will update the date above and provide notice
+            through the Service or by other means when required.
           </p>
         </div>
 

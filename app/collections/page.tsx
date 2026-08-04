@@ -102,7 +102,8 @@ export default function CollectionsIndexPage() {
           Hand-picked groupings of the best vertical micro-dramas on {BRAND.name}.
           Each collection gathers a different flavor of binge — billionaire
           romance, revenge, cliffhangers and more — pulled straight from our
-          live catalog. Every series starts free with the first 5 episodes.
+          live catalog. Each title page shows its current free-preview and
+          access details.
         </p>
 
         <span

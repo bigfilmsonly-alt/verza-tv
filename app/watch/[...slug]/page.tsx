@@ -6,7 +6,6 @@ import CreatorWatch from "@/components/CreatorWatch";
 
 type Props = {
   params: Promise<{ slug: string[] }>;
-  searchParams: Promise<{ unlocked?: string }>;
 };
 
 /** Look up a published creator title by its namespaced slug (handle/title). */
@@ -34,27 +33,32 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title: content.title,
       type: "video.other",
-      images: content.mux_playback_id
+      images:
+        content.pricing_type === "free" && content.mux_playback_id
         ? [`https://image.mux.com/${content.mux_playback_id}/thumbnail.jpg?width=1080`]
         : [],
     },
   };
 }
 
-export default async function WatchPage({ params, searchParams }: Props) {
+export default async function WatchPage({ params }: Props) {
   const { slug: segments } = await params;
-  const { unlocked } = await searchParams;
   const slug = segments.join("/");
 
   const content = await getPublishedContent(slug);
   if (!content || !content.mux_playback_id) notFound();
 
+  // Paid creator playback currently uses public Mux playback IDs. Merely
+  // hiding the player would expose that ID in the RSC payload, so paid creator
+  // pages stay completely fail-closed until signed playback is implemented.
+  if (content.pricing_type !== "free") notFound();
+
   const creator = Array.isArray(content.creators) ? content.creators[0] : content.creators;
   const isFree = content.pricing_type === "free";
 
-  // Access check: free titles, the just-completed checkout redirect, or an
-  // entitlement row (written server-side by the Stripe webhook, keyed by slug).
-  let hasAccess = isFree || unlocked === "true";
+  // Paid access is based only on a server-written entitlement. URL query
+  // parameters are never proof of payment.
+  let hasAccess = isFree;
   if (!hasAccess) {
     const user = await getUser();
     if (user) {

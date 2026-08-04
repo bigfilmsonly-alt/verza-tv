@@ -9,7 +9,7 @@ import {
   getEpisode,
   getEpisodesForSeries,
 } from "@/lib/catalog";
-import { getPlayback } from "@/lib/mux-map";
+import { getPlayback } from "@/lib/mux-public-map";
 import {
   seriesSchema,
   episodeSchema,
@@ -97,19 +97,23 @@ export default async function EpisodePage({ params }: Props) {
   // VIP / entitlement overrides happen client-side in EpisodeFeed via
   // /api/access — this keeps the page fully static (SSG).
   // Honor the catalog's freeEpisodes as-is: the series page advertises
-  // "First 5 Episodes FREE" and the episode dropdown marks episode 5 free —
+  // The title-specific free-preview badge and episode dropdown must agree —
   // the old Math.min(…, 4) cap silently paywalled episode 5 anyway, stopping
   // every binge right after the 4th video.
   const freeCount = series.freeEpisodes;
   const allEpisodes = getEpisodesForSeries(slug);
   const feedEpisodes: FeedEpisode[] = allEpisodes.map((e) => {
     const mux = getPlayback(slug, e.number);
+    const catalogFree = e.number <= freeCount;
     return {
       number: e.number,
       title: e.title,
       durationS: e.durationS,
-      playbackId: mux?.playbackId,
-      isFree: e.number <= freeCount,
+      // Paid public IDs never enter the static RSC/browser payload. Entitled
+      // viewers resolve those episodes through the authenticated playback API.
+      playbackId: catalogFree ? mux?.playbackId : undefined,
+      requiresAuthorization: !catalogFree,
+      isFree: catalogFree,
     };
   });
 
@@ -143,7 +147,10 @@ export default async function EpisodePage({ params }: Props) {
               number: ep.number,
               title: ep.title,
               durationS: ep.durationS,
-              thumbUrl: getPlayback(slug, epNum)?.playbackId
+              // Expiring signed thumbnails cannot be embedded in static JSON-LD,
+              // and the paid public ID is intentionally not published. Paid
+              // episode metadata uses durable series artwork instead.
+              thumbUrl: epNum <= series.freeEpisodes && getPlayback(slug, epNum)?.playbackId
                 ? `https://image.mux.com/${getPlayback(slug, epNum)!.playbackId}/thumbnail.jpg?time=5&width=1080&height=1920`
                 : `${BASE_URL}${series.posterUrl}`,
             },

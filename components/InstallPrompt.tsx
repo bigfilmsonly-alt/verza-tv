@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { T } from "@/lib/theme";
 
@@ -227,7 +228,7 @@ export default function InstallPrompt() {
       >
         <div className="flex items-start gap-3 p-4">
           {/* App emblem */}
-          <img
+          <Image
             src="/apple-touch-icon-180.png"
             alt=""
             width={44}

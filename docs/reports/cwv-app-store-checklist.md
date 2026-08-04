@@ -1,5 +1,10 @@
 # Core Web Vitals + App Store Readiness
 
+> **ARCHIVE — pre-native checklist.** This mixes web targets with obsolete App
+> Store assumptions and is not the iOS 2.0 submission checklist. Current truth:
+> [`../LAUNCH-TRUTH.md`](../LAUNCH-TRUTH.md) and the native repository release
+> audit.
+
 ## Core Web Vitals Targets
 
 | Metric | Target | Current Tools |

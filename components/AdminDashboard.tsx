@@ -266,7 +266,13 @@ export default function AdminDashboard() {
   }, []);
 
   useEffect(() => {
-    fetchStats(range);
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) void fetchStats(range);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [range, fetchStats]);
 
   if (loading) {

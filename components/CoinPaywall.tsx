@@ -54,12 +54,26 @@ export default function CoinPaywall({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ seriesSlug }),
       });
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
+      const data = (await res.json().catch(() => ({}))) as {
+        url?: unknown;
+        error?: unknown;
+        alreadyOwned?: unknown;
+      };
+      if (!res.ok) {
+        setError(
+          data.alreadyOwned
+            ? "This series is already on your account. Reload this page to continue watching."
+            : typeof data.error === "string"
+              ? data.error
+              : "Couldn’t start checkout. Please try again.",
+        );
         return;
       }
-      setError("Couldn't start checkout. Please try again.");
+      if (typeof data.url === "string" && data.url) {
+        window.location.assign(data.url);
+        return;
+      }
+      setError("Checkout did not open. Please try again.");
     } catch (err) {
       console.error("Unlock error:", err);
       setError("Something went wrong. Please try again.");
@@ -110,7 +124,7 @@ export default function CoinPaywall({
             {t("content.unlockPrompt")}
           </p>
 
-          {/* Direct pricing — $1.99 Summer Sale */}
+          {/* Canonical one-time Series Unlock price. */}
           <button
             onClick={handleUnlock}
             disabled={loading}
@@ -125,7 +139,7 @@ export default function CoinPaywall({
                   <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
                   <line x1="1" y1="10" x2="23" y2="10" />
                 </svg>
-                {t("content.unlockSeries")} — $1.99
+                Series Unlock — $1.99 one-time
               </>
             )}
           </button>
@@ -140,7 +154,7 @@ export default function CoinPaywall({
             </p>
           )}
 
-          {/* Sale badge */}
+          {/* Purchase terms summary. */}
           <div
             className="flex items-center gap-2 px-4 py-2 rounded-full mb-4"
             style={{ background: "rgba(255,255,255,0.06)" }}

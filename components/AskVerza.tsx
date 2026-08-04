@@ -297,7 +297,7 @@ export default function AskVerza() {
                       />
                     </svg>
                   </div>
-                  Hi! I'm VERZA, your streaming assistant.
+                  Hi! I’m VERZA, your streaming assistant.
                   <br />
                   Ask me anything about our shows!
                 </div>

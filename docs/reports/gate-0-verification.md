@@ -1,5 +1,11 @@
 # GATE 0 — Money Path Verification
 
+> **ARCHIVE — superseded 2026-06-20 claim.** The $4.99 flow, VIP “PASS,” webhook
+> coverage, and query-parameter access assumptions below are not current and
+> must not authorize a charge or launch. Current payment authority:
+> [`../guides/PAYMENTS.md`](../guides/PAYMENTS.md) and
+> [`PAYMENT-CUTOVER-EVIDENCE-2026-08-03.md`](PAYMENT-CUTOVER-EVIDENCE-2026-08-03.md).
+
 ## Date: 2026-06-20
 ## Status: PASS (with one pending action)
 

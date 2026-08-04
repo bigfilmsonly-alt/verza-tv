@@ -4,15 +4,12 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import CategoryTabs from "@/components/CategoryTabs";
-import { useTranslation } from "@/components/LangProvider";
-import { BROWSE_TABS, getSeriesByCategory, getEpisode, type Series, type BrowseCategory } from "@/lib/catalog";
+import { BROWSE_TABS, getEpisode, type Series, type BrowseCategory } from "@/lib/catalog";
 import { buildResumeUrl } from "@/lib/resume";
-import SummerSaleBadge from "@/components/SummerSaleBadge";
 import TubiHeroCarousel from "@/components/TubiHeroCarousel";
 import CreatorBetaForm from "@/components/CreatorBetaForm";
-import { MUX_MAP } from "@/lib/mux-map";
+import { MUX_MAP } from "@/lib/mux-public-map";
 import { startInstantPlayer } from "@/lib/instant-player";
-import HideInIOSApp from "@/components/HideInIOSApp";
 
 // Eagerly preload hls.js so it's cached before user taps a video.
 // Deferred via setTimeout: a dynamic import() fired DURING module evaluation
@@ -98,7 +95,6 @@ interface ContinueItem {
 }
 
 export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
-  const { t } = useTranslation();
   const activeTabs = BROWSE_TABS;
 
   const posterClick = useCallback((e: React.MouseEvent<HTMLElement>, slug: string, epNum = 1, resumeS = 0) => {
@@ -117,10 +113,18 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
     // the movie the moment its first frame is ready — the wait is only the
     // real network time, nothing architectural. Skipped for mid-episode
     // resumes: the player would buffer from 0:00 while playback starts at ?t=.
+    // Paid episodes are also skipped: their public IDs must not be requested or
+    // exposed by the instant-player path; EpisodeFeed obtains an authorized,
+    // expiring source after navigation instead.
     if (resumeS <= 2) {
-      startInstantPlayer(MUX_MAP[slug]?.find((ep) => ep.episode === epNum)?.playbackId);
+      const show = allSeries.find((item) => item.slug === slug);
+      const publicId =
+        show && epNum <= show.freeEpisodes
+          ? MUX_MAP[slug]?.find((ep) => ep.episode === epNum)?.playbackId
+          : undefined;
+      startInstantPlayer(publicId);
     }
-  }, []);
+  }, [allSeries]);
 
   const [activeTab, setActiveTab] = useState<BrowseCategory>("drama");
   // Direction of the last tab change (1 = forward/next, -1 = back/prev) so the
@@ -129,14 +133,15 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
   const [heroIdx, setHeroIdx] = useState(0);
   const [heroPaused, setHeroPaused] = useState(false);
   const [continueWatching, setContinueWatching] = useState<ContinueItem[]>([]);
-  const [showSplash, setShowSplash] = useState<string | null>(null);
+  const [showSplash] = useState<string | null>(null);
 
   // Shuffle seed: 0 on the server + first client render (keeps hydration in
   // sync), then a random value after mount so the catalog order is freshly
   // randomized on every page load / refresh.
   const [shuffleSeed, setShuffleSeed] = useState(0);
   useEffect(() => {
-    setShuffleSeed(Math.floor(Math.random() * 2147483647) + 1);
+    const seed = Math.floor(Math.random() * 2147483647) + 1;
+    queueMicrotask(() => setShuffleSeed(seed));
   }, []);
 
   // Drama shows the whole library; other tabs show their own set. Hot stays
@@ -167,7 +172,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
   // the very top — so switching to a tab (or returning to one) always opens at
   // the top instead of wherever the previous section was scrolled to.
   useEffect(() => {
-    setHeroIdx(0);
+    queueMicrotask(() => setHeroIdx(0));
     if (typeof window !== "undefined") {
       window.scrollTo(0, 0);
       document.documentElement.scrollTop = 0;
@@ -180,7 +185,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
   useEffect(() => {
     const tab = new URLSearchParams(window.location.search).get("tab");
     if (tab && BROWSE_TABS.some((t) => t.key === tab)) {
-      setActiveTab(tab as BrowseCategory);
+      queueMicrotask(() => setActiveTab(tab as BrowseCategory));
     }
   }, []);
 
@@ -216,7 +221,9 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
   // whose slide counts can differ — clamping here guarantees the arrows always
   // land on a valid poster and never on a stale/out-of-range slide.
   useEffect(() => {
-    if (slideCount > 0 && heroIdx >= slideCount) setHeroIdx(0);
+    if (slideCount > 0 && heroIdx >= slideCount) {
+      queueMicrotask(() => setHeroIdx(0));
+    }
   }, [slideCount, heroIdx]);
 
   useEffect(() => {
@@ -291,7 +298,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
           }}
         >
           <div style={{ animation: "scaleIn 0.4s ease" }}>
-            <img src="/logo.png" alt="VERZA TV" width={200} height={55} />
+            <Image src="/logo.png" alt="VERZA TV" width={200} height={55} />
           </div>
         </div>
       )}
@@ -311,25 +318,6 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
       >
         <CategoryTabs active={activeTab} onSelect={selectTab} tabs={activeTabs} />
       </div>
-
-      {/* Summer Sale $1.99 ribbon — top-level sticky + zero-height so it pins
-          directly under the tabs bar and stays visible for the ENTIRE page
-          scroll (not just over the hero), without pushing any content down.
-          Hidden on the Tubi tab — Tubi is free, so the $1.99 unlock is off-message there.
-          Also hidden on the Creators tab — it is a creator-recruitment landing, so a
-          viewer movie-unlock badge is off-message there too. */}
-      {activeTab !== "tubi" && activeTab !== "creators" && (
-        <div
-          className="sticky z-20 flex justify-center pointer-events-none"
-          style={{ top: "calc(108px + env(safe-area-inset-top, 0px))", height: 0 }}
-        >
-          <div className="pointer-events-auto mt-0">
-            <HideInIOSApp>
-              <SummerSaleBadge />
-            </HideInIOSApp>
-          </div>
-        </div>
-      )}
 
       {/* Continue Watching row — hidden on the Tubi tab so the partner panel
           starts flush under the tabs and fills the fold with no scroll. */}
@@ -384,8 +372,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
       {/* Music tab — Too Much Junk poster → taps to native Mux player */}
       {activeTab === "music" && (
         <div>
-          {/* Extra top padding so the poster clears the sticky Summer Sale badge */}
-          <div className="relative pt-10">
+          <div className="relative pt-4">
             <Link
               href="/series/too-much-junk/1"
               prefetch={true}
@@ -486,9 +473,11 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
             }}
           >
             <div style={{ borderRadius: 14, overflow: "hidden", background: "#0A0A14" }}>
-              <img
+              <Image
                 src="/tubi-logo.png"
                 alt="Tubi"
+                width={760}
+                height={300}
                 draggable={false}
                 style={{ height: "clamp(40px, 7dvh, 62px)", width: "auto", display: "block", padding: "6px 16px" }}
               />
@@ -823,7 +812,13 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               }}
             >
               <div className="flex items-center justify-center py-2.5 px-6">
-                <img src="/ads/storageblue-logo.png" alt="StorageBlue" style={{ height: 52, objectFit: "contain" }} />
+                <Image
+                  src="/ads/storageblue-logo.png"
+                  alt="StorageBlue"
+                  width={212}
+                  height={52}
+                  style={{ height: 52, objectFit: "contain" }}
+                />
               </div>
             </a>
           </div>
@@ -960,7 +955,13 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
           }}
         >
           <div className="flex items-center justify-center py-2.5 px-6">
-            <img src="/ads/storageblue-logo.png" alt="StorageBlue" style={{ height: 52, objectFit: "contain" }} />
+            <Image
+              src="/ads/storageblue-logo.png"
+              alt="StorageBlue"
+              width={212}
+              height={52}
+              style={{ height: 52, objectFit: "contain" }}
+            />
           </div>
         </a>
       )}

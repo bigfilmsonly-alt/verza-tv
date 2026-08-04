@@ -9,8 +9,6 @@ export default function LangDropdown() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  const current = LOCALES.find((l) => l.code === locale);
-
   /* Close on click outside */
   useEffect(() => {
     if (!open) return;

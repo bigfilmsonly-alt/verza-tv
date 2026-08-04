@@ -1,5 +1,10 @@
 # Verza TV — Launch Blockers
 
+> **ARCHIVE — 2026-07-11 blocker snapshot.** Several items were fixed or
+> materially changed; others require fresh readback. Do not use this list as the
+> submission gate. Current authority:
+> [`../LAUNCH-TRUTH.md`](../LAUNCH-TRUTH.md).
+
 Generated 2026-07-11 from a full read-only audit (deterministic checks + 10-agent verification fleet). Every item below was verified against code, the live database, or the production site — not assumed.
 
 Ranking: **P0** = hard launch blocker · **P1** = critical (fix before public/paid launch) · **P2** = important · **P3** = polish.
@@ -63,8 +68,8 @@ Ranking: **P0** = hard launch blocker · **P1** = critical (fix before public/pa
 - **Fix:** Confirm Google **and** Apple providers are enabled/configured in Supabase, or hide the buttons.
 
 ### P1-9 · Owner may be locked out of /admin
-- **Evidence:** `lib/admin.ts:6-10` allowlist does **not** include `bigfilmsonly@gmail.com`.
-- **Impact:** If that's the owner's login, they can't reach `/admin`. (Conditional on the login email used.)
+- **Evidence:** the historical allowlist comparison found a possible owner mismatch; account/email identifiers are intentionally omitted.
+- **Impact:** An authorized owner could be unable to reach `/admin` if the approved login is absent.
 - **Fix:** Add the owner's real email to `ADMIN_EMAILS`.
 
 ### P1-10 · Creator payment/notification gaps (only if launching creators)

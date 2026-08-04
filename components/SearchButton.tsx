@@ -17,7 +17,9 @@ export default function SearchButton() {
 
   // Portal target only exists on the client. Without this guard the overlay
   // would try to render on the server and crash.
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    queueMicrotask(() => setMounted(true));
+  }, []);
 
   const q = query.trim();
   // Shows only. Sponsored products are confined to the shop section in the
@@ -27,7 +29,7 @@ export default function SearchButton() {
 
   useEffect(() => {
     if (open) setTimeout(() => inputRef.current?.focus(), 100);
-    else setQuery("");
+    else queueMicrotask(() => setQuery(""));
   }, [open]);
 
   useEffect(() => {

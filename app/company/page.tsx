@@ -9,7 +9,7 @@ import { getLiveSeries } from "@/lib/catalog";
 export const metadata: Metadata = {
   title: `Company | ${BRAND.name}`,
   description:
-    "VERZA TV company overview. The first US-based vertical micro-drama streaming platform, founded by Alan Mruvka, co-founder of E! Entertainment Television.",
+    "VERZA TV company overview. A phone-first short-form entertainment platform founded by Alan Mruvka, co-founder of E! Entertainment Television.",
   alternates: { canonical: "/company" },
 };
 
@@ -44,7 +44,7 @@ export default function CompanyPage() {
           }}
         >
           <p className="text-lg font-semibold" style={{ color: T.text }}>
-            The first US-based vertical micro-drama streaming platform.
+            A phone-first platform for short-form vertical entertainment.
           </p>
           <p className="text-sm mt-2" style={{ color: T.textDim }}>
             Founded by Alan Mruvka, co-founder of E! Entertainment Television.
@@ -54,12 +54,12 @@ export default function CompanyPage() {
         {/* Key facts */}
         <div className="grid grid-cols-2 gap-3 mb-8">
           {[
-            { label: "Original Series", value: `${liveCount}+` },
-            { label: "Episode Format", value: "60-120s" },
+            { label: "Current Catalog", value: `${liveCount} live series` },
+            { label: "Episode Format", value: "Short-form; length varies" },
             { label: "Orientation", value: "Vertical 9:16" },
-            { label: "Free Episodes", value: "First 5" },
+            { label: "Free Preview", value: "Shown per title" },
             { label: "Platforms", value: "Web, iOS, Android" },
-            { label: "Headquarters", value: "Los Angeles, CA" },
+            { label: "Production", value: "Filmology Labs" },
           ].map((fact) => (
             <div
               key={fact.label}

@@ -1,13 +1,22 @@
-# Verza TV — Environment Variables Audit
+# Verza TV — Environment Variables Audit (historical)
 
-Audited: 2026-07-11 · Source of truth: `.env.local` (local) + Vercel project env (production).
-`.env.local` is git-ignored (verified) — no secrets are committed to the repository.
+> **ARCHIVE — non-secret 2026-07-11 environment-name snapshot.** Presence,
+> absence, counts, and action items below are not current Vercel readback and
+> must never be used to infer a secret value or deployed feature. Current
+> contract: [`../guides/ENV.md`](../guides/ENV.md).
+
+Audited: 2026-07-11. **Superseded:** this is a historical snapshot, not an
+environment source of truth. Use `docs/guides/ENV.md`, inspect environment names
+without pulling secret values, and verify the intended deployment after every
+change. On 2026-08-03 the approved production/local payment target was verified;
+current and obsolete project identifiers are intentionally omitted and must be
+resolved through the approved environment. `.env.local` is git-ignored.
 
 ## ✅ Present in `.env.local` (15)
 
 | Variable | Purpose | Notes |
 |---|---|---|
-| `SUPABASE_URL` | Supabase project URL (server) | Points to `mmvbmrrwgludfmfalfcm.supabase.co` — NOTE: differs from the `jejispfvlkwastzvwtwu` project referenced in older internal notes; the env value is authoritative |
+| `SUPABASE_URL` | Supabase project URL (server) | Historical/current project identifiers intentionally omitted; use approved environment readback. |
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase URL (client/auth) | |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key | Public by design; RLS protects data |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase admin key | Server-only; used by API routes and the webhook |

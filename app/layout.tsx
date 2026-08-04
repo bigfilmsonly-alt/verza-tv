@@ -15,7 +15,6 @@ import ContentTranslator from "@/components/ContentTranslator";
 import ScrollToTop from "@/components/ScrollToTop";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import Script from "next/script";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -39,14 +38,14 @@ export const metadata: Metadata = {
     template: "%s | VERZA TV",
   },
   description:
-    "Stream binge-worthy micro-dramas, reality shows, and original series — all in vertical, all in minutes. The first US-based vertical micro-drama platform.",
+    "Stream short-form micro-dramas, reality shows, and other entertainment on VERZA TV. Formats, episode lengths, and access vary by title.",
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     siteName: "VERZA TV",
     title: "VERZA TV — Microdramas, Reality & More",
     description:
-      "Stream binge-worthy micro-dramas, reality shows, and original series — all in vertical, all in minutes.",
+      "Stream short-form micro-dramas, reality shows, and other entertainment. Formats and episode lengths vary by title.",
     url: SITE_URL,
     images: [
       {
@@ -64,7 +63,7 @@ export const metadata: Metadata = {
     site: "@VerzaTV",
     title: "VERZA TV — Microdramas, Reality & More",
     description:
-      "Stream binge-worthy micro-dramas, reality shows, and original series — all in vertical, all in minutes.",
+      "Stream short-form micro-dramas, reality shows, and other entertainment. Formats and episode lengths vary by title.",
     images: [
       {
         url: OG_IMAGE,

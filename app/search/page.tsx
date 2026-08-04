@@ -219,8 +219,8 @@ export default async function SearchPage({ searchParams }: Props) {
       <div className="mt-10" style={{ color: T.textMute }}>
         <p className="text-xs leading-relaxed">
           Search across all VERZA TV micro-dramas by title, genre, logline, or
-          tag. Every series features short-form vertical episodes (60-120
-          seconds each), with the first 5 episodes free to watch. Discover
+          tag. Series use a short-form vertical format, with episode length and
+          free-preview availability shown on each title page. Discover
           romance, thriller, mystery, comedy, and more.
         </p>
       </div>

@@ -1,15 +1,23 @@
 # Creator Portal — Setup & Go-Live Guide
 
-The full creator pipeline (apply → approve → upload → review → publish → watch →
-payouts) is built and deployed. To make it 100% functional in production you
-need three manual configuration steps that require credentials this codebase
-can't provision on its own:
+> **Deferred web-only guide, reconciled 2026-08-03.** This is not part of the
+> iOS 2.0 launch. Native iOS excludes `/watch/*`, `/creator`, `/studio`, and
+> `/admin/*` before query/render, and ASC User-Generated Content remains No.
+> Creator PPV is server-disabled. Do not follow this guide to turn on creator
+> sales or expose UGC in the submitted binary.
+
+The web source contains an apply → approve → upload → review → publish pipeline,
+but production readiness and deployment must be re-audited rather than inferred
+from this older setup sequence. Provider credentials and database changes require
+authorized operations and post-deploy readback:
 
 1. Create a Mux upload token
 2. Create a Mux webhook
 3. Add the env vars to Vercel + run the database migration
 
-Everything below is dashboard configuration — no code changes required.
+The steps below cover provider plumbing only. They do not establish content
+rights, moderation/report/block controls, signed paid playback, payout/tax
+operations, creator ownership, legal approval, or App Store compliance.
 
 ---
 
@@ -103,21 +111,27 @@ npx vercel deploy --prod
 
 ---
 
-## 5. Run the database migration
+## 5. Verify database migration state
 
-In **Supabase → SQL Editor**, paste and run the full contents of:
+Migration 005 is historical and later migrations `009`–`014` add preservation,
+constraints, and RLS. Do not paste or rerun one migration in production merely
+because this guide mentions it. First use read-only schema/migration evidence
+and the rollback-only database suite. A fresh environment applies the complete
+ordered migration set through the approved migration workflow.
+
+The original creator schema source is:
 
 ```
 supabase/migrations/005_creator_pipeline.sql
 ```
 
-This creates `creators`, `creator_content`, and `creator_sales`, and adds
-`role` + `creator_status` columns to `profiles`. Until this runs, every creator
-route returns empty / 401.
+It creates `creators`, `creator_content`, and `creator_sales` and adds profile
+fields. Migration `009` preserves historical sale rows across deletion;
+migration `011` hardens creator RLS/constraints.
 
 ---
 
-## 6. Verify end-to-end (5-minute smoke test)
+## 6. Deferred internal smoke test
 
 1. **Uploads enabled** — sign in, open `/studio`. If you see "Uploads aren't
    enabled yet (missing Mux token)" then step 3/4 didn't take. If you see the
@@ -130,12 +144,12 @@ route returns empty / 401.
    **Mux → Settings → Webhooks → your webhook → recent deliveries** for `200`
    responses. (Status also advances via a poll fallback even if the webhook is
    misconfigured.)
-4. **Publish** — edit details/pricing → **Submit for review** → approve the
-   title in `/admin/review` → it goes live at `/watch/<handle>/<title>`.
-5. **PPV (optional)** — set a price, publish, open the watch page in an
-   incognito window → you hit the paywall → Stripe checkout. After paying, the
-   Stripe webhook writes the `creator_sales` 80/20 split row and grants the
-   viewer's entitlement.
+4. **Stop before public publishing or payment.** Publication requires content
+   rights, moderation/report/block operations, signed creator playback, and
+   production approval.
+5. **Do not test PPV.** `/api/creator-unlock` intentionally returns 503. No
+   current smoke test is authorized to charge, Refund, or manufacture a creator
+   entitlement.
 
 ---
 
@@ -144,30 +158,35 @@ route returns empty / 401.
 | Missing                                | Symptom                                                             |
 | -------------------------------------- | ------------------------------------------------------------------ |
 | `MUX_TOKEN_ID` / `MUX_TOKEN_SECRET`    | `/api/creator/upload` returns **503**; dashboard shows "not enabled" |
-| Mux webhook not configured             | Uploads still process via poll fallback, but slower/less reliable  |
-| `MUX_WEBHOOK_SECRET`                   | Webhook works but unsigned (lower security)                        |
+| Mux webhook not configured             | Event-driven ingestion is unavailable; do not assume a poll fallback makes the deferred pipeline launch-ready |
+| `MUX_WEBHOOK_SECRET`                   | Deployed route returns 503 and has no unsigned fallback; production readback confirms this fail-closed state, so keep creator ingestion/launch deferred until a real secret and signed-event canary exist |
 | Migration 005 not run                  | All creator routes return empty / pending                          |
 
 ---
 
 ## Admin accounts
 
-The review queue at `/admin/review` is gated to these emails (see
-`lib/admin.ts`):
-
-- `jotham@bigfilms.tv`
-- `alan@verzatv.com`
-- `jothamhall@gmail.com`
+The review queue requires a verified authenticated user plus the server-side
+`ADMIN_EMAILS` allowlist. Admin identifiers are intentionally not copied into
+Markdown. Store and rotate them through the approved configuration channel;
+never treat a client-supplied email as authorization.
 
 ## Reference — key files
 
 - `app/api/creator/*` — apply, upload, content CRUD, submit, analytics
 - `app/api/admin/creators` — approve/reject creator **applications**
 - `app/api/admin/review` — approve/reject submitted **titles**
-- `app/api/creator-unlock` — PPV checkout (server-side price)
+- `app/api/creator-unlock` — disabled PPV endpoint (503)
 - `app/api/mux/webhook` — Mux asset lifecycle → content status
 - `app/api/stripe/webhook` — writes the 80/20 split ledger on creator unlocks
 - `components/CreatorDashboard.tsx` — the creator-facing dashboard
 - `components/AdminReview.tsx` — the admin review UI
 - `components/CreatorWatch.tsx` + `app/watch/[...slug]` — public playback + paywall
 - `supabase/migrations/005_creator_pipeline.sql` — schema
+
+Focused gate: `npm run test:mux-webhook-security`. It requires awaited raw-body
+signature verification, 503 for missing secret, 400 for invalid signature, 500
+for lookup/update failure, and no unsigned fallback. Run it plus typecheck,
+lint, build, deploy, and production invalid/missing-signature readback before
+enabling creator uploads. Missing-secret production readback already returns
+503; a real-secret signed-event canary remains mandatory before enablement.

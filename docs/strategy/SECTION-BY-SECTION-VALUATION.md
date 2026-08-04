@@ -1,5 +1,10 @@
 # VERZA TV — SECTION-BY-SECTION VALUATION
 
+> **ARCHIVE / ESTIMATE — June 27, 2026.** File sizes, feature descriptions,
+> replacement-cost ranges, counts, and readiness statements are dated estimates,
+> not accounting evidence or current release truth. See
+> [`../LAUNCH-TRUTH.md`](../LAUNCH-TRUTH.md).
+
 **What Every Piece of This App Is Worth**
 **Date:** June 27, 2026 (updated)
 

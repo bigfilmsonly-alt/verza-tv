@@ -59,17 +59,17 @@ function buildFaq(title: string, count: number) {
       question: `How many series are in the ${title} collection?`,
       answer: `This collection currently features ${count} live ${
         count === 1 ? "series" : "series"
-      } on ${BRAND.name}, hand-picked from our catalog of vertical micro-dramas. We add new titles regularly, so check back often for fresh additions.`,
+      } on ${BRAND.name}, selected from the current catalog of vertical micro-dramas.`,
     },
     {
       question: `Are these ${BRAND.name} series free to watch?`,
       answer:
-        "Every series in this collection starts free with the first 5 episodes. After that, you can unlock the rest of the season with coins or a VIP subscription. There's no risk to start — just open a title and start watching.",
+        "Free-preview availability varies by title, and wholly free titles identify that availability on their title pages. Current access options are shown per title.",
     },
     {
       question: `How long is each episode?`,
       answer:
-        "VERZA TV micro-drama episodes run roughly 60 to 120 seconds each, filmed in cinematic 9:16 vertical for phone-first viewing. A full series tells a complete, season-length story across dozens of bite-sized episodes you can binge anywhere.",
+        "Episode lengths and series sizes vary. Each title page shows its current episode count, and the cinematic vertical 9:16 format is designed for phone-first viewing.",
     },
     {
       question: `Where can I find more collections like this?`,
@@ -167,7 +167,7 @@ export default async function CollectionPage({ params }: Props) {
             {matches.length} {matches.length === 1 ? "Series" : "Series"}
           </span>
           <span className="text-xs" style={{ color: T.textMute }}>
-            First 5 episodes free
+            Free-preview availability shown per title
           </span>
         </div>
       </section>
@@ -183,7 +183,7 @@ export default async function CollectionPage({ params }: Props) {
               No series in this collection yet.
             </p>
             <p className="text-xs" style={{ color: T.textMute }}>
-              New titles are added every week.{" "}
+              Browse the current catalog.{" "}
               <Link href="/discover" className="underline" style={{ color: T.accent }}>
                 Explore all series
               </Link>
@@ -221,7 +221,9 @@ export default async function CollectionPage({ params }: Props) {
                     className="absolute bottom-1.5 left-1.5 text-[9px] font-bold uppercase px-1.5 py-0.5 rounded"
                     style={{ background: T.accent, color: T.text }}
                   >
-                    5 Free
+                    {series.freeEpisodes >= series.episodeCount
+                      ? "All Free"
+                      : `${series.freeEpisodes} Free`}
                   </div>
                 </div>
                 <p

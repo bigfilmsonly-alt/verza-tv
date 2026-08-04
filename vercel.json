@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/vip-renewal-reminders",
+      "schedule": "0 16 * * *"
+    }
+  ]
+}

@@ -7,8 +7,7 @@ import type HlsType from "hls.js";
 import type { Series } from "@/lib/catalog";
 
 import { T } from "@/lib/theme";
-import { MUX_MAP } from "@/lib/mux-map";
-import { useTranslation } from "@/components/LangProvider";
+import { getPlayback } from "@/lib/mux-public-map";
 import { createTtffTracker } from "@/lib/perf/ttff";
 import VideoWatermark from "@/components/VideoWatermark";
 
@@ -28,18 +27,6 @@ function shuffleArray<T>(arr: T[]): T[] {
     [a[i], a[j]] = [a[j], a[i]];
   }
   return a;
-}
-
-function pseudoCount(slug: string, min: number, max: number): number {
-  let h = 0;
-  for (let i = 0; i < slug.length; i++) h = (h * 31 + slug.charCodeAt(i)) | 0;
-  return min + (Math.abs(h) % (max - min));
-}
-
-function formatCount(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
-  return String(n);
 }
 
 function RailButton({ children, label, onClick }: {
@@ -68,17 +55,13 @@ function RailButton({ children, label, onClick }: {
 /* ================================================================== */
 /*  ShortCard — one slide (lightweight, NO video element)              */
 /* ================================================================== */
-function ShortCard({ series, isActive, visible, muted, setMuted, saved, onToggleSave }: {
-  series: Series; isActive: boolean; visible: boolean;
+function ShortCard({ series, visible, muted, setMuted, saved, onToggleSave }: {
+  series: Series; visible: boolean;
   muted: boolean; setMuted: (m: boolean) => void;
   saved: boolean; onToggleSave: (slug: string) => void;
 }) {
-  const { t } = useTranslation();
   const [liked, setLiked] = useState(false);
   const [showCopied, setShowCopied] = useState(false);
-  const likeCount = pseudoCount(series.slug, 1, 50);
-  const epNum = pseudoCount(series.slug, 1, 5);
-
   const shareUrl = typeof window !== "undefined"
     ? `${window.location.origin}/series/${series.slug}`
     : `/series/${series.slug}`;
@@ -111,7 +94,7 @@ function ShortCard({ series, isActive, visible, muted, setMuted, saved, onToggle
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <polygon points="12 2 2 7 12 12 22 7 12 2" /><polyline points="2 17 12 22 22 17" /><polyline points="2 12 12 17 22 12" />
           </svg>
-          <span className="text-xs font-semibold" style={{ color: "#fff" }}>EP.{epNum} S1</span>
+          <span className="text-xs font-semibold" style={{ color: "#fff" }}>S1 EP.1</span>
         </div>
       </div>
 
@@ -130,7 +113,7 @@ function ShortCard({ series, isActive, visible, muted, setMuted, saved, onToggle
           </div>
         </Link>
 
-        <RailButton label={formatCount(liked ? likeCount + 1 : likeCount)} onClick={() => setLiked((l) => !l)}>
+        <RailButton label={liked ? "Liked" : "Like"} onClick={() => setLiked((l) => !l)}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill={liked ? T.accent : "none"} stroke={liked ? T.accent : "#fff"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
           </svg>
@@ -201,7 +184,10 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
   useEffect(() => {
     try {
       const local = localStorage.getItem("verza-saved");
-      if (local) setSavedSlugs(new Set(JSON.parse(local)));
+      if (local) {
+        const saved = new Set<string>(JSON.parse(local));
+        queueMicrotask(() => setSavedSlugs(saved));
+      }
     } catch {}
     fetch("/api/saved-list").then((r) => r.json()).then((data) => {
       if (data.items?.length > 0) {
@@ -227,8 +213,13 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
   }, [savedSlugs]);
 
   useEffect(() => {
-    const withMux = series.filter((s) => MUX_MAP[s.slug]?.length > 0);
-    setShuffled(shuffleArray(withMux).slice(0, 15));
+    /* Shorts are a public discovery surface: episode 1 must be explicitly
+       catalog-free and have a public preview ID. */
+    const withMux = series.filter(
+      (s) => s.freeEpisodes >= 1 && Boolean(getPlayback(s.slug, 1)?.playbackId),
+    );
+    const next = shuffleArray(withMux).slice(0, 15);
+    queueMicrotask(() => setShuffled(next));
   }, [series]);
 
   /* ---- SINGLE PLAYER: swap source when activeIndex changes ---- */
@@ -238,7 +229,9 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
 
     const activeSeries = shuffled[activeIndex];
     if (!activeSeries) return;
-    const playbackId = MUX_MAP[activeSeries.slug]?.[0]?.playbackId;
+    const playbackId = activeSeries.freeEpisodes >= 1
+      ? getPlayback(activeSeries.slug, 1)?.playbackId
+      : undefined;
     if (!playbackId) return;
 
     // Skip if already playing this source
@@ -291,7 +284,9 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
 
     // ---- Warm the NEXT clip (cap: next 1) — manifest + poster ----------
     const next = shuffled[activeIndex + 1];
-    const nextId = next ? MUX_MAP[next.slug]?.[0]?.playbackId : undefined;
+    const nextId = next && next.freeEpisodes >= 1
+      ? getPlayback(next.slug, 1)?.playbackId
+      : undefined;
     if (nextId) {
       const nextUrl = `https://stream.mux.com/${nextId}.m3u8`;
       if (!warmedRef.current.has(nextUrl)) {
@@ -385,8 +380,14 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
 
   // Reveal chrome for 10s on mount and whenever the active short changes.
   useEffect(() => {
-    revealChrome();
-    return () => { if (chromeTimer.current) clearTimeout(chromeTimer.current); };
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) revealChrome();
+    });
+    return () => {
+      cancelled = true;
+      if (chromeTimer.current) clearTimeout(chromeTimer.current);
+    };
   }, [activeIndex, revealChrome]);
 
   if (shuffled.length === 0) return null;
@@ -400,7 +401,10 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
       {/* Poster-as-loading-state: the active clip's thumbnail sits behind the
           video so source swaps show a frame preview instead of black. */}
       {(() => {
-        const activeId = MUX_MAP[shuffled[activeIndex]?.slug]?.[0]?.playbackId;
+        const active = shuffled[activeIndex];
+        const activeId = active?.freeEpisodes && active.freeEpisodes >= 1
+          ? getPlayback(active.slug, 1)?.playbackId
+          : undefined;
         return activeId ? (
           <img
             key={activeId}
@@ -459,7 +463,6 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
         >
           <ShortCard
             series={shuffled[activeIndex]}
-            isActive={true}
             visible={chromeVisible}
             muted={muted}
             setMuted={setMuted}

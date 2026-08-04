@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { FREE_EPISODES } from "@/lib/config";
+import { getSeriesBySlug } from "@/lib/catalog";
 import { checkVipStatus } from "@/lib/vip";
 import { getUser } from "@/lib/auth";
 import { getServiceClient } from "@/lib/supabase/server";
@@ -26,8 +26,17 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  // Free gate: first N episodes are always entitled
-  if (epNum <= FREE_EPISODES) {
+  const catalogSeries = getSeriesBySlug(series);
+  if (!catalogSeries || catalogSeries.status !== "live" || epNum > catalogSeries.episodeCount) {
+    return NextResponse.json(
+      { error: "Series or episode not found" },
+      { status: 404 },
+    );
+  }
+
+  // Free access is per-series catalog data. Some live titles are wholly free,
+  // so a global five-episode constant would incorrectly paywall them.
+  if (epNum <= catalogSeries.freeEpisodes) {
     const res: EntitlementResponse = {
       entitled: true,
       reason: "free",

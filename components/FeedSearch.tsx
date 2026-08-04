@@ -28,7 +28,7 @@ export default function FeedSearch({ series }: FeedSearchProps) {
     if (open) {
       setTimeout(() => inputRef.current?.focus(), 100);
     } else {
-      setQuery("");
+      queueMicrotask(() => setQuery(""));
     }
   }, [open]);
 
@@ -142,7 +142,7 @@ export default function FeedSearch({ series }: FeedSearchProps) {
             {query.length < 2 && (
               <div className="px-4 py-12 text-center">
                 <p className="text-sm" style={{ color: "#6B6B7B" }}>
-                  Type to search 76+ shows
+                  Type to search the current catalog
                 </p>
               </div>
             )}

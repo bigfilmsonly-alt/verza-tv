@@ -97,7 +97,7 @@ export function AmazonBagProvider({ children }: { children: ReactNode }) {
     const restored = readBag();
     if (restored.length > 0) {
       itemsRef.current = restored;
-      setItems(restored);
+      queueMicrotask(() => setItems(restored));
     }
   }, []);
 

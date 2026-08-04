@@ -200,7 +200,7 @@ export const AMAZON_PRODUCTS: AmazonProduct[] = [
     accent: ["#EC4899", "#7C3AED"],
     badge: "Skincare",
     description:
-      "Dual textured Korean toner pads with AHA and BHA that sweep away dead skin and tighten the look of pores. 70 pads per jar.",
+      "Dual-textured toner pads formulated with AHA and BHA. The package contains 70 pads; review the Amazon listing and product label for ingredients and directions.",
   },
   {
     id: "amzn-eos-vanilla-cashmere-lotion",
@@ -213,7 +213,7 @@ export const AMAZON_PRODUCTS: AmazonProduct[] = [
     accent: ["#F59E0B", "#EC4899"],
     badge: "Body care",
     description:
-      "Lightweight shea lotion that soaks in without any grease and leaves 24 hour moisture. The vanilla cashmere scent is the one that keeps selling out.",
+      "Shea body lotion in a Vanilla Cashmere scent. Review the Amazon listing for ingredients, package size, directions, and current seller details.",
   },
   {
     id: "amzn-mighty-patch-original",
@@ -226,7 +226,7 @@ export const AMAZON_PRODUCTS: AmazonProduct[] = [
     accent: ["#22D3EE", "#3B82F6"],
     badge: "Skincare",
     description:
-      "Hydrocolloid patches that pull a breakout flat overnight. Stick one on before bed and it is gone by morning.",
+      "Hydrocolloid acne-patch variety pack. Review the Amazon listing and package directions before use; individual cosmetic results vary.",
   },
   {
     id: "amzn-maybelline-sky-high-mascara",
@@ -239,7 +239,7 @@ export const AMAZON_PRODUCTS: AmazonProduct[] = [
     accent: ["#7C3AED", "#EC4899"],
     badge: "Makeup",
     description:
-      "The mascara that went viral for a reason. A flexible brush lifts, lengthens and separates every lash with no clumping.",
+      "Mascara with a flexible brush in the selected shade. Review the Amazon listing for ingredients, directions, and current product details.",
   },
   {
     id: "amzn-biodance-collagen-mask",
@@ -252,7 +252,7 @@ export const AMAZON_PRODUCTS: AmazonProduct[] = [
     accent: ["#3B82F6", "#7C3AED"],
     badge: "Skincare",
     description:
-      "Leave it on overnight and the collagen melts into your skin. You wake up tighter, plumper and genuinely glowing.",
+      "Overnight hydrogel facial-mask product sold in a multi-pack. Review the Amazon listing for ingredients and directions; individual cosmetic results vary.",
   },
   {
     id: "amzn-prettygarden-satin-maxi",
@@ -265,7 +265,7 @@ export const AMAZON_PRODUCTS: AmazonProduct[] = [
     accent: ["#E0115F", "#7C3AED"],
     badge: "Dresses",
     description:
-      "Flowy satin maxi with a clean sleeveless cut. Dresses up for a wedding or a dinner and comes in every color.",
+      "Sleeveless satin-style maxi dress. Review the Amazon listing for current colors, materials, seller details, and the seller's size guide.",
   },
   {
     id: "amzn-zesica-strapless-midi",
@@ -278,7 +278,7 @@ export const AMAZON_PRODUCTS: AmazonProduct[] = [
     accent: ["#EC4899", "#F59E0B"],
     badge: "Dresses",
     description:
-      "Strapless floral midi with a bodycon fit. Built for cocktail hour, wedding season and every guest dress search.",
+      "Strapless floral bodycon midi dress. Review the Amazon listing for current colors, materials, seller details, and the seller's size guide.",
   },
   {
     id: "amzn-anrabess-ribbed-top",
@@ -291,7 +291,7 @@ export const AMAZON_PRODUCTS: AmazonProduct[] = [
     accent: ["#F59E0B", "#EF4444"],
     badge: "Tops",
     description:
-      "Soft ribbed henley that layers under everything and still looks put together on its own.",
+      "Ribbed long-sleeve henley top. Review the Amazon listing for current colors, materials, seller details, and the seller's size guide.",
   },
   {
     id: "amzn-wearable-blanket-hoodie",
@@ -304,7 +304,7 @@ export const AMAZON_PRODUCTS: AmazonProduct[] = [
     accent: ["#8B5CF6", "#22D3EE"],
     badge: "Cozy",
     description:
-      "An oversized blanket you can actually wear, with a giant front pocket. Peak couch gear for a full season binge.",
+      "Oversized wearable blanket hoodie with a front pocket. Review the Amazon listing for dimensions, materials, care instructions, and seller details.",
   },
   {
     id: "amzn-plush-throw-blanket",
@@ -321,7 +321,7 @@ export const AMAZON_PRODUCTS: AmazonProduct[] = [
     accent: ["#EC4899", "#8B5CF6"],
     badge: "Cozy",
     description:
-      "The plush fleece throw that ends up living on the arm of the couch. Lightweight, fuzzy and warm, in dozens of colors.",
+      "Plush fleece throw blanket. Review the Amazon listing for current colors, dimensions, materials, care instructions, and seller details.",
   },
   {
     id: "amzn-watersy-tumbler",
@@ -334,7 +334,7 @@ export const AMAZON_PRODUCTS: AmazonProduct[] = [
     accent: ["#22D3EE", "#3B82F6"],
     badge: "Drinkware",
     description:
-      "Insulated stainless tumbler that holds 40oz and keeps ice solid all day. Fits a standard cup holder.",
+      "40-ounce insulated stainless-steel tumbler. Review the Amazon listing for dimensions, lid and straw details, care instructions, and seller information.",
   },
   {
     id: "amzn-sunset-projector-lamp",
@@ -347,6 +347,6 @@ export const AMAZON_PRODUCTS: AmazonProduct[] = [
     accent: ["#F97316", "#EC4899"],
     badge: "Lighting",
     description:
-      "Washes a whole wall in warm sunset color and rotates 180 degrees. The ambience trick behind half the videos on your feed.",
+      "Adjustable 180-degree sunset projection lamp. Review the Amazon listing for power requirements, color modes, dimensions, and seller details.",
   },
 ];

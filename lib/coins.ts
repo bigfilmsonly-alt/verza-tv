@@ -19,7 +19,7 @@ export function formatCoins(n: number): string {
 }
 
 /**
- * Format a price in cents as dollars (e.g. 499 -> "$4.99").
+ * Format a price in cents as dollars (e.g. 199 -> "$1.99").
  */
 export function formatPrice(cents: number): string {
   return `$${(cents / 100).toFixed(2)}`;

@@ -96,7 +96,13 @@ export default function CreatorDashboard() {
   }, []);
 
   useEffect(() => {
-    loadMe();
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) void loadMe();
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [loadMe]);
 
   if (loading) return <Centered>Loading studio…</Centered>;
@@ -112,7 +118,7 @@ export default function CreatorDashboard() {
             Sign in to apply, upload, and manage your channel.
           </p>
           <Link
-            href="/sign-in?next=/creator"
+            href="/sign-in?next=/studio"
             className="inline-block px-6 py-3 rounded-xl text-sm font-bold no-underline"
             style={{ background: `linear-gradient(135deg, ${T.accent}, ${T.purple})`, color: "#fff" }}
           >
@@ -160,8 +166,9 @@ function ApplyScreen({ me, onSaved }: { me: Me; onSaved: () => void }) {
             You&apos;re in the queue, @{c.handle}
           </h1>
           <p className="text-sm" style={{ color: T.textDim }}>
-            Our team reviews new creators within 48 hours. We&apos;ll email{" "}
-            {me.email} once you&apos;re approved — then you can start uploading.
+            Our team will review your application and email {me.email} if its
+            status changes. Upload access and terms are provided separately to
+            approved creators.
           </p>
         </div>
       </Centered>
@@ -199,8 +206,9 @@ function ApplyScreen({ me, onSaved }: { me: Me; onSaved: () => void }) {
           {c?.status === "rejected" ? "Update your application" : "Apply to create"}
         </h1>
         <p className="text-sm" style={{ color: T.textDim }}>
-          Upload vertical or horizontal titles, set your price, and keep{" "}
-          {Math.round((c?.payoutSplit ?? 0.8) * 100)}% of every sale.
+          Submit your project and channel details for review. Upload access,
+          pricing options, and commercial terms are provided separately if your
+          application is approved.
         </p>
       </div>
 

@@ -1,5 +1,9 @@
 # Verza TV — Dev Report: Cross-Device Polish Pass (2026-07-03)
 
+> **ARCHIVE — 2026-07-03 snapshot.** “Shipped,” build, route, and open-item
+> statements apply only to that dated pass. Current release truth:
+> [`../LAUNCH-TRUTH.md`](../LAUNCH-TRUTH.md).
+
 _Session report covering the responsive / multi-iPhone consistency fixes, the
 header logo polish, the video back-arrow → logo crossfade, and a full broken-link
 audit. All figures pulled from real `git` / build output._

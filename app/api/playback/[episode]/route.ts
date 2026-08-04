@@ -1,25 +1,70 @@
 import { NextRequest, NextResponse } from "next/server";
-import { FREE_EPISODES } from "@/lib/config";
-import { getPlayback } from "@/lib/mux-map";
+import { getSeriesBySlug } from "@/lib/catalog";
+import { getPlayback } from "@/lib/mux-private-map";
 import { checkVipStatus } from "@/lib/vip";
 import { getUser } from "@/lib/auth";
 import { getServiceClient } from "@/lib/supabase/server";
+import {
+  MuxPlaybackConfigurationError,
+  getPaidPlaybackDelivery,
+  getPublicPlaybackDelivery,
+} from "@/lib/mux-playback";
+
+function privateJson(body: unknown, status = 200) {
+  return NextResponse.json(body, {
+    status,
+    headers: {
+      // Signed URLs are short-lived bearer capabilities and must never enter a
+      // shared CDN/browser HTTP cache. The clients own a bounded in-memory
+      // cache keyed by logical series+episode instead.
+      "Cache-Control": "private, no-store, max-age=0",
+      Pragma: "no-cache",
+      Vary: "Authorization, Cookie",
+    },
+  });
+}
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ episode: string }> }
 ) {
   const { episode } = await params;
-  const parts = episode.split("--");
-  const slug = parts[0];
-  const epNum = parseInt(parts[1] || "1", 10);
+  const separator = episode.lastIndexOf("--");
+  const slug = separator > 0 ? episode.slice(0, separator) : "";
+  const epText = separator > 0 ? episode.slice(separator + 2) : "";
+  const epNum = Number(epText);
 
-  if (!slug || isNaN(epNum)) {
-    return NextResponse.json({ error: "Invalid episode" }, { status: 400 });
+  if (
+    !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) ||
+    !Number.isSafeInteger(epNum) ||
+    epNum < 1
+  ) {
+    return privateJson({ error: "Invalid episode" }, 400);
   }
 
-  const isFree = epNum <= FREE_EPISODES;
-  const isVip = await checkVipStatus(request);
+  const series = getSeriesBySlug(slug);
+  if (
+    !series ||
+    series.status !== "live" ||
+    epNum < 1 ||
+    epNum > series.episodeCount
+  ) {
+    return privateJson(
+      { error: "Series or episode not found" },
+      404,
+    );
+  }
+
+  const mux = getPlayback(slug, epNum);
+  if (!mux) {
+    return privateJson({
+      status: "not_found",
+      message: "No video available for this episode",
+    }, 404);
+  }
+
+  const isFree = epNum <= series.freeEpisodes;
+  const isVip = isFree ? false : await checkVipStatus(request);
 
   // Check if user has purchased this series
   let hasPurchased = false;
@@ -38,33 +83,44 @@ export async function GET(
   }
 
   if (!isFree && !isVip && !hasPurchased) {
-    return NextResponse.json({
+    return privateJson({
       status: "paywall",
-      message: "This episode requires coins to unlock",
+      message: "This episode requires a Series Unlock or active VIP access",
       series: slug,
       episode: epNum,
-      coinCost: 49,
-    }, { status: 402 });
+    }, 402);
   }
 
-  // Look up real Mux playback
-  const mux = getPlayback(slug, epNum);
+  try {
+    const delivery = isFree
+      ? getPublicPlaybackDelivery(mux.playbackId)
+      : await getPaidPlaybackDelivery(mux.playbackId);
 
-  if (!mux) {
-    return NextResponse.json({
-      status: "not_found",
-      message: "No video available for this episode",
-    }, { status: 404 });
+    return privateJson({
+      status: "ok",
+      series: slug,
+      episode: epNum,
+      // Public IDs remain useful to old/free clients. Never return a paid
+      // signed ID separately; the authorized URL is the only capability.
+      playbackId: isFree ? mux.playbackId : undefined,
+      playbackUrl: delivery.playbackUrl,
+      duration: mux.duration,
+      poster: delivery.poster,
+      policy: delivery.policy,
+      expiresAt: delivery.expiresAt,
+      vip: isVip || undefined,
+    });
+  } catch (error) {
+    if (error instanceof MuxPlaybackConfigurationError) {
+      // Do not leak which ID/key is absent. Operations gets a searchable,
+      // non-secret marker and clients get a retryable fail-closed response.
+      console.error("[playback] signed catalog configuration incomplete");
+      return privateJson({ error: "Playback is temporarily unavailable" }, 503);
+    }
+    console.error(
+      "[playback] token generation failed:",
+      error instanceof Error ? error.name : "unknown",
+    );
+    return privateJson({ error: "Playback is temporarily unavailable" }, 503);
   }
-
-  return NextResponse.json({
-    status: "ok",
-    series: slug,
-    episode: epNum,
-    playbackId: mux.playbackId,
-    playbackUrl: `https://stream.mux.com/${mux.playbackId}.m3u8`,
-    duration: mux.duration,
-    poster: `https://image.mux.com/${mux.playbackId}/thumbnail.jpg?time=5&width=720&height=1280`,
-    vip: isVip || undefined,
-  });
 }

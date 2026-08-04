@@ -8,9 +8,9 @@ import { LOCATIONS } from "@/lib/data/locations";
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
 
-const PAGE_TITLE = `Watch ${BRAND.name} Around the World`;
+const PAGE_TITLE = `${BRAND.name} Location Guides`;
 const PAGE_DESC =
-  "Stream VERZA TV vertical micro-dramas and reality from anywhere — browse availability, most-watched picks and viewing guides for 70+ cities, states and countries.";
+  "Check VERZA TV availability by location and browse phone-first vertical series. Title access can vary by device and location.";
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,
@@ -82,14 +82,13 @@ export default function WatchInIndexPage() {
         </Link>
 
         <h1 className="text-3xl font-bold leading-tight mb-3" style={{ color: T.text }}>
-          Watch {BRAND.name} Anywhere
+          {BRAND.name} Location Guides
         </h1>
 
         <p className="text-sm leading-relaxed mb-4 max-w-xl" style={{ color: T.textDim }}>
-          {BRAND.name} streams the same binge-worthy vertical micro-dramas and
-          reality everywhere you go. Pick your city, state or country below for
-          localized recommendations, availability and time-zone tips. Every
-          series starts free with the first 5 episodes.
+          Pick a city, state, or country below to browse a location guide.
+          Content availability can vary by title, device, and location; each
+          title page shows its current episode and access details.
         </p>
 
         <span

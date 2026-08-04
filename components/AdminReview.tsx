@@ -95,7 +95,13 @@ export default function AdminReview() {
   }, []);
 
   useEffect(() => {
-    load();
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) void load();
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [load]);
 
   async function decideApp(app: CreatorApp, action: "approve" | "reject") {

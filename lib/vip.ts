@@ -34,11 +34,11 @@ export async function checkVipStatus(request: NextRequest): Promise<boolean> {
     // Check VIP status in profiles
     const { data: profile } = await supabase
       .from("profiles")
-      .select("is_vip, vip_expires_at")
+      .select("is_vip,vip_expires_at,vip_payment_blocked")
       .eq("id", userId)
       .single();
 
-    if (!profile?.is_vip) return false;
+    if (!profile?.is_vip || profile.vip_payment_blocked) return false;
 
     // Check expiry (if set)
     if (profile.vip_expires_at) {

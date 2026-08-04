@@ -1,5 +1,9 @@
 # Verza TV Current-State Audit
 
+> **ARCHIVE — 2026-07-11 snapshot; the filename is not current authority.**
+> Many blockers, counts, prices, and architecture facts changed during the
+> 2026-08-03 hardening. Use [`../LAUNCH-TRUTH.md`](../LAUNCH-TRUTH.md).
+
 **Date:** 2026-07-11 · **Repo:** `Splash-Studio/verza-tv` @ `195c806` · **Live:** https://www.verzatv.com
 **Method:** Deterministic verification (build, typecheck, lint, route sweep, live DB reads, production HTTP probes, Stripe/Mux API reads) + a 10-agent verification fleet, all read-only. Nothing was modified, no test charges were made.
 
@@ -48,11 +52,11 @@
 | Framework | Next.js 16.2.9 (App Router) · React 19.2.4 · TypeScript 5 · Tailwind v4 | Production Ready |
 | Package manager | npm (package-lock present) | — |
 | Hosting | Vercel — team `codevibes`, project `verza-tv`. **No `vercel.json`**; headers/CSP/redirects live in `next.config.ts`. **Manual deploy** (`npx vercel deploy --prod`) — no CI/CD, no git auto-deploy. | Production Ready |
-| Database | Supabase Postgres — project **`mmvbmrrwgludfmfalfcm`** (⚠️ newer than the `jejispfvlkwastzvwtwu` in old notes; migration 008 calls it a "fresh start" — the env value is authoritative) | Production Ready |
+| Database | Supabase Postgres — historical/current project identifiers intentionally omitted; approved environment is authoritative | Production Ready |
 | Auth | Supabase Auth via `@supabase/ssr` cookies (`lib/auth.ts`); Google/Apple OAuth buttons | Working but Untested |
 | Video | Mux HLS via hls.js 1.6.16; `@mux/mux-node` for creator direct-upload. **Public playback policy** (no signing) | Production Ready (playback) |
 | Payments | Stripe 22.2.2, **LIVE keys** (`sk_live_…`) | Working but Untested |
-| Analytics | GTM `GTM-K9GWK2XT` + GA4 `G-HY8HNR5DQD` + AdSense `ca-pub-8089901381021947` (all hardcoded in `ThirdPartyScripts.tsx`); custom bus → `analytics_events`; Vercel Analytics | Partial (capture broken) |
+| Analytics | GTM + GA4 + AdSense identifiers existed in `ThirdPartyScripts.tsx` (identifiers intentionally omitted); custom bus → `analytics_events`; Vercel Analytics | Partial (capture broken) |
 | Email | Resend 6.14.0 (`lib/email.ts`), sender `noreply@verzatv.com` | Working but Untested |
 | Storage | None external — static `public/` assets + direct-to-Mux for creator video | Production Ready |
 | Search | Client-side static tag index (`lib/search-index.ts`) — no DB/external search | Production Ready |
@@ -214,7 +218,7 @@ The real player is **`components/EpisodeFeed.tsx`** (`Player.tsx` is dead code �
 | Add/edit title, reorder episodes, replace poster, change category/price, publish/unpublish, feature content, change homepage order, create a sale, add affiliate product | ❌ **No** — all are hardcoded TypeScript (`catalog.ts`, `mux-map.ts`, `config.ts`, `products.ts`, `amazon-sponsors.ts`, `SummerSaleBadge.tsx`) requiring a commit + full redeploy |
 | View purchases/users, export data, takedown published UGC, resolve support/refund/entitlement issues | ❌ **No tooling exists** |
 
-- **Admin API protection:** server-side Bearer + hardcoded 3-email allowlist (verified 401/403 live) — solid. But **P1:** owner `bigfilmsonly@gmail.com` is **not** in the allowlist (locked out if that's the login).
+- **Admin API protection:** server-side Bearer + hardcoded allowlist (verified 401/403 at the time). Historical owner/admin email identifiers are intentionally omitted.
 - **P1:** the dashboard's engagement/unlock metrics query **nonexistent columns** → silent zeros.
 
 ---
@@ -250,11 +254,11 @@ The real player is **`components/EpisodeFeed.tsx`** (`Player.tsx` is dead code �
 | Service | Purpose | Account/Creds | Status |
 |---|---|---|---|
 | Vercel | Hosting (team codevibes) | ✅ | Production |
-| Supabase | DB + Auth (`mmvbmrrwgludfmfalfcm`) | ✅ | Production |
+| Supabase | DB + Auth (project identifier intentionally omitted) | ✅ | Production |
 | Stripe | Payments (LIVE) | ✅ | Live; webhook events incomplete |
 | Mux | Video (public playback) | ✅ tokens; ❌ signing keys; ❌ webhook secret | Playback prod; upload untested |
 | Resend | Email | ✅ | Untested |
-| Google (GTM/GA4/AdSense) | Analytics + ads | Hardcoded IDs; **data flow UNVERIFIED** | Partial |
+| Google (GTM/GA4/AdSense) | Analytics + ads | Historical identifiers omitted; **data flow UNVERIFIED** | Partial |
 | Anthropic | AI features | ❌ no key, **SDK not installed** | Broken/UI-only |
 | Amazon Associates | Affiliate | `verzatv-20` tag; **validity UNVERIFIED** | Partial |
 | TikTok Shop | Affiliate | None — fabricated tiles | UI Only |

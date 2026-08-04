@@ -1,5 +1,9 @@
 # Verza TV — Pre-Share Dev Report
 
+> **ARCHIVE — despite the filename, this is a June 2026 snapshot.** It is not
+> the current audit. Old “clean,” “live,” count, and readiness claims are
+> superseded by [`../LAUNCH-TRUTH.md`](../LAUNCH-TRUTH.md).
+
 _Master audit run before handing the repo to Splash Studios as the foundation
 for a React Native migration. Every figure below is pulled from real
 `git` / build / source output — nothing estimated._

@@ -1,37 +1,91 @@
-# Mux Mapping Reconciliation
+# Mux audit and projection scripts
 
-Verifies the `lib/mux-map.ts` episode→playback mappings against the actual Mux asset library.
+Last reconciled: **2026-08-03**. Current architecture has a complete audit map,
+a generated client-safe projection, and a server-only signed correspondence.
+Never use the older reconciliation workflow alone as release evidence.
 
-## Usage
+## Current verified snapshot
+
+| Set | Rows |
+| --- | ---: |
+| Complete mapped rows | 4,262 |
+| Live-title rows | 4,212 |
+| Intentionally public/free | 459 |
+| Paid live | 3,753 |
+| Coming soon | 50 |
+| Withheld from clients | 3,803 |
+| Paid-live signed counterparts | 3,753 |
+
+The final live audit scanned 5,220 Mux assets with zero missing mapped IDs,
+duplicates, free/paid overlap, or catalog-orphan series. Numbers are dated;
+rerun non-mutating audits before a release decision.
+
+## Safe routine commands
 
 ```bash
-# First run (fetches all assets from Mux API, ~45 pages):
-source .env.local
-npx tsx scripts/reconcile-mux.ts
+# Exact generated public-projection audit; does not write.
+npm run mux:public:audit
 
-# Re-analyze without re-fetching (uses cached mux-assets.json):
-npx tsx scripts/reconcile-mux.ts
+# Offline signed-migration/parser self-test; no provider call.
+npm run mux:signed:self-test
 
-# Force fresh pull from Mux API:
-npx tsx scripts/reconcile-mux.ts --refresh
+# Live Mux inventory readback; does not mutate.
+npm run mux:signed:audit
+
+# Static/client capability boundary regression.
+npm run test:playback-security
+
+# Mux creator-webhook fail-closed/signature contract.
+npm run test:mux-webhook-security
 ```
 
-## Output
+The public generator uses the shared AST catalog parser. Regex parsing is
+forbidden: a previous regex skipped two entries when comments preceded `slug`
+and incorrectly withheld 25 free playback IDs.
 
-- `scripts/out/mux-assets.json` — raw Mux asset pull (all ~4,472 assets)
-- `scripts/out/reconcile-report.md` — human-readable report with problems + spot-checks
-- `scripts/out/reconcile-report.csv` — spreadsheet summary (one row per series)
+## Deliberate source generation
 
-## What It Checks
+```bash
+npm run mux:public:generate
 
-1. **Count check** — declared episodeCount vs mapped episodes per series
-2. **Coverage** — total mapped vs total assets, lists unmapped assets
-3. **Duplicates** — any playback ID mapped to multiple episodes
-4. **Orphans** — any mapped playback ID that doesn't exist in Mux (dead/broken)
-5. **Duration outliers** — episodes with unusual duration for their series
-6. **Boundary check** — first/last episode timestamps per series
-7. **Sequence continuity** — whether created_at is monotonic within each series
+node --env-file=.env.local scripts/migrate-mux-signed-playback.mjs \
+  --generate-map
+```
 
-## READ-ONLY
+Both commands write generated source and require review, byte-sync to native
+where designated, and all client/security tests. The signed-map generator
+refuses incomplete coverage and writes atomically.
 
-This script does NOT modify `lib/mux-map.ts` or any content data. It only reads and reports.
+## Guarded provider mutation
+
+The current 3,753-row paid-live signed inventory is complete. Only a fresh audit
+that proves a newly added paid-live asset lacks a signed counterpart justifies:
+
+```bash
+node --env-file=.env.local scripts/migrate-mux-signed-playback.mjs \
+  --apply-add-signed-ids --confirm-add-signed-ids
+```
+
+This is an add-only live Mux mutation, not a routine verification command. It
+does not create signing keys or retire public IDs. Existing signed IDs are
+reused, ambiguous writes are reread, and progress is checkpointed under ignored
+`scripts/out/`.
+
+No script in this repository removes legacy public IDs. Live native 1.2 depends
+on those paid IDs, so retirement is a separate post-2.0 forced-update/drain
+decision with explicit owner outage-risk acceptance.
+
+## Legacy reconciliation script
+
+`scripts/reconcile-mux.ts` may still produce raw inventory/report artifacts
+under ignored `scripts/out/`. Treat its cached asset totals and reports as dated
+diagnostics. It does not replace:
+
+- AST catalog classification;
+- exact public-projection generation;
+- signed-counterpart coverage;
+- browser/Expo/Hermes/EAS capability scans; or
+- production `policy=signed` canary/readback.
+
+No script may print secrets, JWTs, signed URLs, reviewer credentials, or
+provider/customer PII. See [`../docs/guides/MUX.md`](../docs/guides/MUX.md).

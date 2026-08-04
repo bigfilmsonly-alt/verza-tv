@@ -92,14 +92,11 @@ export default function AlanMruvkaHub() {
         </p>
 
         <p className="text-sm leading-relaxed mb-6" style={{ color: T.textDim }}>
-          Alan Mruvka is an American media entrepreneur best known as a
-          co-founder of E! Entertainment Television — the network that turned
-          pop culture, red carpets, and celebrity news into appointment viewing
-          across more than 90 countries. Today he is the founder of {BRAND.name},
-          a US-based platform built around premium vertical micro-dramas:
-          cinematic stories told in 60-to-120-second episodes, designed for the
-          way audiences actually watch now. This is the central reference hub for
-          his work, his legacy, and his vision.
+          Alan Mruvka is an American media entrepreneur and a co-founder of E!
+          Entertainment Television. Today he is the founder of {BRAND.name}, a
+          US-based platform for short-form vertical entertainment. Episode
+          lengths and formats vary by title. This page is a reference hub for
+          his work with E! and VERZA TV.
         </p>
 
         {/* E! legacy summary */}
@@ -111,12 +108,9 @@ export default function AlanMruvkaHub() {
             The E! Entertainment Legacy
           </h2>
           <p className="text-sm leading-relaxed" style={{ color: T.textDim }}>
-            As a co-founder of E!, Mruvka helped launch one of the defining
-            entertainment brands of the cable era — a startup channel that grew
-            into a global pop-culture institution. That experience of building a
-            media brand from zero, against skeptical operators and advertisers,
-            is the same zero-to-one challenge he has taken on again with{" "}
-            {BRAND.name}.{" "}
+            As a co-founder of E!, Mruvka helped launch a cable channel focused
+            on entertainment and pop-culture programming. He later founded{" "}
+            {BRAND.name} around short-form, phone-first distribution.{" "}
             <Link href="/alan-mruvka/e-entertainment-legacy" className="underline" style={{ color: T.accent }}>
               Read the full E! legacy
             </Link>

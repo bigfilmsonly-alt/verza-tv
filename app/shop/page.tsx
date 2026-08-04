@@ -13,11 +13,13 @@ import { AMAZON_PRODUCTS } from "@/lib/amazon-sponsors";
 export const metadata: Metadata = {
   title: `Shop | ${BRAND.name}`,
   description:
-    "Official VERZA TV merch — hoodies, mugs, socks, water bottles — plus the beauty, skincare and cozy Amazon picks the team is loving.",
+    "Browse VERZA TV's sponsored beauty, skincare, entertainment, and cozy picks from Amazon.",
   alternates: { canonical: "/shop" },
 };
 
 export default function ShopPage() {
+  const merchEnabled = process.env.MERCH_CHECKOUT_ENABLED === "true";
+
   return (
     <section className="px-4 pt-6 pb-8">
       <JsonLd data={organizationSchema()} />
@@ -27,14 +29,14 @@ export default function ShopPage() {
             Shop
           </h1>
           <p className="text-sm mt-1" style={{ color: T.textMute }}>
-            Official VERZA TV merch
+            {merchEnabled ? "Official VERZA TV merch" : "Sponsored picks from Amazon"}
           </p>
         </div>
-        <CartButton />
+        {merchEnabled && <CartButton />}
       </div>
 
       {/* Product Grid */}
-      <div className="product-grid grid grid-cols-2 gap-3">
+      {merchEnabled && <div className="product-grid grid grid-cols-2 gap-3">
         {products.map((product) => (
           <Link
             key={product.id}
@@ -93,7 +95,7 @@ export default function ShopPage() {
             </div>
           </Link>
         ))}
-      </div>
+      </div>}
 
       {/* The affiliate shop, alongside the merch above. Kept visibly apart on
           purpose: the merch checks out through our own Stripe cart, while these
@@ -106,7 +108,10 @@ export default function ShopPage() {
           labelling all stays: its own line here, on every tile, and the
           Associates disclosure below the grid. */}
       {AMAZON_PRODUCTS.length > 0 && (
-        <div className="mt-10 pt-8" style={{ borderTop: `1px solid ${T.line}` }}>
+        <div
+          className={merchEnabled ? "mt-10 pt-8" : "mt-2"}
+          style={merchEnabled ? { borderTop: `1px solid ${T.line}` } : undefined}
+        >
           {/* The headline needs the full width to hold one line, so "View all"
               sits on the sponsored row below rather than beside it. */}
           <div className="headline-oneline">
@@ -123,7 +128,7 @@ export default function ShopPage() {
               className="text-[10px] font-semibold uppercase tracking-wider m-0"
               style={{ color: "#FF9900" }}
             >
-              Sponsored · Amazon
+              Sponsored · Ad · Amazon
             </p>
             <Link
               href="/amazon"
@@ -135,6 +140,19 @@ export default function ShopPage() {
                 <path d="M5 12h14M13 6l6 6-6 6" />
               </svg>
             </Link>
+          </div>
+
+          <div className="-mt-3 mb-5">
+            <p className="text-[10px]" style={{ color: T.textMute }}>
+              Not personalized
+            </p>
+            <a
+              href="mailto:support@verzatv.com?subject=Report%20an%20Ad%3A%20Amazon&body=Advertiser%3A%20Amazon%0APlacement%3A%20Shop%0A%0APlease%20describe%20why%20this%20ad%20may%20be%20inappropriate%20or%20age-inappropriate%3A"
+              className="text-[11px] underline"
+              style={{ color: T.textMute }}
+            >
+              Report an Ad
+            </a>
           </div>
 
           <div className="grid grid-cols-2 gap-x-3 gap-y-5">

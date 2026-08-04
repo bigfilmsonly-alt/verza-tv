@@ -1,137 +1,202 @@
-# Runbook — Verza TV
+# Operations runbook — Verza TV
 
-Common operational tasks for maintaining and updating the Verza TV platform.
+Last reconciled: **2026-08-03**. Start with
+[`../LAUNCH-TRUTH.md`](../LAUNCH-TRUTH.md). Production and local source are
+different until a deployment is read back.
 
----
+## Current pre-release checklist
 
-## Pre-Launch Checklist
+### Source and database
 
-### Legal (REQUIRED before production payments)
-- [ ] Terms of Service reviewed by attorney (currently draft at /terms)
-- [ ] Privacy Policy reviewed by attorney (currently draft at /privacy)
-- [ ] Refund Policy reviewed by attorney (currently draft at /refund-policy)
-- [ ] COPPA compliance verified (13+ age gate on sign-up)
-- [ ] CCPA/GDPR data deletion flow implemented
+- [ ] `npm run test:playback-security` passes.
+- [ ] `npm run test:mux-webhook-security` passes.
+- [ ] `npm run test:payments` passes.
+- [ ] rollback-only `npm run test:payments:db` passes.
+- [ ] `npx tsc --noEmit`, `npm run lint`, and `npm run build` pass.
+- [ ] migrations `009`–`014` remain applied/read back before matching webhook
+      code is deployed.
+- [ ] client bundles and the native EAS archive contain none of the 3,803
+      withheld Mux capabilities or any secret.
 
-### Payments
-- [ ] Stripe account verified and approved
-- [ ] Switch from test keys to live keys (STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET)
-- [ ] Webhook endpoint verified: https://verzatv.com/api/stripe/webhook
-- [ ] Test purchase → coins → unlock → play loop passes with live keys
-- [ ] Refund handling tested
+### Catalog and playback
 
-### Authentication
-- [ ] Supabase Auth configured (email + Google + Apple)
-- [ ] SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY set in Vercel
-- [ ] Password reset flow works
-- [ ] Account deletion flow works (required for App Store)
+- [ ] catalog reads 80 total / 79 live / 74 paid-live / five wholly free / one
+      coming soon.
+- [ ] Mux projection reads 4,262 rows / 459 intentionally public / 3,803
+      withheld / 3,753 paid-live signed counterparts / 50 coming soon.
+- [ ] fresh Mux audit has zero missing mapped IDs, duplicates, free/paid overlap,
+      or catalog-orphan series.
+- [ ] web free, signed-out paid, entitled paid, VIP entitlement, expiry refresh,
+      account-switch, and 503 fail-closed matrices pass.
+- [ ] standalone iPhone/iPad playback keeps at most three attached players and
+      releases on blur.
+- [ ] legacy paid public IDs remain in place for live native 1.2 compatibility.
+- [x] hardened creator Mux-webhook route is deployed/read back; with the
+      verification secret intentionally absent it returns 503 and performs no
+      ingestion mutation.
 
-### Domain & DNS
-- [ ] verzatv.com DNS pointed to Vercel (A record: 76.76.21.21)
-- [ ] www.verzatv.com CNAME → cname.vercel-dns.com
-- [ ] SSL certificate auto-provisioned by Vercel
-- [ ] All 301 redirects verified (old slugs → new)
-- [ ] robots.txt switches to index: true on production domain
+### Legal and payments
 
-### Content
-- [ ] All 76 series have correct poster art (9:16, 1080x1920)
-- [ ] Mux mapping reconciliation shows 0 orphans, 0 duplicates
-- [ ] Video playback verified on iOS Safari, Chrome, Firefox
-- [ ] Free gate (first 5 episodes) confirmed working
+- [x] August 3 Terms, Privacy, Refund, and Support pages are deployed and read
+      back at `https://www.verzatv.com`.
+- [ ] automatic tax remains exact `false`; Stripe Tax has zero active
+      registrations; tax/legal ownership decision is recorded before any
+      future enablement.
+- [x] first payment deployment uses exact
+      `STRIPE_CHECKOUT_TOS_CONSENT_REQUIRED=false`; authenticated capabilities
+      report live Series Checkout in `compatibility` mode and both VIP plans
+      false.
+- [ ] Stripe Dashboard Public details visibly contains current Terms, Privacy,
+      Support URL, and support email.
+- [ ] restricted Billing Portal is created/read back, Terms flag is exact
+      `true`, second deployment is healthy, and authenticated capabilities
+      report `required` mode.
+- [x] the one canonical webhook is updated in place to exactly 19/19 with
+      wildcard off, no second endpoint/replay/secret rotation, and unsigned
+      delivery returning 400.
+- [ ] `npm run test:payments:stripe-cutover` passes after the still-open exact
+      required Terms mode and restricted portal are configured.
+- [ ] one owner-authorized $1.99 Series Unlock creates exactly one Session,
+      PaymentIntent/Charge, canonical purchase, purchase-linked entitlement,
+      idempotent receipt, and playable paid episode; retry creates no second
+      Charge.
+- [ ] the smoke purchase is preserved; no automatic cleanup Refund is issued.
+- [ ] coins, creator PPV, official merch Checkout, monthly VIP, and yearly VIP
+      remain hidden/fail-closed.
 
-### App Stores (if applicable)
-- [ ] iOS App Store listing approved
-- [ ] Google Play listing approved
-- [ ] apple-itunes-app smart banner with real app ID
-- [ ] Deep links tested (Universal Links + App Links)
+Live Public details is currently blank and the own-account API write was
+rejected with 403. This is a Dashboard/manual gate, not permission to bypass
+required consent.
 
-### Monitoring
-- [ ] Error tracking configured (Sentry or similar)
-- [ ] Uptime monitoring on key endpoints
-- [ ] Stripe webhook delivery monitoring
-- [ ] Mux asset health check scheduled
+Creator ingestion remains separately deferred. A real `MUX_WEBHOOK_SECRET` and
+signed provider-event canary are required before changing the current 503
+fail-closed production state.
 
-### Final Verification
-- [ ] Money loop test passes: sign up → buy coins → unlock → play → logout → login → still unlocked
-- [ ] Lighthouse mobile performance ≥ 90
-- [ ] View Source shows real content (no empty body)
-- [ ] Rich Results Test validates JSON-LD
-- [ ] Social share previews work (OG image renders in iMessage/Slack/Twitter)
+### Native/App Store
 
----
+- [ ] iOS exposes no digital price, purchase, subscribe, billing, portal, web
+      purchase, or purchase direction.
+- [ ] iOS Amazon, ads/affiliate placements, UGC/admin routes, non-core
+      payment-bearing editorial routes, and non-live titles fail closed before
+      query/render.
+- [ ] root age assurance, SecureStore/Keychain session migration, login/demo,
+      account deletion, legal/support email fallback, Shop support-only surface,
+      and iPhone/iPad layouts pass in the standalone app.
+- [ ] the exact new IPA—not historical build 19—passes `Info.plist`, entitlement,
+      privacy-manifest, framework/extension, capability, and secret inspection.
+- [ ] the exact build reaches App Store Connect `VALID` before attachment.
 
-## Add a Series
+## Add or change a title
 
-1. Add the series entry to `lib/catalog.ts` (slug, title, genre, episode count, etc.)
-2. Add rich detail to `lib/series-detail.ts` (synopsis, cast, tags, ratings)
-3. Add poster image to `public/posters/{slug}.png` (recommended 400x600)
-4. Add Mux playback ID mappings to `lib/mux-map.ts` (one entry per episode)
-5. Verify the series page renders: `http://localhost:3005/series/{slug}`
+Follow [`CONTENT.md`](CONTENT.md); the condensed sequence is:
 
-## Attach a Transcript
+1. update `lib/catalog.ts` and `lib/series-detail.ts`;
+2. update the complete `lib/mux-map.ts` audit anchor from verified Mux data;
+3. run the shared AST parser and public projection generator—never regex-parse
+   the catalog;
+4. add a signed counterpart for any new paid-live asset through the guarded
+   add-only operation, then regenerate the server-only signed map;
+5. copy designated data into native byte-identically;
+6. run both repos' count/security/iOS-route gates; and
+7. deploy/read back the backend before releasing a dependent native build.
+
+Never hard-code five free episodes. Each title's `freeEpisodes` is canonical.
+Never treat `coinPerEpisode` or `seasonPassCoins` as a live product.
+
+## Attach a transcript
 
 ```bash
 npx tsx scripts/attach-transcript.ts <slug> <episode-number> <transcript-file>
 ```
 
-The script reads the transcript file and associates it with the given series slug and episode number.
+Validate the transcript for rights, privacy, accuracy, indexability, and
+unintended payment/Mux capability strings before committing or deploying.
 
-## Flip to Supabase Content
+## Content-source changes
 
-By default the app serves content from in-code catalogs. To switch to Supabase-backed content:
+The code adapter is production authority. The Supabase content adapter is a
+scaffold, not a release toggle. Do not set `CONTENT_SOURCE=supabase` until the
+adapter, backfill, RLS, indexability, capability projection, web/native parity,
+rollback, and production readback have a separate approved plan.
 
-1. Set `CONTENT_SOURCE=supabase` in your environment (`.env.local` or Vercel dashboard)
-2. Apply database migrations: `npx supabase db push`
-3. Backfill series and episode data into the Supabase tables
-4. Verify by loading any series page and confirming data renders correctly
-
-## Re-verify Mux Mapping
-
-Run the verification script to test that all Mux playback IDs in `lib/mux-map.ts` resolve to valid assets:
+## Re-verify Mux
 
 ```bash
-node scripts/verify-mux-map.js
+npm run mux:public:audit
+npm run mux:signed:self-test
+npm run mux:signed:audit
+npm run test:playback-security
+npm run test:mux-webhook-security
 ```
 
-Review output for any 404s or expired signing tokens.
+The first three are non-mutating in their documented default modes. The current
+3,753 paid-live signed inventory is complete; never invoke add-only write mode
+without a fresh audit-confirmed delta and explicit reviewed intent. No routine
+script retires legacy public IDs.
 
-## Submit Sitemap
-
-1. Open [Google Search Console](https://search.google.com/search-console)
-2. Navigate to Sitemaps and submit: `https://verzatv.com/sitemap.xml`
-3. Open [Bing Webmaster Tools](https://www.bing.com/webmasters)
-4. Submit the same URL: `https://verzatv.com/sitemap.xml`
-
-The sitemap index at `/sitemap.xml` links to child sitemaps for pages, shows, episodes, and genres.
-
-## Deploy
-
-**Deploy to production (the live domain):**
+## Deploy and read back
 
 ```bash
 npx vercel --prod --yes
 ```
 
-Only the Vercel CLI promotes the live domain (`www.verzatv.com` / `verzatv.com`).
-A `git push origin main` builds a production-target deployment but does NOT move
-the live alias; non-main branches get preview deploys at unique URLs. Push to
-`main` to keep the repo in sync, then run the CLI to go live. (Verify in a
-browser or the Vercel API — the live domain returns a 403 "Security Checkpoint"
-to `curl`.)
+Then verify the intended deployment owns the canonical
+`https://www.verzatv.com` alias, the apex redirects canonically, required pages
+and private APIs have correct status/cache headers, payment capabilities match
+the deployed Terms phase, and free/paid playback matches the deployed Mux flag.
+See [`DEPLOYMENT.md`](DEPLOYMENT.md).
 
-## Rotate API Keys
+## Submit sitemaps
 
-1. Generate the new key in the provider dashboard (Supabase, Mux, Stripe, Anthropic)
-2. Go to [Vercel Dashboard](https://vercel.com) > Project > Settings > Environment Variables
-3. Update the relevant variable with the new value
-4. Redeploy: Vercel > Deployments > triple-dot menu > Redeploy (or `npx vercel --prod --yes`)
-5. Revoke the old key in the provider dashboard
+Use the canonical `https://www.verzatv.com/sitemap.xml` in Google Search Console
+and Bing Webmaster Tools. Before submission/readback, confirm non-production
+deployments are `noindex`, only live/free episode video URLs are emitted, and no
+paid/coming-soon Mux capability appears in XML.
 
-## Common Issues
+## Rotate a provider key
 
-| Symptom | Likely cause | Fix |
-|---|---|---|
-| Black screen on iOS video | hls.js loaded at module scope | Ensure hls.js is dynamically imported |
-| Series page 404 | Missing catalog entry | Add to `lib/catalog.ts` |
-| Mux 403 on playback | Expired signing key or wrong playback ID | Check `MUX_SIGNING_KEY_*` env vars |
-| Supabase RLS denials | Missing policy or wrong role | Review RLS policies in Supabase dashboard |
+1. Record the provider, environment, affected routes, reason, operator, and
+   rollback plan without copying the secret.
+2. Generate the replacement in the provider's approved secret channel.
+3. Update the matching sensitive Vercel environment value.
+4. Deploy and verify the dependent feature through canonical readback.
+5. Revoke the old key only after the new path is proven.
+6. If a Mux signing key or signed URL leaked, follow the capability incident
+   rules in [`MUX.md`](MUX.md); never log the replacement.
+
+## Stripe webhook incident and replay
+
+1. Stop and record the endpoint, deployment SHA/timestamp, event IDs/types,
+   delivery status, and matching provider object IDs. Do not charge or Refund
+   merely to manufacture an incident test.
+2. Confirm migrations `009`–`014`, deployed webhook version, signing secret,
+   exact endpoint event set, and database suite before any resend.
+3. Build an allowlist of only failed/missed **post-cutover** events supported by
+   deployed code/schema. Resend through Stripe's signed mechanism and verify
+   event/purchase/Refund/Dispute ledgers after each bounded batch.
+4. Permanently denylist all pre-cutover `checkout.session.*` events from bulk
+   replay. This includes the three audited paid Series Sessions—two former
+   $4.99 offers and one $1.99 offer—which do not satisfy today's canonical
+   fulfillment rules. Preserve them and use only independently verified
+   support recovery.
+5. The predecessor direct-PaymentIntent population is also replay-denied. Its
+   unfinished intents are canceled; existing Charges/Refunds remain unchanged
+   unless a payment owner separately approves a customer disposition. A future
+   Refund/Dispute may be recorded without a current user, but may never create
+   an entitlement.
+6. Never include purchaser names, emails, cards, billing addresses, secrets, or
+   authorization tokens in an incident log.
+
+## Common issues
+
+| Symptom | First checks | Safe response |
+| --- | --- | --- |
+| Paid route returns 402 for owner | current account, entitlement/purchase link, Refund/Dispute state, Customer/history recovery | Reconcile exact provider/ledger state; never paste a playback ID |
+| Paid route returns 503 | signed flag, complete map row, key presence/format, deployment | Keep fail-closed; use flag-off only while legacy IDs coexist |
+| Free video missing | catalog `freeEpisodes`, public projection, exact Mux row | Regenerate/audit projection; never expose a paid ID as a shortcut |
+| Native black video or unrelated fetches fail | attached-player count and release-on-blur | Restore ≤3-player invariant before changing network/auth code |
+| Checkout unconfigured | live key mode and exact Terms flag | Use explicit phase value; never treat missing/malformed as false |
+| Duplicate-charge risk | persisted Customer plus all paginated paid/open Checkout history | Stop; do not create a replacement Customer or another Session |
+| Webhook red | exact one endpoint and 19-event allowlist after compatible deploy | Do not create a second endpoint or replay history |
+| Legal runtime gate fails | canonical alias and August 3 markers | Stop payment cutover; deploy/read back correct copy |
+| Supabase RLS denial | migration order, caller role, explicit policy/grant | Fix least privilege; never bypass through a client service key |

@@ -6,12 +6,17 @@ import AddToCartButton from "@/components/AddToCartButton";
 import ImageCarousel from "@/components/ImageCarousel";
 
 export async function generateStaticParams() {
-  return products.map((p) => ({ slug: p.slug }));
+  return process.env.MERCH_CHECKOUT_ENABLED === "true"
+    ? products.map((p) => ({ slug: p.slug }))
+    : [];
 }
 
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  if (process.env.MERCH_CHECKOUT_ENABLED !== "true") {
+    return { title: "Not Found", robots: { index: false, follow: false } };
+  }
   const { slug } = await params;
   const product = getProductBySlug(slug);
   if (!product) return { title: "Not Found" };
@@ -22,6 +27,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ProductPage({ params }: Props) {
+  if (process.env.MERCH_CHECKOUT_ENABLED !== "true") notFound();
   const { slug } = await params;
   const product = getProductBySlug(slug);
   if (!product) notFound();

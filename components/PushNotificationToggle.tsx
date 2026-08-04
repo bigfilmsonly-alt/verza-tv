@@ -28,11 +28,11 @@ export default function PushNotificationToggle() {
   // Check current subscription state on mount
   useEffect(() => {
     if (!("PushManager" in window) || !("serviceWorker" in navigator)) {
-      setStatus("unsupported");
+      queueMicrotask(() => setStatus("unsupported"));
       return;
     }
     if (Notification.permission === "denied") {
-      setStatus("denied");
+      queueMicrotask(() => setStatus("denied"));
       return;
     }
 

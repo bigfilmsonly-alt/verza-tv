@@ -30,8 +30,8 @@ const SECTIONS = [
     body: "Creators who produce content for VERZA TV retain attribution and credit on all published work. We require accurate credits for writers, directors, cast, and crew. Creators are expected to follow our content policies, which prohibit plagiarism, undisclosed AI-generated performances, and misleading claims within storylines presented as fact.",
   },
   {
-    title: "Age-Appropriate Ratings",
-    body: "Every series is reviewed by our editorial team for language, violence, sexual content, and thematic elements before it is published. VERZA TV content is intended for viewers 13 and older; individual series may be best suited for mature audiences. Parents and guardians should preview content when in doubt.",
+    title: "Audience Suitability",
+    body: "Published series may include strong language, violence, sexual content, and mature themes. VERZA TV is intended for adults, and content intensity varies by title. Viewers should consider the App Store age rating and preview content when in doubt.",
   },
   {
     title: "Reporting Issues",

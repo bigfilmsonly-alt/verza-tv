@@ -13,7 +13,10 @@ export function SavedCount() {
     // Check localStorage first
     try {
       const local = localStorage.getItem("verza-saved");
-      if (local) setCount(JSON.parse(local).length);
+      if (local) {
+        const localCount = JSON.parse(local).length;
+        queueMicrotask(() => setCount(localCount));
+      }
     } catch {}
 
     // Then API
@@ -69,7 +72,6 @@ export function DeleteAccountButton() {
   const [confirming, setConfirming] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
 
   async function handleDelete() {
     if (!confirming) {

@@ -1,5 +1,5 @@
 import { getLiveSeries, getEpisodesForSeries } from "@/lib/catalog";
-import { MUX_MAP } from "@/lib/mux-map";
+import { MUX_MAP } from "@/lib/mux-public-map";
 
 function esc(s: string) {
   return s
@@ -26,7 +26,11 @@ export function GET() {
       const loc = `${baseUrl}/series/${s.slug}/${ep.number}`;
 
       let videoBlock = "";
-      if (muxEntry) {
+      // Paid media URLs cannot be durable sitemap entries: public IDs are
+      // being retired and signed URLs expire. Keep the canonical episode page
+      // in the sitemap, but emit VideoObject fields only for catalog-free
+      // episodes whose playback IDs intentionally remain public.
+      if (muxEntry?.playbackId && ep.number <= s.freeEpisodes) {
         const title = esc(`${s.title} - Episode ${ep.number}`);
         const description = esc(
           `Watch Episode ${ep.number} of ${s.title} on VERZA TV`,

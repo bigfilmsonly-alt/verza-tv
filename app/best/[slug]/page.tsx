@@ -61,17 +61,17 @@ function buildFaq(title: string, topSeries: string | undefined, count: number) {
         count === 1 ? "series" : "series"
       } that fit this list${
         topSeries ? `, starting with standout titles like ${topSeries}` : ""
-      }. Each is a complete, season-length vertical micro-drama you can start free with the first 5 episodes.`,
+      }. Episode counts and free-preview availability are shown on each title page.`,
     },
     {
       question: `Are these series free to watch on ${BRAND.name}?`,
       answer:
-        "Yes — every series here starts free with the first 5 episodes. You can unlock the rest of a season with coins or a VIP subscription whenever you're hooked. There's no cost to start watching.",
+        "Free-preview availability varies by title, and wholly free titles identify that availability on their title pages. Current access options are shown per title.",
     },
     {
-      question: `How long does it take to binge a series?`,
+      question: `How long is each series?`,
       answer:
-        "Each episode runs roughly 60 to 120 seconds, so a full series of 50-plus episodes plays in a single relaxed sitting. The vertical 9:16 format is built for phone-first viewing, so you can binge on a commute or before bed.",
+        "Episode lengths and series sizes vary. Each title page shows its current episode count, and the vertical 9:16 format is designed for phone-first viewing.",
     },
     {
       question: `Where can I find similar recommendations?`,
@@ -169,7 +169,7 @@ export default async function BestListPage({ params }: Props) {
             {matches.length} {matches.length === 1 ? "Series" : "Series"}
           </span>
           <span className="text-xs" style={{ color: T.textMute }}>
-            First 5 episodes free
+            Free-preview availability shown per title
           </span>
         </div>
       </section>
@@ -185,7 +185,7 @@ export default async function BestListPage({ params }: Props) {
               No series match this list yet.
             </p>
             <p className="text-xs" style={{ color: T.textMute }}>
-              New titles are added every week.{" "}
+              Browse the current catalog.{" "}
               <Link href="/discover" className="underline" style={{ color: T.accent }}>
                 Explore all series
               </Link>
@@ -223,7 +223,9 @@ export default async function BestListPage({ params }: Props) {
                     className="absolute bottom-1.5 left-1.5 text-[9px] font-bold uppercase px-1.5 py-0.5 rounded"
                     style={{ background: T.accent, color: T.text }}
                   >
-                    5 Free
+                    {series.freeEpisodes >= series.episodeCount
+                      ? "All Free"
+                      : `${series.freeEpisodes} Free`}
                   </div>
                 </div>
                 <p

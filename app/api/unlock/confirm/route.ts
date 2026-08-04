@@ -1,8 +1,30 @@
 import { NextRequest } from "next/server";
 import Stripe from "stripe";
+import { getUser } from "@/lib/auth";
+import { getSeriesBySlug } from "@/lib/catalog";
+import {
+  getSeriesPaymentState,
+  isSeriesPurchasable,
+  SERIES_UNLOCK_PRICE_CENTS,
+} from "@/lib/series-purchase";
+import { stripeCheckoutTermsConsentSatisfied } from "@/lib/stripe-checkout-consent";
 import { getServiceClient } from "@/lib/supabase/server";
+import { canonicalCheckoutFinancials } from "@/lib/stripe-tax";
+import {
+  grantSeriesEntitlementForPurchase,
+  recordRecoveredSeriesPurchase,
+} from "@/lib/series-purchase-ledger";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+
+function hasCanonicalFinancials(session: Stripe.Checkout.Session): boolean {
+  try {
+    canonicalCheckoutFinancials(session, SERIES_UNLOCK_PRICE_CENTS);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 /**
  * GET /api/unlock/confirm?session_id=cs_...&slug=the-ceo
@@ -16,33 +38,113 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
  */
 export async function GET(request: NextRequest) {
   try {
+    const user = await getUser();
+    if (!user) {
+      return Response.json({ full: false }, { status: 401 });
+    }
+
     const sessionId = request.nextUrl.searchParams.get("session_id");
     const slug = request.nextUrl.searchParams.get("slug");
     if (!sessionId || !slug || !sessionId.startsWith("cs_")) {
       return Response.json({ full: false });
     }
 
+    const supabase = getServiceClient();
+    const profile = await supabase
+      .from("profiles")
+      .select("stripe_customer_id,deletion_requested_at")
+      .eq("id", user.id)
+      .maybeSingle();
+    if (
+      profile.error ||
+      !profile.data ||
+      profile.data.deletion_requested_at
+    ) {
+      return Response.json({ full: false }, { status: 409 });
+    }
+
     const session = await stripe.checkout.sessions.retrieve(sessionId);
+    const series = getSeriesBySlug(slug);
     const paid = session.payment_status === "paid";
     const forSlug = session.metadata?.seriesSlug === slug;
-    const isUnlock =
-      session.metadata?.type === "series_unlock" ||
-      session.metadata?.type === "creator_unlock";
+    const isUnlock = session.metadata?.type === "series_unlock";
+    const checkoutUserId =
+      session.metadata?.userId || session.client_reference_id || null;
+    const belongsToUser = checkoutUserId === user.id;
+    const checkoutCustomerId =
+      typeof session.customer === "string"
+        ? session.customer
+        : session.customer?.id;
+    const belongsToCustomer =
+      !!checkoutCustomerId &&
+      checkoutCustomerId === profile.data.stripe_customer_id;
+    const canonicalPurchase =
+      !!series &&
+      isSeriesPurchasable(series) &&
+      session.mode === "payment" &&
+      hasCanonicalFinancials(session);
 
-    if (!paid || !forSlug || !isUnlock) {
+    if (
+      paid &&
+      isUnlock &&
+      belongsToUser &&
+      (!forSlug || !canonicalPurchase)
+    ) {
+      console.error(
+        "[unlock/confirm] Paid session failed canonical catalog validation:",
+        session.id,
+      );
+    }
+
+    if (
+      !paid ||
+      !forSlug ||
+      !isUnlock ||
+      !belongsToUser ||
+      !belongsToCustomer ||
+      !canonicalPurchase ||
+      !stripeCheckoutTermsConsentSatisfied(session)
+    ) {
       return Response.json({ full: false });
     }
 
-    // Webhook safety net: write the entitlement now if we know the buyer.
-    const userId = session.metadata?.userId || session.client_reference_id;
-    if (userId) {
-      const supabase = getServiceClient();
-      await supabase
-        .from("entitlements")
-        .upsert(
-          { user_id: userId, series_slug: slug },
-          { onConflict: "user_id,series_slug" },
-        );
+    const paymentState = await getSeriesPaymentState(stripe, session);
+    if (!paymentState.unrefunded) {
+      console.error(
+        "[unlock/confirm] Refused refunded/disputed entitlement recovery:",
+        session.id,
+      );
+      return Response.json({ full: false }, { status: 409 });
+    }
+
+    const purchaseId = await recordRecoveredSeriesPurchase(
+      supabase,
+      session,
+      user.id,
+      slug,
+    );
+
+    const stillActive = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("id", user.id)
+      .eq("stripe_customer_id", checkoutCustomerId)
+      .is("deletion_requested_at", null)
+      .maybeSingle();
+    if (stillActive.error || !stillActive.data) {
+      return Response.json({ full: false }, { status: 409 });
+    }
+
+    try {
+      await grantSeriesEntitlementForPurchase(
+        supabase,
+        purchaseId,
+        user.id,
+        slug,
+      );
+    } catch (error) {
+      console.error("[unlock/confirm] Entitlement write failed:", error);
+      return Response.json({ full: false }, { status: 500 });
     }
 
     return Response.json({ full: true });

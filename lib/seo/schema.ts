@@ -29,13 +29,22 @@ export function organizationSchema() {
     name: "VERZA TV",
     url: BASE_URL,
     logo: `${BASE_URL}/logo.png`,
+    legalName: "VERZA TV LLC",
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "650 E Palisade Ave, Ste 2329",
+      addressLocality: "Englewood Cliffs",
+      addressRegion: "NJ",
+      postalCode: "07632",
+      addressCountry: "US",
+    },
     description:
-      `The first US-based vertical micro-drama streaming app. ${getLiveSeries().length}+ originals.`,
+      `A phone-first short-form entertainment service with ${getLiveSeries().length} live series in its current catalog.`,
     founder: personSchema(),
     parentOrganization: {
       "@type": "Organization",
       name: "Filmology Labs",
-      description: "State-of-the-art production facility powering VERZA TV content.",
+      description: "A production organization working with VERZA TV content.",
     },
     sameAs: [
       "https://www.instagram.com/verzatv",
@@ -97,7 +106,7 @@ export function mobileApplicationSchema() {
     operatingSystem: "iOS, Android",
     applicationCategory: "EntertainmentApplication",
     description:
-      "Stream binge-worthy micro-dramas, reality shows, and original series — all in vertical, all in minutes.",
+      "Stream short-form micro-dramas, reality shows, and other entertainment. Formats and episode lengths vary by title.",
     offers: {
       "@type": "Offer",
       price: "0",

@@ -1,27 +1,49 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { T } from "@/lib/theme";
 import { isIOSApp } from "@/lib/platform";
 import { emit } from "@/lib/analytics";
+import { requireCheckoutUser } from "@/lib/checkout-auth";
+import { VIP_PLANS } from "@/lib/config";
+
+function dollars(cents: number): string {
+  return `$${(cents / 100).toFixed(2)}`;
+}
 
 interface VipCardProps {
   isVip?: boolean;
   vipExpiresAt?: string | null;
+  cancelAtPeriodEnd?: boolean;
+  checkoutEnabled?: boolean;
+  yearlyCheckoutEnabled?: boolean;
 }
 
-export default function VipCard({ isVip = false, vipExpiresAt }: VipCardProps) {
+export default function VipCard({
+  isVip = false,
+  vipExpiresAt,
+  cancelAtPeriodEnd = false,
+  checkoutEnabled = false,
+  yearlyCheckoutEnabled = false,
+}: VipCardProps) {
   // Reader mode (Apple 3.1.1): the iOS app must not show subscription
   // purchase UI. Existing VIPs still see their status (without billing links).
   const [iosApp, setIosApp] = useState(false);
-  useEffect(() => { if (isIOSApp()) setIosApp(true); }, []);
+  useEffect(() => {
+    if (isIOSApp()) queueMicrotask(() => setIosApp(true));
+  }, []);
   const [loading, setLoading] = useState<"monthly" | "yearly" | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [portalLoading, setPortalLoading] = useState(false);
+  const [portalError, setPortalError] = useState<string | null>(null);
 
   async function handleSubscribe(plan: "monthly" | "yearly") {
+    if (!(await requireCheckoutUser("/me"))) return;
     setLoading(plan);
     setError(null);
 
+    let navigating = false;
     try {
       // Intent signal — tapped subscribe, heading to Stripe (no revenue from client).
       emit("checkout_started", {
@@ -35,25 +57,69 @@ export default function VipCard({ isVip = false, vipExpiresAt }: VipCardProps) {
         body: JSON.stringify({ plan }),
       });
 
-      const data = await res.json();
+      const data = (await res.json().catch(() => ({}))) as {
+        url?: unknown;
+        error?: unknown;
+        alreadySubscribed?: unknown;
+      };
 
       if (!res.ok) {
-        setError(data.error || "Something went wrong");
+        setError(
+          data.alreadySubscribed
+            ? "You already have a VIP subscription. Refresh this page to see its status."
+            : typeof data.error === "string"
+              ? data.error
+              : "Couldn’t start subscription checkout. Please try again.",
+        );
         return;
       }
 
-      if (data.url) {
-        window.location.href = data.url;
+      if (typeof data.url !== "string" || !data.url) {
+        setError("Subscription checkout did not open. Please try again.");
+        return;
       }
+      navigating = true;
+      window.location.assign(data.url);
     } catch {
-      setError("Network error. Please try again.");
+      setError("Network error. Check your connection and try again.");
     } finally {
-      setLoading(null);
+      if (!navigating) setLoading(null);
+    }
+  }
+
+  async function handleBillingPortal() {
+    setPortalLoading(true);
+    setPortalError(null);
+    let navigating = false;
+    try {
+      const res = await fetch("/api/billing-portal", { method: "POST" });
+      const data = (await res.json().catch(() => ({}))) as {
+        url?: unknown;
+        error?: unknown;
+      };
+      if (!res.ok) {
+        setPortalError(
+          typeof data.error === "string"
+            ? data.error
+            : "Couldn’t open subscription management. Please try again.",
+        );
+        return;
+      }
+      if (typeof data.url !== "string" || !data.url) {
+        setPortalError("Subscription management did not open. Please try again.");
+        return;
+      }
+      navigating = true;
+      window.location.assign(data.url);
+    } catch {
+      setPortalError("Network error. Check your connection and try again.");
+    } finally {
+      if (!navigating) setPortalLoading(false);
     }
   }
 
   /* ---- Active VIP state ---- */
-  if (!isVip && iosApp) return null;
+  if (!isVip && (iosApp || !checkoutEnabled)) return null;
 
   if (isVip) {
     const expiryLabel = vipExpiresAt
@@ -101,45 +167,56 @@ export default function VipCard({ isVip = false, vipExpiresAt }: VipCardProps) {
                 VIP Member
               </p>
               <p className="text-xs" style={{ color: T.textDim }}>
-                All episodes unlocked
+                All currently available episodes unlocked
               </p>
             </div>
           </div>
 
           {expiryLabel && (
             <p className="text-xs mb-3" style={{ color: T.textMute }}>
-              Renews {expiryLabel}
+              {cancelAtPeriodEnd ? "Access through" : "Renews"} {expiryLabel}
             </p>
           )}
 
           {iosApp ? null : (
           <button
-            onClick={async () => {
-              try {
-                const res = await fetch("/api/billing-portal", { method: "POST" });
-                const data = (await res.json()) as { url?: string; error?: string };
-                if (data.url) window.location.href = data.url;
-                else window.location.href = "mailto:support@verzatv.com?subject=Manage%20VIP%20Subscription";
-              } catch {
-                window.location.href = "mailto:support@verzatv.com?subject=Manage%20VIP%20Subscription";
-              }
-            }}
+            onClick={handleBillingPortal}
+            disabled={portalLoading}
             className="block w-full text-center py-2.5 rounded-lg text-sm font-semibold transition-opacity hover:opacity-90 cursor-pointer"
             style={{
               background: "rgba(255,255,255,0.06)",
               color: T.textDim,
               border: `1px solid ${T.line}`,
+              opacity: portalLoading ? 0.7 : 1,
             }}
           >
-            Manage Subscription
+            {portalLoading ? "Opening…" : "Manage Subscription"}
           </button>
+          )}
+
+          {!iosApp && portalError && (
+            <p
+              className="text-xs text-center mt-3"
+              style={{ color: T.accent }}
+              role="alert"
+            >
+              {portalError}{" "}
+              <a
+                href="mailto:support@verzatv.com?subject=Manage%20VIP%20Subscription"
+                style={{ color: T.text, textDecoration: "underline" }}
+              >
+                Contact support
+              </a>
+            </p>
           )}
         </div>
 
         <p className="mt-3 text-[10px] leading-relaxed text-center" style={{ color: T.textMute }}>
-          Auto-renews at the selected price until cancelled. Cancel anytime via
-          Manage Subscription on your Profile — you keep access until the end
-          of the paid period.
+          {cancelAtPeriodEnd
+            ? expiryLabel
+              ? "Renewal is cancelled. You keep access through the paid period shown above."
+              : "Renewal is cancelled. You keep access through the end of the paid period."
+            : "Auto-renews at the selected price until cancelled. Cancel anytime via Manage Subscription on your Profile — you keep access until the end of the paid period."}
         </p>
       </div>
     );
@@ -184,13 +261,13 @@ export default function VipCard({ isVip = false, vipExpiresAt }: VipCardProps) {
               VERZA VIP
             </p>
             <p className="text-xs" style={{ color: T.textDim }}>
-              Unlimited episodes, no paywalls
+              Currently available episodes with VIP access
             </p>
           </div>
         </div>
 
         <p className="text-xs mb-4 ml-[52px]" style={{ color: T.textMute }}>
-          Stream every series, every episode — cancel anytime
+          Stream currently available series and episodes — cancel anytime
         </p>
 
         {/* Plan options */}
@@ -199,6 +276,7 @@ export default function VipCard({ isVip = false, vipExpiresAt }: VipCardProps) {
           <button
             onClick={() => handleSubscribe("monthly")}
             disabled={loading !== null}
+            aria-label={`Subscribe to VERZA VIP for ${dollars(VIP_PLANS.monthly.cents)} per month, renewing automatically until canceled`}
             className="flex-1 flex flex-col items-center gap-1 rounded-xl py-4 border-0 cursor-pointer transition-transform active:scale-[0.97]"
             style={{
               background: T.raised,
@@ -214,22 +292,25 @@ export default function VipCard({ isVip = false, vipExpiresAt }: VipCardProps) {
                   className="text-lg font-bold"
                   style={{ color: T.text }}
                 >
-                  $9.99
+                  {dollars(VIP_PLANS.monthly.cents)}
                 </span>
                 <span
                   className="text-xs font-medium"
                   style={{ color: T.textDim }}
                 >
-                  per month
+                  per {VIP_PLANS.monthly.interval}
                 </span>
               </>
             )}
           </button>
 
-          {/* Yearly */}
+          {/* Yearly remains absent until the independent annual reminder gate
+              is deployed, configured, and explicitly enabled. */}
+          {yearlyCheckoutEnabled ? (
           <button
             onClick={() => handleSubscribe("yearly")}
             disabled={loading !== null}
+            aria-label={`Subscribe to VERZA VIP for ${dollars(VIP_PLANS.yearly.cents)} per year, renewing automatically until canceled`}
             className="flex-1 flex flex-col items-center gap-1 rounded-xl py-4 border-0 cursor-pointer transition-transform active:scale-[0.97] relative"
             style={{
               background: `linear-gradient(135deg, ${T.accent}11, #8B5CF611)`,
@@ -245,7 +326,7 @@ export default function VipCard({ isVip = false, vipExpiresAt }: VipCardProps) {
                 color: "#fff",
               }}
             >
-              Best Value · Save 33%
+              Best Value · {VIP_PLANS.yearly.badge}
             </span>
 
             {loading === "yearly" ? (
@@ -256,28 +337,28 @@ export default function VipCard({ isVip = false, vipExpiresAt }: VipCardProps) {
                   className="text-lg font-bold"
                   style={{ color: T.text }}
                 >
-                  $79.99
+                  {dollars(VIP_PLANS.yearly.cents)}
                 </span>
                 <span
                   className="text-xs font-medium"
                   style={{ color: T.textDim }}
                 >
-                  per year
+                  per {VIP_PLANS.yearly.interval}
                 </span>
                 <span className="text-[10px] font-medium" style={{ color: T.textMute }}>
-                  just $6.67/mo
+                  just {dollars(Math.round(VIP_PLANS.yearly.cents / 12))}/mo
                 </span>
               </>
             )}
           </button>
+          ) : null}
         </div>
 
         {/* Features */}
         <div className="flex flex-col gap-2 mb-1">
           {[
-            "Every episode, every series",
-            "No hidden paywalls",
-            "New shows on day one",
+            "Every currently available episode",
+            "No coin paywalls",
             "Cancel anytime",
           ].map((feat) => (
             <div key={feat} className="flex items-center gap-2">
@@ -300,11 +381,32 @@ export default function VipCard({ isVip = false, vipExpiresAt }: VipCardProps) {
           ))}
         </div>
 
+        <p className="text-[11px] leading-relaxed text-center mt-4" style={{ color: T.textMute }}>
+          Your selected plan renews automatically at the displayed price and
+          interval, plus applicable taxes, until canceled. Manage or cancel it
+          from this card after subscribing; access continues through the paid
+          period.
+        </p>
+        <p className="text-[11px] text-center mt-2" style={{ color: T.textMute }}>
+          <Link href="/terms" style={{ color: T.textDim, textDecoration: "underline" }}>
+            Terms of Service
+          </Link>
+          {" · "}
+          <Link href="/privacy" style={{ color: T.textDim, textDecoration: "underline" }}>
+            Privacy Policy
+          </Link>
+          {" · "}
+          <Link href="/refund-policy" style={{ color: T.textDim, textDecoration: "underline" }}>
+            Refund Policy
+          </Link>
+        </p>
+
         {/* Error */}
         {error && (
           <p
             className="text-xs text-center mt-3"
             style={{ color: T.accent }}
+            role="alert"
           >
             {error}
           </p>

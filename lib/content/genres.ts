@@ -27,7 +27,7 @@ export const GENRE_HUBS: GenreHub[] = [
     slug: "romance",
     name: "Romance",
     description:
-      "Fall into love stories that unfold in minutes. From billionaire affairs to secret marriages, VERZA TV delivers cinematic romance in vertical micro-drama format — every episode a new twist.",
+      "Fall into phone-first love stories. From billionaire affairs to secret marriages, VERZA TV delivers cinematic romance in vertical micro-drama format.",
     tags: ["romance", "love", "billionaire", "drama"],
     matchTerms: ["love", "romance", "wife", "marry", "heart", "fall in love"],
     relatedSlugs: ["billionaire-romance", "office-romance", "second-chance", "forbidden-romance"],
@@ -47,7 +47,7 @@ export const GENRE_HUBS: GenreHub[] = [
     slug: "revenge-drama",
     name: "Revenge Drama",
     description:
-      "Betrayal demands justice. Watch wronged heroines plot their comeback in intense revenge dramas packed with twists, deception, and deeply satisfying payoffs — each episode under two minutes.",
+      "Betrayal demands justice. Watch wronged heroines plot their comeback in short-form revenge dramas packed with twists, deception, and hard-earned payoffs.",
     tags: ["revenge", "drama", "thriller", "betrayal"],
     matchTerms: ["revenge", "betray", "pay", "comeback", "vengeance", "left for dead"],
     relatedSlugs: ["revenge", "second-chance", "family-drama", "psychological-thriller"],
@@ -67,7 +67,7 @@ export const GENRE_HUBS: GenreHub[] = [
     slug: "thriller",
     name: "Thriller",
     description:
-      "Heart-pounding tension in every swipe. From psychological mind-games to crime-soaked suspense, VERZA TV delivers edge-of-your-seat micro-dramas with reveals that hit in 60 seconds.",
+      "Heart-pounding tension in every swipe. From psychological mind-games to crime-soaked suspense, VERZA TV delivers edge-of-your-seat vertical micro-dramas with compact, fast-moving chapters.",
     tags: ["thriller", "suspense", "action", "drama"],
     matchTerms: ["thriller", "kill", "murder", "suspense", "danger", "deadly"],
     relatedSlugs: ["psychological-thriller", "romantic-thriller", "mystery", "spy-romance"],
@@ -189,7 +189,7 @@ export const GENRE_HUBS: GenreHub[] = [
     slug: "steamy-romance",
     name: "Steamy Romance",
     description:
-      "High heat, high stakes, no apologies. VERZA TV's steamy romance micro-dramas turn one reckless night into a lifetime of tangled desire — sultry chemistry in every 60-second episode.",
+      "High heat, high stakes, no apologies. VERZA TV's steamy romance micro-dramas turn one reckless night into a lifetime of tangled desire through short-form vertical storytelling.",
     tags: ["steamy", "passion", "romance", "desire"],
     matchTerms: ["steamy", "one night", "desire", "tangled", "reckless night", "passion"],
     relatedSlugs: ["dark-romance", "forbidden-romance", "office-romance", "friends-to-lovers"],
@@ -231,7 +231,7 @@ export const GENRE_HUBS: GenreHub[] = [
     slug: "psychological-thriller",
     name: "Psychological Thriller",
     description:
-      "Trust no one — least of all yourself. VERZA TV's psychological thriller micro-dramas unravel gaslighting spouses, hidden lives, and mind-bending reveals that twist reality in 60 seconds.",
+      "Trust no one — least of all yourself. VERZA TV's psychological thriller micro-dramas unravel gaslighting spouses, hidden lives, and mind-bending reveals through fast-moving vertical chapters.",
     tags: ["psychological", "thriller", "suspense", "mind"],
     matchTerms: ["psychological", "wife wants to kill", "memory", "control", "lie", "psycho"],
     relatedSlugs: ["romantic-thriller", "mystery", "gothic", "revenge"],

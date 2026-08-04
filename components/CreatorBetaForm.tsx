@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
+import Link from "next/link";
 
 type Status = "idle" | "submitting" | "done" | "error";
 
@@ -9,7 +10,8 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 /**
  * CreatorBetaForm — no-auth lead capture for the Profit-Sharing Beta.
  * Collects ONLY name + email, posts to /api/creator/beta, and swaps itself
- * for a friendly confirmation on success. No passwords, no payment, no PII.
+ * for a friendly confirmation on success. Name/email are limited contact PII;
+ * the form collects no password, payment data, identity document, or upload.
  */
 export default function CreatorBetaForm() {
   const nameId = useId();
@@ -18,6 +20,7 @@ export default function CreatorBetaForm() {
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [website, setWebsite] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState("");
 
@@ -45,7 +48,11 @@ export default function CreatorBetaForm() {
       const res = await fetch("/api/creator/beta", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: trimmedName, email: trimmedEmail }),
+        body: JSON.stringify({
+          name: trimmedName,
+          email: trimmedEmail,
+          website,
+        }),
       });
       if (!res.ok) throw new Error("request failed");
       setStatus("done");
@@ -86,6 +93,18 @@ export default function CreatorBetaForm() {
 
   return (
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-3">
+      <div aria-hidden="true" style={{ position: "absolute", left: "-10000px" }}>
+        <label htmlFor={`${nameId}-website`}>Website</label>
+        <input
+          id={`${nameId}-website`}
+          name="website"
+          type="text"
+          autoComplete="off"
+          tabIndex={-1}
+          value={website}
+          onChange={(e) => setWebsite(e.target.value)}
+        />
+      </div>
       <div className="flex flex-col gap-1.5">
         <label htmlFor={nameId} className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#A0A0B0" }}>
           Your name
@@ -165,6 +184,14 @@ export default function CreatorBetaForm() {
 
       <p className="text-center text-xs leading-relaxed" style={{ color: "#6B6B7B" }}>
         Free to apply. We manually approve creators during the beta.
+      </p>
+      <p className="text-center text-[11px] leading-relaxed" style={{ color: "#6B6B7B" }}>
+        By applying, you ask Verza to use your name and email to review and
+        contact you about this beta. See our{" "}
+        <Link href="/privacy" className="underline" style={{ color: "#A0A0B0" }}>
+          Privacy Policy
+        </Link>
+        .
       </p>
 
       <style>{`

@@ -1,5 +1,9 @@
 # Verza TV -- Codebase Audit
 
+> **ARCHIVE — early codebase snapshot.** File-use/duplication findings were not
+> revalidated for the current tree and are not current refactor instructions.
+> See [`../LAUNCH-TRUTH.md`](../LAUNCH-TRUTH.md) and inspect source anew.
+
 Last updated: 2026-06-17
 
 This document tracks potential orphans, duplicates, and structural notes

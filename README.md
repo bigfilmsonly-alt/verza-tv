@@ -1,234 +1,191 @@
 # Verza TV
 
-**The first US-based vertical micro-drama streaming platform.** Netflix-style
-catalog of short, vertical, minutes-long episodes — plus creator UGC, an AI
-host, and full Stripe monetization. Built on Next.js 16 and shipping in
-production.
+Web product and production backend for the Verza TV native app: a catalog of
+short, vertical micro-dramas delivered through Mux, with Supabase identity and
+entitlements and server-created Stripe Checkout on eligible platforms.
 
-- **Live:** https://www.verzatv.com
-- **Hosting:** Vercel (`codevibes/verza-tv`) · **DNS:** GoDaddy → Cloudflare → Vercel
-- **Status:** In production, actively monetizing (Stripe live mode)
+- **Production:** https://www.verzatv.com
+- **Hosting:** Vercel project `codevibes/verza-tv`
+- **Native client:** sibling repository `../verza-native`
+- **Current release truth:** [`docs/LAUNCH-TRUTH.md`](docs/LAUNCH-TRUTH.md)
 
----
+> Production and the working tree are intentionally distinguished. As of the
+> latest 2026-08-03 readback, August 3 legal/support, live payment capabilities
+> in compatibility mode, signed paid playback, and the exact 19-event Stripe
+> webhook are production-verified. Stripe Public details, required-consent
+> mode/portal, and the controlled $1.99 smoke remain open. The hardened creator
+> Mux webhook is deployed and returns 503 while its verification secret is
+> intentionally absent, so creator ingestion remains unavailable.
 
-## Table of contents
+## Product state
 
-1. [What it is](#what-it-is)
-2. [Feature overview](#feature-overview)
-3. [Tech stack](#tech-stack)
-4. [Monetization model](#monetization-model)
-5. [Architecture](#architecture)
-6. [Repository layout](#repository-layout)
-7. [Project metrics](#project-metrics)
-8. [Local development](#local-development)
-9. [Environment variables](#environment-variables)
-10. [Database & migrations](#database--migrations)
-11. [Deployment](#deployment)
-12. [Documentation index](#documentation-index)
-13. [React Native migration notes](#react-native-migration-notes)
-
----
-
-## What it is
-
-Verza TV delivers **vertical micro-dramas** — full serialized shows told in
-1–3 minute vertical episodes, designed for phone-first, swipe-native viewing
-(think TikTok's format applied to premium scripted drama). The platform
-combines:
-
-- A **curated catalog** of 80 titles (79 currently marked live in
-  `lib/catalog.ts`), delivered as HLS via Mux (~4,262 playback assets mapped in
-  `lib/mux-map.ts`).
-- A **creator pipeline (UGC)** where approved creators upload, price, and
-  publish their own vertical content with an 80/20 revenue split.
-- **AI features** (optional, powered by Anthropic Claude): an "Ask Verza"
-  chatbot and a Creator AI Studio (script/logline/social/description tools).
-- **Full commerce**: per-title unlocks, VIP subscriptions, and a merch shop —
-  all on live Stripe with webhook-verified revenue.
-
-## Feature overview
-
-| Area | What's built |
+| Surface | Current launch behavior |
 | --- | --- |
-| **Playback** | Mux HLS via `hls.js`, signed playback URLs, muted-first autoplay (iOS-safe), immersive vertical swipe feed, horizontal 16:9 feed, shorts carousel |
-| **Browse / discovery** | Hero slideshow (pause-on-hover), category tabs (Drama, Hot, Tubi, Anime, Español, Bollywood, Creators, Reality, Red Carpet, Music — Tubi is an authorized-partner tab whose logo links out to tubitv.com; New is folded into Hot; Anime/Español/Bollywood/Creators are Coming Soon placeholders), poster grid, genre/keyword search (header popover + `/search`) |
-| **Monetization** | $1.99 per-title unlock, VIP ($9.99/mo · $79.99/yr), 10-product merch shop, Amazon affiliate store (Associates tag `verzatv-20`) on the Shop tab, StorageBlue sponsor ribbons |
-| **Creator (UGC)** | Apply → admin approve → Mux upload (XHR progress) → edit/price → submit → admin review → publish → public `/watch`; 80/20 sales ledger |
-| **AI (optional)** | Ask Verza chatbot; Creator AI Studio; multi-mode API (chat/creator/seo/marketing/moderate) |
-| **Accounts** | Supabase auth (email + OAuth), library / My List, watch progress, entitlements, guest-purchase claim on sign-up |
-| **Admin** | Stats + funnel (paywall→checkout→purchase) + revenue dashboard; creator application & content review queues |
-| **Platform** | i18n (`useTranslation`), PWA service worker, web-push (VAPID), JSON-LD structured data, sitemaps, rate limiting, CSP |
+| Catalog | 80 titles: 79 live and one coming soon; 74 paid-live, five wholly free |
+| Web browse | Drama, Hot, Tubi, Anime, Español, Bollywood, Creators, Reality, Red Carpet, Music. New is folded into Hot; Anime/Español/Bollywood are placeholders; Storage Pirates is Reality-only. Hero arrows were removed in favor of automatic rotation, dots, and tab/swipe navigation. |
+| Tubi partner | Authorized web partner logo/hero panel and outbound `tubitv.com` CTA; browser policy prevents an ordinary embed. This web surface does not enter the iOS 2.0 client. |
+| Series access | $1.99 one-time full-series unlock on web and eligible Android surfaces |
+| iOS | Reader mode: existing entitlements only; no digital price, purchase, subscribe, billing, external-purchase direction, Tubi partner promotion, or creator surface |
+| VIP | $9.99/month and $79.99/year code paths are hidden and API-blocked pending separate release gates |
+| Coins | Disabled; purchase, balance, and season-pass routes fail closed |
+| Creator beta / PPV | The web lead form and `/api/creator/beta` exist, but the Mux ingestion path remains fail-closed and creator PPV is disabled pending verification, ownership, fulfillment, and payout controls |
+| Official merch Checkout | Disabled pending inventory, variants, shipping, tax, pricing, and fulfillment |
+| Amazon affiliate shop | Web/retained Android system-browser handoff; fail-closed in the iOS 2.0 client |
 
-## Tech stack
+Stripe Checkout is hosted by Stripe and created by the server. There is no
+client-side Stripe SDK, Elements form, native card collection, or client-trusted
+price. Browser return never grants access; provider-backed reconciliation and a
+purchase-linked entitlement do.
+
+## Video authorization
+
+The complete logical Mux mapping has 4,262 rows. Client projections expose only
+459 intentionally public/free playback capabilities. They withhold all 3,753
+paid-live capabilities and 50 coming-soon capabilities (3,803 withheld total).
+Every paid-live row has a server-only signed counterpart.
+
+Production signed mode is live. Canary readback proved unentitled paid access
+returns 402/no capability and an entitled request returns `policy=signed`, no
+separate playback ID, 1,800-second tokenized stream/poster URLs, and a 200 HLS
+manifest. Final standalone native-client acceptance remains a release gate. The
+live 1.2 app depends on legacy public paid IDs, so those IDs
+must coexist until a separately approved post-2.0 forced-update/drain decision.
+Do not retire them as pre-submit cleanup.
+
+Read [`docs/guides/MUX.md`](docs/guides/MUX.md) before changing maps, playback
+URLs, entitlement checks, tokens, or Mux policy IDs.
+
+## Stack
 
 | Layer | Technology |
 | --- | --- |
-| Framework | **Next.js 16.2.9** (App Router, Turbopack) — note: v16 has breaking changes vs. earlier versions; all request APIs are async (`await cookies()/headers()/params`) |
-| Language / UI | TypeScript 5 · React 19.2.4 · Tailwind CSS v4 (PostCSS, no `tailwind.config.js`) |
-| Auth & DB | Supabase (Postgres + RLS) via `@supabase/ssr` (cookie sessions) |
-| Video | Mux (`@mux/mux-node`) for encoding/HLS/signed URLs; `hls.js` client playback |
-| Payments | Stripe (`stripe`) — checkout, subscriptions, webhooks (single source of revenue truth) |
-| Email | Resend (`resend`) transactional email |
-| Push | `web-push` (VAPID) |
-| AI | Anthropic Claude (`@anthropic-ai/sdk`, **optional** — loaded only when `ANTHROPIC_API_KEY` is set) |
-| Validation | `zod` |
-| Analytics | `@vercel/analytics`, `@vercel/speed-insights` |
-| Hosting | Vercel; Cloudflare DNS |
-
-See [`docs/reference/TECH-STACK.md`](docs/reference/TECH-STACK.md) for exact
-versions and roles.
-
-## Monetization model
-
-All revenue is recorded **only** from the Stripe webhook after signature
-verification — prices are computed server-side (never client-controlled).
-
-- **Per-title unlock** — $1.99 (Summer Sale), charged via `/api/unlock`.
-- **VIP subscription** — $9.99/mo or $79.99/yr.
-- **Merch** — 10 products ($15–$110) in the shop.
-- **Creator UGC** — pay-per-view / premium pricing, **80/20 split** to
-  creators, recorded in a server-only `creator_sales` ledger.
-- **Amazon affiliate store** — 12 products (Associates tag `verzatv-20`) on the
-  Shop tab / `/amazon`; deliberately kept out of the browse grid and search so
-  browsing stays editorial. Plus StorageBlue sponsor ribbons on browse.
-
-Details: [`docs/guides/PAYMENTS.md`](docs/guides/PAYMENTS.md) ·
-[`docs/strategy/HIGH-CONVERSION-PLAYBOOK.md`](docs/strategy/HIGH-CONVERSION-PLAYBOOK.md).
-
-## Architecture
-
-- **Single-render layout shell:** `.device-frame` → `.device-screen` →
-  `.app-shell` → `main`. On desktop, CSS wraps the app in an iPhone frame; on
-  mobile the screen has no overflow so `position:fixed` works on iOS Safari.
-- **Server-render crawlable content;** client components (`"use client"`) only
-  for interactivity. Never expose API keys or signed URLs to the client.
-- **Revenue truth lives server-side:** pricing, entitlements, and the Stripe
-  webhook are all in API routes — portable to any future client.
-- **Immersive video** uses a persistent single-player pattern with a
-  `sourceReady` gate and `mutedRef` (ref, not state) in async callbacks.
-
-Full write-up: [`docs/reference/ARCHITECTURE.md`](docs/reference/ARCHITECTURE.md) ·
-[`docs/reference/DATA-MODEL.md`](docs/reference/DATA-MODEL.md).
+| Application | Next.js 16 App Router, React 19, TypeScript strict |
+| Styling | Tailwind CSS v4 |
+| Identity/data | Supabase Auth, Postgres, RLS, service-role server operations |
+| Video | Mux HLS; `hls.js` on web; server-generated JWTs for paid playback |
+| Payments | Stripe-hosted Checkout, verified webhooks, durable Supabase ledger |
+| Notices | Resend, guarded by release flags and idempotent private evidence |
+| Hosting | Vercel; Cloudflare/GoDaddy DNS path |
 
 ## Repository layout
 
+```text
+app/                 App Router pages and API route handlers
+components/          shared web UI and player components
+lib/                 catalog, Mux, Stripe, Supabase, auth, SEO, policy modules
+public/              web assets
+scripts/             read-only audits, generators, guarded provider operations
+supabase/migrations/ database migrations; apply in numeric order
+docs/                current runbooks plus explicitly dated archival reports
 ```
-app/            Next.js App Router — pages + 36 API routes (app/api/*)
-components/     56 React components (players, browse, paywalls, creator, admin)
-lib/            catalog, products, theme, schemas, search-index, amazon-sponsors,
-                mux-map, env, auth, supabase clients, analytics
-supabase/       migrations/ (9 migrations, 001–009) + seed
-scripts/        reconcile-mux.ts, attach-transcript.ts (+ README-reconcile.md)
-docs/           all documentation (see index below)
-public/         static assets, ads, icons, service worker
-```
 
-Full map: [`docs/reference/PROJECT-STRUCTURE.md`](docs/reference/PROJECT-STRUCTURE.md).
+Key current modules:
 
-## Project metrics
+- `lib/catalog.ts` — 80-title source catalog
+- `lib/mux-public-map.ts` — client-safe projection
+- `lib/mux-private-map.ts` — server-only gateway to complete legacy map
+- `lib/mux-signed-map.ts` — server-only paid public-to-signed correspondence
+- `lib/series-purchase.ts` — canonical Series Unlock product authority
+- `lib/stripe-checkout-consent.ts` — explicit compatibility/required Terms mode
+- `lib/series-checkout-recovery.ts` — durable provider-history recovery
+- `lib/stripe-webhook-events.ts` — reviewed webhook event contract
 
-_Verified from source / git as of 2026-07-16 (`main`)._
-
-| Metric | Value |
-| --- | --- |
-| Commits | 408 |
-| App/lib/components code | ~42,500 lines TS/TSX |
-| Components | 56 |
-| API routes | 36 |
-| Pages (`page.tsx`) | 60 |
-| DB migrations | 9 (`001`–`009`) |
-| Catalog titles / live | 80 / 79 (+1 coming soon) |
-| Mux playback assets | ~4,262 |
-| Merch products | 10 (+ 12 Amazon affiliate) |
-| Browse tabs | 10 — Drama · Hot · Tubi · Anime · Español · Bollywood · Creators · Reality · Red Carpet · Music (Tubi = partner tab → tubitv.com; New folded into Hot; 4 Coming Soon) |
-| Build | ✅ green — ~2,100 pages prerendered |
-
-## Local development
+## Local setup
 
 ```bash
-git clone https://github.com/Splash-Studio/verza-tv.git
-cd verza-tv
 npm install
-cp .env.local.example .env.local   # then fill in the vars (see below)
-npm run dev                        # http://localhost:3000
+cp .env.local.example .env.local
+npm run dev
 ```
 
-Scripts (`package.json`): `dev` · `build` · `start` · `lint`.
+Never commit `.env.local`. `NEXT_PUBLIC_*` values enter browser bundles; all
+service-role, Mux signing, Stripe secret, webhook, Resend, and cron values must
+remain server-only. Do not paste credentials, reviewer accounts, one-time codes,
+signed URLs, or provider objects containing PII into source, docs, or logs.
 
-## Environment variables
+Before editing Next.js code, read the exact local versioned documentation in
+`node_modules/next/dist/docs/` as required by [`AGENTS.md`](AGENTS.md).
 
-Source of truth is `lib/env.ts` (typed `env.*` accessor). Required groups:
-Supabase (`SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_URL`,
-`NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`), Mux
-(`MUX_TOKEN_ID/SECRET`, `MUX_SIGNING_KEY_ID/SECRET`, `MUX_WEBHOOK_SECRET`),
-Stripe (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`), `RESEND_API_KEY`,
-`ADMIN_EMAILS`. Optional: `ANTHROPIC_API_KEY`, VAPID push keys.
-
-> `NEXT_PUBLIC_*` vars reach the browser — never put secrets there. All other
-> vars are server-only. `.env.local` is git-ignored (`.gitignore` → `.env*`).
-
-Full table: [`docs/reference/ENVIRONMENT.md`](docs/reference/ENVIRONMENT.md).
-
-## Database & migrations
-
-Supabase Postgres with RLS on all tables (`profiles`, `entitlements`,
-`purchases`, `watch_progress`, `saved_list`, `pending_entitlements`, plus
-creator + analytics tables). Migrations live in `supabase/migrations/`
-(`001`–`009`). Run pending migrations via the Supabase SQL editor or
-`supabase db push`. See [`docs/reference/DATA-MODEL.md`](docs/reference/DATA-MODEL.md) and
-[`docs/reports/DEV-REPORT-CURRENT.md`](docs/reports/DEV-REPORT-CURRENT.md) §4 for the current
-run/provision checklist.
-
-## Deployment
-
-Hosted on Vercel (`codevibes/verza-tv`). The live domain `www.verzatv.com` is promoted by the CLI below (`npx vercel --prod`) — a git push alone does **not** move the live alias.
+## Required source gates
 
 ```bash
-npx vercel deploy --prod
+npm run test:playback-security
+npm run test:mux-webhook-security
+npm run test:payments
+npm run test:payments:db
+npx tsc --noEmit
+npm run lint
+npm run build
 ```
 
-Preview deploys are `noindex`; only production is indexed. Runbook:
-[`docs/guides/RUNBOOK.md`](docs/guides/RUNBOOK.md) · [`docs/guides/DEPLOYMENT.md`](docs/guides/DEPLOYMENT.md).
+Provider and production runtime gates are deliberately separate:
 
-## Documentation index
+```bash
+npm run test:payments:runtime:public
+npm run test:payments:runtime:compatibility
+npm run test:payments:runtime:required-consent
+npm run test:payments:stripe-cutover
+```
 
-The complete, grouped index is in **[`docs/README.md`](docs/README.md)**. Highlights:
+The authenticated runtime commands require a controlled Supabase JWT supplied
+outside source/logs. Run only the phase matching the deployed Terms-consent
+mode. The Stripe cutover command is red before the canonical webhook has exactly
+19 events and the reviewed portal/Terms configuration exists; it must not be
+used as a reason to mutate provider state out of order.
 
-| Doc | Covers |
-| --- | --- |
-| [`docs/reports/DEV-REPORT-CURRENT.md`](docs/reports/DEV-REPORT-CURRENT.md) | **Latest master audit** — metrics, audit results, fixes, open items, secret sweep, test checklist, RN readiness |
-| [`docs/reference/ARCHITECTURE.md`](docs/reference/ARCHITECTURE.md) | System design & layout shell |
-| [`docs/reference/DATA-MODEL.md`](docs/reference/DATA-MODEL.md) | Supabase tables, RLS, entitlements |
-| [`docs/reference/API-REFERENCE.md`](docs/reference/API-REFERENCE.md) | Every `app/api/*` endpoint |
-| [`docs/reference/COMPONENTS.md`](docs/reference/COMPONENTS.md) | Every React component |
-| [`docs/guides/MUX.md`](docs/guides/MUX.md) · [`docs/guides/PAYMENTS.md`](docs/guides/PAYMENTS.md) | Video + payments integrations |
-| [`docs/guides/CREATOR-SETUP.md`](docs/guides/CREATOR-SETUP.md) | Creator (UGC) pipeline setup |
-| [`docs/guides/CONTENT.md`](docs/guides/CONTENT.md) | Catalog / content system |
-| [`docs/guides/RUNBOOK.md`](docs/guides/RUNBOOK.md) · [`docs/guides/DEPLOYMENT.md`](docs/guides/DEPLOYMENT.md) | Ops & deploy |
-| [`AGENTS.md`](AGENTS.md) | House rules for anyone (human or AI) editing the code |
+## Payment release boundary
 
-## React Native migration notes
+Production now has one canonical enabled Stripe webhook with the exact reviewed
+19/19 allowlist, wildcard off, no second endpoint, no replay, and no secret
+rotation. An unsigned request returns HTTP 400. Automatic tax is off and Stripe
+has zero active tax registrations. Both VIP plans remain closed.
 
-> ### ⚛️ Building or updating the React Native app? Read [`docs/guides/REACT-NATIVE-SYNC.md`](docs/guides/REACT-NATIVE-SYNC.md) first.
->
-> It is written **for the AI agent working in the native repo**: everything that
-> changed on web, what to port, what to deliberately skip, the web → RN platform
-> mapping, and the **three App Store rules that will get the app rejected** if you
-> get them wrong. Start there, not here.
+The live compatibility deployment uses exact
+`STRIPE_CHECKOUT_TOS_CONSENT_REQUIRED=false`, which permits Series Checkout
+without Stripe's hosted Terms checkbox. August 3 legal/support pages are live,
+but Stripe Public details remains blank and its Account API write was rejected
+with 403. After an authorized Dashboard operator completes and visually
+verifies Public details, the next deployment must use exact `true`.
+Missing, empty, malformed, or unrecognized live-key configuration fails closed.
+Final cutover requires `true`.
 
-This repo is the source of truth for product behaviour, content, pricing and App
-Store compliance. The server-side business logic (pricing, entitlements, revenue,
-creator splits) is portable as-is, and **the native app should call this app's
-existing API routes rather than re-implementing them**. The web-specific
-`"use client"` components, `hls.js` playback, `createPortal` overlays, and CSS
-layout tricks need native re-implementation.
+Do not infer tax registration from authority to sell nationwide, expand the
+webhook before compatible code is live, create a second webhook endpoint,
+replay historical events, or automatically refund a controlled smoke purchase.
 
-Three things that are easy to get wrong and expensive to get wrong:
+See [`docs/guides/PAYMENTS.md`](docs/guides/PAYMENTS.md) and the exact current
+cutover record in
+[`docs/reports/PAYMENT-CUTOVER-EVIDENCE-2026-08-03.md`](docs/reports/PAYMENT-CUTOVER-EVIDENCE-2026-08-03.md).
 
-1. **Digital purchases must not appear inside the iOS app** (Apple 3.1.1). The web
-   app already runs a reader mode — see `lib/platform.ts` and `components/HideInIOSApp.tsx`.
-2. **Physical goods must not use IAP** (Apple 3.1.5(a)). Merch and the Amazon shop
-   are physical, so they use external checkout — deliberately.
-3. **In-app account deletion is mandatory** (Apple 5.1.1(v)). `POST /api/account/delete`.
+## Database and deployment
 
-Full readiness assessment: [`docs/reports/DEV-REPORT-CURRENT.md`](docs/reports/DEV-REPORT-CURRENT.md) §7.
+Migrations `009` through `014` support the current payment ledger, RLS,
+account-deletion tombstones, disputes, Terms evidence, and notice evidence.
+They are already applied/read back in the current production project; any new
+environment must apply migrations in filename order before matching webhook
+code.
+
+Deployment is an explicit operation followed by production readback:
+
+```bash
+npx vercel --prod --yes
+```
+
+Do not assume a push to `main`, a Vercel build, or local source changed the
+canonical production alias. Follow
+[`docs/guides/DEPLOYMENT.md`](docs/guides/DEPLOYMENT.md) and preserve the
+payment/Mux phase ordering.
+
+## Documentation
+
+- [`docs/LAUNCH-TRUTH.md`](docs/LAUNCH-TRUTH.md) — current source vs production vs deferred truth
+- [`docs/guides/PAYMENTS.md`](docs/guides/PAYMENTS.md) — payment/access invariants and cutover
+- [`docs/guides/MUX.md`](docs/guides/MUX.md) — capability projection, signed playback, legacy coexistence
+- [`docs/guides/REACT-NATIVE-SYNC.md`](docs/guides/REACT-NATIVE-SYNC.md) — web/backend ↔ native boundary
+- [`docs/guides/PORTING-VERZA-TV-TAB.md`](docs/guides/PORTING-VERZA-TV-TAB.md) — archived web-extraction guide; not the Expo/native release architecture
+- [`docs/guides/RUNBOOK.md`](docs/guides/RUNBOOK.md) — operational and incident procedures
+- [`docs/README.md`](docs/README.md) — complete documentation map and status labels
+
+Dated reports and strategy files are retained as history. Their archival banners
+govern them; old prices, counts, and “live” claims must never override current
+code, provider readback, `docs/LAUNCH-TRUTH.md`, or the canonical runbooks.

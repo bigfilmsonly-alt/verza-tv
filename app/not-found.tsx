@@ -11,7 +11,7 @@ export default function NotFound() {
         Page not found
       </p>
       <p className="text-sm mb-8" style={{ color: T.textMute }}>
-        The page you're looking for doesn't exist or has been moved.
+        The page you’re looking for doesn’t exist or has been moved.
       </p>
       <Link
         href="/"

@@ -74,6 +74,10 @@ export function calculateSubscriptionAttribution(
   _totalVipRevenueCents: number,
   _watchData: { series_slug: string; seconds: number }[],
 ): number {
+  void _rule;
+  void _partnerSlugs;
+  void _totalVipRevenueCents;
+  void _watchData;
   // PLACEHOLDER: Returns 0 until business rule is decided
   // When Alan decides, implement the chosen attribution method here
   return 0;

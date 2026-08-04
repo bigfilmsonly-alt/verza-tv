@@ -5,12 +5,19 @@ import { notFound } from "next/navigation";
 import { T } from "@/lib/theme";
 import { BRAND } from "@/lib/config";
 import { getSeriesBySlug, getEpisode } from "@/lib/catalog";
-import { getPlayback } from "@/lib/mux-map";
+import { getPlayback } from "@/lib/mux-public-map";
 import { getClipBySlug, clipDuration, clipDeepLink, clipAppScheme } from "@/lib/clips";
 import JsonLd from "@/components/JsonLd";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
 const APP_ID = process.env.NEXT_PUBLIC_APPLE_APP_ID; // Smart App Banner only when a real App Store id exists
+
+/** Only catalog-free episodes may publish durable Mux image/video URLs. */
+function getPublicClipPlayback(seriesSlug: string, episodeNumber: number) {
+  const series = getSeriesBySlug(seriesSlug);
+  if (!series || episodeNumber > series.freeEpisodes) return undefined;
+  return getPlayback(seriesSlug, episodeNumber);
+}
 
 /* ------------------------------------------------------------------ */
 /*  Metadata                                                           */
@@ -30,7 +37,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
     if (!series) return { title: "Clip Not Found" };
 
-    const mux = getPlayback(seriesSlug, epNum);
+    const mux = getPublicClipPlayback(seriesSlug, epNum);
     const thumb = mux
       ? `https://image.mux.com/${mux.playbackId}/thumbnail.jpg?time=3&width=1080&height=1920`
       : series.posterUrl;
@@ -60,7 +67,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   /* Clip found in registry */
   const series = getSeriesBySlug(clip.seriesSlug);
-  const mux = getPlayback(clip.seriesSlug, clip.episodeNumber);
+  const mux = getPublicClipPlayback(clip.seriesSlug, clip.episodeNumber);
   const thumb = mux
     ? `https://image.mux.com/${mux.playbackId}/thumbnail.jpg?time=${clip.startSeconds + 2}&width=1080&height=1920`
     : series?.posterUrl;
@@ -153,7 +160,7 @@ export default async function ClipPage({ params }: Props) {
   if (!series) notFound();
 
   const ep = getEpisode(seriesSlug, episodeNumber);
-  const mux = getPlayback(seriesSlug, episodeNumber);
+  const mux = getPublicClipPlayback(seriesSlug, episodeNumber);
   const thumb = mux
     ? `https://image.mux.com/${mux.playbackId}/thumbnail.jpg?time=3&width=1080&height=1920`
     : series.posterUrl ?? "";
@@ -287,7 +294,9 @@ export default async function ClipPage({ params }: Props) {
                 </span>
                 <span style={{ color: T.textMute }}>&middot;</span>
                 <span className="text-xs" style={{ color: T.textMute }}>
-                  First 5 free
+                  {series.freeEpisodes >= series.episodeCount
+                    ? "All episodes free"
+                    : `${series.freeEpisodes} free episodes`}
                 </span>
               </div>
             </div>

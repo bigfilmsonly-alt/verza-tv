@@ -1,5 +1,9 @@
 # Verza TV — Developer Report
 
+> **ARCHIVE — June 2026 development snapshot.** Revenue-surface, pricing,
+> webhook, feature, and production claims below are historical. Current truth:
+> [`../LAUNCH-TRUTH.md`](../LAUNCH-TRUTH.md).
+
 **Updated:** June 28, 2026
 **Status:** LIVE in production — https://www.verzatv.com
 **Latest deploy:** `verza-hpex5pzju-codevibes.vercel.app` (READY)
@@ -48,8 +52,8 @@ End-to-end funnel + retention persistence, replacing the prior console-only emit
 - `app/api/stripe/webhook/route.ts` — server-verified `purchase_completed` and
   `subscription_*` events now `persistEvent()` real revenue rows.
 
-> **Manual step pending:** run `004_analytics_events.sql` in the Supabase SQL Editor
-> (project `jejispfvlkwastzvwtwu`). Until then inserts no-op silently by design. The
+> **Manual step pending:** run `004_analytics_events.sql` in the approved Supabase SQL Editor
+> (project identifier intentionally omitted). Until then inserts no-op silently by design. The
 > repo only carries the service-role key (no DDL rights / no DB password), so the
 > table cannot be created from CI.
 

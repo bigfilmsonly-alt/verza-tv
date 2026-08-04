@@ -1,18 +1,17 @@
 /**
  * Code-backed content source — reads from existing catalog.ts,
- * series-detail.ts, and mux-map.ts without modifying them.
+ * series-detail.ts, and the generated public Mux map without modifying them.
  */
 import {
   catalog,
-  getLiveSeries,
   getEpisodesForSeries,
   getEpisode as getCatalogEpisode,
   type Series,
 } from "@/lib/catalog";
 import { SERIES_DETAIL } from "@/lib/series-detail";
-import { getPlayback, MUX_MAP } from "@/lib/mux-map";
+import { getPlayback } from "@/lib/mux-public-map";
 import { isIndexableShow, isIndexableEpisode } from "./indexability";
-import type { Show, Episode, Article } from "./schemas";
+import type { Show, Episode } from "./schemas";
 import type { ContentSource } from "./source";
 
 /* ------------------------------------------------------------------ */
@@ -77,7 +76,10 @@ function adaptEpisode(showSlug: string, catalogEp: {
     title: catalogEp.title,
     synopsis: show.synopsis, // inherit show synopsis for now
     durationSeconds: mux?.duration ?? catalogEp.durationS,
-    muxPlaybackId: mux?.playbackId ?? "",
+    // Paid public playback IDs must not flow into crawlable content/JSON-LD.
+    // Signed URLs are authorized and expiring, so only intentionally public
+    // free episodes expose a durable Mux ID to the SEO content layer.
+    muxPlaybackId: catalogEp.isFree ? (mux?.playbackId ?? "") : "",
     posterUrl: show.posterUrl,
     isFree: catalogEp.isFree,
     unlockCoins: catalogEp.unlockCoins,

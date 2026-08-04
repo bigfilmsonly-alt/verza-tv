@@ -2,16 +2,27 @@
 /*  Full catalog — live series + coming soon                            */
 /* ------------------------------------------------------------------ */
 
-import { MUX_MAP } from "./mux-map";
+import { MUX_MAP } from "./mux-public-map";
 
-export type BrowseCategory = "drama" | "new" | "popular" | "tubi" | "anime" | "espanol" | "bollywood" | "creators" | "music" | "reality" | "red-carpet";
+export type BrowseCategory =
+  | "drama"
+  | "new"
+  | "popular"
+  | "tubi"
+  | "anime"
+  | "espanol"
+  | "bollywood"
+  | "creators"
+  | "music"
+  | "reality"
+  | "red-carpet";
 
 export const BROWSE_TABS: { key: BrowseCategory; label: string }[] = [
   { key: "drama", label: "Drama" },
   { key: "popular", label: "Hot" },
-  // Tubi — authorized partner (signed contract). The tab renders the Tubi logo
-  // (see components/CategoryTabs.tsx) and shows a Coming Soon state until the
-  // integration is live.
+  // Tubi — authorized partner (signed contract). The web tab renders the Tubi
+  // logo and a sponsored outbound partner spotlight; it does not expose Tubi
+  // playback capabilities inside Verza.
   { key: "tubi", label: "Tubi" },
   // Anime, Español, Bollywood and Creators launch in a "Coming Soon" state: no
   // series carry these categories yet, so getSeriesByCategory() returns [] and

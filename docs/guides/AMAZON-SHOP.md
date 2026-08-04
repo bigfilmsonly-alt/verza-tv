@@ -3,6 +3,16 @@
 > The Amazon affiliate storefront. Associates tag **`verzatv-20`**.
 > Live at [verzatv.com/shop](https://www.verzatv.com/shop) and [verzatv.com/amazon](https://www.verzatv.com/amazon).
 
+Last reconciled with the launch boundary: **2026-08-03**. This guide describes
+the **web and retained Android** affiliate implementation. Amazon is fail-closed
+in native iOS 2.0—no image, tile, link, bag, report control, or handoff—until
+advertiser, trademark, image, and mobile-app authorization evidence plus Apple
+ad controls are approved. Do not infer iOS availability from this web guide.
+
+Third-party program terms can change. Reverify the current Associates/FTC
+requirements with the authorized account before adding products or changing
+disclosure, image, price, or handoff behavior.
+
 This is the guide for keeping the shop running: adding products, refreshing
 images, and the handful of constraints that will bite you if you do not know
 them. For the story of how it was built and why, see
@@ -15,15 +25,15 @@ them. For the story of how it was built and why, see
 These are not style preferences. Each one is either an Amazon terms issue or a
 thing that silently breaks in production.
 
-### 1. Checkout can never happen inside the app
+### 1. Checkout never happens inside Verza
 
 Amazon gives affiliates **no checkout API**, requires the purchase to complete on
 `amazon.com` (that is the mechanism that attributes your commission), and
 forbids framing its pages. There is no version of this where a shopper pays
 inside Verza TV.
 
-What we do instead is the closest the program allows: shoppers browse and build
-a bag **entirely in the app**, and a single handoff pushes the whole bag into
+What the retained web/Android implementation does instead: shoppers browse and
+build a bag **inside Verza**, and a single system-browser handoff pushes it into
 their real Amazon cart. Only the payment happens on Amazon.
 
 ### 2. Never hardcode a price
@@ -62,7 +72,7 @@ segmentation can tell them apart. See [Refreshing the images](#refreshing-the-im
 
 | Surface | Products? |
 | --- | --- |
-| `/shop` — "Your favorite shows, your favorite finds" section, under the VERZA merch | **Yes** — all 12 |
+| `/shop` — affiliate section; it becomes the lead section while official-merch Checkout is disabled | **Yes** — all 12 |
 | `/amazon` — the full store, reached via "View all" | **Yes** — all 12 |
 | Poster grid (Discover and every tab) | **No** — posters only, on purpose |
 | Search results | **No** — shows only, on purpose |
@@ -70,7 +80,7 @@ segmentation can tell them apart. See [Refreshing the images](#refreshing-the-im
 
 Browsing is editorial. Everything for sale lives on the Shop tab. This was a
 deliberate reversal: products were originally injected into the poster grid and
-into search, and it made the whole app read as an ad.
+into search, and it made the whole web product read as an ad.
 
 The footer's sitemap "Shop" group links to both pages, and nothing else.
 
@@ -82,7 +92,7 @@ The footer's sitemap "Shop" group links to both pages, and nothing else.
 | --- | --- |
 | `lib/amazon-sponsors.ts` | **Single source of truth.** The catalog, plus every URL/image helper. Empty the array and all surfaces render nothing. |
 | `lib/amazon-bag.tsx` | The Verza bag: React context + `localStorage` persistence (key `verza-amazon-bag`). |
-| `components/AmazonProducts.tsx` | The product tile and the in-app product modal. |
+| `components/AmazonProducts.tsx` | The web product tile and modal. |
 | `components/AmazonBag.tsx` | The floating bag pill and the bag drawer. Mounted once, inside the device frame. |
 | `components/AmazonDeepLink.tsx` | Opens a product from `/amazon?p=<id>`. |
 | `app/shop/page.tsx` | The Shop tab. Merch, then the Amazon section. |
@@ -127,7 +137,7 @@ Everything flows from one array. To add a product:
 **3. Regenerate the images** (see below). Without this, the tile falls back to a
 gradient placeholder.
 
-**4. Deploy.** No other file needs touching — `/shop`, `/amazon`, and the bag all
+**4. Re-audit, deploy, and read back.** No other catalog file needs touching — `/shop`, `/amazon`, and the bag all
 read from the same array.
 
 To **remove** a product, delete its entry. To **reorder**, move it. The array
@@ -197,17 +207,21 @@ shopper on their cart with everything in it, attributed to `verzatv-20`.
 
 ---
 
-## Two carts on one page
+## Separate payment paths
 
-`/shop` has two payment paths and they must stay visibly separate:
+The codebase has two deliberately separate paths, but only the Amazon path is
+currently available. `MERCH_CHECKOUT_ENABLED` is not enabled in production, so
+the official-merch catalog, Cart button, and Stripe Checkout entry point stay
+hidden/fail-closed. If fulfillment readiness is approved and that gate is ever
+enabled, the paths must remain visibly separate:
 
 - **VERZA merch** → our own **Stripe** cart (`lib/cart.tsx`)
 - **Amazon products** → the **Verza bag** (`lib/amazon-bag.tsx`), settling on Amazon
 
-They are deliberately different modules. Do not merge them — one charges the
-customer directly, the other never touches money. The visual separation (divider,
-its own heading, the Sponsored label) is what makes having both on one page
-honest.
+They are deliberately different modules. Do not merge them — the gated merch
+path would charge the customer directly, while the Amazon path never handles
+payment. The visual separation (divider, its own heading, and the Sponsored
+label) is required whenever both are available.
 
 ---
 
@@ -228,7 +242,8 @@ retailer back in the header.
 
 ## Deploying
 
-A `git push` builds a production-target deployment but does **not** promote the live domain. Only the Vercel CLI aliases `www.verzatv.com`:
+A `git push` builds a production-target deployment but does **not** promote the
+live domain. Only the Vercel CLI aliases `www.verzatv.com`:
 
 ```bash
 npx vercel --prod --yes    # → verzatv.com

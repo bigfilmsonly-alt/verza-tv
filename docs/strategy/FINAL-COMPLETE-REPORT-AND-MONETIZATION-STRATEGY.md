@@ -1,6 +1,11 @@
 # VERZA TV — FINAL COMPLETE REPORT
 # Dev Report + Project Analysis + Valuation + Investor Pitch + Monetization Strategy
 
+> **ARCHIVE / SCENARIO — June 2026.** This is not approved current pricing,
+> legal/compliance advice, production truth, or authorization to enable VIP,
+> coins, creator PPV, merch, ads, or iOS purchases. Current authority:
+> [`../LAUNCH-TRUTH.md`](../LAUNCH-TRUTH.md).
+
 **Platform:** https://www.verzatv.com (LIVE)
 **Date:** June 22, 2026
 **Status:** Production — 167 commits, zero errors, fully secured

@@ -1,9 +1,69 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getLiveSeries } from "@/lib/catalog";
+import { VIP_PLANS } from "@/lib/config";
+import {
+  vipSubscriptionCheckoutEnabled,
+  vipYearlyCheckoutEnabled,
+} from "@/lib/vip-release-policy";
 
-// AI Host — multi-mode server-only endpoint, uses ANTHROPIC_API_KEY
-// Modes: chat, creator, seo, marketing, moderate
-// Rate limiting handled by middleware
+function releaseCapability(capability: () => boolean): boolean {
+  try {
+    return capability() === true;
+  } catch {
+    return false;
+  }
+}
+
+const MONTHLY_VIP_AVAILABLE = releaseCapability(
+  vipSubscriptionCheckoutEnabled,
+);
+const YEARLY_VIP_AVAILABLE = releaseCapability(vipYearlyCheckoutEnabled);
+const VIP_PRICING_FACTS = [
+  MONTHLY_VIP_AVAILABLE
+    ? `- VIP Monthly: $${(VIP_PLANS.monthly.cents / 100).toFixed(2)}/month for paid-access episodes while active`
+    : null,
+  YEARLY_VIP_AVAILABLE
+    ? `- VIP Yearly: $${(VIP_PLANS.yearly.cents / 100).toFixed(2)}/year for paid-access episodes while active`
+    : null,
+].filter((fact): fact is string => fact !== null);
+const VIP_AVAILABILITY_FACT = VIP_PRICING_FACTS.length
+  ? VIP_PRICING_FACTS.join("\n")
+  : "- VIP checkout is not currently available; never quote a VIP plan or price unless it is shown on the supported purchase surface";
+const VIP_AVAILABILITY_SENTENCE = VIP_PRICING_FACTS.length
+  ? ` Available VIP checkout: ${VIP_PRICING_FACTS.map((fact) => fact.slice(2)).join("; ")}. Any displayed VIP plan auto-renews until canceled.`
+  : " VIP checkout is not currently available.";
+
+const LIVE_SERIES = getLiveSeries();
+const PAID_SERIES = LIVE_SERIES.filter(
+  (series) =>
+    series.episodeCount > series.freeEpisodes && series.coinPerEpisode > 0,
+);
+const FULLY_FREE_SERIES = LIVE_SERIES.filter(
+  (series) => !PAID_SERIES.some((paid) => paid.slug === series.slug),
+);
+const TOTAL_LIVE_EPISODES = LIVE_SERIES.reduce(
+  (total, series) => total + series.episodeCount,
+  0,
+);
+const EDITORIAL_PICKS = [...LIVE_SERIES]
+  .sort(
+    (left, right) =>
+      (left.popularRank ?? Number.MAX_SAFE_INTEGER) -
+      (right.popularRank ?? Number.MAX_SAFE_INTEGER),
+  )
+  .slice(0, 5);
+const CATALOG_CONTEXT = LIVE_SERIES.map((series) => {
+  const access =
+    series.episodeCount <= series.freeEpisodes || series.coinPerEpisode <= 0
+      ? "all episodes currently free"
+      : `${series.freeEpisodes} free episodes; remaining episodes require existing access or a $1.99 Series Unlock`;
+  return `- ${series.title} (${series.episodeCount} episodes; ${series.genre}; ${access}): ${series.logline}`;
+}).join("\n");
+
+// Launch catalog guide. Provider-backed generation is intentionally disabled
+// until a complete, tested production integration is configured. The legacy
+// specialized modes fail closed instead of returning catalog fallback text as
+// if it were generated creator content.
 
 // ---------------------------------------------------------------------------
 // Types
@@ -25,21 +85,21 @@ const VALID_MODES: ReadonlySet<string> = new Set<Mode>([
 
 const SYSTEM_PROMPTS: Record<Mode, string> = {
   chat:
-    `You are VERZA, the AI assistant for VERZA TV — the first and only American-owned vertical micro-drama streaming platform. You know EVERYTHING about the platform. Be warm, enthusiastic, concise, and always recommend specific series by name.
+    `You are VERZA, the catalog assistant for VERZA TV, a US-based short-form streaming service. Be warm, concise, and accurate. Use only the authoritative catalog and product facts below. Never invent rankings, ratings, reviews, view counts, audience reactions, availability, pricing, or features.
 
 PLATFORM BASICS:
 - Website: verzatv.com (live, fully operational)
 - Founded by Alan Mruvka, co-founder of E! Entertainment Television
-- 76 original series, 4,096 episodes, all streaming now
-- Content: vertical micro-dramas (1-2 min episodes, 45-65 episodes per series)
+- ${LIVE_SERIES.length} live series and ${TOTAL_LIVE_EPISODES.toLocaleString("en-US")} live episodes in the current catalog
+- Content includes vertical micro-dramas, reality, music, podcasts, and red-carpet programming; episode counts and formats vary by title
 - Categories: Drama, New, Hot, Music, Reality, Red Carpet
 
 PRICING:
-- First 5 episodes of every series are FREE — no sign-up required
-- Full series unlock: $1.99 one-time (Summer Sale — all remaining episodes)
-- VIP Monthly: $9.99/month (unlocks ALL 76 series)
-- VIP Yearly: $79.99/year (save 33%)
-- No coins, no tokens, no confusion — simple flat pricing
+- ${PAID_SERIES.length} live paid-access series currently include the free episode count stated in the catalog below
+- ${FULLY_FREE_SERIES.length} live titles are currently wholly free
+- Full Series Unlock: $1.99 one-time for the remaining available episodes of the selected eligible series
+${VIP_AVAILABILITY_FACT}
+- The current checkout does not sell or spend coins or tokens
 
 HOW TO WATCH:
 - Tap any poster → video plays instantly, full screen
@@ -48,46 +108,28 @@ HOW TO WATCH:
 - Auto-advances to next episode when current one ends
 - Works on any phone, tablet, or desktop browser
 
-SERIES BY GENRE (recommend from these):
-Romance & Billionaire: "The Dumb Billionaire Heiress In Love" (58 eps, #1 romance), "Destined to Be" (60 eps), "The Day We Got Married" (50 eps), "Billionaire Daughter's Love Triangle" (56 eps), "The CEO" (52 eps), "Help! I'm Falling in Love with My Rude CEO" (65 eps), "One Night Stand" (50 eps), "The Billionaire's Lost Love" (54 eps)
-Thriller & Suspense: "Do Not Deceive Me" (55 eps), "Under Her Control" (52 eps), "I Think My Wife Wants to Kill Me" (56 eps), "Blood Contract" (60 eps), "Mysterious Murder" (52 eps), "Hidden Agenda" (55 eps), "The Phoenix Conspiracy" (56 eps)
-Revenge & Betrayal: "The Mistress Trap" (48 eps, #1 most watched), "The Billionaire's Betrayal" (55 eps), "Echo of Vengeance" (54 eps), "Revenge On My Cheating Fiance" (52 eps), "Never Mess with a Badass Girl" (55 eps)
-Mystery: "The Winter Veil" (55 eps), "The Missing Piece" (50 eps), "The Haunted Sisters" (54 eps), "The Inheritance Game" (50 eps), "Twisted Fates" (52 eps)
-Dynasty & Family Drama: "The Blackthornes" (60 eps, #2 most popular), "Love, Lies and Bloodline" (56 eps), "Faded Threads" (58 eps), "The Pendleton Secret" (52 eps)
-Dark & Forbidden: "Mafia Lord's Son" (48 eps), "The Escort" (56 eps), "In Love with My Godfather's Daughter" (60 eps), "Duty of Desire" (52 eps)
-Office Romance: "I'm Obsessed with My Boss" (58 eps), "An Affair with My Boss" (50 eps)
-Contract Marriage: "The Marriage Contract" (50 eps), "Married to a Stranger" (62 eps)
-Spy & Action: "Camouflage" (55 eps), "Killer Romance" (54 eps), "Undercovered Heart" (54 eps)
-Comedy Romance: "The Dumb Billionaire Heiress In Love" (58 eps), "Hollywood Star's Fake Girlfriend" (52 eps)
-Sci-fi: "Twist of Time" (58 eps)
-Supernatural: "Tied By Fate" (56 eps)
+AUTHORITATIVE CURRENT CATALOG:
+${CATALOG_CONTEXT}
 
-TOP RECOMMENDATIONS (when asked "what should I watch"):
-1. "The Mistress Trap" — Betrayal drama, most-watched series on the platform
-2. "The Blackthornes" — Dynasty power plays and forbidden love
-3. "The Dumb Billionaire Heiress In Love" — Comedy romance, fan favorite
-4. "Do Not Deceive Me" — Thriller romance with constant twists
-5. "Destined to Be" — Epic fate-driven love story
+EDITORIAL STARTING POINTS (curated placement, not audience rankings):
+${EDITORIAL_PICKS.map((series) => `- ${series.title}`).join("\n")}
 
 FEATURES:
-- 20 languages supported (EN, ES, FR, PT, DE, IT, JA, KO, ZH, HI, AR, RU, TR, PL, NL, TH, VI, ID, TL, SW)
 - Shorts feed: swipe through previews from all series
-- Widescreen section: "Storage Pirates" reality series (S1 + S2)
 - Search: search icon in header to find any series
 - My List: save series to watch later (bookmark icon)
 - Continue Watching: resume where you left off
-- Creator Program: apply to create your own channel at /studio
 
-MERCH SHOP (verzatv.com/shop):
-- VerzaTV Mug ($15), Embroidered Socks ($30), Water Bottle ($35), Cap ($35), T-Shirt ($45), Joggers ($70), Logo Hoodie ($85), Tie-Dye Hoodie ($90), Champion Hoodie ($95), Columbia Fleece ($110)
+PHYSICAL SHOP:
+- Sponsored physical-product recommendations link to Amazon; Amazon or the identified seller controls price, inventory, fulfillment, checkout, returns, and final product details
 
 SUPPORT:
-- Email: support@verzatv.com (24hr response on business days)
+- Email: support@verzatv.com
 - Press: press@verzatv.com
 - Help page: verzatv.com/help
 
 ABOUT THE FOUNDER:
-Alan Mruvka co-founded E! Entertainment Television and is building VERZA TV as the American alternative to Chinese-owned platforms like ReelShort and DramaBox. Content is produced at Filmology Labs.
+Alan Mruvka co-founded E! Entertainment Television and founded VERZA TV. Content is produced by or licensed to VERZA TV.
 
 RULES FOR YOUR RESPONSES:
 - Always recommend specific series by name with episode count
@@ -95,7 +137,7 @@ RULES FOR YOUR RESPONSES:
 - If they mention a genre, recommend 2-3 series from that genre
 - Keep responses to 2-3 sentences max unless they ask for details
 - Use the series titles exactly as listed above
-- If asked about pricing, always mention the 5 free episodes first
+- If asked about pricing, explain the selected title's catalog-specific free access before paid options
 - Never make up series that don't exist — only recommend from the list above
 - Be conversational and enthusiastic, like a friend who loves drama`,
 
@@ -236,151 +278,148 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // --- API key check ---
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-
-  if (!apiKey) {
-    // Scripted fallback when no API key (chat mode only)
-    return NextResponse.json({
-      response: getScriptedResponse(prompt),
-      mode,
-      source: "scripted",
-    });
-  }
-
-  // --- Build user message ---
-  const userContent = context
-    ? `Context:\n${context}\n\nRequest:\n${prompt}`
-    : prompt;
-
-  try {
-    // @ts-expect-error -- SDK is optional; installed only when ANTHROPIC_API_KEY is provisioned
-    const { default: Anthropic } = await import("@anthropic-ai/sdk");
-    const client = new Anthropic({ apiKey });
-
-    const message = await client.messages.create({
-      model: getModel(mode),
-      max_tokens: getMaxTokens(mode),
-      system: SYSTEM_PROMPTS[mode],
-      messages: [{ role: "user", content: userContent }],
-    });
-
-    const text =
-      message.content[0].type === "text" ? message.content[0].text : "";
-
-    // For seo/moderate modes, attempt to parse JSON from response
-    if (mode === "seo" || mode === "moderate") {
-      try {
-        const parsed = JSON.parse(text);
-        return NextResponse.json({
-          response: parsed,
-          mode,
-          source: "ai",
-          model: getModel(mode),
-        });
-      } catch {
-        // Return raw text if JSON parsing fails
-        return NextResponse.json({
-          response: text,
-          mode,
-          source: "ai",
-          model: getModel(mode),
-        });
-      }
-    }
-
-    return NextResponse.json({
-      response: text,
-      mode,
-      source: "ai",
-      model: getModel(mode),
-    });
-  } catch (err: unknown) {
-    const message =
-      err instanceof Error ? err.message : "Anthropic API request failed";
-
-    // Fall back to scripted for chat mode; return error for specialized modes
-    if (mode === "chat") {
-      return NextResponse.json({
-        response: getScriptedResponse(prompt),
-        mode,
-        source: "scripted-fallback",
-      });
-    }
-
+  if (mode !== "chat") {
     return NextResponse.json(
-      { error: message, mode },
-      { status: 502 },
+      {
+        error: "Creator generation tools are not currently available.",
+        mode,
+      },
+      { status: 503 },
     );
   }
+
+  return NextResponse.json({
+    response: getScriptedResponse(prompt),
+    mode,
+    source: "catalog",
+  });
 }
 
 // ---------------------------------------------------------------------------
 // Scripted fallback (chat mode only, no API key / API failure)
 // ---------------------------------------------------------------------------
 
+type LiveSeries = (typeof LIVE_SERIES)[number];
+
+function recommendationLine(series: LiveSeries): string {
+  const access =
+    series.episodeCount <= series.freeEpisodes || series.coinPerEpisode <= 0
+      ? "all episodes currently free"
+      : `${series.freeEpisodes} episodes free to start`;
+  return `${series.title} (${series.episodeCount} episodes, ${access}) — ${series.logline}`;
+}
+
+function recommendationsMatching(
+  predicate: (series: LiveSeries) => boolean,
+  limit = 3,
+): LiveSeries[] {
+  const matches = LIVE_SERIES.filter(predicate);
+  const pool = matches.length >= limit ? matches : LIVE_SERIES;
+  return [...pool]
+    .sort(
+      (left, right) =>
+        (left.popularRank ?? Number.MAX_SAFE_INTEGER) -
+        (right.popularRank ?? Number.MAX_SAFE_INTEGER),
+    )
+    .slice(0, limit);
+}
+
+function recommendationResponse(
+  intro: string,
+  predicate: (series: LiveSeries) => boolean,
+): string {
+  return `${intro}: ${recommendationsMatching(predicate)
+    .map(recommendationLine)
+    .join(" ")}`;
+}
+
+function searchableText(series: LiveSeries): string {
+  return `${series.genre} ${series.logline} ${series.categories.join(" ")}`.toLowerCase();
+}
+
 function getScriptedResponse(prompt: string): string {
   const lower = prompt.toLowerCase();
 
   if (lower.includes("recommend") || lower.includes("suggest") || lower.includes("watch") || lower.includes("good") || lower.includes("best")) {
-    return "My top 3 right now: 1) The Mistress Trap — our most-watched series, pure betrayal drama. 2) The Blackthornes — dynasty drama with power plays and forbidden love (60 eps). 3) The Dumb Billionaire Heiress In Love — comedy romance, she plays the fool so no one suspects her billions. All start with 5 free episodes!";
+    return recommendationResponse("Three editorial starting points", () => true);
   }
 
   if (lower.includes("romance") || lower.includes("love")) {
-    return "Romance picks: Destined to Be (60 eps, fate-driven epic), The Day We Got Married (50 eps, fan favorite), One Night Stand (50 eps, steamy), or The Dumb Billionaire Heiress In Love (58 eps, comedy romance). All start free!";
+    return recommendationResponse(
+      "Romance picks",
+      (series) => /romance|love|marriage|bride/.test(searchableText(series)),
+    );
   }
 
   if (lower.includes("thriller") || lower.includes("suspense") || lower.includes("scary")) {
-    return "For thrills: I Think My Wife Wants to Kill Me (56 eps, our most suspenseful), Do Not Deceive Me (55 eps, constant twists), Blood Contract (60 eps, dark and intense), and The Phoenix Conspiracy (56 eps, sci-fi thriller). First 5 episodes are free!";
+    return recommendationResponse(
+      "For thrills",
+      (series) => /thriller|suspense|mystery|crime|horror/.test(searchableText(series)),
+    );
   }
 
   if (lower.includes("revenge") || lower.includes("betray")) {
-    return "Revenge & betrayal: The Mistress Trap (48 eps, #1 most watched), The Billionaire's Betrayal (55 eps), Echo of Vengeance (54 eps), and Never Mess with a Badass Girl (55 eps). These are addictive — first 5 free!";
+    return recommendationResponse(
+      "Revenge and betrayal picks",
+      (series) => /revenge|betray|reckoning|vengeance/.test(searchableText(series)),
+    );
   }
 
   if (lower.includes("mystery") || lower.includes("detective")) {
-    return "Mystery lovers: The Winter Veil (55 eps, chilling mystery romance), The Haunted Sisters (54 eps, gothic mystery), The Inheritance Game (50 eps), and Twisted Fates (52 eps). Start watching free!";
+    return recommendationResponse(
+      "Mystery picks",
+      (series) => /mystery|detective|missing|secret|haunt/.test(searchableText(series)),
+    );
   }
 
   if (lower.includes("billionaire") || lower.includes("ceo") || lower.includes("rich")) {
-    return "Billionaire drama: The Dumb Billionaire Heiress In Love (58 eps, comedy), The CEO (52 eps), Billionaire Daughter's Love Triangle (56 eps), The Billionaire's Lost Love (54 eps), and Help! I'm Falling in Love with My Rude CEO (65 eps). All free to start!";
+    return recommendationResponse(
+      "Wealth-and-power dramas",
+      (series) => /billion|ceo|heir|fortune|dynasty|wealth/.test(searchableText(series)),
+    );
   }
 
   if (lower.includes("price") || lower.includes("cost") || lower.includes("pay") || lower.includes("free") || lower.includes("how much") || lower.includes("subscription")) {
-    return "First 5 episodes of every series are completely FREE — no sign-up needed! Right now during our Summer Sale, unlock a full series for just $1.99 one-time. Or get VIP ($9.99/month or $79.99/year) for unlimited access to all 76 series. No coins, no confusion — just simple flat pricing.";
+    return `The current catalog has ${PAID_SERIES.length} paid-access series, each with the free episode count shown on its page, plus ${FULLY_FREE_SERIES.length} wholly free titles. An eligible full-series unlock is $1.99 one time.${VIP_AVAILABILITY_SENTENCE} The current checkout does not sell coins.`;
   }
 
   if (lower.includes("creator") || lower.includes("upload") || lower.includes("channel") || lower.includes("make money")) {
-    return "Want to create on VERZA TV? Apply at verzatv.com/studio! Creators get their own channel, upload vertical or horizontal content, set their own subscription pricing, and keep 80% of revenue. Early creators get priority placement and promotional support.";
+    return "Creator publishing and paid creator-content features are not currently part of the viewer checkout. Contact support@verzatv.com for current creator-program availability; I won’t promise pricing, placement, or revenue terms.";
   }
 
   if (lower.includes("how") && (lower.includes("work") || lower.includes("use") || lower.includes("start"))) {
-    return "It's simple: tap any poster and the video plays instantly, full screen. Swipe up for the next episode. First 5 episodes are free. If you're hooked, unlock the full series for just $1.99 (Summer Sale), or go VIP for $9.99/month to get everything. Sound: tap the speaker icon (top-right) to unmute!";
+    return "Open a series to see its exact episode list and free-access limit, then play an available episode in the native or web player. On supported non-iOS surfaces, an eligible series can be unlocked for $1.99; existing Series Unlock and VIP access follows the signed-in account.";
   }
 
   if (lower.includes("merch") || lower.includes("shop") || lower.includes("hoodie") || lower.includes("shirt")) {
-    return "Check out our merch at verzatv.com/shop! We've got the Champion Tie-Dye Hoodie ($90), VerzaTV Mug ($15), Embroidered Socks ($30), Columbia Fleece Jacket ($110), and more. 10 products total!";
+    return "Browse our sponsored physical-product picks at verzatv.com/shop. Product details, prices, and checkout are handled by Amazon.";
   }
 
   if (lower.includes("language") || lower.includes("spanish") || lower.includes("french")) {
-    return "VERZA TV supports 20 languages! Tap the language button (top-left of the header) to switch. We have English, Spanish, French, Portuguese, German, Italian, Japanese, Korean, Chinese, Hindi, Arabic, Russian, Turkish, Polish, Dutch, Thai, Vietnamese, Indonesian, Tagalog, and Swahili.";
+    return "Use the language control for the interface translations currently shown in your app or browser. Audio, captions, and localized catalog text can vary by title, so I won’t promise a dub or subtitle that the selected episode does not display.";
   }
 
   if (lower.includes("alan") || lower.includes("founder") || lower.includes("who made") || lower.includes("e!")) {
-    return "VERZA TV was founded by Alan Mruvka — the co-founder of E! Entertainment Television. He's building the first American vertical micro-drama platform to compete with Chinese-owned apps like ReelShort and DramaBox. Content is produced at Filmology Labs.";
+    return "VERZA TV was founded by Alan Mruvka, co-founder of E! Entertainment Television. VERZA TV says its available content is produced by or licensed to the service.";
   }
 
   if (lower.includes("hello") || lower.includes("hi") || lower.includes("hey") || lower.includes("sup")) {
-    return `Hey! Welcome to VERZA TV! We have ${getLiveSeries().length} original micro-dramas — romance, thriller, mystery, revenge, and more. Every series starts with 5 free episodes. What are you in the mood for?`;
+    return `Welcome to VERZA TV. The current catalog has ${LIVE_SERIES.length} live series and ${TOTAL_LIVE_EPISODES.toLocaleString("en-US")} live episodes across drama, reality, music, podcasts, red carpet, and more. What are you in the mood for?`;
   }
 
   if (lower.includes("trending") || lower.includes("hot") || lower.includes("popular")) {
-    return "Trending right now: The Mistress Trap (#1 most watched), The Blackthornes (#2, dynasty drama), Destined to Be (#3, epic romance), Do Not Deceive Me (#4, thriller), and Undercovered Heart (#5, crime romance). All start free!";
+    return recommendationResponse(
+      "Current editorial picks (not audience rankings)",
+      (series) => series.categories.includes("popular"),
+    );
   }
 
   if (lower.includes("new") || lower.includes("latest") || lower.includes("just dropped")) {
-    return "New on VERZA TV: Lost and Found (emotional drama), Help! I'm Falling in Love with My Rude CEO (65 eps!), The Inheritance Game (mystery), Twist of Time (sci-fi romance), and The Crown (suspense drama). Check the 'New' tab on the homepage!";
+    return recommendationResponse(
+      "Titles in the current New shelf",
+      (series) => series.categories.includes("new"),
+    );
   }
 
-  return `Welcome to VERZA TV! We have ${getLiveSeries().length} original micro-dramas across romance, thriller, mystery, revenge, billionaire drama, and more. Every series starts with 5 free episodes — no sign-up needed. What genre are you in the mood for? I can recommend the perfect series for you!`;
+  return `Welcome to VERZA TV. There are ${LIVE_SERIES.length} live series in the current catalog. Tell me a genre or mood and I’ll recommend titles using the catalog’s real episode counts and access terms.`;
 }

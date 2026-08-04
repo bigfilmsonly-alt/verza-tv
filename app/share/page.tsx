@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import ShareRedirect from "@/components/ShareRedirect";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verzatv.com";
 const OG_IMAGE = `${SITE_URL}/og-image.png?v=4`;
 const DESCRIPTION =
-  "Stream binge-worthy micro-dramas, reality shows, and original series — all in vertical, all in minutes.";
+  "Stream short-form micro-dramas, reality shows, and other entertainment. Formats and episode lengths vary by title.";
 
 // Dedicated, brandable share URL. Serves the large-logo preview card and
 // redirects humans to the app. noindex so it isn't treated as a duplicate of
@@ -61,9 +62,9 @@ export default function SharePage() {
         Opening VERZA TV…
       </p>
       <noscript>
-        <a href="/" style={{ color: "#E0115F" }}>
+        <Link href="/" style={{ color: "#E0115F" }}>
           Enter VERZA TV
-        </a>
+        </Link>
       </noscript>
     </main>
   );

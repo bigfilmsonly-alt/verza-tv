@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { BROWSE_TABS, type BrowseCategory } from "@/lib/catalog";
 import { useTranslation } from "@/components/LangProvider";
 
@@ -38,9 +39,11 @@ export default function CategoryTabs({ active, onSelect, tabs }: CategoryTabsPro
                 /* Authorized Tubi partner logo (signed contract). Rendered taller
                    than the text labels so it stands out as a feature. "Coming
                    Soon" appears on tap (the overlay), not in the tab bar. */
-                <img
+                <Image
                   src="/tubi-logo.png"
                   alt="Tubi"
+                  width={760}
+                  height={300}
                   style={{ height: 30, width: "auto", display: "block", borderRadius: 7, opacity: isActive ? 1 : 0.7, transition: "opacity 0.2s ease" }}
                 />
               ) : (

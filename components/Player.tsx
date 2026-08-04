@@ -6,9 +6,10 @@ import Image from "next/image";
 import type HlsType from "hls.js";
 import { trackEpisodeStart, trackEpisodeComplete, trackUnlockPrompt, trackUnlockClick } from "@/lib/track";
 import { emit } from "@/lib/analytics";
+import { requireCheckoutUser } from "@/lib/checkout-auth";
 import { T } from "@/lib/theme";
 import { formatDuration } from "@/lib/catalog";
-import { MUX_MAP } from "@/lib/mux-map";
+import { getPlayback } from "@/lib/mux-public-map";
 import VideoWatermark from "@/components/VideoWatermark";
 import {
   saveLastWatching,
@@ -81,6 +82,7 @@ export default function Player({
   const [playing, setPlaying] = useState(false);
   const [showUnlockPopup, setShowUnlockPopup] = useState(false);
   const [unlockLoading, setUnlockLoading] = useState(false);
+  const [unlockError, setUnlockError] = useState<string | null>(null);
   const lastSavedRef = useRef(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(durationS);
@@ -97,7 +99,7 @@ export default function Player({
 
   useEffect(() => {
     if (started) {
-      setShowPoster(false);
+      queueMicrotask(() => setShowPoster(false));
       if (posterTimerRef.current) clearTimeout(posterTimerRef.current);
       return;
     }
@@ -107,12 +109,19 @@ export default function Player({
     return () => { if (posterTimerRef.current) clearTimeout(posterTimerRef.current); };
   }, [started]);
 
-  const hlsUrl = playbackId
-    ? `https://stream.mux.com/${playbackId}.m3u8`
+  /* This dormant legacy component is deliberately public-preview-only. The
+     canonical EpisodeFeed resolves paid media through /api/playback. Fail
+     closed if a future caller accidentally passes a paid episode's public ID. */
+  const publicPlaybackId =
+    episodeNumber >= 1 && episodeNumber <= freeEpisodes
+      ? playbackId
+      : undefined;
+  const hlsUrl = publicPlaybackId
+    ? `https://stream.mux.com/${publicPlaybackId}.m3u8`
     : null;
 
-  const muxThumb = playbackId
-    ? `https://image.mux.com/${playbackId}/thumbnail.jpg?time=2&width=720`
+  const muxThumb = publicPlaybackId
+    ? `https://image.mux.com/${publicPlaybackId}/thumbnail.jpg?time=2&width=720`
     : "";
 
   /* ---- Pre-attach HLS on mount (not on play click) --------------- */
@@ -186,7 +195,7 @@ export default function Player({
   useEffect(() => {
     const nextEp = episodeNumber + 1;
     if (nextEp > freeEpisodes || nextEp > totalEpisodes) return;
-    const next = MUX_MAP[seriesSlug]?.find((e) => e.episode === nextEp);
+    const next = getPlayback(seriesSlug, nextEp);
     if (!next?.playbackId) return;
     fetch(`https://stream.mux.com/${next.playbackId}.m3u8`, { mode: "cors" }).catch(() => {});
     const img = new window.Image();
@@ -248,7 +257,7 @@ export default function Player({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ seriesSlug, episodeNumber, progressSeconds: 0, completed: true }),
       }).catch(() => {});
-      if (episodeNumber >= freeEpisodes) {
+      if (freeEpisodes < totalEpisodes && episodeNumber >= freeEpisodes) {
         /* Last free episode just ended — show unlock popup */
         trackUnlockPrompt(seriesSlug);
         emit("paywall_viewed", { show_id: seriesSlug, episode_number: episodeNumber, plan_type: "series_unlock", surface: "player_unlock_popup" });
@@ -280,7 +289,7 @@ export default function Player({
       video.removeEventListener("error", onError);
       video.removeEventListener("ended", onEnded);
     };
-  }, [episodeNumber, totalEpisodes, freeEpisodes, seriesSlug]);
+  }, [episodeNumber, totalEpisodes, freeEpisodes, seriesSlug, started]);
 
   /* ---- Resume: restore saved position on load -------------------- */
   /*  Prefer a ?t= URL override, else the saved server progress.       */
@@ -432,7 +441,7 @@ export default function Player({
     const vid = video!;
     function revealOnFrame() {
       if ("requestVideoFrameCallback" in vid) {
-        (vid as any).requestVideoFrameCallback(() => { setStarted(true); });
+        vid.requestVideoFrameCallback(() => { setStarted(true); });
       } else {
         requestAnimationFrame(() => requestAnimationFrame(() => { setStarted(true); }));
       }
@@ -455,7 +464,7 @@ export default function Player({
           .then(() => { revealOnFrame(); scheduleHide(); })
           .catch(() => { setLoading(false); });
       });
-  }, [hlsReady, started, scheduleHide]);
+  }, [hlsReady, started, scheduleHide, seriesSlug, episodeNumber]);
 
   /* ---- Interactions ---------------------------------------------- */
 
@@ -476,7 +485,7 @@ export default function Player({
 
     function revealOnFrame(vid: HTMLVideoElement) {
       if ("requestVideoFrameCallback" in vid) {
-        (vid as any).requestVideoFrameCallback(() => { setStarted(true); setLoading(false); });
+        vid.requestVideoFrameCallback(() => { setStarted(true); setLoading(false); });
       } else {
         requestAnimationFrame(() => requestAnimationFrame(() => { setStarted(true); setLoading(false); }));
       }
@@ -553,7 +562,7 @@ export default function Player({
     // mount-time reveal effect only fires on hlsReady's FIRST transition.
     const revealOnFrame = () => {
       if ("requestVideoFrameCallback" in video) {
-        (video as any).requestVideoFrameCallback(() => { setStarted(true); setLoading(false); });
+        video.requestVideoFrameCallback(() => { setStarted(true); setLoading(false); });
       } else {
         requestAnimationFrame(() => requestAnimationFrame(() => { setStarted(true); setLoading(false); }));
       }
@@ -930,27 +939,65 @@ export default function Player({
               {/* Unlock button */}
               <button
                 onClick={async () => {
+                  if (!(await requireCheckoutUser())) return;
                   setUnlockLoading(true);
+                  setUnlockError(null);
                   trackUnlockClick(seriesSlug);
                   emit("checkout_started", { show_id: seriesSlug, episode_number: episodeNumber, plan_type: "series_unlock", surface: "player_unlock_popup" });
+                  let navigating = false;
                   try {
                     const res = await fetch("/api/unlock", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({ seriesSlug }),
                     });
-                    const data = await res.json();
-                    if (data.url) window.location.href = data.url;
+                    const data = (await res.json().catch(() => ({}))) as {
+                      url?: unknown;
+                      error?: unknown;
+                      alreadyOwned?: unknown;
+                    };
+                    if (!res.ok) {
+                      setUnlockError(
+                        data.alreadyOwned
+                          ? "This series is already on your account. Reload this page to continue watching."
+                          : typeof data.error === "string"
+                            ? data.error
+                            : "Couldn’t start checkout. Please try again.",
+                      );
+                      return;
+                    }
+                    if (typeof data.url !== "string" || !data.url) {
+                      setUnlockError("Checkout did not open. Please try again.");
+                      return;
+                    }
+                    navigating = true;
+                    window.location.assign(data.url);
                   } catch {
-                    setUnlockLoading(false);
+                    setUnlockError("Network error. Check your connection and try again.");
+                  } finally {
+                    if (!navigating) setUnlockLoading(false);
                   }
                 }}
                 disabled={unlockLoading}
                 className="w-full py-3.5 rounded-xl text-sm font-bold border-0 cursor-pointer mb-3 transition-transform active:scale-[0.97]"
                 style={{ background: T.accent, color: "#fff", opacity: unlockLoading ? 0.7 : 1 }}
               >
-                {unlockLoading ? "Loading..." : "Unlock Full Series — $1.99"}
+                {unlockLoading ? "Loading..." : "Series Unlock — $1.99 one-time"}
               </button>
+
+              {unlockError && (
+                <p
+                  className="text-xs mb-3 px-3 py-2 rounded-lg"
+                  style={{
+                    color: "#FCA5A5",
+                    background: "rgba(239,68,68,0.12)",
+                    border: "1px solid rgba(239,68,68,0.35)",
+                  }}
+                  role="alert"
+                >
+                  {unlockError}
+                </p>
+              )}
 
               {/* Replay last free episode */}
               <button

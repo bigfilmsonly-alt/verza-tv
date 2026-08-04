@@ -1,5 +1,11 @@
 # Dev Report — Amazon Affiliate Shop
 
+> **ARCHIVE — implementation snapshot dated 2026-07-13.** Web observations are
+> historical; they do not authorize Amazon in native iOS 2.0 or prove current
+> third-party-program compliance. Current boundary:
+> [`../LAUNCH-TRUTH.md`](../LAUNCH-TRUTH.md) and
+> [`../guides/AMAZON-SHOP.md`](../guides/AMAZON-SHOP.md).
+
 **Date:** 2026-07-13
 **Status:** Shipped and live on [verzatv.com](https://www.verzatv.com)
 **Branch:** `amazon-shop` → merged to `main`

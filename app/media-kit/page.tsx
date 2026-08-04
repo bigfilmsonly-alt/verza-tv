@@ -73,13 +73,11 @@ export default function MediaKitPage() {
             style={{ background: T.surface, border: `1px solid ${T.line}` }}
           >
             <p className="text-sm leading-relaxed" style={{ color: T.textDim }}>
-              {BRAND.name} is the first US-based vertical micro-drama streaming
-              platform. Founded by Alan Mruvka, co-founder of E! Entertainment
-              Television, {BRAND.name} delivers premium short-form cinematic
-              series — each episode 60 to 120 seconds — designed for the
-              mobile-first generation. With {liveCount}+ original series
-              spanning romance, thriller, drama, reality, and more, {BRAND.name}{" "}
-              is redefining entertainment for the vertical screen.
+              Founded by Alan Mruvka, co-founder of E! Entertainment
+              Television, {BRAND.name} delivers short-form cinematic vertical
+              series for phone-first viewing. The current catalog contains{" "}
+              {liveCount} live series spanning romance, thriller, drama,
+              reality, and more; episode lengths vary by title.
             </p>
           </div>
         </div>
@@ -93,10 +91,10 @@ export default function MediaKitPage() {
           </h2>
           <ul className="flex flex-col gap-1.5">
             {[
-              `${liveCount}+ original series at launch`,
-              "60–120 second episodes in vertical 9:16 format",
-              "First 5 episodes of every series are free",
-              "Powered by Filmology Labs ($250M production facility)",
+              `${liveCount} currently live series`,
+              "Short-form episodes in vertical 9:16 format; length varies",
+              "Free-preview availability shown on each title page",
+              "Production through Filmology Labs in Paterson, New Jersey",
               "Founded by Alan Mruvka (co-founder, E! Entertainment Television)",
             ].map((fact, i) => (
               <li

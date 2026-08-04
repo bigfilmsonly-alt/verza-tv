@@ -6,34 +6,34 @@ import { BRAND } from "@/lib/config";
 export const metadata: Metadata = {
   title: `Support | ${BRAND.name}`,
   description:
-    "Get help with VERZA TV — playback issues, purchases, VIP subscriptions, refunds, and account questions. We respond within 1 business day.",
+    "Get help with VERZA TV playback, purchases, VIP subscriptions, refunds, and account questions.",
   alternates: { canonical: "/support" },
 };
 
 const faqs = [
   {
     q: "A video won't play or keeps buffering",
-    a: "Check your connection first — streaming needs a stable network. Then close and reopen the app (or refresh the page). If a specific episode still won't play, email support@verzatv.com with the series name and episode number and we'll fix it fast.",
+    a: "Check your connection first, then close and reopen the app or refresh the page. If a specific episode still won't play, email support@verzatv.com with the series name, episode number, device, and app or browser version.",
   },
   {
     q: "I paid to unlock a series but it's still locked",
-    a: "Your unlock is tied to your account (or to this device for guest purchases). Make sure you're signed in with the same email you used at checkout, then reopen the series. If it's still locked, email support@verzatv.com with your checkout email and the series name — we'll restore access right away.",
+    a: "Series Unlocks are tied to the authenticated account used at checkout. Sign in with that account and reopen the series. If it is still locked, email support@verzatv.com with the account email, series name, and transaction details so we can investigate without asking for full card information.",
   },
   {
     q: "How do I manage or cancel my VIP subscription?",
-    a: "VIP renews automatically until cancelled. To cancel or change your plan, open your Profile page and tap Manage Subscription (under your VIP card) — it opens your secure Stripe billing portal. You keep VIP access until the end of the paid period. You can also email support@verzatv.com and we'll process it same-day.",
+    a: "VIP renews automatically until cancelled. On a supported web or Android surface, open Profile and choose Manage Subscription to use the secure Stripe billing portal. Cancellation stops future renewals and access ordinarily continues through the paid period. You can also email support@verzatv.com for assistance.",
   },
   {
     q: "How do refunds work?",
-    a: "See our Refund Policy for full details. All purchases are made securely through Stripe on verzatv.com and handled by our team — see the Refund Policy, then email support@verzatv.com with your checkout email.",
+    a: "See our Refund Policy, then email support@verzatv.com with your account email and transaction details. Direct VERZA TV purchases use Stripe; purchases completed after an Amazon handoff are governed by Amazon or the applicable seller's policy.",
   },
   {
     q: "How do I delete my account?",
-    a: "Open your Profile page and tap Delete Account (bottom of the page), then confirm. This permanently removes your account, watch history, saved list, and access to purchases, and cannot be undone. You can also email privacy@verzatv.com and we'll process the deletion within 30 days.",
+    a: "Open Profile, choose Delete Account, and confirm. This permanently removes the account and associated profile, watch progress, saved list, and access entitlements. Completed financial records may be retained separately where required. You can also email privacy@verzatv.com for assistance.",
   },
   {
     q: "How do I report inappropriate content?",
-    a: "Email support@verzatv.com with the series name, episode, and a short description. Reports are reviewed within 24 hours.",
+    a: "Email support@verzatv.com with the series name, episode, and a short description. Please include enough detail for the team to locate and review the reported content.",
   },
 ];
 
@@ -56,7 +56,8 @@ export default function SupportPage() {
       </h1>
       <p className="text-sm mb-8" style={{ color: T.textDim }}>
         We&apos;re here to help. Most questions are answered below — for
-        anything else, email us and we&apos;ll respond within 1 business day.
+        anything else, email our support team. The Service is intended for
+        adults age 18 and older.
       </p>
 
       {/* Contact card */}
@@ -135,7 +136,10 @@ export default function SupportPage() {
 
       {/* Company info */}
       <p className="text-xs leading-relaxed" style={{ color: T.textMute }}>
-        {BRAND.name} · {BRAND.domain} · For privacy requests:{" "}
+        VERZA TV LLC · 650 E Palisade Ave, Ste 2329 · Englewood Cliffs, NJ
+        07632 · United States
+        <br />
+        {BRAND.domain} · For privacy requests:{" "}
         <a href="mailto:privacy@verzatv.com" style={{ color: T.accent }}>
           privacy@verzatv.com
         </a>{" "}

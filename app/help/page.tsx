@@ -2,62 +2,61 @@ import type { Metadata } from "next";
 import JsonLd from "@/components/JsonLd";
 import { faqSchema } from "@/lib/schemas";
 import { T } from "@/lib/theme";
-import { BRAND, FREE_EPISODES, VIP_WEEKLY, VIP_YEARLY, DEFAULT_COIN_PER_EPISODE } from "@/lib/config";
+import { BRAND } from "@/lib/config";
 import { getLiveSeries } from "@/lib/catalog";
-import { formatPrice } from "@/lib/coins";
 
 const FAQ_ITEMS = [
   {
     question: `What is ${BRAND.name}?`,
     answer:
-      `${BRAND.name} is the first US-based vertical micro-drama streaming platform. We offer ${getLiveSeries().length}+ original series with episodes that run 60 to 120 seconds each, designed for phone-first viewing in vertical 9:16 format. Founded by Alan Mruvka, co-founder of E! Entertainment Television.`,
+      `${BRAND.name} is a vertical entertainment service with ${getLiveSeries().length} currently live series. Episodes are designed for phone-first viewing in vertical 9:16 format, and length varies by title.`,
   },
   {
     question: `Is ${BRAND.name} free?`,
     answer:
-      `The first ${FREE_EPISODES} episodes of every series are completely free. After that, you can unlock the full series for just $1.99 (Summer Sale) — a one-time payment that gives you access to every episode.`,
+      `Each title page shows its current free-preview availability. Later episodes may require a Series Unlock or an active VIP entitlement.`,
   },
   {
-    question: "How much does it cost to unlock a series?",
+    question: "How do I unlock a series on a supported purchase surface?",
     answer:
-      `During our Summer Sale, unlocking a full series costs just $1.99. This is a one-time payment that gives you access to all episodes in that series — no subscriptions, no hidden fees.`,
+      `Sign in, open the series, and use the unlock option shown after the free episodes. The current price and full terms are shown before Stripe checkout. Digital checkout is not offered in the iOS app.`,
   },
   {
-    question: "How do I unlock a series?",
+    question: "How do I use an existing unlock on another device?",
     answer:
-      `Watch the first ${FREE_EPISODES} free episodes. When you reach the next episode, you'll see an "Unlock Full Series — $1.99" button. Tap it, complete the payment, and all episodes are yours.`,
+      "Sign in with the same account used for the purchase. Series Unlock and VIP access are verified from your account and sync to supported devices, including the iOS app.",
   },
   {
     question: "What payment methods do you accept?",
     answer:
-      `We accept all major credit and debit cards through Stripe, our secure payment provider. Your payment information is never stored on our servers.`,
+      `Direct purchases use Stripe checkout and support the payment methods displayed there. Card details are entered with Stripe and are not stored on our servers.`,
   },
   {
-    question: "How do I watch free episodes?",
+    question: "How do I manage or cancel VIP?",
     answer:
-      `Just open any series and start watching. The first ${FREE_EPISODES} episodes are always free — no account or payment required. After the free episodes, you can unlock the rest for $2.`,
+      "On a supported web or Android surface, open Profile and choose Manage Subscription to use the secure Stripe billing portal. You can also contact support@verzatv.com for assistance.",
+  },
+  {
+    question: "How do I delete my account?",
+    answer:
+      "Open Profile, choose Delete Account, and confirm. This permanently removes the account and associated profile, watch progress, saved list, and access entitlements; completed transaction records may be retained where legally required.",
   },
   {
     question: "What devices are supported?",
     answer:
-      `${BRAND.name} is available on iOS, Android, and the web. You can add it to your home screen for a native app experience.`,
+      `${BRAND.name} is available on iPhone, iPad, Android, and the web. Sign in with the same account to sync eligible access, saved titles, and watch progress.`,
   },
   {
     question: "What genres are available?",
     answer:
-      "We currently offer series in Romance, Thriller, Drama, Comedy, Reality, Mystery, Sci-Fi, and Horror. New genres and series are added regularly.",
-  },
-  {
-    question: `Who founded ${BRAND.name}?`,
-    answer:
-      `${BRAND.name} was founded by Alan Mruvka, co-founder of E! Entertainment Television. Our content is produced at Filmology Labs, a $250M production facility in Paterson, New Jersey with 21 soundstages and an LED volume wall.`,
+      "The current catalog includes Romance, Thriller, Drama, Comedy, Reality, Mystery, Sci-Fi, and Horror.",
   },
 ];
 
 export const metadata: Metadata = {
   title: `Help & FAQ | ${BRAND.name}`,
   description:
-    "Frequently asked questions about VERZA TV. Learn about coins, VIP, episode pricing, season passes, supported devices, and more.",
+    "Help with VERZA TV viewing, account access, purchases, subscriptions, supported devices, and account deletion.",
   alternates: { canonical: "/help" },
 };
 
@@ -129,12 +128,13 @@ export default function HelpPage() {
           <p className="text-sm mb-1" style={{ color: T.textDim }}>
             Still have questions?
           </p>
-          <p
+          <a
+            href="mailto:support@verzatv.com"
             className="text-sm font-medium"
-            style={{ color: T.text }}
+            style={{ color: T.accent }}
           >
             support@verzatv.com
-          </p>
+          </a>
         </div>
       </section>
     </>

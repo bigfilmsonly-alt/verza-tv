@@ -1,13 +1,15 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
+import { useState } from "react";
 import { useCart } from "@/lib/cart";
 import { T } from "@/lib/theme";
 
 export default function CartDrawer() {
   const { items, isOpen, closeCart, removeItem, updateQuantity, subtotal } =
     useCart();
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -152,6 +154,9 @@ export default function CartDrawer() {
             </div>
             <button
               onClick={async () => {
+                setCheckoutLoading(true);
+                setCheckoutError(null);
+                let navigating = false;
                 try {
                   const res = await fetch("/api/checkout", {
                     method: "POST",
@@ -159,26 +164,50 @@ export default function CartDrawer() {
                     body: JSON.stringify({
                       items: items.map((i) => ({
                         productId: i.product.id,
-                        name: i.product.name,
                         quantity: i.quantity,
-                        priceCents: Math.round(i.product.price * 100),
-                        imageUrl: i.product.images?.[0] ?? undefined,
                       })),
                     }),
                   });
-                  const data = await res.json();
-                  if (data.url) {
-                    window.location.href = data.url;
+                  const data = (await res.json().catch(() => ({}))) as {
+                    url?: unknown;
+                    error?: unknown;
+                  };
+                  if (!res.ok) {
+                    setCheckoutError(
+                      typeof data.error === "string"
+                        ? data.error
+                        : "Couldn’t start checkout. Please try again.",
+                    );
+                    return;
                   }
+                  if (typeof data.url !== "string" || !data.url) {
+                    setCheckoutError("Checkout did not open. Please try again.");
+                    return;
+                  }
+                  navigating = true;
+                  window.location.assign(data.url);
                 } catch (err) {
                   console.error("Checkout error:", err);
+                  setCheckoutError("Network error. Check your connection and try again.");
+                } finally {
+                  if (!navigating) setCheckoutLoading(false);
                 }
               }}
+              disabled={checkoutLoading}
               className="w-full py-3.5 rounded-xl text-sm font-bold text-center transition-opacity hover:opacity-90 border-0 cursor-pointer"
-              style={{ background: T.accent, color: "#fff" }}
+              style={{ background: T.accent, color: "#fff", opacity: checkoutLoading ? 0.7 : 1 }}
             >
-              Checkout
+              {checkoutLoading ? "Opening secure checkout…" : "Checkout"}
             </button>
+            {checkoutError && (
+              <p
+                className="text-xs text-center mt-3"
+                style={{ color: "#FCA5A5" }}
+                role="alert"
+              >
+                {checkoutError}
+              </p>
+            )}
           </div>
         )}
       </div>

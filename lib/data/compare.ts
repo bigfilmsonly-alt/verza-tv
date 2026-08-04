@@ -23,15 +23,15 @@ export const COMPARISONS: Comparison[] = [
     blurb:
       "A fair, factual comparison of VERZA TV and ReelShort — catalog, format, pricing, and free episodes — to help you choose the right microdrama platform.",
     intro:
-      "VERZA TV and ReelShort are both vertical microdrama platforms built around the same core promise: serialized, phone-first stories told in short, bingeable episodes. ReelShort is one of the apps that helped popularize the format in English; VERZA TV is a US-based service with a growing slate of originals. Both let you start for free and unlock more with a coin-style model. This comparison looks honestly at how they line up on catalog, format, pricing, and experience so you can decide which fits your viewing habits — without pretending either is the only good option.",
+      "VERZA TV and ReelShort both offer serialized, phone-first stories told in short episodes. ReelShort is one of the apps that helped popularize the format in English; VERZA TV is a US-based service with a growing catalog. Both let viewers sample content before paid access, but their current payment models differ: VERZA TV uses flat Series Unlocks and optional VIP access rather than selling coins. This comparison looks at catalog, format, pricing, and experience without pretending either is the only good option.",
     sections: [
       {
         heading: "The format is the same; the catalogs differ",
-        body: "Both platforms deliver vertical 9:16 episodes of roughly one to two minutes, organized into serialized seasons with cliffhanger pacing. The meaningful difference is content: each platform commissions its own originals, so the specific series, tones, and standout titles vary. VERZA TV focuses on a curated slate of more than 76 originals spanning romance, thriller, revenge, mystery, and reality. The best way to compare catalogs is to sample the free episodes on each and see which library's storytelling and production style you prefer.",
+        body: "Both platforms offer vertical serialized programming, but episode length and format vary by title. The meaningful difference is content: the specific series, tones, and available access vary. VERZA TV's current catalog spans romance, thriller, revenge, mystery, reality, music, podcasts, and red-carpet programming. Compare the episodes each service marks free and the exact paid terms shown before checkout.",
       },
       {
         heading: "Free episodes and how you pay",
-        body: "Both apps use a free-to-start model: opening episodes are free, then you pay to continue. VERZA TV makes the first five episodes of every series free, and you unlock the rest with coins or a VIP membership. ReelShort similarly offers free episodes and a coin-and-rewards system. The practical question is how each platform prices unlocks and what its memberships cost. Because pricing changes over time, check current coin packs and membership tiers on each before deciding which is cheaper for your habits.",
+        body: "Both services use a free-to-start model. VERZA TV shows each title's free-access limit and currently offers a $1.99 one-time Series Unlock for eligible titles; a supported purchase surface may also show an available VIP plan. It does not sell coins. ReelShort uses its own free, coin, reward, and membership terms. Compare the exact current checkout total and recurring terms on each service before choosing.",
       },
       {
         heading: "Experience and access",
@@ -46,12 +46,12 @@ export const COMPARISONS: Comparison[] = [
       {
         question: "Is VERZA TV the same as ReelShort?",
         answer:
-          "No. They are separate platforms with their own original catalogs. Both deliver vertical microdramas with free starting episodes and coin-based unlocking, but the specific series and pricing differ between them.",
+          "No. They are separate platforms with their own original catalogs. Both deliver vertical microdramas with free starting episodes, but their access models differ: VERZA TV uses flat Series Unlocks and optional VIP access, while ReelShort controls its own coin, reward, and membership terms.",
       },
       {
         question: "Do both offer free episodes?",
         answer:
-          "Yes. Both use a free-to-start model. VERZA TV makes the first five episodes of every series free, and ReelShort also offers free episodes before paid unlocking begins.",
+          "Yes. Both use a free-to-start model. VERZA TV identifies the current free episodes for each live title, while ReelShort controls its own free-access rules.",
       },
       {
         question: "Which app is cheaper?",
@@ -70,7 +70,7 @@ export const COMPARISONS: Comparison[] = [
     sections: [
       {
         heading: "Catalog size versus curation",
-        body: "DramaBox is known for a large catalog spanning many genres and a high volume of titles. VERZA TV takes a more curated approach with more than 76 originals chosen across romance, thriller, revenge, mystery, and reality. Bigger is not automatically better: a large library offers more to dig through, while a curated slate can mean a higher hit rate per series. If you love endless browsing, a big catalog appeals; if you prefer a tighter set of strong originals, curation appeals. Sampling both reveals which you favor.",
+        body: "DramaBox is known for a large catalog spanning many genres and a high volume of titles. VERZA TV takes a more curated approach across romance, thriller, revenge, mystery, reality, music, podcasts, and red-carpet programming. Bigger is not automatically better; sample the real catalogs and choose based on the available stories rather than an unsupported quality ranking.",
       },
       {
         heading: "Format and production",
@@ -78,7 +78,7 @@ export const COMPARISONS: Comparison[] = [
       },
       {
         heading: "Free episodes and pricing",
-        body: "Both use free-to-start models. VERZA TV offers the first five episodes of every series free, then unlocks with coins or a VIP membership. DramaBox likewise provides free episodes plus a coins-and-rewards system and membership options. Because coin economies and membership prices shift over time, the fair comparison is to check current packs and plans on each. Selective viewers often prefer pay-per-series coins; heavy bingers may find a membership cheaper on whichever platform they watch most.",
+        body: "Both use free-to-start models. VERZA TV identifies each title's free episodes, then offers a flat one-time Series Unlock for eligible titles or optional VIP access; it does not currently sell coins. DramaBox controls its own free, coin, reward, and membership terms. Check the exact current checkout total and recurring terms on each service.",
       },
       {
         heading: "Access and convenience",
@@ -89,7 +89,7 @@ export const COMPARISONS: Comparison[] = [
       {
         question: "Does VERZA TV or DramaBox have more shows?",
         answer:
-          "DramaBox is known for a large catalog, while VERZA TV offers a curated slate of more than 76 originals. More titles mean more to browse; curation can mean a higher hit rate. Sample both to see which suits you.",
+          "DramaBox is known for a large catalog, while VERZA TV offers a curated current catalog across several short-form categories. Catalogs change, so compare the live title lists rather than relying on a hard-coded count.",
       },
       {
         question: "Can I watch without downloading an app?",
@@ -99,7 +99,7 @@ export const COMPARISONS: Comparison[] = [
       {
         question: "Do both have free episodes?",
         answer:
-          "Yes. Both use a freemium model. VERZA TV makes the first five episodes of every series free, and DramaBox also offers free episodes before paid unlocking with coins or a membership.",
+          "Yes. Both use a free-to-start model. VERZA TV identifies the current free episodes for each live title and uses Series Unlock or VIP access; DramaBox controls its own paid-access model.",
       },
     ],
   },
@@ -117,22 +117,22 @@ export const COMPARISONS: Comparison[] = [
       },
       {
         heading: "Free episodes are the real test",
-        body: "Almost every short drama app uses a freemium model, so the size and honesty of the free tier is a fair way to compare them. VERZA TV makes the first five episodes of every series free across its full catalog, which is enough to feel a story's pacing before paying. Other apps offer free episodes too, sometimes gated behind ads or daily reward mechanics. Favor platforms whose free episodes are the genuine opening of the story, not heavily restricted teasers.",
+        body: "Many short drama apps use a free-to-start model, so the clarity of the free tier is a fair comparison. VERZA TV identifies each live title's free episodes and has several wholly free short titles. Other apps control their own free, ad, and reward mechanics. Favor services that clearly identify what is free and show the real product and terms before payment.",
       },
       {
         heading: "Pricing models to compare",
-        body: "Most short drama apps use coins — a virtual currency you buy in packs and spend per episode or per series — often alongside a membership for unlimited access. Compare the effective price per unlock and the cost of memberships against how much you watch. Selective viewers usually win with coins; heavy bingers usually win with a membership. VERZA TV offers both coins and monthly or yearly VIP plans, so you can match the model to your habits rather than being forced into one.",
+        body: "Many short drama apps use coins, while others use per-title purchases or memberships. Compare the actual checkout total, what access persists, and whether a charge recurs. VERZA TV currently offers a $1.99 one-time Series Unlock for eligible titles; its supported purchase surface identifies any VIP plan that is presently available, together with the current price and renewal interval. It does not sell coins.",
       },
       {
         heading: "Where VERZA TV fits",
-        body: "VERZA TV is a strong choice if you value a curated US-produced catalog, generous five-episode free starts, and the ability to watch in a browser on phone or desktop without a download. It is not the only good option — ReelShort and DramaBox have their own loyal audiences and strong libraries. The honest recommendation is to try the free episodes on two or three apps and keep the one whose stories and pricing fit you best. The format is the same; the right home depends on you.",
+        body: "VERZA TV may fit viewers who value a curated US-based catalog, clearly identified free starting episodes, and browser or native viewing. It is not the only option; the honest recommendation is to compare the actual free episodes, available titles, and current paid terms on several services, then choose based on your own viewing habits.",
       },
     ],
     faq: [
       {
         question: "What are the most popular short drama apps?",
         answer:
-          "Among the best-known are ReelShort, DramaBox, and VERZA TV. Each offers vertical, serialized microdramas with free starting episodes and coin-based or membership unlocking, but with different catalogs and pricing.",
+          "ReelShort, DramaBox, and VERZA TV are among the available services. Their catalogs and payment models differ; VERZA TV currently uses one-time Series Unlocks and optional VIP access rather than coin purchases.",
       },
       {
         question: "How do I pick the best short drama app for me?",
@@ -142,7 +142,7 @@ export const COMPARISONS: Comparison[] = [
       {
         question: "Are short drama apps free?",
         answer:
-          "They are free to start. Nearly all use a freemium model with free opening episodes — VERZA TV offers the first five of every series free — then charge coins or a membership to continue.",
+          "Many are free to start, but the details vary. VERZA TV identifies each live title's current free episodes, then may offer a one-time Series Unlock or VIP access for remaining paid episodes.",
       },
     ],
   },
@@ -156,36 +156,36 @@ export const COMPARISONS: Comparison[] = [
     sections: [
       {
         heading: "The free side",
-        body: "On VERZA TV, the first five episodes of every series are free, with no payment required to start and no commitment to continue. Across more than 76 series, that adds up to a substantial amount of free drama. The free episodes are the actual opening of each story, not trailers, so you experience the real pacing and cliffhangers. Other platforms also offer free episodes, though some gate them behind ads or daily reward mechanics. The free tier exists to hook you, and it is genuinely generous.",
+        body: "On VERZA TV, each live series identifies the episodes currently available without payment, and several short titles are wholly free. Those episodes are part of the actual program rather than separate trailers. Other services control their own free, ad, and reward mechanics, so check the current product page rather than assuming every title or app has the same limit.",
       },
       {
         heading: "The paid side",
-        body: "Once the free episodes end, continuing costs coins — a virtual currency bought in packs and spent per episode or per series — or a VIP membership for unlimited access. The crucial point is that payment only happens when you choose to unlock more of a specific story you already like. You are never charged to browse or to sample. This is the core trade of the freemium model: broad free access in exchange for paying only for the stories that earn your investment.",
+        body: "On VERZA TV, an eligible title can be continued with a $1.99 one-time Series Unlock on supported purchase surfaces, or through a VIP plan when one is currently displayed there. Browsing and sampling free episodes do not trigger a charge; Stripe shows the selected product, total, and recurring terms, if any, before payment.",
       },
       {
         heading: "Free versus paid: which to use",
-        body: "If you watch occasionally, the free episodes plus the rare coin unlock may cover you entirely. If you binge constantly, paying becomes worthwhile, and the choice is coins versus a membership. Coins suit selective viewers who finish only a few series; a membership suits heavy viewers who watch across many titles. VERZA TV offers both, with monthly and yearly VIP plans. Start free, watch widely, and only move to paid when a particular series — or your overall appetite — makes it clearly worth it.",
+        body: "If you watch occasionally, free episodes plus an occasional one-time Series Unlock may be enough. If you watch paid titles broadly, compare that total with any VIP plan shown on the supported purchase surface. Start free and move to paid only after checking the exact product and renewal terms.",
       },
       {
         heading: "How to maximize the free tier",
-        body: "Because every series gives the same five free episodes, breadth is the smart free strategy: sample many series and ride the free chapters of each. You will quickly identify the standouts worth unlocking and the ones to skip, so any coins you spend go toward stories you are sure about. This approach also means you rarely pay for a disappointment, since the free episodes act as a built-in trial. Used well, the free tier alone can keep you entertained for a long time.",
+        body: "Sample the episodes each live title marks free and use the wholly free short titles too. The series page identifies where paid access begins, so you can compare stories before choosing a one-time unlock or recurring VIP access.",
       },
     ],
     faq: [
       {
         question: "Are microdramas completely free?",
         answer:
-          "They are free to start but not entirely free. On VERZA TV the first five episodes of every series are free; continuing a series costs coins or requires a VIP membership.",
+          "They can be free to start but are not always entirely free. VERZA TV identifies each live title's free episodes; eligible remaining episodes can require a Series Unlock or VIP access.",
       },
       {
         question: "What exactly costs money?",
         answer:
-          "Only unlocking episodes beyond the free ones costs money, through coins or a membership. Browsing the catalog and watching the free episodes never costs anything and requires no payment account.",
+          "On VERZA TV, browsing and watching episodes marked free do not trigger a charge. Paid access is through a one-time Series Unlock for an eligible title or a recurring VIP subscription.",
       },
       {
         question: "How can I watch the most for free?",
         answer:
-          "Sample many series to use every free episode, since each series gives the same five free chapters. Spend coins only on the standouts, using the free episodes as a built-in trial for each story.",
+          "Sample several series and use the free episodes each live title currently identifies; the count can vary by title. On VERZA TV, choose an occasional one-time Series Unlock for a standout or compare the VIP option shown on an available checkout surface if you watch broadly.",
       },
     ],
   },
@@ -195,7 +195,7 @@ export const COMPARISONS: Comparison[] = [
     blurb:
       "How do microdrama coins work, and are they cheaper than a subscription? A clear comparison of coin packs, per-episode unlocking, and VIP memberships.",
     intro:
-      "Coins are the currency that powers most microdrama platforms, and understanding them is the key to spending wisely. Instead of one flat subscription, you buy coins in packs and spend them on the specific episodes or series you want to finish. But coins are not the only option — most platforms, including VERZA TV, also offer a membership. This page explains exactly how coins work and compares the coin model against a subscription, so you can tell which one will actually cost you less based on how much you watch.",
+      "Coins power many microdrama platforms, but they are not universal. This page explains the general coin model and compares it with subscriptions and flat per-series purchases. VERZA TV's current checkout does not sell coins; it uses one-time Series Unlocks and optional VIP access.",
     sections: [
       {
         heading: "How coins work",
@@ -203,15 +203,15 @@ export const COMPARISONS: Comparison[] = [
       },
       {
         heading: "How subscriptions work",
-        body: "A subscription, often branded VIP, charges a flat recurring fee for unlimited access to the catalog. There is no per-episode decision and no coin balance to manage — everything is unlocked while your membership is active. VERZA TV offers monthly and yearly VIP plans, with the yearly option discounted for committed viewers. The appeal is simplicity and unlimited bingeing: once you subscribe, you never weigh whether a particular episode is worth a coin, you just watch.",
+        body: "A subscription, often branded VIP, charges a recurring fee for broad access while the membership is active. VERZA TV has no coin balance; when VIP checkout is available, the supported purchase surface shows the plan, price, and renewal interval before payment. Cancellation stops future renewals while access ordinarily continues through the paid period.",
       },
       {
         heading: "Coins versus subscription: the math",
-        body: "The right choice depends on volume. If you finish only a couple of series a month, coins are usually cheaper — you pay for those stories and nothing else. If you binge widely across many titles, a flat membership almost always wins, since the unlimited access spreads its cost across everything you watch. A simple test: estimate how many series you would unlock in a month with coins, compare that total to the membership price, and pick whichever is lower for your habits.",
+        body: "The right choice depends on volume and the service's model. On VERZA TV, compare the number of $1.99 Series Unlocks you expect to buy with the exact VIP price displayed on the supported purchase surface, if a recurring plan is available. A recurring plan is not automatically cheaper; use your real viewing estimate and review renewal terms.",
       },
       {
         heading: "Getting the most value either way",
-        body: "If you go with coins, buy the pack whose bonus coins give the best effective rate for how much you watch, and prefer full-series unlocks over episode-by-episode when offered. If you go with a membership, choose the yearly plan if you are confident you will keep watching, since it is discounted versus monthly. And remember you are not locked in: many viewers start with coins, then switch to VIP once their habit grows past the break-even point. Match the model to your appetite and revisit as it changes.",
+        body: "On a coin-based service, compare the effective cost per unlock. On VERZA TV, compare one-time Series Unlocks with the exact recurring total shown for any currently available VIP plan. Choose a recurring plan only if the disclosed commitment fits your plans, and use the billing portal to stop future renewals when needed.",
       },
     ],
     faq: [
@@ -228,7 +228,7 @@ export const COMPARISONS: Comparison[] = [
       {
         question: "Can I switch between coins and VIP?",
         answer:
-          "Yes. Many viewers start with coins and move to a VIP membership once their viewing grows past the break-even point. VERZA TV offers both, so you can match the model to your current habits.",
+          "Models can change by service. VERZA TV currently lets viewers move between one-time Series Unlocks and VIP access; it does not sell coins.",
       },
     ],
   },
@@ -242,15 +242,15 @@ export const COMPARISONS: Comparison[] = [
     sections: [
       {
         heading: "Episode length and commitment",
-        body: "Traditional streaming centers on 30-to-60-minute episodes and feature-length films that ask for a dedicated sitting. VERZA TV episodes run 60 to 120 seconds, designed to fit the gaps in a day. A traditional show is a planned evening; a microdrama is something you start in a queue or before bed. Both can total hours of runtime, but VERZA delivers it in tiny, low-commitment pieces, while traditional streaming delivers it in long blocks that reward your full attention.",
+        body: "Traditional streaming often centers on long-form episodes and feature-length films that ask for a dedicated sitting. VERZA TV's microdramas use shorter serialized chapters, while reality, music, podcast, red-carpet, and other titles can run longer or use a different format. Check the selected title for its actual episode list and runtime.",
       },
       {
         heading: "Format and screen",
-        body: "Traditional streaming is shot in widescreen 16:9 for a TV or a sideways phone. VERZA TV is shot vertically in 9:16 for a phone held upright, filling the whole screen with no black bars and no need to rotate. This makes VERZA ideal for one-handed, on-the-go viewing, while traditional streaming shines on a large horizontal screen at home. The formats are optimized for opposite contexts, which is exactly why many people use both rather than choosing between them.",
+        body: "Traditional streaming commonly uses widescreen 16:9. Many VERZA TV microdramas use vertical 9:16 framing for a phone held upright, while some catalog categories use horizontal or other formats. The selected title and player show the format actually available.",
       },
       {
         heading: "Pricing models",
-        body: "Traditional streaming charges a flat monthly subscription for an entire library, whether you watch a lot or a little. VERZA TV is free to start — the first five episodes of every series are free — then unlocks with coins or an optional VIP membership. This lets selective viewers pay per story instead of per month, while heavy viewers can choose VIP for unlimited access. VERZA's model gives you a low-cost or no-cost entry point that a subscription-only service cannot match.",
+        body: "Traditional streaming usually charges a flat monthly subscription for an entire library. VERZA TV identifies free starting episodes for each live title, then offers a one-time Series Unlock for eligible titles or optional VIP access. This lets viewers compare paying for a specific story with a recurring plan.",
       },
       {
         heading: "When to use each",
@@ -266,12 +266,12 @@ export const COMPARISONS: Comparison[] = [
       {
         question: "Is VERZA TV cheaper than a streaming subscription?",
         answer:
-          "It can be. VERZA TV is free to start with five free episodes per series, then pay-per-series coins or an optional VIP plan. Selective viewers may spend less than a flat monthly subscription costs.",
+          "It depends on what you watch. VERZA TV identifies free episodes by title, then offers $1.99 one-time Series Unlocks or optional VIP access. Compare your expected one-time total with the recurring plan shown at checkout.",
       },
       {
-        question: "Why are VERZA TV episodes so short?",
+        question: "Why do many VERZA TV microdramas use short episodes?",
         answer:
-          "VERZA TV episodes run 60 to 120 seconds because the microdrama format is built for phone-first, on-the-go viewing in the gaps of a day, with a cliffhanger every episode to keep you watching.",
+          "Many VERZA TV microdramas use brief serialized chapters for phone-first viewing. Episode length and story structure vary by title, and not every program is a vertical microdrama.",
       },
     ],
   },

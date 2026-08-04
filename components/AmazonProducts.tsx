@@ -172,7 +172,7 @@ export default function AmazonTile({ product: p }: { product: AmazonProduct }) {
         id={p.id}
         onClick={() => setOpen(true)}
         className="group block w-full text-left no-underline min-w-0 transition-transform active:scale-[0.97] p-0 border-0 bg-transparent cursor-pointer"
-        aria-label={`View ${p.title}`}
+        aria-label={`Sponsored ad from Amazon, not personalized. View ${p.title}`}
       >
         <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "1 / 1" }}>
           <ProductVisual p={p} glyphSize={44} sizes={TILE_SIZES} />
@@ -221,14 +221,17 @@ export default function AmazonTile({ product: p }: { product: AmazonProduct }) {
           </div>
         </div>
 
-        {/* Caption. Each tile carries its own "Sponsored · Amazon" line, so the
+        {/* Caption. Each tile carries its own ad disclosure, so the
             disclosure travels with the product wherever the tile is used. */}
-        <div style={{ height: 36 }}>
+        <div style={{ height: 52 }}>
           <p className="mt-1.5 text-[11px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>
             {p.title}
           </p>
           <p className="text-[10px] mt-0.5 line-clamp-1 font-semibold" style={{ color: "#FF9900" }}>
-            Sponsored · Amazon
+            Sponsored · Ad · Amazon
+          </p>
+          <p className="text-[9px] mt-0.5 line-clamp-1" style={{ color: "rgba(245,244,248,0.55)" }}>
+            Not personalized
           </p>
         </div>
       </button>
@@ -245,7 +248,9 @@ function AmazonProductModal({ product: p, onClose }: { product: AmazonProduct; o
   const inBag = has(p.id);
   const cartable = isCartable(p);
 
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    queueMicrotask(() => setMounted(true));
+  }, []);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -297,7 +302,13 @@ function AmazonProductModal({ product: p, onClose }: { product: AmazonProduct; o
             className="absolute top-3 left-3 text-[9px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full"
             style={{ background: "rgba(0,0,0,0.6)", color: "#fff", backdropFilter: "blur(4px)" }}
           >
-            Sponsored · Amazon
+            Sponsored · Ad · Amazon
+          </span>
+          <span
+            className="absolute bottom-3 left-3 text-[9px] font-semibold px-2 py-0.5 rounded-full"
+            style={{ background: "rgba(0,0,0,0.6)", color: "#fff", backdropFilter: "blur(4px)" }}
+          >
+            Not personalized
           </span>
         </div>
 

@@ -1,101 +1,140 @@
-# API Reference
+# API reference
 
-All route handlers under `app/api/`. Endpoints are Next.js 16 App Router route
-handlers (`route.ts`). Request APIs are async (`await cookies()`,
-`await params`). Auth model noted per group.
+Last reconciled: **2026-08-03**. There are 42 `app/api/**/route.ts` files. This
+reference emphasizes release/security contracts; inspect the exact handler and
+versioned local Next.js docs before changing a payload.
 
-> **Revenue rule:** No endpoint records revenue from client input. Purchases and
-> subscription revenue are written **only** by the Stripe webhook after
-> server-side verification. Checkout endpoints compute prices server-side.
+> Latest production readback verifies August 3 legal/support, authenticated
+> payment capabilities in compatibility mode with VIP false, signed paid
+> playback, and one exact-19 Stripe webhook. Required Terms/portal and the live
+> $1.99 smoke remain open. The hardened Mux creator webhook is deployed and
+> returns 503 while its verification secret is intentionally absent; creator
+> ingestion remains unavailable.
 
----
+## Authentication conventions
 
-## Payments & entitlements
+- Web/native user routes resolve a verified Supabase cookie session or Bearer
+  token where their handler supports the native client. Client-supplied user IDs
+  are never ownership authority.
+- Admin routes require a verified Bearer user whose email is in `ADMIN_EMAILS`;
+  an email string by itself is not auth.
+- Stripe/Mux webhooks verify their provider signature over the required raw
+  payload or return non-2xx before any mutation when verification is not
+  configured or fails.
+- Cron uses a constant-time checked Bearer `CRON_SECRET` and release gates.
+- Private access/payment/playback responses are `private, no-store` and vary on
+  Authorization/Cookie as applicable.
 
-| Method | Route | Purpose | Auth |
+## Payments and access
+
+| Method | Route | Contract | Launch state |
 | --- | --- | --- | --- |
-| POST | `/api/unlock` | Start Stripe checkout to unlock a series ($1.99). Adds `plan_type` + `show_id` metadata. | Cookie session |
-| POST | `/api/unlock/season-pass` | Season-pass unlock checkout. | Cookie session |
-| POST | `/api/creator-unlock` | PPV checkout for creator content (price from server). | Cookie session |
-| POST | `/api/checkout` | Generic Stripe checkout session. | Cookie session |
-| POST | `/api/subscribe` | VIP subscription checkout (monthly/yearly), adds `plan_type`. | Cookie session |
-| GET | `/api/entitlements` | List the user's entitlements. | Cookie session |
-| GET | `/api/entitlements/check` | Check access to a given series/episode. | Cookie session |
-| GET | `/api/coins/balance` | Coin balance. | Cookie session |
-| POST | `/api/coins/purchase` | Coin purchase checkout. | Cookie session |
-| POST | `/api/stripe/webhook` | **Source of revenue truth.** Handles `checkout.session.completed`, `invoice.payment_succeeded`, `charge.refunded`, `customer.subscription.*`. Writes entitlements + `analytics_events` revenue rows + creator 80/20 split. | Stripe signature |
+| `POST` | `/api/unlock` | Authenticated canonical $1.99 Series Checkout; server owns user, Customer, slug, amount, currency, Terms policy, and history recovery | Production configured/live in compatibility mode; controlled smoke open |
+| `GET` | `/api/unlock/confirm` | Authenticated exact provider-backed Series recovery; browser return alone grants nothing | Source-enabled |
+| `GET` | `/api/payments/capabilities` | Authenticated non-secret Series/VIP readiness; private/no-store; explicit compatibility/required/unconfigured Terms mode | Live: Series configured/live compatibility; both VIP false; unauthenticated = 401 |
+| `GET` | `/api/access` | Canonical episode access decision | Free or verified user access only |
+| `GET` | `/api/entitlements/check` | Free/VIP/series entitlement check | Source-enabled |
+| `GET` | `/api/entitlements` | Current user's entitlements | Source-enabled |
+| `POST` | `/api/entitlements` | Client grant attempt | Rejected (405) |
+| `POST` | `/api/entitlements/claim` | Retired client claim | Fail-closed (410) |
+| `POST` | `/api/subscribe` | Authenticated VIP Checkout | Hidden/API-blocked while notice/portal/webhook gates are false |
+| `POST` | `/api/subscribe/confirm` | Exact provider-backed VIP recovery | Cannot bypass VIP release/provider gates |
+| `POST` | `/api/billing-portal` | Current Customer's reviewed restricted portal | Fail-closed until exact production configuration passes drift check |
+| `GET` | `/api/cron/vip-renewal-reminders` | Secured annual 15–45-day reminder processor | Secret-authenticated; yearly launch separately blocked |
+| `POST` | `/api/unlock/season-pass` | Legacy coin season pass | Fail-closed (410) |
+| `GET` | `/api/coins/balance` | Legacy coin balance | Disabled (501) |
+| `POST` | `/api/coins/purchase` | Legacy coin purchase | Disabled (501) |
+| `POST` | `/api/creator-unlock` | Creator PPV | Disabled (503) |
+| `POST` | `/api/checkout` | Server-priced official merchandise Checkout | Feature-gated off pending physical fulfillment readiness |
+| `GET` | `/api/checkout/native-return` | Validated Android return bridge | Navigation/recovery only; never fulfillment authority |
 
-## Video / Mux
+Current Series Terms behavior is explicit:
 
-| Method | Route | Purpose | Auth |
-| --- | --- | --- | --- |
-| GET | `/api/playback/[episode]` | Return (signed) Mux playback data for an episode. | Cookie session |
-| POST | `/api/mux/webhook` | Mux asset lifecycle (`video.asset.created/ready/errored`) → advances creator content status. | Mux signature |
-| POST | `/api/uploads` | Upload helper. | Cookie session |
+- exact live `STRIPE_CHECKOUT_TOS_CONSENT_REQUIRED=false` = compatibility
+  Checkout without hosted checkbox;
+- exact `true` = hosted consent required after Public details; and
+- missing/empty/malformed live state = unconfigured/fail-closed.
 
-## Creator pipeline (UGC)
+Final cutover requires true. Both VIP capabilities remain false.
 
-Creator routes authenticate via **cookie session** (`getUser`, same-origin).
+## Stripe webhook
+
+`POST /api/stripe/webhook` verifies `stripe-signature`, durably claims the Event,
+retrieves current provider objects where ordering matters, and row-locks
+financial/access reconciliation. It handles Series fulfillment/recovery,
+subscriptions/invoices, Refunds, Disputes, account-deletion tombstones, and
+notice retries.
+
+Production now has one canonical enabled endpoint with exactly the reviewed
+19-event allowlist in [`../guides/PAYMENTS.md`](../guides/PAYMENTS.md), wildcard
+off. It was changed in place after compatible code was live, with no second
+endpoint, historical replay, or signing-secret rotation. An unsigned request
+returns 400. Preserve that state through the required-consent deployment.
+
+The webhook is the normal asynchronous fulfillment authority; authenticated
+confirmation may also persist/recover an exact paid provider state when the
+webhook is delayed. Neither path trusts client revenue/access input.
+
+## Playback and Mux
+
+| Method | Route | Contract |
+| --- | --- | --- |
+| `GET` | `/api/playback/[episode]` | Key format `<slug>--<episode>`; free returns public capability, paid requires cookie/Bearer entitlement/VIP and returns signed URL when signed mode is enabled |
+| `POST` | `/api/mux/webhook` | Creator-upload asset lifecycle; requires secret, awaited signature verification, and non-2xx on processing failure; deployed production route currently returns 503 because the verification secret is intentionally absent |
+
+Paid responses omit a separate playback ID, use private/no-store headers, and
+fail closed with 503 for incomplete signed configuration. Current clients expose
+only 459 public capabilities and withhold 3,803. See
+[`../guides/MUX.md`](../guides/MUX.md).
+
+## Account and user data
 
 | Method | Route | Purpose |
 | --- | --- | --- |
-| GET | `/api/creator/me` | Current creator context/status. |
-| POST | `/api/creator/apply` | Submit a creator application (→ pending). |
-| POST | `/api/creator/upload` | Create a Mux direct upload (503 if Mux not provisioned). |
-| GET/POST | `/api/creator/content` | List / create creator content. |
-| GET/PATCH | `/api/creator/content/[id]` | Read / edit one content item (details, pricing). |
-| POST | `/api/creator/content/[id]/submit` | Submit content for review. |
-| GET | `/api/creator/analytics` | Creator earnings/views. |
+| `POST` | `/api/account/delete` | Guard Checkout, cancel/expire provider state, preserve minimal payment tombstone/financial evidence, delete identity |
+| `GET`, `POST` | `/api/watch-progress` | Current user's continue-watching data |
+| `GET`, `POST`, `DELETE` | `/api/saved-list` | Current user's saved series |
+| `GET` | `/api/auth/callback` | Supabase OAuth exchange with validated return path |
 
-## Admin
+Deletion may not restore identity, entitlement, saved state, email, or analytics
+when a delayed payment event arrives.
 
-Admin routes authenticate via **Bearer access token** gated by `ADMIN_EMAILS`
-(`lib/admin.ts`).
+## Creator/admin/AI/notifications
 
-| Method | Route | Purpose |
-| --- | --- | --- |
-| GET/POST | `/api/admin/creators` | GET pending creator applications; POST approve/reject (with reason). |
-| GET/POST | `/api/admin/review` | GET content review queue; POST approve/reject content. |
-| GET | `/api/admin/stats` | Analytics funnel + revenue rollups (paywall→checkout→purchase). |
+Creator routes cover current creator context, application, content list/detail,
+submit, upload, and analytics. Admin routes cover creator applications, review,
+and stats. These web routes exist, but creator PPV is disabled and iOS 2.0
+redirects all UGC/admin routes before query/render.
+
+`POST /api/creator/beta` is a separate unauthenticated web lead form that
+collects only name/email and sends an internal notification. It never creates a
+creator, approves upload, grants access, or enables PPV. The handler requires a
+same-origin JSON request, caps request/body size, applies a bounded per-source
+hot-instance rate window plus a honeypot, returns private/no-store responses,
+and reports provider failure instead of claiming a submission was saved. Email
+template fields are HTML-escaped. These controls are defense in depth; a
+durable/distributed abuse-control service is required if traffic risk grows.
+
+`POST /api/ai-host` and `POST /api/studio/generate` are optional/deferred AI
+surfaces and must fail safely without their provider. Upload routes are not a
+native-launch dependency.
+
+Push routes create/delete browser subscriptions and gate sends with the
+server-side push credential. iOS 2.0 does not inherit web push merely because
+these routes exist.
 
 ## Analytics
 
-| Method | Route | Purpose | Auth |
-| --- | --- | --- | --- |
-| POST | `/api/events` | Client event sink. Allow-lists non-revenue events, strips `revenue_cents`/`currency`, rejects server-only events. | Anonymous (stable `verza_anon_id`) |
+`POST /api/events` accepts allowlisted non-revenue events and strips/rejects
+server-only financial fields. Analytics is never purchase, entitlement, Refund,
+or playback authority.
 
-## User data
+## SEO and middleware
 
-| Method | Route | Purpose | Auth |
-| --- | --- | --- | --- |
-| GET/POST | `/api/watch-progress` | Continue-watching progress. | Cookie session |
-| GET/POST | `/api/saved-list` | Saved list add/read. | Cookie session |
+`/api/og/[slug]` serves current Open Graph behavior. Robots/sitemaps/`llms.txt`
+are route handlers outside `app/api`.
 
-## AI
-
-| Method | Route | Purpose | Auth |
-| --- | --- | --- | --- |
-| POST | `/api/ai-host` | "Ask Verza" chatbot + creator/SEO/marketing/moderate modes (Claude). | Cookie session |
-| POST | `/api/studio/generate` | Creator AI Studio generation (scripts, loglines, social copy). | Cookie session |
-
-## Notifications & auth
-
-| Method | Route | Purpose |
-| --- | --- | --- |
-| POST | `/api/push/subscribe` | Register a web-push subscription. |
-| POST | `/api/push/send` | Send a push (server, `PUSH_API_KEY` gated). |
-| GET | `/api/auth/callback` | Supabase OAuth callback (open-redirect protected). |
-
-## SEO / OG
-
-| Method | Route | Purpose |
-| --- | --- | --- |
-| GET | `/api/og/[slug]` | Dynamic Open Graph image per series. |
-
----
-
-## Cross-cutting: middleware
-
-`middleware.ts` applies **5-tier rate limiting** across API routes, attaches
-auth context, and marks preview deploys `noindex` (only production indexes).
-CSP is set with a `https://*.mux.com` wildcard (Mux uses many CDN subdomains).
+The current request boundary applies rate limits/security/noindex policy from
+the repository middleware/proxy layer. The build may emit a non-blocking Next.js
+middleware-filename deprecation warning; renaming it is a separate routing
+change, not a release shortcut.

@@ -134,14 +134,14 @@ export default function PartnershipsPage() {
           style={{ background: T.surface, border: `1px solid ${T.line}` }}
         >
           <p className="text-sm leading-relaxed" style={{ color: T.textDim }}>
-            Independent filmmaker or vertical-native creator? Publish your own
-            series on {BRAND.name} with an 80% revenue share through our{" "}
+            Independent filmmaker or vertical-native creator? Submit your
+            project and channel details for individual review through the{" "}
             <Link
               href="/studio"
               className="no-underline"
               style={{ color: T.accent }}
             >
-              Creator Channels program
+              Creator Program
             </Link>
             .
           </p>

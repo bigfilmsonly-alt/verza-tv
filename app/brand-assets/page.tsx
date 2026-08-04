@@ -36,7 +36,7 @@ const PALETTE: { name: string; hex: string; usage: string }[] = [
   { name: "Text", hex: T.text, usage: "Primary text on dark surfaces" },
   { name: "Text Dim", hex: T.textDim, usage: "Body and secondary copy" },
   { name: "Gold", hex: T.gold, usage: "Premium highlights and VIP accents" },
-  { name: "Coin", hex: T.coin, usage: "Coins, pricing, and monetization cues" },
+  { name: "Gold", hex: T.coin, usage: "Highlights and premium visual cues" },
   { name: "Live", hex: T.live, usage: "Live indicators and urgent states" },
   { name: "Success", hex: T.success, usage: "Confirmations and positive states" },
 ];

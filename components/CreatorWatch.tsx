@@ -53,6 +53,7 @@ export default function CreatorWatch({
   const [muted, setMuted] = useState(true);
   const [started, setStarted] = useState(false);
   const [buying, setBuying] = useState(false);
+  const [buyError, setBuyError] = useState<string | null>(null);
   // Overlay chrome (back link + tap-for-sound) fades to a clean frame 10s after
   // it was last shown — only the VERZA watermark stays. Any tap re-reveals it.
   const [chromeVisible, setChromeVisible] = useState(true);
@@ -126,18 +127,37 @@ export default function CreatorWatch({
 
   async function buy() {
     setBuying(true);
+    setBuyError(null);
     emit("checkout_started", { show_id: slug, surface: "creator_watch" });
+    let navigating = false;
     try {
       const res = await fetch("/api/creator-unlock", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ slug }),
       });
-      const body = await res.json().catch(() => ({}));
-      if (body.url) window.location.href = body.url;
-      else setBuying(false);
+      const body = (await res.json().catch(() => ({}))) as {
+        url?: unknown;
+        error?: unknown;
+      };
+      if (!res.ok) {
+        setBuyError(
+          typeof body.error === "string"
+            ? body.error
+            : "Couldn’t start checkout. Please try again.",
+        );
+        return;
+      }
+      if (typeof body.url !== "string" || !body.url) {
+        setBuyError("Checkout did not open. Please try again.");
+        return;
+      }
+      navigating = true;
+      window.location.assign(body.url);
     } catch {
-      setBuying(false);
+      setBuyError("Network error. Check your connection and try again.");
+    } finally {
+      if (!navigating) setBuying(false);
     }
   }
 
@@ -247,6 +267,15 @@ export default function CreatorWatch({
                 >
                   {buying ? "Loading…" : `Unlock — $${(priceCents / 100).toFixed(2)}`}
                 </button>
+                {buyError && (
+                  <p
+                    className="text-xs mt-3 max-w-[260px]"
+                    style={{ color: "#FCA5A5" }}
+                    role="alert"
+                  >
+                    {buyError}
+                  </p>
+                )}
               </div>
             </div>
           )}

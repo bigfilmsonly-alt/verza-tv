@@ -1,5 +1,10 @@
 # Recommended Refactors — Verza TV
 
+> **Review-only historical backlog.** File sizes, names, overlap claims, and
+> priorities predate the 2026-08-03 payment/Mux hardening. Re-audit source and
+> release risk before acting; this is not authorization to move server-only maps
+> or change release-frozen code. See [`LAUNCH-TRUTH.md`](LAUNCH-TRUTH.md).
+
 Changes deferred for human review and approval. None of these are urgent; the app works as-is. Each item includes a rationale and rough scope.
 
 ---

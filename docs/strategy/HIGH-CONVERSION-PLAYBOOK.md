@@ -1,6 +1,12 @@
 # VERZA TV — HIGH-CONVERSION PLAYBOOK
 # How to Build the Highest-Converting Streaming Platform in the Market
 
+> **ARCHIVE / IDEATION — June 2026.** Old prices, fabricated/estimated social
+> proof, permanent-sale urgency, IAP, VIP, and notification ideas below are not
+> approved implementation instructions. Truthful marketing, reader mode, and
+> current product gates outrank conversion ideas. See
+> [`../LAUNCH-TRUTH.md`](../LAUNCH-TRUTH.md).
+
 ---
 
 ## THE PHILOSOPHY

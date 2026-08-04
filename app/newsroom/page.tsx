@@ -11,7 +11,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
 export const metadata: Metadata = {
   title: `Newsroom | ${BRAND.name}`,
   description:
-    "The VERZA TV newsroom: press releases, company announcements, media-kit resources, and coverage of the first US-based vertical micro-drama studio.",
+    "The VERZA TV newsroom: verified company announcements, media resources, and press contact information.",
   alternates: { canonical: "/newsroom" },
   openGraph: {
     title: `Newsroom | ${BRAND.name}`,
@@ -54,11 +54,9 @@ export default function NewsroomPage() {
           Newsroom
         </h1>
         <p className="text-sm mb-8 leading-relaxed" style={{ color: T.textDim }}>
-          Official announcements, press releases, and media resources from{" "}
-          {BRAND.name} — the first US-based vertical micro-drama studio, founded
+          Verified announcements and media resources from {BRAND.name}, founded
           by Alan Mruvka, co-founder of E! Entertainment Television. For
-          interviews, assets, and fact-checking, our communications team is here
-          to help.
+          interviews, assets, and fact-checking, contact the communications team.
         </p>
 
         {/* Press releases */}
@@ -69,7 +67,14 @@ export default function NewsroomPage() {
           Press Releases
         </h2>
         <div className="flex flex-col gap-3 mb-8">
-          {PRESS_RELEASES.map((pr) => (
+          {PRESS_RELEASES.length === 0 ? (
+            <p
+              className="rounded-xl p-4 text-sm"
+              style={{ background: T.surface, border: `1px solid ${T.line}`, color: T.textDim }}
+            >
+              No press releases are currently published.
+            </p>
+          ) : PRESS_RELEASES.map((pr) => (
             <article
               key={pr.slug}
               className="rounded-xl p-4"
@@ -114,7 +119,11 @@ export default function NewsroomPage() {
           className="rounded-xl overflow-hidden mb-8"
           style={{ background: T.surface, border: `1px solid ${T.line}` }}
         >
-          {IN_THE_NEWS.map((item, i) => (
+          {IN_THE_NEWS.length === 0 ? (
+            <p className="px-4 py-3 text-sm" style={{ color: T.textDim }}>
+              No verified coverage is currently listed.
+            </p>
+          ) : IN_THE_NEWS.map((item, i) => (
             <div
               key={item.headline}
               className="px-4 py-3"

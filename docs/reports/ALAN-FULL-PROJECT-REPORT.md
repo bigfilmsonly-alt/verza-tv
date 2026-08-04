@@ -1,5 +1,10 @@
 # VERZA TV — COMPLETE PROJECT REPORT FOR ALAN
 
+> **ARCHIVE — June 2026 snapshot.** All pricing, counts, revenue, provider,
+> feature-readiness, and launch claims are historical. Do not enable a product
+> or submit an app from this report. Current authority:
+> [`../LAUNCH-TRUTH.md`](../LAUNCH-TRUTH.md).
+
 **From:** Jotham Hall
 **To:** Alan Mruvka
 **Date:** June 22, 2026

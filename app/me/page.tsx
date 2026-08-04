@@ -5,8 +5,13 @@ import { BRAND } from "@/lib/config";
 import LanguagePicker from "@/components/LanguagePicker";
 import PushNotificationToggle from "@/components/PushNotificationToggle";
 import VipCard from "@/components/VipCard";
-import { checkVipStatusServer } from "@/lib/vip-server";
+import VipCheckoutRecovery from "@/components/VipCheckoutRecovery";
+import { getVipStatusServer } from "@/lib/vip-server";
 import { getUser } from "@/lib/auth";
+import {
+  vipSubscriptionCheckoutEnabled,
+  vipYearlyCheckoutEnabled,
+} from "@/lib/vip-release-policy";
 import { SavedCount, WatchingCount, DarkModeToggle, SignOutButton, DeleteAccountButton } from "@/components/ProfileDynamic";
 
 export const metadata: Metadata = {
@@ -221,11 +226,19 @@ function SectionCard({ children }: { children: React.ReactNode }) {
 /* ------------------------------------------------------------------ */
 /*  Page                                                              */
 /* ------------------------------------------------------------------ */
-export default async function MePage() {
-  const isVip = await checkVipStatusServer();
+export default async function MePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ session_id?: string }>;
+}) {
+  const { session_id: sessionId } = await searchParams;
+  const vipStatus = await getVipStatusServer();
   const user = await getUser();
+  const subscriptionCheckoutEnabled = vipSubscriptionCheckoutEnabled();
+  const yearlyCheckoutEnabled = vipYearlyCheckoutEnabled();
   return (
     <section className="px-4 pt-6 pb-10 max-w-lg mx-auto">
+      <VipCheckoutRecovery sessionId={sessionId} />
       {/* ---- Guest header ---- */}
       <div className="flex items-center gap-4 mb-6">
         <div
@@ -267,7 +280,7 @@ export default async function MePage() {
             Start Watching
           </p>
           <p className="text-xs mt-0.5" style={{ color: T.textDim }}>
-            First 5 episodes free &middot; $1.99 per movie
+            Free previews by title &middot; $1.99 one-time Series Unlock
           </p>
         </div>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={T.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -277,7 +290,13 @@ export default async function MePage() {
 
       {/* ---- VIP Subscription (prominent — sign up & pay to watch) ---- */}
       <SectionLabel>Subscription</SectionLabel>
-      <VipCard isVip={isVip} />
+      <VipCard
+        isVip={vipStatus.isVip}
+        vipExpiresAt={vipStatus.expiresAt}
+        cancelAtPeriodEnd={vipStatus.cancelAtPeriodEnd}
+        checkoutEnabled={subscriptionCheckoutEnabled}
+        yearlyCheckoutEnabled={yearlyCheckoutEnabled}
+      />
 
       {/* ---- Library ---- */}
       <SectionLabel>Library</SectionLabel>

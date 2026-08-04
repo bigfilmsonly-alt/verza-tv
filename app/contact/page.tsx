@@ -74,7 +74,7 @@ export default function ContactPage() {
             className="text-sm mt-2 leading-relaxed"
             style={{ color: T.textDim }}
           >
-            We typically respond within 24 hours on business days.
+            Choose the address below that best matches your request.
           </p>
         </div>
 
@@ -115,6 +115,27 @@ export default function ContactPage() {
               </a>
             </div>
           ))}
+        </div>
+
+        <div
+          className="rounded-xl p-5 mb-8"
+          style={{ background: T.surface, border: `1px solid ${T.line}` }}
+        >
+          <h2
+            className="text-sm font-semibold uppercase tracking-wider mb-2"
+            style={{ color: T.accent }}
+          >
+            Legal Mailing Address
+          </h2>
+          <address
+            className="text-sm leading-relaxed not-italic"
+            style={{ color: T.textDim }}
+          >
+            VERZA TV LLC<br />
+            650 E Palisade Ave, Ste 2329<br />
+            Englewood Cliffs, NJ 07632<br />
+            United States
+          </address>
         </div>
 
         {/* Back to home */}

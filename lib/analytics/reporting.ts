@@ -10,7 +10,6 @@
  */
 
 import { getServiceClient } from "@/lib/supabase/server";
-import Stripe from "stripe";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */

@@ -2,24 +2,32 @@
 
 The deployment chain from local development to production.
 
+> **Latest 2026-08-03 readback:** canonical August 3 legal/support is live;
+> payment capabilities reports live Series compatibility and VIP false;
+> signed Mux backend canary passed; and the one canonical Stripe webhook is
+> exact 19/19. Stripe Public details/required Terms/portal, the $1.99 smoke,
+> and standalone native acceptance remain open. The hardened creator Mux
+> webhook is deployed and returns 503 while its verification secret is
+> intentionally absent, leaving creator ingestion unavailable. Never promote
+> local source to “live” without canonical-origin readback.
+
 ---
 
 ## Repository
 
-- **GitHub:** `Splash-Studio/verza-tv` (private, canonical — remote `origin`).
-  A public fork `bigfilmsonly-alt/verza-tv` (remote `bigfilmsonly`) also feeds
-  the same Vercel project but leaks `lib/mux-map.ts` — do not treat it as canonical.
-- **Branch:** `main` (single trunk)
+- **GitHub:** `splash-studio/verza-tv` (match the checked-out `origin`; older
+  reports may retain the predecessor repository name as archival evidence)
+- **Branch:** `main` (single trunk -- all deploys come from here)
 
 ---
 
 ## Vercel Project
 
-- **Project ID:** `prj_0HX6x5Vi64r9Y3YIa3W6KpIwDLKG`
-- **Team ID:** `team_uikUPkCBtl8h84khAOFJJWpz`
+- **Project:** approved `codevibes/verza-tv` project (internal IDs intentionally omitted)
 - **Framework:** Next.js 16 (auto-detected)
 - **Build tool:** Turbopack
-- **Build time:** ~30 seconds
+- **Build time:** variable; verify the actual Vercel deployment rather than
+  relying on a historical estimate
 
 ---
 
@@ -37,17 +45,89 @@ npx vercel --prod --yes
   Deployment reaches READY (target: production, source: "cli")
        |
        v
-  CLI aliases it to www.verzatv.com + verzatv.com
+  Production deploy + alias verification -> https://www.verzatv.com
 ```
 
-**A `git push` does NOT promote the live site.** Pushing to `main` builds a
-production-*target* deployment (it reaches READY) but does NOT take over the
-`www.verzatv.com` / `verzatv.com` aliases — only `npx vercel --prod` does.
-Non-main branches / PRs still get preview deploys at unique
-`verza-tv-<hash>.vercel.app` URLs. Keep the repo in sync by pushing to `main`
-too, then run the CLI to go live. Verify a deploy in a browser or via the Vercel
-API — not `curl`: the live domain returns a "Vercel Security Checkpoint" (HTTP
-403) to bot-like clients even when the site is healthy.
+`https://www.verzatv.com` is the canonical production origin and backend used by
+the native app. The configured Git integration may create deployments from
+`main`, and operators may run `npx vercel --prod --yes`; neither a Git push nor
+an uploaded deployment is sufficient release evidence by itself. Verify in
+Vercel that the intended deployment is healthy and currently owns the
+canonical production alias. Pull requests/non-production deployments use
+preview URLs and must remain noindex.
+
+In this project's observed workflow, a push to `main` may create a
+production-target deployment but does not itself promote the canonical live
+alias. Keep the repository synchronized, then use the explicit CLI production
+operation and canonical-origin readback above.
+
+### Payment-aware deployment order
+
+Payment changes are not an ordinary push. Follow
+[`PAYMENTS.md`](PAYMENTS.md#release-sequence-and-verification) and the dated
+cutover evidence exactly:
+
+1. **Complete for current deployment:** run the source and rollback-only database gates; migrations `009`–`014` are
+   already applied/read back in the current production database;
+2. **Complete:** first deploy legal/payment compatibility with automatic tax,
+   mode, every VIP flag, and hosted Terms consent off—the Terms flag must be
+   exact `false`, not missing;
+3. **Complete:** read back August 3 legal pages plus authenticated Series readiness in
+   `compatibility` mode;
+4. **Open:** visually complete Stripe Public details (currently blank), create/read back the restricted
+   Billing Portal, switch the Terms flag to exact `true`, deploy, and verify
+   authenticated `required` mode;
+5. **Endpoint complete/full gate open:** preserve/read back the one existing
+   webhook at exact 19/19, wildcard off, with no second endpoint, replay, or
+   secret rotation; the full cutover audit still awaits Terms/portal; then
+6. **Open:** perform one authorized $1.99 smoke purchase without an automatic Refund.
+
+Never deploy webhook code before its schema, expand the endpoint before
+compatible runtime is live, create a second endpoint, or replay historical
+events. VIP remains hidden/API-blocked throughout this Series cutover. Monthly
+and yearly launch are separate future operations; yearly additionally requires
+the application-owned 15–45-day reminder gate.
+
+At cutover, record the deployment timestamp and treat every pre-cutover
+`checkout.session.*` delivery as denylisted from bulk resend. The permanent
+legacy exception contains exactly three previously audited paid Series Checkout
+Sessions: two used the former $4.99 offer and one used the $1.99 offer. Do not
+refund, edit, or resend them through the current canonical webhook. They remain
+financial records; access recovery is only through the independently verified
+support-claim workflow. This rule contains no purchaser identity and must be
+copied into every Stripe incident ticket or replay plan.
+
+Stripe also contains a distinct predecessor direct-PaymentIntent population
+from before this repository existed. Its unfinished intents were closed as
+`abandoned`, but its 20 Charge attempts (including 12 captured/unrefunded
+payments) and four customer-requested refunds remain provider records. They are
+not current Checkout Sessions and have no current Supabase purchase or
+entitlement authority. Do not replay or mutate them during deployment; follow
+the reviewed disposition/quarantine process in `PAYMENTS.md`.
+
+### Signed-playback deployment order
+
+Catalog playback has its own staged release. Follow
+[`MUX.md`](MUX.md#production-release-sequence), not an ordinary push:
+
+1. **Complete:** confirm the public projection exposes exactly 459 and withholds exactly
+   3,803 capabilities;
+2. **Complete:** confirm all 3,753 paid-live rows still have signed counterparts—the add-only
+   migration is already complete;
+3. **Complete compatibility phase:** deploy endpoint, maps, signing credentials, and clients while
+   `MUX_SIGNED_PLAYBACK_ENABLED=false`;
+4. **Backend canary complete/native acceptance open:** flip true and pass web
+   authorization/manifest canary, then exact standalone-native authorization/
+   expiry tests; and
+5. keep legacy public paid IDs in place through 2.0 submission/release because
+   live 1.2 depends on them.
+
+Flag-off remains the rollback while legacy IDs coexist. Retirement is a
+separate post-2.0 forced-update/drain decision requiring explicit owner
+acceptance of the 1.2 outage risk; it is never pre-submit cleanup. After
+retirement, recovery must fix signed delivery forward or issue new public IDs
+and update clients; the original IDs cannot be recreated. The repository
+therefore contains no bulk retirement command.
 
 ---
 
@@ -57,16 +137,24 @@ API — not `curl`: the live domain returns a "Vercel Security Checkpoint" (HTTP
   detail pages, shop, about, etc.). These are served from the Vercel edge
   cache with no origin hit.
 - **API routes** are dynamic and run as serverless functions:
-  - `/api/coins/purchase` -- coin pack purchase
-  - `/api/coins/balance` -- coin balance check
-  - `/api/checkout` -- merch Stripe Checkout session
-  - `/api/stripe/webhook` -- Stripe webhook handler
-  - `/api/unlock` -- single episode unlock
-  - `/api/unlock/season-pass` -- season pass purchase
+  - `/api/coins/purchase` -- retired; returns 501
+  - `/api/coins/balance` -- retired; returns 501
+  - `/api/checkout` -- feature-gated physical-merch Stripe Checkout
+  - `/api/stripe/webhook` -- signed Series Unlock/VIP reconciliation
+  - `/api/mux/webhook` -- signed creator-upload events; hardened route is live
+    but returns 503 while the verification secret is intentionally absent, so
+    creator ingestion/products remain deferred
+  - `/api/unlock` -- authenticated $1.99 full-series Checkout
+  - `/api/unlock/confirm` -- authenticated Series Unlock recovery
+  - `/api/unlock/season-pass` -- retired; returns 410
+  - `/api/subscribe` -- release-gated VIP Checkout
+  - `/api/subscribe/confirm` -- authenticated VIP recovery
+  - `/api/billing-portal` -- authenticated Stripe portal session
+  - `/api/payments/capabilities` -- private native release capabilities
   - `/api/entitlements/check` -- entitlement check
   - `/api/entitlements` -- entitlement list
   - `/api/ai-host` -- AI Host chat
-  - `/api/playback/[episode]` -- signed video playback URL
+  - `/api/playback/[episode]` -- entitlement-aware signed video playback URL
   - `/api/auth/callback` -- Supabase auth callback
   - `/api/uploads` -- file uploads
   - `/api/studio/generate` -- studio content generation
@@ -104,9 +192,13 @@ Static assets under `/posters/` and `/shop/` are served with
 
 ## Production Domain
 
-The production domain is **`www.verzatv.com`** (apex `verzatv.com` is also
-aliased) and is **LIVE**. New builds are promoted to it with `npx vercel --prod`
-(see Deploy Flow above).
+The canonical production origin is `https://www.verzatv.com` (the apex must
+redirect canonically). It is also the native
+client's API/backend origin, so a web rollback or alias change can affect both
+clients immediately. Vercel-generated deployment URLs are operational/preview
+addresses, not the canonical public domain. After every production deploy,
+verify the canonical alias plus at least one public page and one required
+API route before declaring the release healthy.
 
 ---
 
@@ -134,26 +226,34 @@ npm run dev
 PORT=3005 npm run dev
 ```
 
-The dev server uses Turbopack for fast refresh. No environment variables are
-strictly required to start the dev server -- the app gracefully degrades
-when keys are missing (Stripe routes return stubs, video playback is
-unavailable, etc.).
+The dev server uses Turbopack for fast refresh. It can start without provider
+credentials for source-only work, but provider-backed behavior is then
+unavailable or fail-closed. Never treat a credential-free dev render as a
+payment, entitlement, webhook, playback, email, or production-readiness test.
 
 ---
 
 ## Build Verification
 
 ```bash
+npm run test:playback-security
+npm run test:mux-webhook-security
+npm run test:payments
+npm run test:payments:db
+npx tsc --noEmit
+npm run lint
 npm run build
 ```
 
-Runs `next build` with Turbopack. The build succeeds without any environment
-variables set -- all external clients are lazy-initialized behind env
-checks.
+The final command runs `next build` with Turbopack. The source build is designed
+to compile without live provider credentials, but that says nothing about the
+production environment. Provider inventory, authenticated capability, legal
+page, webhook, signed-playback, and controlled purchase gates remain separate
+and require the exact readbacks in the payment and Mux runbooks.
 
 ---
 
 ## Environment Variables
 
-See `docs/ENV.md` for the full variable reference. In Vercel, set them under
+See [`ENV.md`](ENV.md) for the full variable reference. In Vercel, set them under
 **Settings > Environment Variables**. Mark secrets as Sensitive.

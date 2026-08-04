@@ -12,11 +12,11 @@ import { T } from "@/lib/theme";
 
 const GENRE_DESCRIPTIONS: Record<string, string> = {
   drama:
-    "Intense family secrets, dynasty battles, and emotional storylines. VERZA TV drama micro-dramas pack full-season stakes into 60-second vertical episodes.",
+    "Intense family secrets, dynasty battles, and emotional storylines in short-form vertical episodes.",
   new:
-    "The freshest micro-dramas on VERZA TV. Catch new premieres and recently added series before everyone else.",
+    "Micro-dramas currently assigned to VERZA TV's New catalog category.",
   popular:
-    "The most-watched micro-dramas on VERZA TV right now. See what everyone is binging this week.",
+    "An editorially ranked selection from the current VERZA TV catalog; this is not a real-time viewing chart.",
   music:
     "Music and entertainment-themed shows on VERZA TV, from reality formats to behind-the-scenes content.",
   reality:
@@ -24,27 +24,27 @@ const GENRE_DESCRIPTIONS: Record<string, string> = {
   "red-carpet":
     "Glamour and awards on VERZA TV. Red carpet events, award shows, and celebrity micro-drama specials.",
   anime:
-    "Premium anime, coming soon to VERZA TV. Vertical, binge-worthy anime micro-dramas built for phone-first viewing.",
+    "The Anime category is marked coming soon on VERZA TV; no anime titles are currently live in this catalog.",
   espanol:
-    "Premium Spanish-language microdramas, coming soon to VERZA TV. Vertical dramas en español, free to start and binge-worthy from the first scene.",
+    "The Español category is marked coming soon on VERZA TV; no Spanish-language titles are currently live in this catalog.",
   bollywood:
-    "Premium Bollywood microdramas, coming soon to VERZA TV. Vertical, binge-worthy Bollywood drama built for phone-first viewing.",
+    "The Bollywood category is marked coming soon on VERZA TV; no Bollywood titles are currently live in this catalog.",
   creators:
-    "Original vertical series from independent creators, coming soon to VERZA TV — the creator channel program in short-form.",
+    "Learn about the Verza creator program and apply to the current profit-sharing beta. No independent-creator series are currently live in this catalog.",
   tubi:
-    "Tubi's free movies and shows, coming soon to VERZA TV via the Tubi partnership.",
+    "Explore Verza's sponsored Tubi partner spotlight and continue to Tubi to watch its free movies and shows.",
   romance:
-    "Sweeping love stories, billionaire romances, and forbidden attractions. VERZA TV romance micro-dramas deliver heart-racing chemistry in every 60-second episode.",
+    "Sweeping love stories, billionaire romances, and forbidden attractions told in short-form vertical episodes.",
   thriller:
     "Edge-of-your-seat psychological thrillers and crime mysteries. VERZA TV thriller micro-dramas keep you guessing with plot twists in every episode.",
   comedy:
-    "Light, witty, and bingeable. VERZA TV comedy micro-dramas bring laughs, romantic mishaps, and workplace humor in 60-second vertical episodes.",
+    "Light, witty VERZA TV micro-dramas with romantic mishaps and workplace humor in a short-form vertical format.",
   mystery:
     "Cold cases, hidden identities, and shocking reveals. VERZA TV mystery micro-dramas will keep you guessing until the final scene.",
   "sci-fi":
     "Time travel, supernatural twists, and mind-bending storylines. VERZA TV sci-fi micro-dramas push the boundaries of short-form storytelling.",
   horror:
-    "Gothic mansions, psychological terror, and supernatural secrets. VERZA TV horror micro-dramas deliver chills in 60-second vertical episodes.",
+    "Gothic mansions, psychological terror, and supernatural secrets in short-form vertical episodes.",
   crime:
     "Undercover agents, crime families, and dangerous investigations. VERZA TV crime micro-dramas explore the world of law and the lawless.",
   fantasy:
@@ -97,17 +97,17 @@ export async function generateMetadata({
   const label = labelFor(genre);
   const description =
     GENRE_DESCRIPTIONS[genre] ??
-    `Stream the best ${label.toLowerCase()} micro-dramas on VERZA TV.`;
+    `Explore ${label.toLowerCase()} micro-dramas on VERZA TV.`;
 
   const BASE_URL =
     process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
 
   return {
-    title: `Best ${label} Micro-Dramas on VERZA TV`,
-    description: `${description} Short-form vertical episodes, free to start, binge-worthy from the first scene.`,
+    title: `${label} Micro-Dramas on VERZA TV`,
+    description: `${description} Episode length and free-preview availability vary by title.`,
     alternates: { canonical: `/discover/${genre}` },
     openGraph: {
-      title: `Best ${label} Micro-Dramas on VERZA TV`,
+      title: `${label} Micro-Dramas on VERZA TV`,
       description,
       url: `${BASE_URL}/discover/${genre}`,
       type: "website",
@@ -115,7 +115,7 @@ export async function generateMetadata({
     },
     twitter: {
       card: "summary_large_image",
-      title: `Best ${label} Micro-Dramas on VERZA TV`,
+      title: `${label} Micro-Dramas on VERZA TV`,
       description,
     },
   };
@@ -193,7 +193,7 @@ export default async function GenrePage({
         )}
 
         <p className="text-sm mb-6" style={{ color: T.textMute }}>
-          {liveMatches.length} series &middot; New episodes weekly
+          {liveMatches.length} live series
         </p>
 
         {matches.length === 0 ? (
@@ -205,7 +205,7 @@ export default async function GenrePage({
               No {label.toLowerCase()} series yet.
             </p>
             <p className="text-xs" style={{ color: T.textMute }}>
-              New titles are added every week. Check back soon.
+              Catalog availability changes over time. Check back soon.
             </p>
           </div>
         ) : (
@@ -286,16 +286,15 @@ export default async function GenrePage({
           </h2>
           <div className="text-xs leading-relaxed space-y-2">
             <p>
-              VERZA TV is the premier platform for vertical micro-dramas.
-              Each episode runs 60 to 120 seconds, filmed in cinematic 9:16
-              for phone-first viewing. Start any series free with the first 5
-              episodes, then unlock the rest with coins.
+              VERZA TV presents short-form micro-dramas in cinematic vertical
+              9:16 for phone-first viewing. Episode length, free-preview
+              availability, and access options are shown on each title page.
             </p>
             <p>
               Our {label.toLowerCase()} catalog features {liveMatches.length}{" "}
-              original series with new titles added weekly. From heart-pounding
-              thrillers to sweeping romances, there is always something new
-              to binge on VERZA TV.
+              currently live matches for this catalog filter. Category labels
+              reflect editorial catalog organization rather than real-time
+              audience or release-frequency data.
             </p>
           </div>
         </div>

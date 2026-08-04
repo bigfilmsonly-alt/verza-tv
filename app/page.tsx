@@ -7,7 +7,7 @@ import BrowsePage from "@/components/BrowsePage";
 export const metadata: Metadata = {
   title: "VERZA TV — Microdramas, Reality & More",
   description:
-    `Stream binge-worthy micro-dramas, reality shows, and original series — all in vertical, all in minutes. The first US-based vertical micro-drama platform. ${getLiveSeries().length}+ originals.`,
+    `Stream short-form micro-dramas, reality shows, and other entertainment. The current VERZA TV catalog contains ${getLiveSeries().length} live series; formats and access vary by title.`,
   alternates: { canonical: "/" },
 };
 
@@ -30,7 +30,7 @@ export default function HomePage() {
       <noscript>
         <section className="px-4 py-6">
           <h1 className="text-2xl font-bold mb-4" style={{ color: "#F5F4F8" }}>
-            VERZA TV — {live.length}+ Original Micro-Dramas
+            VERZA TV — {live.length} Live Series
           </h1>
           {activeTabs.map((tab) => (
             <div key={tab.key} className="mb-6">

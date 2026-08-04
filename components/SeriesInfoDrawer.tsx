@@ -27,43 +27,6 @@ type Tab = "synopsis" | "episodes";
 /*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
 
-/** Pseudo view count — deterministic per slug */
-function viewCount(slug: string): string {
-  let hash = 0;
-  for (let i = 0; i < slug.length; i++) {
-    hash = (hash << 5) - hash + slug.charCodeAt(i);
-    hash |= 0;
-  }
-  const n = 50_000 + (Math.abs(hash) % 950_000);
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  return `${(n / 1_000).toFixed(0)}K`;
-}
-
-/** Render star rating (filled / half / empty) */
-function Stars({ rating }: { rating: number }) {
-  const stars: React.ReactNode[] = [];
-  for (let i = 1; i <= 5; i++) {
-    const diff = rating / 2 - i; // rating is out of 10, stars out of 5
-    let fill: "full" | "half" | "empty";
-    if (diff >= 0) fill = "full";
-    else if (diff > -0.5) fill = "half";
-    else fill = "empty";
-
-    stars.push(
-      <span
-        key={i}
-        style={{
-          color: fill === "empty" ? T.textMute : T.gold,
-          fontSize: 14,
-        }}
-      >
-        {fill === "half" ? "\u00BD" : "\u2605"}
-      </span>,
-    );
-  }
-  return <span className="flex items-center gap-px">{stars}</span>;
-}
-
 /* ------------------------------------------------------------------ */
 /*  "{tr("content.moreLikeThis")}" helpers                                           */
 /* ------------------------------------------------------------------ */
@@ -110,8 +73,6 @@ export default function SeriesInfoDrawer({
     detail?.description ?? series.description ?? series.logline;
   const cast = detail?.cast ?? series.cast ?? [];
   const tags = detail?.tags ?? series.tags ?? [];
-  const rating = detail?.rating ?? series.rating ?? 0;
-
   /* Episodes */
   const episodes = getEpisodesForSeries(series.slug);
 
@@ -262,23 +223,6 @@ export default function SeriesInfoDrawer({
               <p className="text-xs" style={{ color: T.textDim }}>
                 {series.genre}
               </p>
-              <div className="flex items-center gap-2 mt-0.5">
-                <span className="text-xs" style={{ color: T.textMute }}>
-                  {viewCount(series.slug)} {tr("content.views")}
-                </span>
-                {rating > 0 && (
-                  <>
-                    <span style={{ color: T.textMute }}>|</span>
-                    <Stars rating={rating} />
-                    <span
-                      className="text-xs font-semibold"
-                      style={{ color: T.gold }}
-                    >
-                      {rating.toFixed(1)}
-                    </span>
-                  </>
-                )}
-              </div>
               <p className="text-[11px] mt-0.5" style={{ color: T.textMute }}>
                 {totalEpisodes} episodes
                 {detail?.year ? ` \u00b7 ${detail.year}` : ""}

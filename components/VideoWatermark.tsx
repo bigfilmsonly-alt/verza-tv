@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type RefObject } from "react";
+import Image from "next/image";
 
 /**
  * VERZA emblem watermark shown in the top-left corner of a video. Two modes:
@@ -53,11 +54,13 @@ export default function VideoWatermark({
   const shown = controlled ? visible : playing;
 
   return (
-    <img
+    <Image
       src="/watermark.png"
       alt=""
       aria-hidden="true"
       draggable={false}
+      width={size}
+      height={Math.round((size * 619) / 600)}
       className="absolute select-none pointer-events-none"
       style={{
         top,

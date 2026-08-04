@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 
     const vipQuery = supabase
       .from("profiles")
-      .select("is_vip, vip_expires_at")
+      .select("is_vip,vip_expires_at,vip_payment_blocked")
       .eq("id", user.id)
       .single();
 
@@ -38,15 +38,16 @@ export async function GET(request: NextRequest) {
 
     const [vipResult, entResult] = await Promise.all([
       vipQuery,
-      entQuery ?? Promise.resolve({ data: [] as any[] }),
+      entQuery ?? Promise.resolve({ data: [] as Array<{ id: string }> }),
     ]);
 
     const vipData = vipResult.data;
     const isVip =
       vipData?.is_vip &&
+      !vipData.vip_payment_blocked &&
       (!vipData.vip_expires_at ||
         new Date(vipData.vip_expires_at) >= new Date());
-    const hasEntitlement = (entResult.data as any[])?.length > 0;
+    const hasEntitlement = (entResult.data ?? []).length > 0;
 
     return Response.json({ full: isVip || hasEntitlement });
   } catch {

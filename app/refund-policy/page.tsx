@@ -6,11 +6,11 @@ import { BRAND } from "@/lib/config";
 export const metadata: Metadata = {
   title: `Refund Policy | ${BRAND.name}`,
   description:
-    "Refund Policy for VERZA TV. Learn about our policies on series unlock refunds, in-app purchase refunds, and VIP subscription cancellations.",
+    "Refund Policy for VERZA TV Series Unlocks, VIP subscriptions, and merchandise orders.",
   alternates: { canonical: "/refund-policy" },
 };
 
-const LAST_UPDATED = "July 10, 2026";
+const LAST_UPDATED = "August 3, 2026";
 
 const sectionHeading = {
   color: T.text,
@@ -58,9 +58,11 @@ export default function RefundPolicyPage() {
         <div>
           <p className="text-sm leading-relaxed" style={bodyText}>
             Thank you for using {BRAND.name}. This Refund Policy explains our
-            practices regarding refunds for Series Unlock purchases, in-app
-            purchases, and VIP subscription cancellations. By making a purchase through the
-            Service, you agree to this policy.
+            practices regarding Series Unlocks, VIP subscriptions, and direct
+            merchandise orders. The native iOS app does not offer digital
+            purchases. This policy applies to purchases billed directly by
+            {" "}{BRAND.name} through Stripe and does not limit rights that
+            cannot be waived under applicable law.
           </p>
         </div>
 
@@ -80,142 +82,113 @@ export default function RefundPolicyPage() {
               className="text-sm font-medium leading-relaxed"
               style={{ color: T.text }}
             >
-              Series Unlock purchases are final and non-refundable once any
-              locked episode of that series has been streamed, except as
-              required by applicable law.
+              Series Unlock purchases are generally final once paid content in
+              the series has been streamed, except as required by law or where
+              a verified billing or access error occurred.
             </p>
           </div>
           <p className="text-sm leading-relaxed" style={bodyText}>
-            A Series Unlock is a one-time payment that permanently unlocks
-            every episode of a specific series for your account. If you were
-            charged in error, were charged more than once for the same series,
-            or cannot access content you paid for, contact{" "}
+            A Series Unlock is a one-time payment for account access to the
+            available paid episodes of the series identified at checkout. If
+            you were charged in error, charged more than once for the same
+            series, or cannot access content you paid for, contact{" "}
             <a href="mailto:support@verzatv.com" style={{ color: T.accent }}>
               support@verzatv.com
             </a>{" "}
-            within 14 days of purchase and we will make it right — including a
-            full refund where appropriate.
+            promptly with the account email, series title, and transaction
+            details. We will investigate and, where appropriate, restore access,
+            correct the charge, or issue a refund.
+          </p>
+          <p className="text-sm leading-relaxed mt-3" style={bodyText}>
+            A partial refund does not ordinarily remove the Series Unlock. A
+            full refund ends access granted by that purchase when the refund is
+            processed. This does not affect episodes that are otherwise free or
+            access obtained through a separate valid purchase or membership.
           </p>
         </div>
 
-        {/* 2. In-App Purchase Refunds */}
+        {/* 2. VIP Subscription Cancellations */}
         <div>
           <h2 className="text-base font-semibold mb-2" style={sectionHeading}>
-            2. App Store Purchases (where offered)
+            2. VIP Subscription Cancellations
           </h2>
           <div className="flex flex-col gap-3">
             <p className="text-sm leading-relaxed" style={bodyText}>
-              If you made a purchase through the Apple App Store or Google Play
-              Store, the refund process is managed by the respective platform.
-              {BRAND.name} does not have the ability to process refunds for
-              in-app purchases made through these stores.
+              You may cancel VIP at any time through the secure Stripe billing
+              portal available from your Profile on supported surfaces. You may
+              also contact support@verzatv.com for assistance. Cancellation
+              stops future renewals; access ordinarily continues through the
+              paid billing period.
             </p>
-            <div>
-              <h3
-                className="text-sm font-medium mb-1"
-                style={{ color: T.text }}
-              >
-                Apple App Store
-              </h3>
-              <p className="text-sm leading-relaxed" style={bodyText}>
-                To request a refund for an iOS purchase, visit{" "}
-                <a
-                  href="https://reportaproblem.apple.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: T.accent }}
-                >
-                  reportaproblem.apple.com
-                </a>{" "}
-                or contact Apple Support directly. Apple reviews and processes
-                all refund requests at their discretion.
-              </p>
-            </div>
-            <div>
-              <h3
-                className="text-sm font-medium mb-1"
-                style={{ color: T.text }}
-              >
-                Google Play Store
-              </h3>
-              <p className="text-sm leading-relaxed" style={bodyText}>
-                To request a refund for an Android purchase, visit the{" "}
-                <a
-                  href="https://support.google.com/googleplay/answer/2479637"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: T.accent }}
-                >
-                  Google Play refund page
-                </a>{" "}
-                or contact Google Play Support. Google reviews and processes
-                all refund requests at their discretion.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* 3. VIP Subscription Cancellations */}
-        <div>
-          <h2 className="text-base font-semibold mb-2" style={sectionHeading}>
-            3. VIP Subscription Cancellations
-          </h2>
-          <div className="flex flex-col gap-3">
             <p className="text-sm leading-relaxed" style={bodyText}>
-              You may cancel your VIP subscription at any time. Upon
-              cancellation:
+              Cancelling a subscription does not by itself refund a completed
+              billing period. If a renewal was duplicated, unauthorized, or
+              billed after a confirmed cancellation, contact us promptly so we
+              can investigate. Refunds required by applicable law remain
+              available.
             </p>
-            <ul className="list-disc pl-5 flex flex-col gap-1.5">
-              <li className="text-sm leading-relaxed" style={bodyText}>
-                You will continue to have VIP access for the remainder of your
-                current billing period.
-              </li>
-              <li className="text-sm leading-relaxed" style={bodyText}>
-                No refund will be issued for the current billing period,
-                whether partial or full.
-              </li>
-              <li className="text-sm leading-relaxed" style={bodyText}>
-                Future billing will stop automatically at the end of the
-                current period.
-              </li>
-              <li className="text-sm leading-relaxed" style={bodyText}>
-                After your VIP access expires, you will revert to a free
-                account and keep access to any series you previously purchased
-                with a one-time Series Unlock.
-              </li>
-            </ul>
             <p className="text-sm leading-relaxed" style={bodyText}>
-              To cancel your subscription, open your Profile page and tap
-              Manage Subscription — this opens your secure Stripe billing
-              portal where you can cancel or change your plan. You can also
-              email support@verzatv.com and we will process the cancellation
-              the same day.
+              A partial refund does not ordinarily end the current VIP period.
+              A full refund of a VIP billing period ends VIP access and cancels
+              the matching subscription to prevent another renewal.
             </p>
           </div>
         </div>
 
-        {/* 4. Exceptional Circumstances */}
+        {/* 3. Merchandise and Amazon Purchases */}
         <div>
           <h2 className="text-base font-semibold mb-2" style={sectionHeading}>
-            4. Exceptional Circumstances
+            3. Merchandise and Amazon Purchases
           </h2>
           <p className="text-sm leading-relaxed" style={bodyText}>
-            In rare cases involving technical errors, unauthorized transactions,
-            or duplicate charges, we may review refund requests on a
-            case-by-case basis. To submit a request, contact our support team
-            with your account email, transaction details, and a description of
-            the issue.
+            For physical merchandise purchased directly from {BRAND.name},
+            contact support with your order number before sending an item back.
+            Eligibility depends on fulfillment status, item condition, the
+            checkout terms, and applicable law. Products purchased after an
+            Amazon handoff are sold and fulfilled by Amazon or the identified
+            seller; their return and refund policy applies.
           </p>
         </div>
 
-        {/* 5. Contact */}
+        {/* 4. Billing and Technical Errors */}
         <div>
           <h2 className="text-base font-semibold mb-2" style={sectionHeading}>
-            5. Contact
+            4. Billing and Technical Errors
+          </h2>
+          <p className="text-sm leading-relaxed" style={bodyText}>
+            We review reports of duplicate or unauthorized charges, incorrect
+            amounts, and paid content that remains inaccessible. Contact our
+            support team with your account email, transaction details, and a
+            description of the issue. Do not send full payment-card details by
+            email.
+          </p>
+        </div>
+
+        {/* 5. Payment Disputes */}
+        <div>
+          <h2 className="text-base font-semibold mb-2" style={sectionHeading}>
+            5. Payment Disputes and Chargebacks
+          </h2>
+          <p className="text-sm leading-relaxed" style={bodyText}>
+            Access tied to a payment may be suspended while a bank or payment
+            provider investigates a chargeback. A lost chargeback ends the
+            matching Series Unlock or VIP access; a lost VIP chargeback also
+            cancels the matching subscription. If the dispute is resolved in
+            your favor, access is restored only when the original account,
+            product, and payment or subscription remain valid. Contact support
+            first when possible so we can investigate billing or access errors
+            promptly. Nothing in this section limits non-waivable rights.
+          </p>
+        </div>
+
+        {/* 6. Contact */}
+        <div>
+          <h2 className="text-base font-semibold mb-2" style={sectionHeading}>
+            6. Contact
           </h2>
           <p className="text-sm leading-relaxed" style={bodyText}>
             For any questions about this Refund Policy or to submit a refund
-            request for exceptional circumstances, please contact us at{" "}
+            request, please contact us at{" "}
             <a href="mailto:support@verzatv.com" style={{ color: T.accent }}>
               support@verzatv.com
             </a>

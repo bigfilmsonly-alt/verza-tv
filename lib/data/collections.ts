@@ -40,9 +40,9 @@ export const COLLECTIONS: Collection[] = [
     slug: "most-binge-worthy",
     title: "The Most Binge-Worthy Series on VERZA TV",
     blurb:
-      "The VERZA TV series you cannot stop watching — our longest, most addictive micro-dramas with 55+ episodes built to be devoured in one sitting.",
+      "A curated shelf of longer VERZA TV micro-dramas with at least 55 episodes and room for layered, season-length arcs.",
     intro:
-      "Some stories grab you in the first sixty seconds and refuse to let go. This collection gathers the deepest, most addictive series on VERZA TV — the ones with the longest episode counts and the kind of momentum that turns a quick break into a three-hour marathon. Every title here runs 55 episodes or more, which means a full, satisfying arc with twists stacked on twists. Start free with the first five episodes of any series, then unlock the rest with coins. If you're looking for a show you can lose an entire weekend to, start at the top and work your way down.",
+      "This collection gathers longer VERZA TV series with layered plots and at least 55 episodes. The selection is based on catalog episode counts rather than viewing-time or audience-behavior claims. Free-preview availability varies by title, and each title page shows current access options.",
     match: (s) => s.episodeCount >= 55,
   },
   {
@@ -51,7 +51,7 @@ export const COLLECTIONS: Collection[] = [
     blurb:
       "Luxury, power, and forbidden chemistry. The best billionaire romance micro-dramas on VERZA TV — secret heirs, corporate empires, and love that costs everything.",
     intro:
-      "Private jets, penthouse boardrooms, and a heart that money cannot buy. VERZA TV's billionaire romances pair impossible wealth with impossible odds — the cold CEO who melts for one person, the secret heir hiding in plain sight, the waitress who inherits an empire overnight. These are the fantasies that made vertical drama a phenomenon, told in cinematic 60-second episodes you can binge anywhere. Each series starts free with five episodes so you can fall for the slow burn before you commit. Expect contract marriages, dynasty wars, and the kind of will-they-won't-they tension that keeps you swiping until sunrise.",
+      "Private jets, penthouse boardrooms, and a heart that money cannot buy. VERZA TV's billionaire romances pair impossible wealth with impossible odds: cold CEOs, secret heirs, and unexpected inheritances. Contract marriages and dynasty wars unfold in cinematic vertical episodes. Free-preview availability varies by title, with current access details on each page.",
     match: (s) => has(s, "billionaire", "ceo", "empire", "heir", "tycoon", "fortune"),
   },
   {
@@ -60,7 +60,7 @@ export const COLLECTIONS: Collection[] = [
     blurb:
       "She was wronged — now she's back. The top revenge micro-dramas on VERZA TV deliver cunning comebacks, power plays, and satisfying payback in vertical episodes.",
     intro:
-      "There is nothing quite as satisfying as a perfectly executed comeback. This collection rounds up VERZA TV's most cathartic revenge dramas — stories of women left for dead, jilted at the altar, or underestimated by everyone, who return with a plan and the patience to see it through. No tears, just receipts. From boardroom takedowns to weddings that detonate at exactly the right moment, these micro-dramas turn betrayal into a blueprint for justice. Begin any series free with five episodes, then unlock the full arc to watch every domino fall. Payback has never been this bingeable.",
+      "This editorial collection rounds up VERZA TV revenge dramas about women left for dead, jilted at the altar, or underestimated, who return with a plan. Boardroom takedowns and explosive weddings turn betrayal into a blueprint for justice. Free-preview availability varies by title, and each title page shows current access options.",
     match: (s) =>
       has(s, "revenge", "vengeance", "payback", "badass", "left for dead", "wronged") ||
       s.genre.toLowerCase().includes("revenge"),
@@ -69,9 +69,9 @@ export const COLLECTIONS: Collection[] = [
     slug: "staff-picks",
     title: "Staff Picks: Editor's Favorite Series on VERZA TV",
     blurb:
-      "Hand-picked by the VERZA TV team. Our staff picks spotlight the most talked-about, highest-converting micro-dramas — the series we tell everyone to watch first.",
+      "Hand-picked by the VERZA TV team from catalog-ranked titles and story-driven favorites.",
     intro:
-      "When new viewers ask us where to start, this is the shortlist we send. Staff Picks gathers the VERZA TV originals our team can't stop recommending — the breakout hits, the cliffhanger machines, and the slow burns that earned a permanent spot in our group chat. These are our most popular ranked titles plus a few hidden gems we think deserve the spotlight. Every series here is live, complete, and built to hook you fast. Start free with five episodes of any pick, then decide which world you want to live in for the next few hours. Consider this your fast pass to the best of VERZA TV.",
+      "Staff Picks combines VERZA TV's catalog-ranked titles with a few story-driven favorites selected by the editorial team. The list is a curated recommendation, not a real-time most-watched or conversion chart. Open any title to see its episode count, free-preview availability, and current access details.",
     match: (s) => (s.popularRank ?? 99) <= 6 || has(s, "mistress", "blackthorne", "ceo"),
   },
   {
@@ -80,7 +80,7 @@ export const COLLECTIONS: Collection[] = [
     blurb:
       "Real drama, real people, unreal stories. VERZA TV's reality-flavored favorites — pageants, dynasties, and scandals that feel ripped from the tabloids.",
     intro:
-      "Not every great story is fiction — and the ones that feel real are often the most addictive. This collection celebrates VERZA TV series with a reality-TV pulse: beauty pageants built on blackmail, fashion dynasties imploding on live television, and small-town hopefuls thrown into a world of cameras and cutthroat ambition. They've got the confessional-booth energy of your favorite unscripted shows, dialed up with cinematic vertical storytelling. Start free with the first five episodes of any title, then settle in for the scandals, alliances, and betrayals. If you live for drama that feels a little too close to real life, this is your shelf.",
+      "This collection celebrates VERZA TV series with a reality-TV pulse: beauty pageants built on blackmail, fashion dynasties imploding on camera, and small-town hopefuls entering a world of ambition. They bring confessional-booth energy to cinematic vertical storytelling. Free-preview and current access details appear on each title page.",
     match: (s) =>
       s.categories.includes("reality") ||
       s.categories.includes("red-carpet") ||
@@ -90,9 +90,9 @@ export const COLLECTIONS: Collection[] = [
     slug: "top-cliffhangers",
     title: "Top Cliffhanger Series on VERZA TV",
     blurb:
-      "Every episode ends on a gasp. VERZA TV's top cliffhanger micro-dramas — thrillers and mysteries engineered to make 'one more episode' impossible to resist.",
+      "VERZA TV thrillers and mysteries selected for cliffhangers, hidden identities, and escalating reveals.",
     intro:
-      "The best vertical dramas are built on a simple promise: the next twist is always sixty seconds away. This collection gathers VERZA TV's most relentless cliffhanger machines — psychological thrillers, cold-case mysteries, and suspense stories where every episode slams shut on a reveal you didn't see coming. Killers who listen to the podcast hunting them. Wives who may be murderers. Twins living each other's lives. These are the shows that quietly delete your evening. Start free with five episodes, then brace yourself, because once the hooks land, stopping is not an option. Keep your thumb ready and your expectations subverted.",
+      "This collection gathers VERZA TV psychological thrillers, cold-case mysteries, and suspense stories built around cliffhangers. Killers listen to the podcast hunting them, wives may be murderers, and twins live each other's lives. Free-preview availability varies by title, with current access details on each page.",
     match: (s) =>
       has(s, "thriller", "suspense", "mystery", "murder", "psycho", "killer", "secret", "conspiracy"),
   },
@@ -100,9 +100,9 @@ export const COLLECTIONS: Collection[] = [
     slug: "new-and-trending",
     title: "New & Trending Series on VERZA TV",
     blurb:
-      "Fresh off the lineup and climbing fast. VERZA TV's new and trending micro-dramas — the latest originals everyone's swiping through right now.",
+      "A curated mix of titles in VERZA TV's New category and catalog-ranked picks.",
     intro:
-      "The lineup never stops growing, and these are the titles making noise right now. New & Trending pulls together VERZA TV's freshest originals alongside the popular ranked series viewers are racing through this week. It's the perfect place to stay ahead of the conversation — the shows that are about to be everywhere, before everyone else catches on. From time-loop romances to inheritance games, every entry is live and ready to binge. Start free with the first five episodes of any series, then jump into whatever's trending. Bookmark this collection and check back often; the freshest drama lands here first.",
+      "New & Trending combines titles assigned to VERZA TV's New category with catalog-ranked picks. It is an editorial collection rather than a real-time most-watched chart. From time-loop romances to inheritance games, each title page shows the current episode count, free-preview availability, and access details.",
     match: (s) => s.categories.includes("new") || (s.popularRank ?? 99) <= 6,
   },
   {
@@ -111,7 +111,7 @@ export const COLLECTIONS: Collection[] = [
     blurb:
       "Turn up the heat. VERZA TV's steamiest romance micro-dramas — one-night stands, dark obsessions, and forbidden desire told in sizzling vertical episodes.",
     intro:
-      "For when you want your romance with the temperature dialed all the way up. This collection gathers VERZA TV's most intense, pulse-quickening love stories — reckless one-night stands that turn into something dangerous, dark obsessions that blur right and wrong, and forbidden attractions neither character can resist. The chemistry is electric, the stakes are personal, and the slow burns are anything but slow. Every series starts free with five episodes, so you can feel the spark before you unlock the full arc. If you like your micro-dramas with serious heat and emotional payoff in equal measure, you've found your collection.",
+      "For viewers who want romance with the temperature dialed up, this collection gathers VERZA TV stories about reckless one-night stands, dark obsessions, and forbidden attractions. The chemistry is electric and the stakes are personal. Free-preview availability varies by title, with current access details on each page.",
     match: (s) =>
       has(
         s,
@@ -128,11 +128,11 @@ export const COLLECTIONS: Collection[] = [
   },
   {
     slug: "best-endings",
-    title: "Series With the Best Endings on VERZA TV",
+    title: "Long-Form Series on VERZA TV",
     blurb:
-      "Stories that stick the landing. VERZA TV micro-dramas with the most satisfying, full-circle endings — complete arcs worth bingeing all the way through.",
+      "VERZA TV micro-dramas with at least 56 episodes and room for layered, season-length storytelling.",
     intro:
-      "A great drama earns its final scene. This collection spotlights VERZA TV series built on complete, satisfying arcs — the longer originals with enough runway to set up every payoff and deliver a finale that actually lands. These are full-season stories told in vertical episodes, where the slow burns resolve, the villains get what's coming, and the last beat feels earned rather than rushed. With 56 episodes or more, each title has room to breathe and a destination worth reaching. Start free with five episodes, then commit to the journey knowing the ending won't let you down. Perfect for viewers who hate being left hanging.",
+      "This collection is selected by a verifiable catalog rule: every title currently has at least 56 episodes. The longer format gives each story more room for layered plots and character turns without promising a particular ending or viewing time. Each title page shows its free-preview availability and current access details.",
     match: (s) => s.episodeCount >= 56,
   },
   {
@@ -141,7 +141,7 @@ export const COLLECTIONS: Collection[] = [
     blurb:
       "Twelve months, no feelings — until there are. VERZA TV's contract marriage micro-dramas: arranged deals, fake vows, and love that breaks the agreement.",
     intro:
-      "It starts as a transaction and ends as the love story of the year. Contract marriage is the genre that defined vertical drama, and VERZA TV has the definitive collection — billion-dollar arrangements, twelve-month deals, and fake vows that turn devastatingly real. The premise is always the same and somehow never gets old: two people sign a contract that says nothing about falling in love, then proceed to fall anyway. Each series here leans into the trope's irresistible tension between duty and desire. Start free with five episodes, then watch the agreement unravel one heartbeat at a time. If 'arranged but in love' is your weakness, settle in.",
+      "Contract marriage stories begin with a transaction and follow what happens when fake vows turn real. This VERZA TV collection includes billion-dollar arrangements, twelve-month deals, and marriages of convenience, with each series leaning into the tension between duty and desire. Free-preview availability varies by title.",
     match: (s) =>
       has(s, "contract", "marriage contract", "trial marriage", "married to a stranger", "arranged", "trial"),
   },
@@ -151,7 +151,7 @@ export const COLLECTIONS: Collection[] = [
     blurb:
       "From rivals to romance. VERZA TV's best enemies-to-lovers micro-dramas — sparring partners, sworn enemies, and the slow burns that turn hate into heat.",
     intro:
-      "Nobody falls harder than two people who started out hating each other. This collection celebrates VERZA TV's finest enemies-to-lovers stories — assassins hired to kill one another, rivals fighting for the same empire, and reluctant partners whose every argument crackles with something neither will admit. The push-and-pull is the whole point, and these micro-dramas know exactly how to draw out the tension before the walls finally come down. Start free with five episodes of any series, then savor the slow conversion from sworn enemy to soulmate. If you love a romance that makes you wait, fight, and earn the kiss, this is the shelf for you.",
+      "This enemies-to-lovers collection brings together VERZA TV stories about assassins hired to kill one another, rivals fighting for the same empire, and reluctant partners whose arguments hide something neither will admit. Free-preview availability varies by title, with current access details on each page.",
     match: (s) =>
       has(
         s,
@@ -173,7 +173,7 @@ export const COLLECTIONS: Collection[] = [
     blurb:
       "Boardroom power meets bedroom chemistry. VERZA TV's best CEO romance micro-dramas — cold bosses, secret softies, and the assistants who unravel them.",
     intro:
-      "He runs a billion-dollar company and answers to no one — until the right person walks into his office. VERZA TV's CEO romances pair corner-office power with the kind of vulnerability money can't manufacture: the rude boss who secretly pays the hospital bills, the assistant who survives one elevator kiss, the young executive forbidden to fall in love. These are workplace fantasies with sharp suits and sharper banter, told in addictive vertical episodes. Each series starts free with five episodes, so you can feel the tension build before the deal is sealed. If 'will the boss notice me' is your favorite question, this collection has the answers.",
+      "He runs a billion-dollar company and answers to no one — until the right person walks into his office. VERZA TV's CEO romances pair corner-office power with hidden vulnerability: the rude boss who secretly pays the hospital bills, the assistant changed by one elevator kiss, and the executive forbidden to fall in love. Free-preview availability varies by title.",
     match: (s) =>
       has(s, "ceo", "boss", "office", "assistant", "executive", "corporate", "company", "boardroom"),
   },

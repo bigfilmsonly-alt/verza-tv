@@ -21,7 +21,7 @@ const founderSchema = {
     url: "https://www.verzatv.com",
   },
   description:
-    "Co-founder of E! Entertainment Television. Founder of VERZA TV, the first US-based vertical micro-drama streaming platform.",
+    "Co-founder of E! Entertainment Television and founder of VERZA TV, a phone-first short-form entertainment platform.",
   sameAs: [
     "https://www.instagram.com/verzatv",
   ],
@@ -50,11 +50,9 @@ export default function FounderPage() {
               The E! Entertainment Story
             </h2>
             <p className="text-sm leading-relaxed" style={{ color: T.textDim }}>
-              Alan Mruvka co-founded E! Entertainment Television, one of the
-              most recognized entertainment brands in the world. E! launched as
-              a cable network dedicated to pop culture, celebrity news, and
-              entertainment programming, and grew into a global media powerhouse
-              reaching over 90 countries.
+              Alan Mruvka co-founded E! Entertainment Television, a cable
+              network focused on pop culture, celebrity news, and entertainment
+              programming.
             </p>
           </div>
 
@@ -70,9 +68,9 @@ export default function FounderPage() {
               After decades of building entertainment brands, Alan saw the
               same transformation happening again: the shift from linear TV to
               mobile-first, short-form content. {BRAND.name} was founded to
-              lead that shift with premium-quality vertical micro-dramas —
-              cinematic stories told in 60 to 120 second episodes, designed
-              for the way audiences actually consume content today.
+              support that shift with premium-quality vertical micro-dramas —
+              short-form stories designed for phone-first viewing, with
+              episode lengths that vary by title.
             </p>
           </div>
 
@@ -85,11 +83,8 @@ export default function FounderPage() {
               Filmology Labs
             </h2>
             <p className="text-sm leading-relaxed" style={{ color: T.textDim }}>
-              {BRAND.name} is powered by Filmology Labs, a $250M
-              state-of-the-art production facility in Paterson, New Jersey.
-              With 21 soundstages, an LED volume wall for virtual production,
-              and 250,000 square feet of production space, Filmology Labs
-              gives {BRAND.name} a vertically integrated production advantage.
+              {BRAND.name} works with Filmology Labs in Paterson, New Jersey on
+              short-form content production. Production details vary by title.
             </p>
           </div>
 

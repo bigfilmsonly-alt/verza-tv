@@ -15,40 +15,14 @@ export async function signInAction(formData: FormData) {
   }
 
   const supabase = await createServerSupabase();
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
     return redirect(`/sign-in?error=${encodeURIComponent(error.message)}`);
   }
 
-  // Claim pending entitlements on email/password sign-in
-  if (data.user?.email) {
-    try {
-      const { getServiceClient } = await import("@/lib/supabase/server");
-      const service = getServiceClient();
-      const userEmail = data.user.email.toLowerCase();
-
-      const { data: pending } = await service
-        .from("pending_entitlements")
-        .select("id, series_slug, purchase_id")
-        .eq("email", userEmail);
-
-      if (pending && pending.length > 0) {
-        for (const p of pending) {
-          await service.from("entitlements").upsert(
-            { user_id: data.user.id, series_slug: p.series_slug, purchase_id: p.purchase_id },
-            { onConflict: "user_id,series_slug" },
-          );
-          await service.from("saved_list").upsert(
-            { user_id: data.user.id, series_slug: p.series_slug, created_at: new Date().toISOString() },
-            { onConflict: "user_id,series_slug" },
-          );
-        }
-        await service.from("pending_entitlements").delete().eq("email", userEmail);
-      }
-    } catch {}
-  }
-
+  // Do not claim legacy email-keyed purchases here. Historical auto-confirmed
+  // accounts are not proof of mailbox ownership; support verifies them.
   return redirect(next);
 }
 
@@ -64,7 +38,7 @@ export async function signUpAction(formData: FormData) {
   }
 
   const supabase = await createServerSupabase();
-  const { data, error } = await supabase.auth.signUp({
+  const { error } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -79,34 +53,7 @@ export async function signUpAction(formData: FormData) {
   // Send welcome email
   sendWelcomeEmail(email, displayName || email.split("@")[0]).catch(() => {});
 
-  // Claim pending entitlements on sign-up
-  if (data.user?.email && data.user?.id) {
-    try {
-      const { getServiceClient } = await import("@/lib/supabase/server");
-      const service = getServiceClient();
-      const userEmail = data.user.email.toLowerCase();
-
-      const { data: pending } = await service
-        .from("pending_entitlements")
-        .select("id, series_slug, purchase_id")
-        .eq("email", userEmail);
-
-      if (pending && pending.length > 0) {
-        for (const p of pending) {
-          await service.from("entitlements").upsert(
-            { user_id: data.user.id, series_slug: p.series_slug, purchase_id: p.purchase_id },
-            { onConflict: "user_id,series_slug" },
-          );
-          await service.from("saved_list").upsert(
-            { user_id: data.user.id, series_slug: p.series_slug, created_at: new Date().toISOString() },
-            { onConflict: "user_id,series_slug" },
-          );
-        }
-        await service.from("pending_entitlements").delete().eq("email", userEmail);
-      }
-    } catch {}
-  }
-
+  // Legacy email-keyed purchases intentionally require manual verification.
   const redirectTo = next !== "/" ? next : "/?welcome=true";
   return redirect(redirectTo);
 }

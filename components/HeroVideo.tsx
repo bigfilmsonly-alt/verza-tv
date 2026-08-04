@@ -12,6 +12,7 @@ function getHls(): Promise<typeof HlsType | null> {
 }
 
 interface HeroVideoProps {
+  /** Intentionally-public catalog-free/promotional playback ID only. */
   playbackId: string;
 }
 
@@ -24,7 +25,7 @@ export default function HeroVideo({ playbackId }: HeroVideoProps) {
   const [reducedMotion, setReducedMotion] = useState(false);
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReducedMotion(mq.matches);
+    queueMicrotask(() => setReducedMotion(mq.matches));
     const handler = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);

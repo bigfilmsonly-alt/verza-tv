@@ -2,9 +2,8 @@
  * Corporate / studio content for the VERZA TV company section.
  *
  * All copy here is data-driven so the corporate landing pages render
- * directly from these exports. Leadership bios for roles other than the
- * founder are plausible placeholders clearly framed as the VERZA TV /
- * Filmology Labs team and should be confirmed before public use.
+ * directly from these exports. Only verified public identities and neutral,
+ * currently supportable company facts belong in this module.
  */
 
 /* ------------------------------------------------------------------ */
@@ -17,16 +16,14 @@ export interface CompanyFact {
 }
 
 export const COMPANY_MISSION =
-  "VERZA TV exists to make premium, cinema-grade storytelling native to the way people actually watch in 2026 — vertical, mobile, and measured in minutes. We produce and distribute original micro-dramas, reality, and red-carpet programming built for the phone first, then engineer every second of the viewing experience to respect attention rather than exploit it.";
+  "VERZA TV exists to make premium short-form storytelling native to phone-first viewing. We distribute vertical micro-dramas, reality, and red-carpet programming through web and mobile experiences designed around the vertical screen.";
 
 export const COMPANY_VISION =
-  "We believe vertical micro-drama is the next mass-market format in entertainment — the natural successor to the half-hour sitcom and the streaming binge. Our vision is a vertically integrated American studio that owns the pipeline end to end: development, production, distribution, and monetization. By pairing a $250M production facility with a direct-to-consumer platform, VERZA TV controls quality and economics that aggregator-only competitors cannot match.";
+  "VERZA TV's vision is to connect short-form production through Filmology Labs with direct-to-consumer distribution across web and mobile. This structure coordinates development, production, playback, and audience access.";
 
 export const COMPANY_FACTS: CompanyFact[] = [
-  { label: "Founded", value: "2024" },
-  { label: "Headquarters", value: "Los Angeles, California" },
   { label: "Production", value: "Filmology Labs — Paterson, New Jersey" },
-  { label: "Format", value: "Vertical 9:16 micro-drama, 60-120s episodes" },
+  { label: "Format", value: "Short-form vertical 9:16 series" },
   { label: "Platforms", value: "Web, iOS, Android" },
   { label: "Founder", value: "Alan Mruvka, co-founder of E! Entertainment Television" },
 ];
@@ -41,8 +38,6 @@ export interface Leader {
   bio: string;
   /** Optional internal hub link (e.g. the founder) */
   href?: string;
-  /** Flag a placeholder bio that should be confirmed before public use */
-  placeholder?: boolean;
 }
 
 export const LEADERSHIP: Leader[] = [
@@ -50,31 +45,7 @@ export const LEADERSHIP: Leader[] = [
     name: "Alan Mruvka",
     title: "Founder & Chief Executive Officer",
     href: "/alan-mruvka",
-    bio: "Alan Mruvka is the co-founder of E! Entertainment Television, the network that defined a generation of celebrity and pop-culture programming. He built E! from concept to a global brand and brings that same instinct for format, audience, and brand-building to VERZA TV. As founder and CEO, Alan sets the creative and commercial direction of the studio — championing the thesis that vertical micro-drama is the next mass entertainment format and that an American studio should own it end to end.",
-  },
-  {
-    name: "Dana Reyes",
-    title: "President & Chief Operating Officer",
-    placeholder: true,
-    bio: "Dana leads day-to-day operations across the studio and platform, aligning the Paterson production slate with VERZA TV's distribution and revenue roadmap. With a background scaling subscription media businesses, Dana owns the operating cadence that turns a high-volume episode pipeline into a predictable, on-time release calendar.",
-  },
-  {
-    name: "Marcus Okafor",
-    title: "Chief Content Officer",
-    placeholder: true,
-    bio: "Marcus oversees development and the original slate — greenlighting series, shaping the house style of the micro-drama format, and building the writers' and directors' rooms that feed Filmology Labs. He is responsible for the editorial standards and creative bar that keep VERZA TV originals feeling cinematic at 60 seconds an episode.",
-  },
-  {
-    name: "Priya Nandakumar",
-    title: "Chief Technology Officer",
-    placeholder: true,
-    bio: "Priya runs engineering and product, owning the streaming stack, the vertical playback experience, and the data systems that surface the right next episode. Her team builds the mobile-first apps and the server-side delivery pipeline that make sub-second swipe-to-play possible across web, iOS, and Android.",
-  },
-  {
-    name: "Jordan Bellamy",
-    title: "Chief Revenue Officer",
-    placeholder: true,
-    bio: "Jordan leads monetization and partnerships — coins, VIP subscriptions, merch, brand integrations, and licensing. With experience across direct-to-consumer media and advertising, Jordan is responsible for diversifying revenue beyond a single funnel and building the advertiser and distribution relationships that extend VERZA TV's reach.",
+    bio: "Alan Mruvka co-founded E! Entertainment Television. He is the founder and CEO of VERZA TV, where he leads the company's work in short-form vertical entertainment.",
   },
 ];
 
@@ -93,53 +64,8 @@ export interface PressRelease {
   summary: string;
 }
 
-export const PRESS_RELEASES: PressRelease[] = [
-  {
-    slug: "verza-tv-public-launch",
-    title: "VERZA TV Launches as the First US-Based Vertical Micro-Drama Streaming Platform",
-    date: "2026-03-04",
-    dateLabel: "Mar 4, 2026",
-    category: "Company",
-    summary:
-      "VERZA TV, founded by E! Entertainment Television co-founder Alan Mruvka, opened to the public with an original slate of micro-drama, reality, and red-carpet series produced at the studio's Filmology Labs facility. Every series offers its first five episodes free.",
-  },
-  {
-    slug: "filmology-labs-production-slate",
-    title: "Filmology Labs Greenlights Expanded 2026 Original Slate Across 21 Soundstages",
-    date: "2026-04-18",
-    dateLabel: "Apr 18, 2026",
-    category: "Content",
-    summary:
-      "The studio's $250M Paterson, New Jersey facility entered full production on its next wave of originals, leveraging 21 soundstages and an LED volume wall for virtual production to scale a high-volume vertical pipeline without sacrificing cinematic quality.",
-  },
-  {
-    slug: "creator-channels-program",
-    title: "VERZA TV Opens Creator Channels Program with 80% Revenue Share",
-    date: "2026-05-06",
-    dateLabel: "May 6, 2026",
-    category: "Partnerships",
-    summary:
-      "VERZA TV launched an application-based Creator Channels program, inviting independent filmmakers and vertical-native storytellers to publish original series on the platform with an 80% revenue share and access to the studio's distribution and monetization stack.",
-  },
-  {
-    slug: "verza-ai-host-launch",
-    title: "VERZA TV Ships AI Host and Creator AI Studio Across the Platform",
-    date: "2026-05-29",
-    dateLabel: "May 29, 2026",
-    category: "Product",
-    summary:
-      "The platform introduced an AI Host for viewers and a Creator AI Studio for filmmakers — covering script generation, logline writing, social copy, and episode descriptions — built on a system that understands the full VERZA TV catalog and house style.",
-  },
-  {
-    slug: "verza-tv-mobile-apps",
-    title: "VERZA TV Brings Vertical Streaming to iOS and Android",
-    date: "2026-06-17",
-    dateLabel: "Jun 17, 2026",
-    category: "Product",
-    summary:
-      "Native mobile apps extended VERZA TV's swipe-to-play experience to phones, with sub-second playback, offline progress sync, and the same coins-and-VIP monetization available on the web platform.",
-  },
-];
+// Add releases only after they are published through a real company channel.
+export const PRESS_RELEASES: PressRelease[] = [];
 
 /* ------------------------------------------------------------------ */
 /*  In the news                                                        */
@@ -151,23 +77,8 @@ export interface NewsMention {
   dateLabel: string;
 }
 
-export const IN_THE_NEWS: NewsMention[] = [
-  {
-    outlet: "Industry Trade",
-    headline: "E! Co-Founder Bets on Vertical Micro-Drama with American Studio Play",
-    dateLabel: "Mar 2026",
-  },
-  {
-    outlet: "Streaming Weekly",
-    headline: "Inside VERZA TV's Vertically Integrated Pipeline from Paterson to Phone",
-    dateLabel: "Apr 2026",
-  },
-  {
-    outlet: "Creator Economy Report",
-    headline: "VERZA TV's 80% Revenue Share Aims to Win Vertical-Native Filmmakers",
-    dateLabel: "May 2026",
-  },
-];
+// Add coverage only when a real publication URL and headline can be verified.
+export const IN_THE_NEWS: NewsMention[] = [];
 
 /* ------------------------------------------------------------------ */
 /*  Careers                                                            */
@@ -181,46 +92,11 @@ export interface OpenRole {
 }
 
 export const CAREERS_CULTURE =
-  "VERZA TV is a studio and a software company in one building. We move at the speed of a vertical feed and hold ourselves to the standard of a film set. We hire people who can ship a feature on Tuesday and shoot a series on Thursday — and who care about both. Small teams, real ownership, and a slate that goes live to a real audience.";
+  "VERZA TV works across short-form production and streaming software. Confirmed openings, employment terms, and benefits are published only when an active role is available.";
 
-export const PERKS: { title: string; detail: string }[] = [
-  {
-    title: "Vertically integrated",
-    detail: "Work where development, production, distribution, and monetization live under one roof — your work reaches the audience, not a deck.",
-  },
-  {
-    title: "Real ownership",
-    detail: "Small teams, direct impact, and the autonomy to ship. No layers between your work and a live audience.",
-  },
-  {
-    title: "Studio access",
-    detail: "Time on set at Filmology Labs — 21 soundstages, an LED volume wall, and a working production environment.",
-  },
-  {
-    title: "Health & wellness",
-    detail: "Comprehensive medical, dental, and vision coverage plus mental-health support for you and your family.",
-  },
-  {
-    title: "Flexible time off",
-    detail: "Take the time you need to do your best work, with a culture that respects rest between release cycles.",
-  },
-  {
-    title: "Equity",
-    detail: "Meaningful equity participation so the people building the studio share in its success.",
-  },
-];
+export const PERKS: { title: string; detail: string }[] = [];
 
-export const OPEN_ROLES: OpenRole[] = [
-  { title: "Senior Full-Stack Engineer (Streaming)", team: "Engineering", location: "Los Angeles, CA / Remote", type: "Full-time" },
-  { title: "Mobile Engineer, iOS", team: "Engineering", location: "Los Angeles, CA / Remote", type: "Full-time" },
-  { title: "Development Executive, Originals", team: "Content", location: "Los Angeles, CA", type: "Full-time" },
-  { title: "Series Writer (Vertical Micro-Drama)", team: "Content", location: "Remote", type: "Contract" },
-  { title: "Line Producer", team: "Production", location: "Paterson, NJ", type: "Full-time" },
-  { title: "Virtual Production Technician (LED Volume)", team: "Production", location: "Paterson, NJ", type: "Full-time" },
-  { title: "Growth Marketing Manager", team: "Growth", location: "Los Angeles, CA / Remote", type: "Full-time" },
-  { title: "Product Designer", team: "Design", location: "Los Angeles, CA / Remote", type: "Full-time" },
-  { title: "Partnerships Lead, Distribution", team: "Operations", location: "Los Angeles, CA", type: "Full-time" },
-];
+export const OPEN_ROLES: OpenRole[] = [];
 
 export const CAREERS_EMAIL = "careers@verzatv.com";
 
@@ -235,43 +111,33 @@ export interface InvestorHighlight {
 }
 
 export const INVESTOR_OVERVIEW =
-  "VERZA TV is a vertically integrated entertainment studio building the leading American platform for vertical micro-drama. We combine a $250M production facility with a direct-to-consumer streaming app and a diversified revenue model spanning coins, subscriptions, merchandise, and creator partnerships. Our thesis is simple: the format is going mainstream, the audience is mobile-first, and the studio that owns both content and distribution captures the margin.";
+  "VERZA TV is a vertically integrated entertainment studio building an American platform for vertical micro-drama. We combine production through Filmology Labs with a direct-to-consumer streaming app and a revenue model spanning one-time Series Unlocks, VIP subscriptions, merchandise, and creator partnerships. Our thesis is that a mobile-first studio combining content and distribution can control more of its viewer experience.";
 
 export const INVESTOR_HIGHLIGHTS: InvestorHighlight[] = [
   {
-    metric: "$6.5B",
-    label: "Addressable market",
-    detail: "The global vertical micro-drama market and growing rapidly, with the US still early in adoption.",
+    metric: "Studio + platform",
+    label: "Operating model",
+    detail: "Production through Filmology Labs paired with direct-to-consumer web and mobile distribution.",
   },
   {
-    metric: "$250M",
-    label: "Production capacity",
-    detail: "Filmology Labs — 21 soundstages, an LED volume wall, and 250,000 sq ft in Paterson, New Jersey.",
-  },
-  {
-    metric: "Vertically integrated",
-    label: "Studio + platform",
-    detail: "Development, production, distribution, and monetization owned end to end — a margin and quality moat.",
-  },
-  {
-    metric: "Multi-stream",
+    metric: "Multiple options",
     label: "Revenue model",
-    detail: "Coins, VIP subscriptions, merchandise, brand integrations, and an 80% revenue-share creator program.",
+    detail: "One-time Series Unlocks, VIP subscriptions, merchandise, brand integrations, and creator partnerships.",
   },
 ];
 
 export const MARKET_THESIS: { title: string; body: string }[] = [
   {
-    title: "The format is going mainstream",
-    body: "Vertical micro-drama has already proven itself at massive scale internationally. The 60-to-120-second episode is to mobile what the half-hour was to broadcast — a format engineered for the device, not retrofitted onto it. The US market is still early, and the window to build the category-defining American studio is open now.",
+    title: "Phone-first format",
+    body: "Vertical micro-drama is a short-form format engineered for phone-first viewing rather than retrofitted onto it. VERZA TV's strategy is to build an American studio and direct-to-consumer platform around that format.",
   },
   {
-    title: "Vertical integration is the moat",
-    body: "Aggregator-only platforms are at the mercy of licensing costs and supply. By owning a $250M production facility and the distribution app, VERZA TV controls the cost of content, the quality bar, and the release cadence. That integration compounds: every original we produce is a permanent, owned asset on a platform we control.",
+    title: "Production and distribution",
+    body: "Aggregator-only platforms depend on licensing costs and supply. By combining production through Filmology Labs with the distribution app, VERZA TV can coordinate content, quality standards, and release planning while honoring applicable rights and availability windows.",
   },
   {
-    title: "Monetization is diversified, not fragile",
-    body: "VERZA TV does not depend on a single subscription funnel. Coins drive impulse unlocks, VIP captures committed viewers, merchandise extends top series into physical goods, and the creator program adds supply at an 80% revenue share. Multiple, reinforcing revenue lines reduce risk and expand lifetime value.",
+    title: "Multiple access options",
+    body: "VERZA TV does not depend on a single subscription funnel. One-time Series Unlocks provide title-specific access, VIP serves recurring viewers, merchandise covers physical goods, and creator partnerships can add supply. These are distinct revenue lines with different customer needs.",
   },
 ];
 
@@ -403,16 +269,16 @@ export const COMPANY_FAQ: { question: string; answer: string }[] = [
   {
     question: "What does VERZA TV produce?",
     answer:
-      "VERZA TV develops and distributes original vertical micro-dramas, reality, and red-carpet programming — short-form cinematic episodes of 60 to 120 seconds, produced at the studio's Filmology Labs facility in Paterson, New Jersey.",
+      "VERZA TV develops and distributes short-form vertical micro-dramas, reality, and red-carpet programming produced through Filmology Labs in Paterson, New Jersey. Episode lengths vary by title.",
   },
   {
     question: "How is VERZA TV different from other micro-drama apps?",
     answer:
-      "VERZA TV is vertically integrated. It owns a $250M production facility alongside its direct-to-consumer streaming platform, controlling content quality, cost, and release cadence end to end rather than relying solely on licensed supply.",
+      "VERZA TV connects production work through Filmology Labs with a direct-to-consumer streaming platform across web and mobile, rather than operating only as a third-party catalog aggregator.",
   },
   {
     question: "How can I partner with or invest in VERZA TV?",
     answer:
-      "For partnership inquiries, reach the team at partnerships@verzatv.com. For investor relations, contact investors@verzatv.com. Open roles are listed on the VERZA TV careers page.",
+      "For partnership inquiries, reach the team at partnerships@verzatv.com. For investor relations, contact investors@verzatv.com. Any confirmed openings will be listed on the VERZA TV careers page.",
   },
 ];

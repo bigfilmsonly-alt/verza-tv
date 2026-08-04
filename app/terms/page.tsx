@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/terms" },
 };
 
-const LAST_UPDATED = "July 10, 2026";
+const LAST_UPDATED = "August 3, 2026";
 
 const sectionHeading = {
   color: T.text,
@@ -68,6 +68,10 @@ export default function TermsPage() {
             of the Service after any changes constitutes acceptance of the
             revised Terms.
           </p>
+          <p className="text-sm leading-relaxed mt-3" style={bodyText}>
+            The Service is operated by VERZA TV LLC, 650 E Palisade Ave, Ste
+            2329, Englewood Cliffs, NJ 07632, United States.
+          </p>
         </div>
 
         {/* 2. Eligibility */}
@@ -76,12 +80,10 @@ export default function TermsPage() {
             2. Eligibility
           </h2>
           <p className="text-sm leading-relaxed" style={bodyText}>
-            You must be at least 13 years of age to use the Service. If you are
-            between 13 and 18 years of age (or the age of majority in your
-            jurisdiction), you may only use the Service with the consent of a
-            parent or legal guardian who agrees to be bound by these Terms. By
-            using the Service, you represent and warrant that you meet these
-            eligibility requirements.
+            The Service is intended only for adults. You must be at least 18
+            years old and legally able to enter into a binding agreement in
+            your jurisdiction to use the Service. By using the Service, you
+            represent and warrant that you meet these eligibility requirements.
           </p>
         </div>
 
@@ -111,45 +113,67 @@ export default function TermsPage() {
           </h2>
           <div className="flex flex-col gap-3">
             <p className="text-sm leading-relaxed" style={bodyText}>
-              The Service offers paid content in two forms: one-time{" "}
-              <strong style={{ color: T.text }}>Series Unlocks</strong> (a
-              single payment that permanently unlocks every episode of a
-              series for your account) and an auto-renewing{" "}
-              <strong style={{ color: T.text }}>VIP subscription</strong>{" "}
-              (unlimited streaming of all series while active). Purchases may
-              be made through the Service or, where offered, through
-              third-party app stores (Apple App Store, Google Play Store),
-              in which case that store&apos;s payment terms also apply.
+              The Service may offer one-time{" "}
+              <strong style={{ color: T.text }}>Series Unlocks</strong> for a
+              specific series and an auto-renewing{" "}
+              <strong style={{ color: T.text }}>VIP subscription</strong> for
+              access while the subscription remains active. Digital purchases
+              are offered through our website and supported non-iOS surfaces.
+              The native iOS application does not offer digital purchases; it
+              allows signed-in users to view content they are already entitled
+              to access.
             </p>
             <p className="text-sm leading-relaxed" style={bodyText}>
-              <strong style={{ color: T.text }}>VIP Auto-Renewal:</strong> VIP
-              subscriptions automatically renew at the then-current price
-              (currently $9.99 per month or $79.99 per year) until cancelled.
-              You may cancel at any time via Manage Subscription on your
-              Profile page, through the app store you subscribed through, or
-              by contacting support@verzatv.com; you retain VIP access until
-              the end of the paid period, and cancellation stops future
-              charges but does not refund the current period except as
-              required by law.
+              <strong style={{ color: T.text }}>VIP Auto-Renewal:</strong> The
+              billing interval, price, renewal terms, and any trial or promotion
+              are displayed before checkout. Unless cancelled, VIP renews at
+              the disclosed interval and recurring price accepted at checkout.
+              You may manage or
+              cancel through the secure Stripe billing portal available from
+              your Profile on supported surfaces, or contact
+              support@verzatv.com for assistance. Cancellation stops future
+              renewals; access ordinarily continues through the paid period.
+              After enrollment, we send a retainable acknowledgment of the
+              recurring terms and cancellation method. We also send successful
+              renewal receipts, cancellation confirmations, and advance annual
+              renewal reminders where required by applicable law. You are
+              responsible for keeping your account and Stripe billing email
+              current so these transactional notices can reach you.
             </p>
             <p className="text-sm leading-relaxed" style={bodyText}>
               <strong style={{ color: T.text }}>Series Unlocks:</strong> A
-              Series Unlock applies to the specific series purchased and is
-              tied to your account (or, for guest purchases, to the device and
-              checkout email used). Unlocks are licenses to view, not
-              ownership of content, and are non-transferable.
+              Series Unlock applies only to the series identified at checkout,
+              is tied to the authenticated account used for the purchase, and
+              is non-transferable. It grants a license to view available
+              content; it is not ownership of the content. A limited number of
+              legacy purchases were completed before authenticated checkout was
+              required. Any request to claim or alter one of those unlinked
+              records requires independent purchase or mailbox verification;
+              signing in with a matching email does not by itself promise an
+              automatic claim.
+            </p>
+            <p className="text-sm leading-relaxed" style={bodyText}>
+              <strong style={{ color: T.text }}>Physical Goods:</strong> Direct
+              merchandise orders are processed through Stripe checkout.
+              Product availability, taxes, shipping, and other material terms
+              shown at checkout are part of the order. Purchases completed on
+              Amazon are transactions with Amazon or the applicable seller and
+              are governed by their terms.
             </p>
             <p className="text-sm leading-relaxed" style={bodyText}>
               <strong style={{ color: T.text }}>Refunds:</strong> Except as
-              required by applicable law or as described in our Refund Policy,
-              purchases are final. See the Refund Policy for details,
-              including how app-store-billed purchases are handled.
+              required by applicable law or described in our Refund Policy,
+              purchases are final. The Refund Policy explains how to report a
+              duplicate, unauthorized, inaccessible, or otherwise erroneous
+              transaction.
             </p>
             <p className="text-sm leading-relaxed" style={bodyText}>
               <strong style={{ color: T.text }}>Price Changes:</strong> We may
-              modify pricing and promotional offers at any time. Price changes
-              to an active subscription take effect at the next renewal, with
-              notice where required by law.
+              modify prices and promotions for new purchases. The price
+              presented and accepted at checkout controls that transaction.
+              Any proposed change to the recurring price of an existing
+              subscription would take effect only after the advance notice,
+              consent, and provider changes required by applicable law.
             </p>
           </div>
         </div>
@@ -166,10 +190,11 @@ export default function TermsPage() {
               (&quot;Content&quot;), is owned by or licensed to {BRAND.name}.
             </p>
             <p className="text-sm leading-relaxed" style={bodyText}>
-              <strong style={{ color: T.text }}>Viewing Rights:</strong> Your
-              purchase of a Series Unlock or a subscription grants you a limited,
-              non-exclusive, non-transferable, revocable license to stream
-              unlocked Content for personal, non-commercial use only.
+              <strong style={{ color: T.text }}>Viewing Rights:</strong> Free
+              access, a Series Unlock, or an active subscription grants you a
+              limited, non-exclusive, non-transferable, revocable license to
+              stream available Content for personal, non-commercial use only,
+              subject to these Terms.
             </p>
             <p className="text-sm leading-relaxed" style={bodyText}>
               <strong style={{ color: T.text }}>Restrictions:</strong> You may
@@ -308,7 +333,8 @@ export default function TermsPage() {
             <a href="mailto:legal@verzatv.com" style={{ color: T.accent }}>
               legal@verzatv.com
             </a>
-            .
+            , or by mail at VERZA TV LLC, 650 E Palisade Ave, Ste 2329,
+            Englewood Cliffs, NJ 07632, United States.
           </p>
         </div>
       </div>

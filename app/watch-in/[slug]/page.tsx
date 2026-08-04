@@ -116,27 +116,27 @@ export default async function WatchInLocationPage({ params }: Props) {
 
   const tzNote =
     loc.type === "country"
-      ? `VERZA TV streams to every region of ${loc.name} with no geographic blackout. The full catalog is available on demand in your local time — open the app and the newest episodes are ready to watch.`
-      : `VERZA TV is available everywhere in ${loc.name} with no regional blackout. New episodes drop on demand and are ready to stream the moment they go live nationwide.`;
+      ? `VERZA TV can be accessed in ${loc.name} where network, title-rights, and service availability permit. Catalog availability can change by title and location.`
+      : `VERZA TV can be accessed in ${loc.name} where network, title-rights, and service availability permit. Catalog availability can change over time.`;
 
   const faqs = [
     {
       question: `Is VERZA TV available in ${loc.name}?`,
-      answer: `Yes. VERZA TV streams in ${loc.name} with no regional blackout. You can watch all 80+ original micro-drama series on demand in your local time, on any phone, tablet, or computer with a browser.`,
+      answer: `VERZA TV can be accessed in ${loc.name} where network, title-rights, and service availability permit. The live catalog and supported devices shown by the service are authoritative.`,
     },
     {
       question: `How much does VERZA TV cost in ${loc.name}?`,
       answer:
-        "There's no subscription required to start. Every series begins with 5 free episodes. After that you unlock additional episodes with coins, or go all-in with VIP at $9.99/month or $79.99/year for unlimited access to the full catalog.",
+        "Each live title identifies its current free episodes. On supported purchase surfaces, eligible titles offer a $1.99 one-time Series Unlock. If a VIP plan is currently available, that purchase surface shows its recurring price and interval. Stripe shows the actual checkout total, including any applicable tax, before payment.",
     },
     {
       question: `Can I watch VERZA TV for free in ${loc.name}?`,
-      answer: `Absolutely. The first 5 episodes of every series on VERZA TV are free, so viewers in ${loc.name} can sample as many shows as they like at no cost before deciding to unlock the rest with coins.`,
+      answer: `Live titles identify their current free episodes, and several short titles are wholly free. Availability in ${loc.name} remains subject to network, service, and content-rights restrictions.`,
     },
     {
       question: `What devices can I use to watch VERZA TV in ${loc.name}?`,
       answer:
-        "VERZA TV works in any modern web browser on iPhone, Android, iPad, Mac, and PC. The micro-dramas are filmed in vertical 9:16, so they're built for phone-first, one-handed viewing wherever you are.",
+        "VERZA TV supports its current web, iOS, and Android surfaces. Device, browser, title, and network compatibility can vary; each title page shows its current format and access details.",
     },
   ];
 
@@ -146,7 +146,7 @@ export default async function WatchInLocationPage({ params }: Props) {
       <JsonLd
         data={[
           itemListSchema({
-            name: `Most-Watched VERZA TV Series in ${loc.name}`,
+            name: `VERZA TV Series to Explore in ${loc.name}`,
             description: loc.blurb,
             items: curated.map((s, i) => ({
               name: s.title,
@@ -219,7 +219,7 @@ export default async function WatchInLocationPage({ params }: Props) {
             {curated.length} Series
           </span>
           <span className="text-xs" style={{ color: T.textMute }}>
-            {loc.region} &middot; No blackout
+            {loc.region} &middot; Availability may vary
           </span>
         </div>
       </section>
@@ -230,7 +230,7 @@ export default async function WatchInLocationPage({ params }: Props) {
           className="text-sm font-semibold uppercase tracking-wider mb-3"
           style={{ color: T.textMute }}
         >
-          Most-Watched in {loc.name}
+          Curated for {loc.name}
         </h2>
 
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
@@ -265,7 +265,9 @@ export default async function WatchInLocationPage({ params }: Props) {
                   className="absolute bottom-1.5 left-1.5 text-[9px] font-bold uppercase px-1.5 py-0.5 rounded"
                   style={{ background: T.accent, color: T.text }}
                 >
-                  5 Free
+                  {series.freeEpisodes >= series.episodeCount
+                    ? "All Free"
+                    : `${series.freeEpisodes} Free`}
                 </div>
               </div>
               <p

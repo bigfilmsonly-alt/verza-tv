@@ -10,7 +10,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
 
 const PAGE_TITLE = `Microdrama Guides | ${BRAND.name}`;
 const PAGE_DESC =
-  "Plain-English guides to microdramas and vertical drama: what they are, how to watch, how coins work, whether they're free, and the history of the format.";
+  "Plain-English guides to microdramas and vertical drama: what they are, how to watch, how access models differ, and the history of the format.";
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,
@@ -69,7 +69,7 @@ export default function GuidesIndexPage() {
         <p className="text-sm leading-relaxed mb-6 max-w-xl" style={{ color: T.textDim }}>
           New to vertical drama? These guides explain everything in plain
           English — what a microdrama actually is, how to start watching, how
-          coins and free episodes work, and where the format came from. Each one
+          access models and free previews work, and where the format came from. Each one
           is a quick, honest read built to answer the questions real viewers
           ask.
         </p>

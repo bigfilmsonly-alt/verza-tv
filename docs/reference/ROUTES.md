@@ -1,73 +1,119 @@
-# Routes
+# Route reference
 
-## Pages (24)
+Last reconciled: **2026-08-03**. The source tree contains 60 `page.tsx` files,
+42 `app/api/**/route.ts` handlers, and seven SEO/meta route handlers. Counts are
+file inventories, not proof that every route is enabled or deployed.
 
-| Route | Type | File | Purpose | Data Source |
-|-------|------|------|---------|-------------|
-| `/` | SSR + Client | `app/page.tsx` | Homepage with tabbed browse (BrowsePage) | `catalog.ts`, `getLiveSeries()`, `getSeriesByCategory()` |
-| `/about` | Server | `app/about/page.tsx` | Company info, founder, Filmology Labs | `config.ts` (BRAND), `schemas.ts` |
-| `/channels` | Server | `app/channels/page.tsx` | Browse by channel (Verza Originals, etc.) | `catalog.ts` (`getChannels`, `getSeriesByChannel`) |
-| `/discover` | Server | `app/discover/page.tsx` | Discovery hub with search + category grid + all series list | `catalog.ts`, `SearchBar` component |
-| `/discover/[genre]` | SSG | `app/discover/[genre]/page.tsx` | Genre-filtered series list (SEO landing page) | `catalog.ts`, `BROWSE_TABS`, `breadcrumbSchema` |
-| `/genre/[genre]` | SSG | `app/genre/[genre]/page.tsx` | Genre landing page with rich descriptions | `catalog.ts` (`getSeriesByGenre`), `itemListSchema` |
-| `/help` | Server | `app/help/page.tsx` | FAQ page with structured data | `config.ts` (pricing constants), `faqSchema` |
-| `/me` | Server | `app/me/page.tsx` | User account dashboard (coins, library, settings) | Supabase auth (stubbed) |
-| `/me/list` | Server | `app/me/list/page.tsx` | User watchlist / saved shows | Supabase auth (stubbed) |
-| `/press` | Server | `app/press/page.tsx` | Press page with brand facts and media resources | `config.ts` (BRAND) |
-| `/privacy` | Server | `app/privacy/page.tsx` | Privacy policy (draft, flagged for legal review) | Static content |
-| `/refund-policy` | Server | `app/refund-policy/page.tsx` | Refund policy (draft, flagged for legal review) | Static content |
-| `/search` | Server | `app/search/page.tsx` | Full search page with results grid | `catalog.ts` |
-| `/series/[slug]` | SSG | `app/series/[slug]/page.tsx` | Series detail: poster hero, metadata, cast, tags, episode list, season pass | `getSeriesWithDetail()`, `getEpisodesForSeries()`, `seriesSchema` |
-| `/series/[slug]/[episode]` | SSG | `app/series/[slug]/[episode]/page.tsx` | Episode player (free) or coin paywall (paid), episode nav, all episodes list | `getEpisode()`, `getPlayback()`, `episodeSchema` |
-| `/shop` | Server | `app/shop/page.tsx` | Merch store grid | `products.ts`, `CartButton` |
-| `/shop/[slug]` | SSG | `app/shop/[slug]/page.tsx` | Product detail with image carousel + add to cart | `products.ts` (`getProductBySlug`), `AddToCartButton` |
-| `/shorts` | Server | `app/shorts/page.tsx` | TikTok-style vertical swipe feed of preview clips | `getLiveSeries()`, `ShortsFeed` client component |
-| `/sign-in` | Server | `app/sign-in/page.tsx` | Sign-in form (Google/Apple OAuth) | Supabase auth (stubbed) |
-| `/sign-up` | Server | `app/sign-up/page.tsx` | Sign-up form | Supabase auth (stubbed) |
-| `/studio` | Server | `app/studio/page.tsx` | AI Creation Studio placeholder (Phase 5) | Static content |
-| `/terms` | Server | `app/terms/page.tsx` | Terms of service (draft, flagged for legal review) | Static content |
-| `not-found` | Server | `app/not-found.tsx` | Custom 404 page | Static content |
+Latest production readback verifies August 3 legal/support, payment
+compatibility capabilities, signed paid playback, and the exact 19-event Stripe
+webhook. The hardened creator Mux webhook is also deployed and fail-closed at
+503 while its verification secret is intentionally absent. Required
+Terms/portal/smoke remain open. See
+[`../LAUNCH-TRUTH.md`](../LAUNCH-TRUTH.md).
 
-**SSG notes:**
-- Series pages: all live series get static params via `generateStaticParams`
-- Episode pages: first 10 episodes of each live series are pre-rendered
-- Shop products: all 10 products are pre-rendered
-- Genre pages: all genre slugs are pre-rendered
+## Consumer catalog and playback pages
 
-## API Routes (15)
+| Route family | Purpose / boundary |
+| --- | --- |
+| `/` | Server-rendered catalog shell plus interactive browse |
+| `/discover`, `/discover/[genre]` | Discovery/category pages |
+| `/genre/[genre]`, `/genres`, `/genres/[slug]` | Genre discovery/SEO families |
+| `/search` | Catalog search |
+| `/series/[slug]` | Series metadata, episodes, supported-platform Series Unlock surface |
+| `/series/[slug]/[episode]` | Free/entitled playback or eligible-platform paywall |
+| `/shorts` | Free-preview discovery feed |
+| `/horizontal` | Widescreen content surface |
+| `/library`, `/me/list` | Saved/owned viewing surfaces |
 
-| Route | Method | File | Purpose | Status |
-|-------|--------|------|---------|--------|
-| `/api/ai-host` | POST | `app/api/ai-host/route.ts` | AI Host recommendations via Anthropic Claude | Live (needs API key) |
-| `/api/auth/callback` | GET | `app/api/auth/callback/route.ts` | Supabase OAuth callback (code exchange) | Stubbed |
-| `/api/checkout` | POST | `app/api/checkout/route.ts` | Stripe Checkout session for merch cart | Stubbed |
-| `/api/coins/balance` | GET | `app/api/coins/balance/route.ts` | Get user's coin balance | Stubbed (returns 500 coins) |
-| `/api/coins/purchase` | POST | `app/api/coins/purchase/route.ts` | Purchase coin pack via Stripe PaymentIntent | Stubbed |
-| `/api/entitlements` | GET, POST | `app/api/entitlements/route.ts` | List / grant episode entitlements | Stubbed |
-| `/api/entitlements/check` | GET | `app/api/entitlements/check/route.ts` | Check if user is entitled to a specific episode | Stubbed (free eps always entitled) |
-| `/api/og/[slug]` | GET | `app/api/og/[slug]/route.ts` | Dynamic OG image: redirects to series poster | Live |
-| `/api/playback/[episode]` | GET | `app/api/playback/[episode]/route.ts` | Get Mux playback URL for an episode (slug--epNum format) | Live |
-| `/api/stripe/webhook` | POST | `app/api/stripe/webhook/route.ts` | Stripe webhook handler (payment confirmation -> coin credit) | Stubbed |
-| `/api/studio/generate` | POST | `app/api/studio/generate/route.ts` | AI Studio content generation | Placeholder (Phase 5, returns 501) |
-| `/api/unlock` | POST | `app/api/unlock/route.ts` | Unlock single episode with coins | Stubbed |
-| `/api/unlock/season-pass` | POST | `app/api/unlock/season-pass/route.ts` | Purchase season pass with coins | Stubbed |
-| `/api/uploads` | POST | `app/api/uploads/route.ts` | Upload pipeline for creator content | Placeholder (Phase 6, returns 501) |
+Web availability does not define native iOS availability. Native iOS refilters
+Discover/Search/genre to live titles and redirects non-live series/episode deep
+links before data/auth/Mux work. Payment-bearing route families remain reader
+mode there.
 
-## SEO Routes (5)
+## Account, support, and legal pages
 
-| Route | Method | File | Purpose |
-|-------|--------|------|---------|
-| `/robots.txt` | GET | `app/robots.txt/route.ts` | Conditional robots.txt (noindex on preview deploys, allow on production) |
-| `/sitemap.xml` | GET | `app/sitemap.xml/route.ts` | Sitemap index pointing to 4 child sitemaps |
-| `/sitemaps/shows.xml` | GET | `app/sitemaps/shows.xml/route.ts` | All live series URLs |
-| `/sitemaps/episodes.xml` | GET | `app/sitemaps/episodes.xml/route.ts` | All episode URLs for live series |
-| `/sitemaps/genres.xml` | GET | `app/sitemaps/genres.xml/route.ts` | Genre + discover category URLs |
-| `/sitemaps/pages.xml` | GET | `app/sitemaps/pages.xml/route.ts` | Static page URLs (home, discover, channels, shop, about, etc.) |
-| `/llms.txt` | GET | `app/llms.txt/route.ts` | LLM-readable structured site description |
+| Route | Purpose |
+| --- | --- |
+| `/sign-in`, `/sign-up` | Supabase authentication |
+| `/me` | Current account, library, existing status, settings, deletion |
+| `/help`, `/support`, `/contact` | Support and contact surfaces |
+| `/terms`, `/privacy`, `/refund-policy` | Legal policy pages |
+| `/editorial-standards` | Editorial policy |
 
-## Total Route Count
+August 3 legal/support is live and read back at the canonical origin. Native
+core email actions still use their own handler/fallback helper and never rely on
+a dead web link.
 
-- **24 pages** (including not-found)
-- **15 API routes**
-- **7 SEO/meta routes**
-- **46 total route handlers**
+## Commerce and creator/admin pages
+
+| Route family | Source behavior | iOS 2.0 |
+| --- | --- | --- |
+| `/shop`, `/shop/[slug]` | Web official-merch catalog; Checkout feature-gated off | Native Shop is prior-order support only; not these pages |
+| `/amazon` | Web affiliate storefront | Fail-closed |
+| `/creator`, `/studio`, `/watch/[...slug]` | Web creator/UGC/admin-adjacent surfaces; creator PPV disabled | Redirect before query/render |
+| `/admin/dashboard`, `/admin/review` | Authenticated web operations | Redirect before query/render |
+
+## Editorial/company/SEO pages
+
+The source tree also includes company, founder/leadership, press/newsroom,
+investor/partnership, brand/media, collections/best/watch-in/guides/learn,
+share/clip, careers, channels, sitemap, and comparison route families.
+
+Several are deliberately unavailable in native iOS because they consume
+payment-bearing Tier-1 data or promote unsupported surfaces. Native reader-mode
+tests, not this web route list, define the exact redirect boundary.
+
+## Payment/access API routes
+
+| Method | Route | Source state |
+| --- | --- | --- |
+| `POST` | `/api/unlock` | Canonical authenticated $1.99 Series Checkout |
+| `GET` | `/api/unlock/confirm` | Exact authenticated provider-backed recovery |
+| `GET` | `/api/payments/capabilities` | Live/private: Series compatibility configured/live; both VIP false |
+| `GET` | `/api/access` | Canonical episode access |
+| `GET` | `/api/entitlements`, `/api/entitlements/check` | Current-user access data |
+| `POST` | `/api/entitlements`, `/api/entitlements/claim` | Client grants rejected (405/410) |
+| `POST` | `/api/subscribe`, `/api/subscribe/confirm` | VIP release-gated; both plans closed |
+| `POST` | `/api/billing-portal` | Exact restricted configuration required |
+| `GET` | `/api/cron/vip-renewal-reminders` | Secret-authenticated/yearly-gated |
+| `POST` | `/api/unlock/season-pass` | Retired, 410 |
+| `GET`, `POST` | `/api/coins/balance`, `/api/coins/purchase` | Retired, 501 |
+| `POST` | `/api/creator-unlock` | Disabled, 503 |
+| `POST` | `/api/checkout` | Official merch feature-gated off |
+| `GET` | `/api/checkout/native-return` | Android navigation/recovery bridge; never grants access |
+| `POST` | `/api/stripe/webhook` | Signed provider reconciliation; one canonical endpoint exact 19/19, wildcard off |
+
+Full API security and method detail: [`API-REFERENCE.md`](API-REFERENCE.md).
+
+## Playback, account, creator, and utility APIs
+
+- `/api/playback/[episode]` — free public or authorized paid/signed playback;
+- `/api/account/delete` — guarded account/provider deletion with minimal
+  payment tombstone;
+- `/api/watch-progress`, `/api/saved-list` — own-user state;
+- `/api/auth/callback` — validated OAuth exchange/return;
+- `/api/creator/beta` — same-origin, rate-limited/honeypotted name/email lead
+  notification only; no creator approval, ingestion, payment, or entitlement;
+- `/api/creator/*`, `/api/admin/*` — web creator/admin pipeline;
+- `/api/mux/webhook` — verified creator asset events; currently 503/unavailable
+  until the production verification secret and signed-event canary exist;
+- `/api/events` — non-revenue analytics only;
+- `/api/ai-host`, `/api/studio/generate`, `/api/uploads` — optional/deferred
+  feature routes;
+- `/api/push/subscribe`, `/api/push/send` — web push; and
+- `/api/og/[slug]` — Open Graph behavior.
+
+## SEO/meta route handlers
+
+| Route | Purpose |
+| --- | --- |
+| `/robots.txt` | Production indexability vs preview noindex |
+| `/sitemap.xml` | Sitemap index |
+| `/sitemaps/shows.xml` | Live show URLs |
+| `/sitemaps/episodes.xml` | Live episode URLs; durable Mux media only for free episodes |
+| `/sitemaps/genres.xml` | Genre/discovery URLs |
+| `/sitemaps/pages.xml` | Static/editorial URLs |
+| `/llms.txt` | LLM-readable site description |
+
+Paid and coming-soon Mux capabilities may never appear in page payloads,
+JSON-LD, sitemaps, or `llms.txt`.

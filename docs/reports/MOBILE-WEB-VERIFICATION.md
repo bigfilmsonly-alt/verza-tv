@@ -1,5 +1,9 @@
 # Mobile Web Verification — www.verzatv.com
 
+> **ARCHIVE — dated production observation.** HTTP, build, payment, database,
+> and media results can change and are not current release evidence. Re-run
+> canonical readbacks; see [`../LAUNCH-TRUTH.md`](../LAUNCH-TRUTH.md).
+
 _Live verification of the production mobile web experience. Every result below
 is from a real check against the live site (iPhone Safari user-agent), the
 production build, the deployed environment, and the live database — run

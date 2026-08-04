@@ -59,9 +59,9 @@ export default function InvestorsPage() {
           Investor Relations
         </h1>
         <p className="text-sm mb-8 leading-relaxed" style={{ color: T.textDim }}>
-          {BRAND.name} is building the leading American platform for vertical
-          micro-drama. This page summarizes who we are, where the opportunity
-          sits, and how to reach our team.
+          {BRAND.name} is building an American platform for vertical
+          micro-drama. This page summarizes the current operating model and how
+          to reach the team.
         </p>
 
         {/* Overview */}

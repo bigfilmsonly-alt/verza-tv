@@ -17,14 +17,14 @@ export const LEARN_PAGES: LearnPage[] = [
     slug: "what-is-a-micro-drama",
     title: "What Is a Micro-Drama?",
     description:
-      "Micro-dramas are short-form serialized stories told in episodes of 60 to 120 seconds. Learn how this format is changing entertainment.",
-    body: `A micro-drama is a serialized story told in very short episodes — typically 60 to 120 seconds each. Unlike traditional TV episodes that run 22 to 60 minutes, micro-dramas deliver complete narrative beats in under two minutes, designed for mobile viewing.
+      "Micro-dramas are short-form serialized stories delivered in brief episodes. Learn how the phone-first format works and how runtimes can vary.",
+    body: `A micro-drama is a serialized story told in brief episodes designed for mobile viewing. Runtime, aspect ratio, and season length vary across titles and services.
 
-The format originated in China, where apps like ShortTV and ReelShort popularized vertical micro-dramas with millions of daily viewers. The global micro-drama market has grown rapidly, with projections reaching billions in annual revenue.
+The format became prominent through mobile-first services and has expanded across markets. This guide does not rely on unverified audience or revenue estimates.
 
-Micro-dramas work because they match how people actually use their phones: in short bursts, during commutes, breaks, and downtime. Each episode ends on a cliffhanger that drives the viewer to the next, creating a binge pattern that fits into any schedule.
+Micro-dramas are designed for brief phone-viewing sessions. Serialized chapters often use unresolved story beats to connect one episode to the next.
 
-On VERZA TV, every series follows this format: vertical 9:16 episodes, each under two minutes, with serialized storylines across genres including romance, thriller, revenge drama, mystery, and more. The first five episodes of every series are free.`,
+VERZA TV's core microdramas use a vertical 9:16 format and short serialized episodes, while reality, music, podcast, red-carpet, and other titles can use different formats and lengths. Each live title page identifies the episodes currently available free before any paid access begins.`,
     editorialApproved: true,
   },
   {
@@ -38,21 +38,21 @@ This format was popularized by TikTok, Instagram Reels, and YouTube Shorts for s
 
 The key insight is that most video consumption now happens on mobile devices. Traditional 16:9 content leaves over 40% of the phone screen unused. Vertical content fills the entire display, creating a more immersive, focused viewing experience.
 
-VERZA TV produces all content in vertical format with cinema-quality production. Every frame is composed for the vertical screen, not cropped from horizontal footage. This intentional approach to vertical storytelling is what sets the platform apart.`,
+Many VERZA TV microdramas are composed for a vertical screen rather than cropped from widescreen footage. Other catalog categories can use a different aspect ratio or production style, so check the selected title rather than assuming every program has the same format.`,
     editorialApproved: true,
   },
   {
     slug: "how-vertical-series-work",
     title: "How Vertical Series Work",
     description:
-      "From production to your phone: how VERZA TV creates and delivers vertical micro-drama series with cinema-quality production.",
+      "From production to your phone: how VERZA TV delivers short-form vertical series.",
     body: `A vertical series on VERZA TV is a serialized story told across multiple short episodes, each filmed in 9:16 portrait format. Here's how it works:
 
-Production: Every series is produced at Filmology Labs, a $250M production facility in Paterson, New Jersey, equipped with 21 soundstages and an LED volume wall for virtual production. Scripts are written specifically for the micro-drama format, with each episode designed to end on a cliffhanger.
+Production: Production and licensing vary by title. Core microdramas are structured as short serialized chapters, often using cliffhangers to connect episodes.
 
-Format: Episodes run 60 to 120 seconds each. A typical series has 60 to 100 episodes, telling a complete story arc. The short episode length makes production efficient while keeping audiences engaged.
+Format: Episode length, aspect ratio, and episode count vary by title. The selected series page is the authority for its current episode list.
 
-Distribution: Episodes are streamed via Mux, delivering adaptive-quality HLS video that adjusts to your connection speed. The first five episodes of every series are free. To continue watching, viewers can unlock the full series for $1.99 (Summer Sale) or subscribe to VIP for unlimited access to the entire library.
+Distribution: Episodes are streamed via Mux using adaptive HLS video. Each live title identifies its current free-access limit. On supported purchase surfaces, eligible titles offer a $1.99 one-time Series Unlock for remaining available episodes; a VIP plan provides paid access while active only when that plan is currently displayed on the purchase surface.
 
 Viewing: Series are designed for binge-watching. When one episode ends, the next auto-plays. The vertical format means you never need to rotate your phone — just hold it naturally and watch.`,
     editorialApproved: true,

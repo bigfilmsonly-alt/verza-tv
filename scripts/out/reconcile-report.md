@@ -1,4 +1,14 @@
 # Mux Mapping Reconciliation Report
+
+> **ARCHIVED GENERATED ARTIFACT — 2026-06-17 INPUTS.** This ignored file is
+> retained only as evidence of an earlier inventory run. Its 4,472-asset,
+> 4,146-mapped, and 76-series figures are obsolete and must not drive a release.
+> Current 2026-08-03 launch truth is documented in
+> [`../../docs/LAUNCH-TRUTH.md`](../../docs/LAUNCH-TRUTH.md): 4,262 mapped rows,
+> 4,212 live-title rows, 459 intentionally public capabilities, and 3,803
+> withheld capabilities. Generate a new report from current provider state for
+> any fresh reconciliation; do not hand-edit the historical body below.
+
 Generated: 2026-06-17T14:39:20.357Z
 
 ## Summary

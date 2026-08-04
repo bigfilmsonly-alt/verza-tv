@@ -8,26 +8,23 @@ import JsonLd from "@/components/JsonLd";
 export const metadata: Metadata = {
   title: `Press | ${BRAND.name}`,
   description:
-    "VERZA TV press page. Brand facts, key metrics, and media resources for the first US-based vertical micro-drama streaming platform.",
+    "VERZA TV press page with current brand facts and media contact information.",
   alternates: { canonical: "/press" },
 };
 
 const BRAND_FACTS = [
-  { label: "Platform", value: "First US-based vertical micro-drama streaming app" },
+  { label: "Platform", value: "Short-form vertical entertainment" },
   { label: "Founded By", value: "Alan Mruvka, co-founder of E! Entertainment Television" },
-  { label: "Content Library", value: `${getLiveSeries().length}+ original series at launch` },
-  { label: "Episode Format", value: "60-120 seconds, vertical 9:16" },
-  { label: "Platforms", value: "Web (iOS and Android coming soon)" },
-  { label: "Monetization", value: "$1.99 series unlock (Summer Sale) + VIP subscription" },
-  { label: "Free Episodes", value: "First 5 episodes of every series" },
+  { label: "Content Library", value: `${getLiveSeries().length} currently live series` },
+  { label: "Episode Format", value: "Short-form vertical 9:16; length varies by title" },
+  { label: "Platforms", value: "Web, iOS, Android" },
+  { label: "Monetization", value: "$1.99 one-time Series Unlock + VIP subscription" },
+  { label: "Free Preview", value: "Current free-episode count shown per title" },
 ];
 
 const FILMOLOGY_FACTS = [
-  { label: "Investment", value: "$250M production facility" },
   { label: "Location", value: "Paterson, New Jersey" },
-  { label: "Soundstages", value: "21 soundstages" },
-  { label: "LED Volume Wall", value: "State-of-the-art virtual production" },
-  { label: "Total Footprint", value: "250,000 sq ft" },
+  { label: "Role", value: "Short-form content production" },
 ];
 
 export default function PressPage() {
@@ -56,9 +53,9 @@ export default function PressPage() {
           className="text-base font-semibold leading-relaxed"
           style={{ color: T.text }}
         >
-          {BRAND.name} is the first US-based vertical micro-drama streaming
-          platform. Founded by Alan Mruvka, co-founder of E! Entertainment
-          Television.
+          {BRAND.name} is a phone-first platform for short-form vertical
+          entertainment. It was founded by Alan Mruvka, co-founder of E!
+          Entertainment Television.
         </p>
       </div>
 
@@ -144,12 +141,12 @@ export default function PressPage() {
         ))}
       </div>
 
-      {/* Market */}
+      {/* Format */}
       <h2
         className="text-sm font-semibold uppercase tracking-wider mb-3"
         style={{ color: T.accent }}
       >
-        Market
+        Format
       </h2>
       <div
         className="rounded-xl p-4 mb-8"
@@ -159,12 +156,9 @@ export default function PressPage() {
         }}
       >
         <p className="text-sm leading-relaxed" style={{ color: T.text }}>
-          The global vertical micro-drama market is valued at{" "}
-          <span style={{ color: T.coin, fontWeight: 600 }}>
-            $6.5 billion
-          </span>{" "}
-          and growing rapidly. {BRAND.name} is positioned as the premier
-          US-based platform in this space.
+          {BRAND.name} distributes short-form vertical entertainment through
+          web and mobile experiences. Episode lengths, title availability, and
+          access options are presented on the relevant title pages.
         </p>
       </div>
 

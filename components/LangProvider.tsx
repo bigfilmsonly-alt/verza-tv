@@ -36,7 +36,7 @@ export function LangProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY) as Locale | null;
     if (saved && dictionaries[saved]) {
-      setLocaleState(saved);
+      queueMicrotask(() => setLocaleState(saved));
       document.documentElement.lang = saved;
     }
   }, []);

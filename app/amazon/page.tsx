@@ -37,8 +37,18 @@ export default function AmazonPage() {
           className="text-[10px] font-semibold uppercase tracking-wider mt-2"
           style={{ color: "#FF9900" }}
         >
-          Sponsored · Amazon
+          Sponsored · Ad · Amazon
         </p>
+        <p className="mt-1 text-[10px]" style={{ color: T.textMute }}>
+          Not personalized
+        </p>
+        <a
+          href="mailto:support@verzatv.com?subject=Report%20an%20Ad%3A%20Amazon&body=Advertiser%3A%20Amazon%0APlacement%3A%20Amazon%20store%0A%0APlease%20describe%20why%20this%20ad%20may%20be%20inappropriate%20or%20age-inappropriate%3A"
+          className="inline-block mt-2 text-[11px] underline"
+          style={{ color: T.textMute }}
+        >
+          Report an Ad
+        </a>
       </div>
 
       {/* How the bag works. Says plainly where money changes hands, which the
@@ -59,7 +69,7 @@ export default function AmazonPage() {
 
       {AMAZON_PRODUCTS.length === 0 ? (
         <p className="text-sm py-10 text-center" style={{ color: T.textMute }}>
-          No products right now. Check back soon.
+          No products are currently listed.
         </p>
       ) : (
         <div className="grid grid-cols-2 gap-x-3 gap-y-5">
@@ -85,7 +95,7 @@ export default function AmazonPage() {
 
       <div className="mt-6 text-center">
         <Link href="/shop" className="text-[12px] font-semibold no-underline" style={{ color: T.accent }}>
-          Looking for official VERZA merch? Shop here
+          Browse more sponsored picks
         </Link>
       </div>
     </section>

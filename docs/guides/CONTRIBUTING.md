@@ -1,12 +1,16 @@
 # Contributing to Verza TV
 
+Last reconciled: **2026-08-03**. Read [`../../AGENTS.md`](../../AGENTS.md) and
+[`../LAUNCH-TRUTH.md`](../LAUNCH-TRUTH.md) first; payment, Mux, catalog, legal,
+and native-contract changes have additional release gates.
+
 ## Getting Started
 
 1. Clone the repo and install dependencies:
    ```bash
    npm install
    ```
-2. Copy `.env.example` to `.env.local` and fill in your keys.
+2. Copy `.env.local.example` to `.env.local` and fill in approved local values.
 3. Start the dev server:
    ```bash
    PORT=3005 npm run dev
@@ -15,9 +19,12 @@
 
 ## Branch Strategy
 
-- `main` is the production branch. A push to `main` builds a production-target
-  deployment but does NOT promote the live domain — run `npx vercel --prod` to go
-  live at www.verzatv.com. See `guides/DEPLOYMENT.md`.
+- `main` is the production branch. Its integration may create a production-target
+  Vercel deployment, but it does not itself promote the canonical live alias in
+  the observed project workflow. Release with `npx vercel --prod --yes`, then
+  read back the intended deployment at `https://www.verzatv.com`; neither a push
+  nor an uploaded deployment is release evidence by itself. See
+  [`DEPLOYMENT.md`](DEPLOYMENT.md).
 - Create feature branches off `main`: `feature/your-feature-name`
 - Preview deploys are created automatically for non-main branches.
 
@@ -27,7 +34,9 @@
 - **Tailwind v4** for styling. Theme tokens are defined in `@theme inline` blocks in `globals.css`, not in a config file.
 - **Server-first rendering.** Use Server Components by default. Only add `"use client"` when the component genuinely needs browser APIs or interactivity.
 - **Async request APIs.** All Next.js request helpers are async: `await cookies()`, `await headers()`, `await params`.
-- **No secrets on the client.** Never expose API keys, signing secrets, or signed URLs to client-side code. Only `NEXT_PUBLIC_*` variables are safe for the browser.
+- **No secrets/capabilities on the client.** Never expose API keys, signing
+  secrets, protected Mux IDs, or signed URLs. `NEXT_PUBLIC_*` means visible,
+  not automatically safe; only deliberately public values belong there.
 
 ## File Naming
 
@@ -37,7 +46,9 @@
 
 ## Adding Content
 
-See `docs/RUNBOOK.md` for step-by-step instructions on adding series, episodes, transcripts, and merch products.
+See [`CONTENT.md`](CONTENT.md) and [`RUNBOOK.md`](RUNBOOK.md). A catalog change
+also requires public/signed Mux regeneration, native byte-sync, and client
+capability scans; never hand-edit the native copy.
 
 ## Commit Messages
 
@@ -52,19 +63,24 @@ Keep the first line under 72 characters. Add a blank line and details below if n
 
 - Keep PRs focused on a single concern.
 - Include a brief description of what changed and why.
-- Ensure `npm run build` passes before opening a PR.
+- Run the applicable payment/playback gates, typecheck, lint, and build before
+  opening a PR.
 - Preview deploy links are generated automatically -- include a note about what to test.
 
 ## Testing
 
-- Run `npm run build` to catch type errors and build issues.
+- Baseline: `npm run test:playback-security`, `npm run test:payments`,
+  `npm run test:payments:db`, `npx tsc --noEmit`, `npm run lint`, and
+  `npm run build`.
 - Manually test on both desktop and mobile viewports.
 - For video changes, test on Safari (native HLS) and Chrome (hls.js).
 
 ## Documentation
 
-- Update `docs/CHANGELOG.md` when shipping user-facing changes.
-- Update `docs/RUNBOOK.md` when operational procedures change.
+- Update `docs/CHANGELOG.md` when a user-facing change is actually shipped;
+  label staged/unreleased work explicitly.
+- Update `docs/LAUNCH-TRUTH.md` plus every affected runbook/reference when an
+  operational contract or production readback changes.
 - Do not commit `.env.local` or any file containing real credentials.
 
 ## Questions

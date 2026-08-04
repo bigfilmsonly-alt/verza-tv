@@ -1,5 +1,9 @@
 # Verza TV — Dev Report (2026-07-03)
 
+> **ARCHIVE — 2026-07-03 snapshot.** Counts, feature state, pricing, and
+> verification below are historical. Current release truth:
+> [`../LAUNCH-TRUTH.md`](../LAUNCH-TRUTH.md).
+
 _Session report covering the resume/re-engagement feature, the install prompt,
 brand-icon refresh, tab-navigation change, section polish, and docs
 reorganization. All figures pulled from real `git` / build output._

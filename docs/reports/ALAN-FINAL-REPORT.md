@@ -1,5 +1,10 @@
 # VERZA TV — FINAL PROJECT REPORT
 
+> **ARCHIVE — snapshot dated June 22, 2026.** Pricing, catalog/Mux counts,
+> payment/VIP readiness, webhook coverage, revenue, and “live” claims below are
+> historical and must not guide release work. Current authority:
+> [`../LAUNCH-TRUTH.md`](../LAUNCH-TRUTH.md).
+
 **To:** Alan Mruvka
 **From:** Jotham Hall
 **Date:** June 22, 2026

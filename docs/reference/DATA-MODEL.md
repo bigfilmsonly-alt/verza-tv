@@ -1,385 +1,211 @@
-# Data Model
+# Data model
 
-All data types and tables used across the Verza TV platform.
+Last reconciled: **2026-08-03**. SQL migrations plus production readback are
+database authority. `lib/supabase/schema.ts` still contains several legacy
+minimal interfaces and must not be used as a complete database catalog.
 
----
+## Code-backed editorial content
 
-## 1. Code-Based Content (Live Now)
+`BrowseCategory` is `"drama" | "new" | "popular" | "tubi" | "anime" |
+"espanol" | "bollywood" | "creators" | "music" | "reality" |
+"red-carpet"`. The web UI folds `new` into Hot, treats Tubi as an
+authorized-partner click-through rather than a Verza series collection, and
+renders Anime, Español, Bollywood, and Creators as placeholders until their
+catalog categories contain releasable titles. Reality titles are excluded from
+the Drama grid; Storage Pirates therefore belongs to Reality only on web.
 
-These TypeScript types power the current production content. No database required.
+### Catalog
 
-### `lib/catalog.ts` -- Series
+`lib/catalog.ts` contains 80 `Series` rows:
 
-The primary catalog of all shows on the platform.
+- 79 live and one coming soon;
+- 74 paid-live and five wholly free live titles; and
+- 4,212 mapped episode rows belonging to live titles.
 
-```ts
-interface Series {
-  slug: string;              // URL-safe identifier, e.g. "the-blackthornes"
-  title: string;             // Display title
-  logline: string;           // One-line hook/description
-  genre: string;             // Genre string, e.g. "Romance . Comedy"
-  channel: string;           // Channel name, e.g. "Verza Originals"
-  categories: BrowseCategory[]; // Placement in browse tabs
-  popularRank?: number;      // Rank within Popular tab (1-9)
-  episodeCount: number;      // Total episodes (0 = coming soon)
-  posterUrl: string;         // Path to poster image in /public/posters/
-  freeEpisodes: number;      // Number of free episodes (always 5)
-  coinPerEpisode: number;    // Cost per paid episode (always 49)
-  seasonPassCoins: number;   // Discounted cost for all paid episodes
-  status: "live" | "coming_soon";
-  // Rich detail fields (merged from series-detail.ts at query time)
-  description?: string;
-  cast?: string[];
-  tags?: string[];
-  rating?: number;
-  year?: number;
-  posterMood?: PosterMood;
-}
-```
+Core fields include `slug`, `title`, `logline`, `genre`, `channel`,
+`categories`, `episodeCount`, `posterUrl`, `freeEpisodes`, status, and rich
+metadata fields. `freeEpisodes` is per-title authority; it is not always five.
 
-**BrowseCategory**: `"drama" | "new" | "popular" | "tubi" | "anime" | "espanol" | "bollywood" | "creators" | "music" | "reality" | "red-carpet"` (`new` folded into Hot; `tubi` = authorized partner tab linking out to tubitv.com; `anime`/`espanol`/`bollywood`/`creators` are Coming Soon with no series yet)
+`coinPerEpisode`, `seasonPassCoins`, `COIN_PACKS`, and coin-related generated
+episode fields remain legacy/future data. Coin purchase, balance, episode
+unlock, and season-pass APIs fail closed. The active paid product is a canonical
+$1.99 full-series unlock resolved by `lib/series-purchase.ts`.
 
-**PosterMood**: `"ballroom" | "noir" | "rose" | "sunset" | "ice" | "blood" | "emerald" | "violet" | "gold" | "storage"`
+`lib/series-detail.ts` supplies richer descriptions, cast, tags, ratings,
+years, and poster mood. Code-backed content is the production source;
+`CONTENT_SOURCE=supabase` is not a supported release state.
 
-**Episode** (generated at runtime via `getEpisodesForSeries()`):
-```ts
-interface Episode {
-  number: number;
-  title: string;       // "Episode N"
-  isFree: boolean;     // true for episodes 1-5
-  unlockCoins: number; // 0 if free, 49 if paid
-  durationS: number;   // Deterministic hash-based duration (60-120s)
-}
-```
+### Mux capability projections
 
-**Current count**: 76 live series + 1 coming soon = 77 total entries.
+| Module | Logical rows | Playback capabilities |
+| --- | ---: | --- |
+| `lib/mux-map.ts` | 4,262 | Complete legacy audit/data-sync anchor; generation/audit only |
+| `lib/mux-public-map.ts` | 4,262 | 459 intentionally public IDs; 3,803 IDs omitted |
+| `lib/mux-private-map.ts` | 4,262 | `server-only` gateway to complete anchor |
+| `lib/mux-signed-map.ts` | 3,753 paid-live correspondences | `server-only` signed IDs |
 
-**Helper functions**: `getLiveSeries()`, `getComingSoonSeries()`, `getSeriesByCategory()`, `getSeriesByChannel()`, `getSeriesBySlug()`, `getSeriesWithDetail()`, `getSeriesByGenre()`, `getChannels()`, `getEpisodesForSeries()`, `getEpisode()`, `formatDuration()`.
+The 3,803 withheld rows are 3,753 paid-live plus 50 coming-soon rows. Clients may
+receive logical episode/duration data without receiving a protected playback
+ID. Signed URLs are expiring response capabilities, not database/catalog data.
 
-### `lib/series-detail.ts` -- SeriesDetail
-
-Rich metadata per series, keyed by slug. Merged into Series at query time via `getSeriesWithDetail()`.
-
-```ts
-interface SeriesDetail {
-  description: string;    // Multi-sentence synopsis
-  cast: string[];         // Actor names
-  tags: string[];         // Searchable tags, e.g. ["billionaire", "enemies-to-lovers"]
-  rating: number;         // Rating out of 10 (e.g. 9.2)
-  year: number;           // Release year
-  posterMood: PosterMood; // Color mood for poster styling
-}
-```
-
-All 77 series have detail entries in the `SERIES_DETAIL` record.
-
-### `lib/mux-map.ts` -- MuxEpisode
-
-Maps each series slug + episode number to a Mux playback ID for video streaming.
-
-```ts
-interface MuxEpisode {
-  episode: number;      // Episode number
-  playbackId: string;   // Mux playback ID (e.g. "O00Zi004Ru9Y...")
-  duration: number;     // Actual duration in seconds from Mux
-}
-```
-
-**Structure**: `Record<string, MuxEpisode[]>` -- 76 series slugs, ~4,100 total episode mappings.
-
-**Helper functions**: `getPlayback(slug, episode)`, `getRandomPlayback()`.
-
-### `lib/products.ts` -- Product
-
-Merchandise catalog for the shop.
-
-```ts
-interface Product {
-  id: string;               // e.g. "prod_1"
-  slug: string;             // URL slug
-  name: string;             // Display name
-  price: number;            // Price in dollars
-  priceConfirmed: boolean;  // Whether the price has been finalized
-  category: ProductCategory;
-  images: string[];         // Paths to product images
-}
-```
-
-**ProductCategory**: `"Apparel" | "Drinkware" | "Accessories" | "Digital" | "Experiences"`
-
-**Current count**: 10 products (4 price-confirmed, 6 pending confirmation).
-
-### `lib/content/schemas.ts` -- Zod Schemas
-
-Validated content schemas used by the content adapter layer. These are the canonical types for the pluggable content system.
-
-| Schema | Key Fields |
-|--------|-----------|
-| **Show** | `id`, `slug`, `title`, `synopsis`, `genre[]`, `tags[]`, `posterUrl`, `year`, `rating`, `cast: Person[]`, `episodeCount`, `category`, `status`, `indexable`, `createdAt` |
-| **Episode** | `id`, `showSlug`, `number`, `title`, `synopsis`, `durationSeconds`, `muxPlaybackId`, `posterUrl`, `isFree`, `unlockCoins`, `transcript?`, `indexable`, `createdAt` |
-| **Person** | `id`, `slug`, `name`, `role: "actor" | "creator" | "host"`, `bio?`, `photoUrl?` |
-| **Season** | `id`, `showSlug`, `number`, `episodeCount` |
-| **Article** | `id`, `slug`, `title`, `body`, `showSlugs[]`, `tags[]`, `publishedAt`, `indexable` |
-
-Parse helpers: `parseShow()`, `parseEpisode()`, `parsePerson()`, `parseArticle()`.
-
-### `lib/config.ts` -- Constants
-
-```ts
-FREE_EPISODES = 5;
-DEFAULT_COIN_PER_EPISODE = 49;
-VIP_WEEKLY = 1999;   // cents
-VIP_YEARLY = 19900;  // cents
-```
-
-Coin packs: Starter (100 coins/$1.99), Fan (300/$4.99), Binge (700/$9.99), Super (1500/$19.99), Mega (3500/$49.99).
-
----
-
-## 2. Supabase Tables -- Live (001_schema.sql)
-
-User-facing tables with Row-Level Security. All active in production.
+## Supabase account and access data
 
 ### `profiles`
-Extends Supabase `auth.users`. One row per authenticated user.
 
-| Column | Type | Notes |
-|--------|------|-------|
-| `id` | uuid PK | References `auth.users(id)`, cascade delete |
-| `display_name` | text | |
-| `avatar_url` | text | |
-| `coin_balance` | integer | Default 0 |
-| `is_vip` | boolean | Default false |
-| `vip_expires_at` | timestamptz | |
-| `streak_days` | integer | Daily login streak |
-| `streak_last_date` | date | |
-| `language` | text | Default 'en' |
-| `created_at` | timestamptz | |
-| `updated_at` | timestamptz | |
+One row per current Supabase auth user. Relevant current fields include:
 
-**RLS**: Users can read and update their own profile only.
+- account/profile presentation and language;
+- legacy `coin_balance` (not an active sale/spend product);
+- `is_vip`, `vip_expires_at`, `vip_payment_blocked`, and
+  `vip_cancel_at_period_end`;
+- `stripe_customer_id` and `stripe_subscription_id`; and
+- `deletion_requested_at` to close Checkout/deletion races.
 
-### `coin_ledger`
-Immutable append-only ledger of all coin transactions.
-
-| Column | Type | Notes |
-|--------|------|-------|
-| `id` | uuid PK | |
-| `user_id` | uuid FK | References profiles |
-| `amount` | integer | Positive = credit, negative = debit |
-| `reason` | text | One of: `purchase`, `unlock`, `season_pass`, `ad`, `daily`, `refund`, `admin` |
-| `reference_id` | text | Stripe payment ID, episode slug, etc. |
-| `balance_after` | integer | Running balance after transaction |
-| `created_at` | timestamptz | |
-
-**RLS**: Users can read their own ledger only.
+Users can read/update only allowed own-profile data through RLS. Payment linkage
+and safety state are server-owned. A Stripe Customer may not silently move to a
+new profile merely because provider lookup failed.
 
 ### `entitlements`
-Tracks which episodes a user has unlocked.
 
-| Column | Type | Notes |
-|--------|------|-------|
-| `id` | uuid PK | |
-| `user_id` | uuid FK | References profiles |
-| `series_slug` | text | |
-| `episode_number` | integer | Null = season pass (all episodes) |
-| `granted_at` | timestamptz | |
+Current Series access is one row per `(user_id, series_slug)`. Important fields
+are `purchase_id`, nullable `episode_number`, `granted_at`, and optional expiry.
+Current Series Unlock grants use `episode_number = null` and link to the exact
+financial purchase. Grant, revoke, and restoration RPCs lock the purchase row so
+an adverse event cannot race a confirmation and resurrect access.
 
-**Unique constraint**: `(user_id, series_slug, episode_number)`.
-**RLS**: Users can read their own entitlements only.
+Clients may read their own entitlements. Only verified server/payment flows may
+grant current paid access.
 
 ### `purchases`
-Stripe/IAP payment receipts.
 
-| Column | Type | Notes |
-|--------|------|-------|
-| `id` | uuid PK | |
-| `user_id` | uuid FK | References profiles |
-| `provider` | text | `stripe`, `apple`, or `google` |
-| `provider_id` | text | Unique -- Stripe payment intent, Apple receipt, etc. |
-| `product_type` | text | `coin_pack`, `season_pass`, `vip`, or `merch` |
-| `product_id` | text | |
-| `amount_cents` | integer | |
-| `currency` | text | Default 'usd' |
-| `status` | text | `pending`, `completed`, `refunded`, or `failed` |
-| `created_at` | timestamptz | |
+Migration `008` rebuilt the original 001 receipt shape for current Stripe
+Checkout. Migrations `010`–`013` add current integrity. Principal fields:
 
-**RLS**: Users can read their own purchases only.
+| Field | Meaning |
+| --- | --- |
+| `id` | Internal immutable purchase UUID |
+| `user_id` | Nullable owner; becomes null when retained financial evidence outlives account |
+| `type` | `merch`, `series_unlock`, `subscription`, or `vip_renewal` |
+| `series_slug` | Canonical Series target where applicable |
+| `stripe_session_id` | Unique nullable Checkout Session ID |
+| `stripe_payment_intent` | Unique nullable PaymentIntent ID |
+| `subtotal_cents` | Pretax product amount |
+| `tax_cents` | Collected tax; currently zero with automatic tax off |
+| `total_cents` / `amount_cents` | Gross paid total; constrained equal |
+| `refunded_cents` / `refunded_at` | Cumulative provider reconciliation |
+| `currency` | Canonical lowercase currency, currently USD products |
+| `status` | `pending`, `completed`, `partially_refunded`, `refunded`, `failed`, `disputed`, or `disputed_lost` |
+| `metadata` | Server-generated non-authoritative supporting data |
 
-### `watch_progress`
-Continue-watching state per user per episode.
+Financial arithmetic, canonical product type/status, and provider uniqueness are
+database constrained. Client values never establish product, amount, owner, or
+status.
 
-| Column | Type | Notes |
-|--------|------|-------|
-| `user_id` | uuid FK | PK part 1 |
-| `series_slug` | text | PK part 2 |
-| `episode_number` | integer | PK part 3 |
-| `progress_seconds` | integer | Default 0 |
-| `completed` | boolean | Default false |
-| `updated_at` | timestamptz | |
+### `watch_progress` and saved list
 
-**PK**: `(user_id, series_slug, episode_number)`.
-**RLS**: Users can CRUD their own watch progress.
+`watch_progress` keys user/series/episode and stores progress, completion, and
+update time. The saved-list table keys user/series. RLS limits each to the
+current user. These tables do not grant paid access.
 
-### `my_list`
-Saved/bookmarked shows per user.
+### `coin_ledger`
 
-| Column | Type | Notes |
-|--------|------|-------|
-| `user_id` | uuid FK | PK part 1 |
-| `series_slug` | text | PK part 2 |
-| `added_at` | timestamptz | |
+The table remains from the original schema, but no current client endpoint
+credits, buys, debits, or spends coins. Do not describe it as an active ledger
+until a reviewed atomic coin product, Refund/reversal policy, webhook contract,
+and App Store compliance plan exist.
 
-**RLS**: Users can CRUD their own list.
+## Service-only payment integrity tables
 
-### `channels`
-Channel metadata (e.g. "Verza Originals").
+All tables below have RLS enabled, anon/authenticated privileges revoked, and
+service-role access only.
 
-| Column | Type | Notes |
-|--------|------|-------|
-| `id` | uuid PK | |
-| `slug` | text | Unique |
-| `name` | text | |
-| `description` | text | |
-| `avatar_url` | text | |
-| `banner_url` | text | |
-| `subscriber_count` | integer | Default 0 |
-| `created_at` | timestamptz | |
+### `stripe_webhook_events`
 
-### `tickets`
-Support tickets from users.
+One row per Stripe Event ID with event/object type, `processing` / `processed` /
+`failed` state, attempt count, timestamps, and last error. The claim RPC returns
+acquired, busy, or processed and permits stale/failed retry without concurrent
+double fulfillment.
 
-| Column | Type | Notes |
-|--------|------|-------|
-| `id` | uuid PK | |
-| `user_id` | uuid FK | Nullable, set null on user delete |
-| `email` | text | |
-| `subject` | text | |
-| `body` | text | |
-| `status` | text | `open`, `in_progress`, `resolved`, or `closed` |
-| `created_at` | timestamptz | |
+### `stripe_refunds`
 
-**RLS**: Users can create tickets and read their own.
+Provider-idempotent Refund rows keyed by Stripe Refund ID, with Charge,
+PaymentIntent, optional purchase link, amount, currency, status, and timestamps.
+Cumulative purchase Refund reconciliation is row-locked so overlapping
+`refund.*` and `charge.refunded` events do not double-count revenue/access
+effects.
 
-### Indexes (001)
-- `idx_coin_ledger_user` -- `coin_ledger(user_id, created_at DESC)`
-- `idx_entitlements_user` -- `entitlements(user_id, series_slug)`
-- `idx_watch_progress_user` -- `watch_progress(user_id, updated_at DESC)`
-- `idx_my_list_user` -- `my_list(user_id, added_at DESC)`
+### `stripe_disputes`
 
----
+Rows are keyed by Stripe Dispute ID and retain Charge, PaymentIntent, optional
+purchase link, financial amount/currency, provider state/reason, Refund amount,
+and last provider event ordering data. Current provider retrieval plus event
+time/terminal ranking prevents an old snapshot from overwriting a later
+resolution.
 
-## 3. Supabase Content Tables -- Scaffolded, Not Yet Active (002_content_tables.sql)
+### `payment_account_tombstones`
 
-These tables mirror the code-based content types and will replace them when `CONTENT_SOURCE=supabase` is activated. They are additive and do not modify live tables.
+Minimal account-deletion record keyed by deleted Supabase user UUID with an
+optional unique Stripe Customer, deletion time, and last payment-event time. It
+contains no name, email, entitlement, or profile FK. It lets delayed signed
+events preserve financial state/cancel billing without restoring identity,
+access, saved data, email, or analytics.
 
-### `shows`
-Mirrors `lib/catalog.ts` + `lib/series-detail.ts`.
+### `vip_checkout_consents`
 
-| Column | Type | Notes |
-|--------|------|-------|
-| `id` | uuid PK | |
-| `slug` | text | Unique |
-| `title` | text | |
-| `synopsis` | text | Default '' |
-| `genre` | text[] | Array |
-| `tags` | text[] | Array |
-| `poster_url` | text | |
-| `year` | integer | Default 2025 |
-| `rating` | numeric(3,1) | Default 0 |
-| `episode_count` | integer | Default 0 |
-| `category` | text | Check: drama, new, popular, reality, music, red-carpet |
-| `status` | text | Check: live, coming_soon |
-| `indexable` | boolean | Default true |
-| `created_at` | timestamptz | |
+Private evidence keyed by Checkout Session, with unique Subscription, Customer,
+nullable user, Terms version, accepted state, provider Session time, and record
+time. A row requires affirmative accepted Terms. VIP remains closed until the
+full notice/portal/webhook policy passes.
 
-**RLS**: Public read access.
+### `payment_notices`
 
-### `seasons`
+Private, idempotent evidence for VIP acknowledgment, renewal receipt,
+cancellation confirmation, and annual reminder. It stores provider reference,
+Subscription, nullable user, one-way recipient digest, amount/currency, period,
+Terms version, legal payload, send state/attempt, provider message ID, and
+timestamps—never the email address itself.
 
-| Column | Type | Notes |
-|--------|------|-------|
-| `id` | uuid PK | |
-| `show_slug` | text FK | References shows(slug), cascade delete |
-| `number` | integer | Default 1 |
-| `episode_count` | integer | Default 0 |
+## Creator and content tables
 
-**Unique constraint**: `(show_slug, number)`.
+Creator tables exist for the web pipeline, but creator PPV is disabled and the
+iOS 2.0 binary exposes no UGC surface. Migration `009` preserves historical
+`creator_sales` financial rows with nullable creator/content links instead of
+cascade deletion. Migration `011` hardens creator constraints and RLS.
 
-### `episodes_content`
+Migration `002` introduced optional content tables (`shows`, `seasons`,
+`episodes_content`, people/tags/articles/internal links), but they are not the
+active catalog source. Migration `014` fail-closes optional tables that lacked
+complete RLS. Their presence is not permission to flip `CONTENT_SOURCE` or
+expose stored Mux IDs.
 
-| Column | Type | Notes |
-|--------|------|-------|
-| `id` | uuid PK | |
-| `show_slug` | text FK | References shows(slug), cascade delete |
-| `number` | integer | |
-| `title` | text | |
-| `synopsis` | text | |
-| `duration_seconds` | integer | |
-| `mux_playback_id` | text | |
-| `poster_url` | text | |
-| `is_free` | boolean | Default false |
-| `unlock_coins` | integer | Default 49 |
-| `transcript` | text | Nullable |
-| `indexable` | boolean | Default true |
-| `created_at` | timestamptz | |
+## Migration authority and order
 
-**Unique constraint**: `(show_slug, number)`.
-**RLS**: Public read access.
+| Migration | Current purpose |
+| --- | --- |
+| `001`–`008` | Original schema plus reconciliation to the actual Checkout/profile/entitlement shape |
+| `009_preserve_sales_ledger.sql` | Preserve creator financial rows across account/content deletion |
+| `010_payment_integrity.sql` | Webhook ledger, provider uniqueness, tax/Refund fields, purchase constraints, row-locked access/Refund RPCs |
+| `011_rls_least_privilege.sql` | Least-privilege grants/RLS and creator constraints |
+| `012_payment_account_tombstones.sql` | Minimal deletion/payment identity and atomic Customer coalescing |
+| `013_stripe_dispute_ledger.sql` | Provider-idempotent ordered Dispute reconciliation |
+| `014_payment_notices_and_content_rls.sql` | VIP Terms/notice evidence and fail-closed optional content RLS |
 
-### `people`
+Migrations `009`–`014` are applied and independently read back in the current
+production project. Any fresh environment must apply migrations in filename
+order and run the rollback-only database suite before matching payment/webhook
+code. Never edit an applied migration to change production history.
 
-| Column | Type | Notes |
-|--------|------|-------|
-| `id` | uuid PK | |
-| `slug` | text | Unique |
-| `name` | text | |
-| `role` | text | Check: actor, creator, host |
-| `bio` | text | Nullable |
-| `photo_url` | text | Nullable |
+## RLS and authority rules
 
-**RLS**: Public read access.
-**Join table**: `show_people(show_slug, person_id)`.
+- anon/authenticated users receive only explicit own-row or public-safe access;
+- service role never enters a browser/native bundle;
+- content-table “public” access may never include protected playback
+  capabilities;
+- profiles, query strings, analytics, browser return, and local storage do not
+  grant access; and
+- provider financial records can outlive account identity, but cannot recreate
+  identity or entitlement after deletion.
 
-### `tags`
-
-| Column | Type | Notes |
-|--------|------|-------|
-| `id` | uuid PK | |
-| `name` | text | Unique |
-
-**Join table**: `show_tags(show_slug, tag_id)`.
-
-### `articles`
-
-| Column | Type | Notes |
-|--------|------|-------|
-| `id` | uuid PK | |
-| `slug` | text | Unique |
-| `title` | text | |
-| `body` | text | |
-| `show_slugs` | text[] | Array of related show slugs |
-| `tags` | text[] | Array |
-| `published_at` | timestamptz | |
-| `indexable` | boolean | Default true |
-
-**RLS**: Public read where `indexable = true`.
-
-### `internal_links`
-SEO link graph for internal linking between content pages.
-
-| Column | Type | Notes |
-|--------|------|-------|
-| `id` | uuid PK | |
-| `source_slug` | text | |
-| `target_slug` | text | |
-| `anchor_text` | text | |
-| `context` | text | |
-
-### Indexes (002)
-- `idx_shows_slug` -- `shows(slug)`
-- `idx_shows_category` -- `shows(category)`
-- `idx_shows_indexable` -- `shows(indexable)`
-- `idx_episodes_show` -- `episodes_content(show_slug, number)`
-- `idx_episodes_indexable` -- `episodes_content(indexable)`
-- `idx_articles_slug` -- `articles(slug)`
+See [`../guides/PAYMENTS.md`](../guides/PAYMENTS.md) for exact fulfillment and
+adverse-event policy and [`../guides/MUX.md`](../guides/MUX.md) for playback
+capability handling.

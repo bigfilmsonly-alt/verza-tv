@@ -1,5 +1,65 @@
 # Changelog
 
+> **Historical record.** Entries describe the state/claims at the time they
+> were written and are not current deployment or release instructions. Old
+> prices, counts, availability, and App Store assumptions are superseded by
+> [`LAUNCH-TRUTH.md`](LAUNCH-TRUTH.md).
+
+## 2026-08-03 — App Store backend/payment/playback hardening
+
+Production-verified:
+
+- canonical Terms, Privacy, Refund, and Support pages return 200 and contain the
+  August 3 legal release date;
+- authenticated payment capabilities reports configured/live Series Checkout
+  in explicit `compatibility` Terms mode, with monthly/yearly VIP false;
+- the one canonical Stripe webhook was expanded in place to the exact reviewed
+  19-event allowlist, wildcard off, with no second endpoint, historical replay,
+  or signing-secret rotation; unsigned delivery returns 400; and
+- `MUX_SIGNED_PLAYBACK_ENABLED=true` is live. Unentitled paid playback returns
+  402/no capability; entitled playback returns `policy=signed`, no
+  `playbackId`, 1,800-second tokenized stream/poster URLs, and a 200 HLS
+  manifest. The disposable canary account/entitlement was deleted.
+
+Source/data hardening:
+
+- classified 80 titles as 79 live / 74 paid-live / five wholly free / one
+  coming soon;
+- generated a 4,262-row client-safe Mux projection with 459 intentionally
+  public IDs and 3,803 withheld (3,753 paid live + 50 coming soon);
+- completed add-only signed counterparts for all 3,753 paid-live rows;
+- replaced the error-prone regex catalog parser with a shared AST parser and
+  restored 25 correctly public free Red Carpet IDs;
+- hardened Series Checkout history recovery, provider verification, Refund/
+  Dispute/deletion ordering, RLS, Terms/notice evidence, tax accounting, and
+  explicit compatibility/required consent modes; and
+- added and deployed Mux creator-webhook fail-closed verification: missing secret
+  503, invalid signature 400, processing failure 500, no unsigned fallback,
+  plus a synthetic-signature regression. Production readback with the
+  intentionally absent verification secret returns 503, so creator ingestion
+  remains unavailable until a real secret and signed-event canary exist.
+
+Still open: Stripe Public details (currently blank), restricted Billing Portal,
+exact required-consent deployment/readback, controlled $1.99 smoke purchase,
+standalone native acceptance, and App Store submission. Coins, creator PPV,
+official merch Checkout, and both VIP sale paths remain closed.
+
+Isolated source reconciliation (not a deployment):
+
+- reconciled the App Store/payment/playback hardening onto upstream `60546ee`
+  while retaining the current web browse order, Storage Pirates Reality-only
+  rule, arrowless heroes, Tubi outbound partner panel/assets, Creator beta form,
+  and paywall auth-settle fix;
+- kept `SummerSaleBadge.tsx` deleted and regenerated the client-safe Mux map
+  after the upstream catalog-category change. Episode/capability inventory is
+  unchanged at 4,262 / 459 public / 3,803 withheld; only the generated source
+  fingerprint changed, so native must byte-sync the projection before its next
+  build; and
+- hardened `/api/creator/beta` with same-origin JSON, size/rate/honeypot and
+  no-store controls, truthful provider-failure handling, and HTML-escaped form
+  notification fields. The form is still lead capture only and does not enable
+  creator ingestion, approval, PPV, payment, or entitlement.
+
 ## 2026-07-30 -- Tubi partner tab (3rd): logo → click-through to tubitv.com
 - Added a **Tubi** tab (authorized partner, signed contract) as the 3rd tab,
   between Hot and Anime. Order: Drama · Hot · Tubi · Anime · Español · Bollywood ·
@@ -14,7 +74,8 @@
 - A true in-site *embed* of tubitv.com is **blocked by Tubi's `X-Frame-Options:
   SAMEORIGIN`** (browser-enforced; not overridable from our side). The real
   embedded experience needs Tubi to whitelist verzatv.com for framing or provide
-  a partner embed URL; the native app can show Tubi live in a WebView.
+  a partner embed URL; any native WebView or embed would require separate
+  partner, platform, and release review and is not part of the iOS 2.0 client.
 
 ## 2026-07-20 -- Fix the paywall blink at the first locked episode
 - The $1.99 unlock overlay "blinked a few times" on reaching a locked episode.
@@ -27,6 +88,10 @@
 - Paywall gated on `authResolved`: it never surfaces until the `/api/access`
   entitlement check resolves, so VIP/owners no longer see a flash-then-hide.
   Found via a 6-angle adversarial verification pass.
+- Reconciliation also resets `authFree` and `authResolved` on a client-side
+  series change and explicitly fails the new title back to locked when no exact
+  access/session check succeeds, so a reused component cannot carry the prior
+  title's UI entitlement across slugs.
 - Note: "This page cannot load / Go Back" is not a bug — it's the intended iOS
   reader-mode paywall ("Episode Unavailable", Apple Guideline 3.1.1).
 

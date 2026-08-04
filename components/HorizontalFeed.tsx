@@ -3,7 +3,6 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import type HlsType from "hls.js";
 import { HORIZONTAL_VIDEOS, type HorizontalVideo } from "@/lib/horizontal-map";
-import { useTranslation } from "@/components/LangProvider";
 import VideoWatermark from "@/components/VideoWatermark";
 
 /* ---- Load hls.js once ---- */
@@ -38,6 +37,9 @@ function resolutionLabel(w: number): string {
 function HorizontalCard({ video, index }: { video: HorizontalVideo; index: number }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<HlsType | null>(null);
+  const pauseThisCard = useCallback(() => {
+    videoRef.current?.pause();
+  }, []);
   const [playing, setPlaying] = useState(false);
   // True once playback has begun; keeps the video frame visible through pauses
   // so a paused card shows its current frame instead of flashing the thumbnail.
@@ -87,13 +89,12 @@ function HorizontalCard({ video, index }: { video: HorizontalVideo; index: numbe
   useEffect(() => {
     return () => {
       if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
-      if (pauseCurrentCard === pauseThisCard.current) pauseCurrentCard = null;
+      if (pauseCurrentCard === pauseThisCard) pauseCurrentCard = null;
     };
-  }, []);
+  }, [pauseThisCard]);
 
   // Keep `playing` truthful: browsers pause videos on their own (backgrounding,
   // interruptions, end of stream) — the UI must follow the element, not memory.
-  const pauseThisCard = useRef<() => void>(() => {});
   useEffect(() => {
     const vid = videoRef.current;
     if (!vid) return;
@@ -137,8 +138,7 @@ function HorizontalCard({ video, index }: { video: HorizontalVideo; index: numbe
 
     // Pause whichever card is currently playing before starting this one.
     if (pauseCurrentCard) pauseCurrentCard();
-    pauseThisCard.current = () => { videoRef.current?.pause(); };
-    pauseCurrentCard = pauseThisCard.current;
+    pauseCurrentCard = pauseThisCard;
 
     async function start() {
       await attachHls();
@@ -279,7 +279,6 @@ export default function HorizontalFeed({ embedded = false }: { embedded?: boolea
   const season1 = HORIZONTAL_VIDEOS.filter((v) => v.season === 1);
   const season2 = HORIZONTAL_VIDEOS.filter((v) => v.season === 2);
   const bonus = HORIZONTAL_VIDEOS.filter((v) => v.season === 0);
-  const { t } = useTranslation();
 
   return (
     <div className={embedded ? "px-4 pt-0 pb-24" : "px-4 pt-2 pb-24"}>

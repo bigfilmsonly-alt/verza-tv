@@ -1,8 +1,21 @@
 # Porting the Verza TV Experience Into Another Project
 
+> **Archived web-extraction guide.** This predates the Expo SDK 57 native app
+> and the 2026-08-03 paid-capability projection. Do not use it for the App Store
+> client, copy the complete Mux map into any runtime, or adopt its old payment
+> assumptions. Current truth: [`../LAUNCH-TRUTH.md`](../LAUNCH-TRUTH.md) and
+> [`REACT-NATIVE-SYNC.md`](REACT-NATIVE-SYNC.md).
+
 A complete, copy-paste guide to duplicate the Verza TV **browse + video playback**
 experience as a "TV" tab inside Alan's separate branded website (a different
 Cursor project).
+
+The inventory and shell snippets below are historical architecture notes, not a
+safe copy command for current source. In particular, `SummerSaleBadge.tsx` and
+`SponsoredProducts.tsx` were deleted, and `lib/mux-map.ts` is a complete audit
+anchor that must never enter a browser/client bundle. A current extraction must
+start from `lib/mux-public-map.ts` and reimplement paid playback through an
+authenticated server boundary.
 
 The full Verza app is ~34k lines across ~90 routes (admin, creator pipeline, SEO
 sitemaps, bio pages, Stripe, Supabase, AI host). **You do NOT need all of that**
@@ -21,7 +34,7 @@ v4 + React 19**.
 ```jsonc
 {
   "dependencies": {
-    "next": "16.2.9",
+    "next": "16.3.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "hls.js": "^1.6.16"            // Mux HLS playback in Player/EpisodeFeed/etc.
@@ -121,11 +134,13 @@ components/HorizontalFeed.tsx    # 16:9 widescreen list (Storage Pirates)
 components/CreatorWatch.tsx      # public creator HLS player (drop if no UGC)
 components/VideoWatermark.tsx    # top-left VERZA logo overlay (all players use it)
 
-# --- monetization / ads used inside BrowsePage & players (optional) ---
-components/SummerSaleBadge.tsx   # sticky "$1.99" unlock ribbon (needs /api/unlock)
-components/CoinPaywall.tsx       # paywall UI (needs /api/unlock)
-components/SponsoredProducts.tsx # TikTok Shop ad tiles woven into the grid
-components/AmazonProducts.tsx    # Amazon ad tiles woven into the grid
+# --- optional commerce components from the current tree ---
+components/CoinPaywall.tsx       # Series Unlock UI (needs authenticated /api/unlock)
+components/AmazonProducts.tsx    # web/Android affiliate shop only; not browse-grid UI
+
+# Deleted legacy files — never copy or recreate from history:
+# components/SummerSaleBadge.tsx
+# components/SponsoredProducts.tsx
 
 # --- i18n + housekeeping (BrowsePage/Header depend on LangProvider) ---
 components/LangProvider.tsx      # <LangProvider> context + useTranslation()
@@ -140,13 +155,13 @@ components/JsonLd.tsx            # SEO structured data (drop if you don't want i
 ```
 lib/theme.ts            # design tokens T.{bg,accent,gold,text,...}
 lib/catalog.ts          # THE 76-series catalog + getSeriesByCategory/getEpisode/etc.
-lib/mux-map.ts          # Record<slug, {episode,playbackId,duration}[]> (~4300 lines)
+lib/mux-public-map.ts   # client-safe rows; paid playback IDs are withheld
+# lib/mux-map.ts is audit-only; mux-private-map.ts/mux-signed-map.ts are server-only
 lib/horizontal-map.ts   # widescreen (Storage Pirates) playback map
 lib/resume.ts           # continue-watching localStorage + resume URL builder
 lib/track.ts            # lightweight client event tracker
 lib/i18n.ts             # translation strings + language list
 lib/search-index.ts     # SEARCH_TAGS + seriesMatchesQuery()
-lib/sponsors.ts         # TikTok Shop product data
 lib/amazon-sponsors.ts  # Amazon product data + amazonLink()
 lib/perf/ttff.ts        # time-to-first-frame perf helper (ShortsFeed imports it)
 lib/analytics/          # WHOLE folder — emit()/emitServerEvent() + event types
@@ -173,7 +188,8 @@ app/watch/[...slug]/page.tsx            # creator catch-all (drop with CreatorWa
 ```
 app/api/watch-progress/route.ts   # GET/POST resume position (EpisodeFeed, Player)
 app/api/saved-list/route.ts       # My List (BrowsePage)
-app/api/unlock/route.ts           # Stripe $1.99 unlock (SummerSaleBadge, CoinPaywall)
+app/api/unlock/route.ts           # authenticated Stripe $1.99 Series Unlock
+app/api/playback/[episode]/route.ts # authenticated paid-playback capability
 app/api/events/route.ts           # analytics sink (emit() beacons here)
 ```
 For a playback-only tab you can replace all four with **no-op stubs** (§7).
@@ -198,33 +214,29 @@ and you must copy everything it points to.
 ```
 BrowsePage
  ├─ components/CategoryTabs      ── LangProvider, lib/catalog
- ├─ components/HorizontalFeed    ── LangProvider, VideoWatermark, lib/horizontal-map
- ├─ components/SummerSaleBadge   ── lib/analytics, lib/catalog
- ├─ components/SponsoredProducts ── lib/sponsors
- ├─ components/AmazonProducts    ── lib/amazon-sponsors
+ ├─ components/TubiHeroCarousel ── web-only sponsored outbound panel
+ ├─ components/CreatorBetaForm  ── /api/creator/beta lead capture
  ├─ components/LangProvider      ── lib/i18n, lib/track
  ├─ lib/catalog
- ├─ lib/mux-map
+ ├─ lib/mux-public-map
  ├─ lib/resume
- ├─ lib/sponsors
  └─ lib/amazon-sponsors
 
 Header
  ├─ components/LangDropdown      ── LangProvider, lib/i18n
- └─ components/SearchButton      ── SponsoredProducts, AmazonProducts,
-                                    lib/{catalog,search-index,sponsors,amazon-sponsors,track}
+ └─ components/SearchButton      ── lib/{catalog,search-index,track}
 
 EpisodeFeed  (default export; mounted by app/series/[slug]/[episode])
  ├─ components/VideoWatermark
- └─ lib/{analytics, resume, track}
+ └─ lib/{analytics, checkout-auth, playback-client, resume, track}
 
 Player
  ├─ components/VideoWatermark
- └─ lib/{analytics, catalog, mux-map, resume, theme, track}
+ └─ lib/{analytics, catalog, checkout-auth, mux-public-map, resume, theme, track}
 
 ShortsFeed
  ├─ LangProvider, VideoWatermark
- └─ lib/{catalog, mux-map, perf/ttff, theme}
+ └─ lib/{catalog, mux-public-map, perf/ttff, theme}
 
 HorizontalFeed
  ├─ LangProvider, VideoWatermark
@@ -241,8 +253,9 @@ lib/analytics/index ── ./emit ── ./events   (VideoWatermark, ScrollToTop
                                              ServiceWorker have NO @/ deps)
 ```
 
-**Leaf libs (no internal deps):** theme, catalog, mux-map, horizontal-map,
-resume, i18n, track, sponsors, amazon-sponsors, perf/ttff. Copy these first.
+**Relevant leaf/data libs:** theme, catalog, mux-public-map, horizontal-map,
+resume, i18n, track, amazon-sponsors, perf/ttff. Re-audit imports in the current
+tree before copying; this archived list is not a generated dependency graph.
 
 ---
 
@@ -261,14 +274,16 @@ export const T = {
 
 ### `lib/catalog.ts` — the Series type + accessors
 ```ts
-type BrowseCategory = "drama"|"new"|"popular"|"music"|"reality"|"red-carpet";
+type BrowseCategory =
+  | "drama" | "new" | "popular" | "tubi" | "anime" | "espanol"
+  | "bollywood" | "creators" | "music" | "reality" | "red-carpet";
 
 interface Series {
   slug: string; title: string; logline: string; genre: string;
   channel: string; categories: BrowseCategory[]; popularRank?: number;
   episodeCount: number; posterUrl: string; freeEpisodes: number;
   coinPerEpisode: number; seasonPassCoins: number;
-  status: "live" | "coming-soon";
+  status: "live" | "coming_soon";
   description?: string; cast?: string[]; tags?: string[];
   rating?: string; year?: number; posterMood?: string;
 }
@@ -278,20 +293,22 @@ interface Series {
 // exported constants: BROWSE_TABS, catalog (Series[])
 ```
 
-### `lib/mux-map.ts` — playback IDs (the actual videos)
+### `lib/mux-public-map.ts` — client-safe playback projection
 ```ts
-interface MuxEpisode { episode: number; playbackId: string; duration: number; }
+interface MuxEpisode { episode: number; playbackId?: string; duration: number; }
 const MUX_MAP: Record<string, MuxEpisode[]>;   // keyed by series slug
 // getPlayback(slug, episode), getRandomPlayback()
 ```
-Playback URLs are built as:
+Only intentionally free rows have `playbackId`. Those public URLs are built as:
 `https://stream.mux.com/{playbackId}.m3u8` (HLS) and
 `https://image.mux.com/{playbackId}/animated.webp?width=240&fps=15&start=0&end=4`
 (the looping poster preview — use a plain `<img>`, NOT `next/image`).
 
-**These playbackIds are Verza's Mux assets.** In Alan's project you either
-(a) keep pointing at Verza's public playback IDs (fine if signed-URLs are off),
-or (b) upload Alan's own videos to Mux and swap the IDs in `mux-map.ts`.
+Paid rows deliberately contain no client capability. A current port must either
+use its own authorized media or call an authenticated, ownership-checked server
+endpoint that returns a short-lived signed source. Never copy `lib/mux-map.ts`,
+`lib/mux-private-map.ts`, `lib/mux-signed-map.ts`, or legacy paid playback IDs
+into the new client.
 
 ---
 
@@ -346,8 +363,12 @@ export async function POST() { return Response.json({ ok: true }); }
 // app/api/events/route.ts   (analytics beacon sink)
 export async function POST() { return new Response(null, { status: 204 }); }
 
-// app/api/unlock/route.ts   (only if you keep SummerSaleBadge/CoinPaywall)
-// → return a Stripe Checkout URL, or 501 and hide the paywall components.
+// app/api/unlock/route.ts   (only if you keep CoinPaywall)
+// → authenticate and return a server-created Checkout URL, or fail closed.
+
+// app/api/playback/[episode]/route.ts
+// → authenticate + authorize paid rows and return an expiring signed source.
+// Never substitute a client-visible complete Mux map.
 ```
 `emit.ts` posts every client event to `/api/events` — the 204 stub keeps the
 console clean. `resume.ts`/EpisodeFeed POST to `/api/watch-progress` every 10s.
@@ -361,8 +382,8 @@ console clean. `resume.ts`/EpisodeFeed POST to `/api/watch-progress` every 10s.
 2. **Config:** overwrite `tsconfig.json` (`@/*` alias), `postcss.config.mjs`,
    `next.config.ts` (Mux image host), and prepend `@import "tailwindcss";` to
    `app/globals.css` — then paste Verza's globals.css over it.
-3. **Copy leaf libs first:** `lib/theme.ts`, `catalog.ts`, `mux-map.ts`,
-   `horizontal-map.ts`, `resume.ts`, `i18n.ts`, `track.ts`, `sponsors.ts`,
+3. **Copy leaf libs first:** `lib/theme.ts`, `catalog.ts`,
+   `mux-public-map.ts`, `horizontal-map.ts`, `resume.ts`, `i18n.ts`, `track.ts`,
    `amazon-sponsors.ts`, `perf/ttff.ts`, and the whole `lib/analytics/` folder.
 4. **Copy components** from §3 (start with VideoWatermark → LangProvider →
    players → CategoryTabs → BrowsePage → Header/Footer/BottomNav).
@@ -421,11 +442,11 @@ unless Alan specifically wants those features too.
 SRC="/path/to/verza-tv"; DST="/path/to/alans-project"
 # leaf libs
 mkdir -p "$DST/lib/perf" "$DST/lib/analytics"
-cp "$SRC"/lib/{theme,catalog,mux-map,horizontal-map,resume,i18n,track,sponsors,amazon-sponsors,search-index}.ts "$DST/lib/"
+cp "$SRC"/lib/{theme,catalog,mux-public-map,horizontal-map,resume,i18n,track,amazon-sponsors,search-index}.ts "$DST/lib/"
 cp "$SRC"/lib/perf/ttff.ts "$DST/lib/perf/"
 cp "$SRC"/lib/analytics/*.ts "$DST/lib/analytics/"
 # components
-cp "$SRC"/components/{BrowsePage,Header,BottomNav,Footer,FooterSitemap,CategoryTabs,SearchButton,EpisodeFeed,Player,ShortsFeed,HorizontalFeed,CreatorWatch,VideoWatermark,SummerSaleBadge,CoinPaywall,SponsoredProducts,AmazonProducts,LangProvider,LangDropdown,ContentTranslator,ScrollToTop,ServiceWorker,JsonLd}.tsx "$DST/components/"
+cp "$SRC"/components/{BrowsePage,Header,BottomNav,Footer,FooterSitemap,CategoryTabs,SearchButton,EpisodeFeed,Player,ShortsFeed,HorizontalFeed,CreatorWatch,VideoWatermark,CoinPaywall,AmazonProducts,LangProvider,LangDropdown,ContentTranslator,ScrollToTop,ServiceWorker,JsonLd}.tsx "$DST/components/"
 # public
 cp -R "$SRC"/public/posters "$SRC"/public/ads "$DST/public/"
 cp "$SRC"/public/{logo.png,watermark.png,og-image.png,favicon.ico,manifest.json,sw.js} "$DST/public/"

@@ -18,14 +18,9 @@
  * we use the canonical site search URL for that platform so the link
  * resolves to the correct entity rather than an unverified profile.
  */
-export const ALAN_SAMEAS: string[] = [
-  "https://en.wikipedia.org/wiki/E!",
-  "https://www.imdb.com/find/?q=Alan%20Mruvka",
-  "https://www.linkedin.com/pub/dir/Alan/Mruvka",
-  "https://www.crunchbase.com/textsearch?q=Alan%20Mruvka",
-  "https://www.instagram.com/verzatv",
-  "https://www.verzatv.com/founder",
-];
+// Add identity URLs only after the exact profile is verified as Alan Mruvka's.
+// Search-result pages and company social profiles are not valid `sameAs` proof.
+export const ALAN_SAMEAS: string[] = [];
 
 export interface AlanSubpage {
   slug: string;
@@ -54,7 +49,7 @@ export const ALAN_SUBPAGES: AlanSubpage[] = [
       },
       {
         heading: "Co-founding E! Entertainment Television",
-        body: "Mruvka is widely recognized as a co-founder of E! Entertainment Television, the cable network devoted to celebrity news, red-carpet coverage, and entertainment programming. E! grew from a startup cable concept into a global brand carried in more than 90 countries, helping define how a generation followed pop culture. Being part of that founding story placed Mruvka at the center of one of the defining entertainment launches of the cable era.",
+        body: "Mruvka is a co-founder of E! Entertainment Television, a cable network focused on celebrity news, red-carpet coverage, and entertainment programming.",
       },
       {
         heading: "A career across media ventures",
@@ -62,7 +57,7 @@ export const ALAN_SUBPAGES: AlanSubpage[] = [
       },
       {
         heading: "Founding VERZA TV",
-        body: "With VERZA TV, Mruvka returned to the role he knows best: founder. The platform is built around premium vertical micro-dramas — cinematic stories told in 60-to-120-second episodes designed for the phone. As he frames it, the move from linear television to mobile-first short-form is the same kind of audience shift that made E! possible decades ago, and VERZA TV is his bet on owning it in the United States.",
+        body: "Mruvka founded VERZA TV as a phone-first platform for short-form entertainment. Its current catalog includes vertical microdramas and other programming whose episode lengths and formats vary by title.",
       },
     ],
   },
@@ -72,7 +67,7 @@ export const ALAN_SUBPAGES: AlanSubpage[] = [
     blurb:
       "How Alan Mruvka helped co-found E! Entertainment Television and why that pop-culture legacy informs the way he is building VERZA TV today.",
     intro:
-      "To understand Alan Mruvka as a founder, start with E! Entertainment Television. As a co-founder, he helped launch a network that turned celebrity culture, red carpets, and entertainment news into appointment viewing — a brand that eventually reached audiences in more than 90 countries. This page looks at what the E! launch represented, the lessons it carries, and how that legacy shapes the editorial DNA of VERZA TV, his current venture. The connection is not nostalgia; it is method. The same instinct for where audiences are headed runs through both stories.",
+      "Alan Mruvka co-founded E! Entertainment Television, a cable network focused on celebrity culture, red carpets, and entertainment news. He later founded VERZA TV. This page summarizes those verified roles without assigning unverified audience, market, or performance figures.",
     sections: [
       {
         heading: "What E! changed about entertainment media",

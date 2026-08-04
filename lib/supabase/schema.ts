@@ -5,6 +5,8 @@ export interface Profile {
   coin_balance: number;
   is_vip: boolean;
   vip_expires_at: string | null;
+  vip_payment_blocked: boolean;
+  vip_cancel_at_period_end: boolean;
   streak_days: number;
   language: string;
 }

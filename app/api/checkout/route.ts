@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import Stripe from "stripe";
-import { getProductBySlug, products } from "@/lib/products";
+import { products } from "@/lib/products";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -16,6 +16,16 @@ interface CartItem {
  * The client only sends productId and quantity — never prices or names.
  */
 export async function POST(req: NextRequest) {
+  // Fail closed until fulfillment is production-ready (variant selection,
+  // shipping address/rates, taxes, inventory, and confirmed catalog prices).
+  // Amazon affiliate products remain available and complete checkout on Amazon.
+  if (process.env.MERCH_CHECKOUT_ENABLED !== "true") {
+    return Response.json(
+      { error: "Official merchandise checkout is temporarily unavailable." },
+      { status: 503 },
+    );
+  }
+
   try {
     const body = await req.json();
     const { items } = body as { items: CartItem[] };

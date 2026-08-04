@@ -1,402 +1,249 @@
-# Web → React Native Sync Guide
+# Web/backend → React Native sync guide
 
-> **If you are an AI agent working in the Verza TV React Native repo: this file is
-> your brief. Read it end to end before you change anything.**
+Last reconciled: **2026-08-03**.
 
-The **web app** (this repo, `Splash-Studio/verza-tv`, live at
-[verzatv.com](https://www.verzatv.com)) is the source of truth for product
-behaviour, content, pricing and App Store compliance. The native app was built
-from a snapshot of it and has since fallen behind.
+The sibling repository `../../verza-native` is an Expo SDK 57 client. This web
+repository is its backend and the canonical source for shared content data.
+The native repository’s `AGENTS.md` and deep docs remain authoritative for
+native implementation and App Store shipping; this guide defines the boundary
+between the two repositories.
 
-This document tells you **what changed, why, and exactly what to do about each
-thing** — including the parts you must deliberately *not* port.
+> This replaces the July porting plan. Do not follow older instructions to use
+> `react-native-video`, copy the complete Mux map into runtime, show Amazon or
+> merchandise ordering on iOS, implement coins, or hard-code “five free.”
 
-- **Web repo:** `github.com/Splash-Studio/verza-tv` (also mirrored to `bigfilmsonly-alt/verza-tv`)
-- **Current web `main`:** `2895946` (2026-07-13)
-- **Web history spans:** 2026-06-14 → 2026-07-13 (~396 commits). Everything is in range.
+## Platform contract
 
----
+| Capability | Web | Android native | iOS 2.0 native |
+| --- | --- | --- | --- |
+| Browse live catalog | Yes | Yes | Yes, refiltered to live titles |
+| Play free previews | Yes | Yes | Yes |
+| Play owned/VIP content | Yes | Yes | Yes, reader mode |
+| $1.99 Series Unlock | Stripe-hosted Checkout | Server-created Stripe Checkout opened in system browser | No price, CTA, link, direction, or Checkout |
+| VIP purchase | Hidden/API-blocked | Hidden/API-blocked | Hidden/API-blocked |
+| Coins / episode purchase | Disabled | Disabled | Disabled |
+| Official merch new order | Disabled | Disabled | No; support for prior physical orders only |
+| Amazon affiliate handoff | Web | Retained system-browser flow | Fail-closed |
+| Creator/UGC surface | Web feature remains separately gated | Not a launch dependency | Absent; direct routes redirect before query/render |
+| Ads/affiliate placements | Web policy applies | Retained disclosures/controls | Fail-closed; ASC Advertising answer remains No |
 
-# PART 0 — Three rules that outrank everything else
+Digital access acquired on the web is represented by Supabase entitlement/VIP
+state and may be consumed by the iOS reader app. The iOS app never tells users
+where or how to purchase. The fact that web or Android may sell a product does
+not make that product safe to expose on iOS.
 
-Get these wrong and you either get **rejected from the App Store** or **lose
-money**. They are not style preferences.
+## Current product accounting
 
-## RULE 1 — Digital purchases must NOT appear inside the iOS app
+- 80 catalog titles total;
+- 79 live titles and one coming soon;
+- 74 canonical $1.99 paid-live Series Unlock SKUs;
+- five wholly free live titles; and
+- per-title free-preview counts come from `freeEpisodes`.
 
-**Apple Guideline 3.1.1.** You may not sell digital content (episode unlocks,
-VIP subscriptions, coins) through an external checkout inside an iOS app.
+VIP constants remain $9.99/month and $79.99/year, but both plans default closed
+and the API rejects them until their independent portal, webhook, notice,
+annual-reminder, legal, and runtime gates pass. Coin constants are dormant
+future-product data; coin purchase/balance and season-pass endpoints fail
+closed.
 
-**The web app already solves this and you should copy the strategy.** It runs a
-"reader mode": `lib/platform.ts` exposes `isIOSApp()`, and
-`components/HideInIOSApp.tsx` renders nothing when true. Inside the iOS app it
-hides:
+## Shared data contract
 
-| Hidden in the iOS app | Where |
-| --- | --- |
-| Summer Sale `$1.99` badge | `components/BrowsePage.tsx` |
-| Episode unlock CTA / paywall | `components/EpisodeFeed.tsx` |
-| VIP subscription card | `components/VipCard.tsx` (existing VIPs still see *status*, just no billing links) |
-| "Unlock Full Series" card | `app/series/[slug]/page.tsx` |
+Shared data is copied byte-identically from web to native, never independently
+edited to “sanitize” a platform. Platform-specific safety belongs at route and
+projection boundaries.
 
-**Your two compliant options in RN:**
+At minimum, the native data-sync runbook covers:
 
-- **(a) Reader model — recommended, and what already ships.** No purchase UI in
-  the app at all. Users buy on the web; entitlements sync down via
-  `/api/entitlements`. Zero StoreKit work, zero Apple commission. This is the
-  Netflix pattern.
-- **(b) Apple IAP.** Implement StoreKit for unlocks and VIP. Apple takes 30%.
-  Far more work, and you must *still* not show Stripe.
+- `lib/catalog.ts` → `src/lib/catalog.ts`;
+- `lib/mux-public-map.ts` → `src/lib/mux-public-map.ts`;
+- audit-only `lib/mux-map.ts` → audit-only `src/lib/mux-map.ts`;
+- `lib/series-detail.ts` → `src/lib/series-detail.ts`;
+- shared configuration, i18n, product/editorial data named in native
+  `docs/DATA-SYNC.md`; and
+- generated assets/projections only through their audited generators.
 
-**Do not ship Stripe checkout for digital content in the iOS app.** It will be
-rejected.
+After any web catalog change:
 
-## RULE 2 — Physical goods must NOT use IAP
+1. run the shared AST catalog/parser self-tests;
+2. regenerate/audit the public Mux projection;
+3. add signed capability for any new paid-live Mux asset through the guarded
+   add-only process;
+4. regenerate the server-only signed map;
+5. copy the designated shared modules byte-identically;
+6. run byte-comparison and catalog/Mux count gates in both repositories; and
+7. rerun iOS route-boundary tests rather than altering shared data.
 
-**Apple Guideline 3.1.5(a).** Merch and Amazon products are physical goods.
-Apple *requires* these to use external payment and *forbids* IAP for them.
+## Mux capability boundary
 
-This is why `/shop` and `/amazon` are **not** wrapped in `HideInIOSApp`. That is
-deliberate, not an oversight. **The shop can and should ship in the native app.**
+The complete mapping has 4,262 logical episode rows:
 
-## RULE 3 — Ad and analytics SDKs are off inside the iOS app
+| Classification | Rows | Client playback ID? |
+| --- | ---: | --- |
+| Intentionally public/free live | 459 | Yes |
+| Paid live | 3,753 | No; server-authorized signed URL only |
+| Coming soon | 50 | No |
+| Total withheld | 3,803 | No |
 
-`components/ThirdPartyScripts.tsx` skips GTM, GA4 and AdSense entirely when
-`isIOSApp()` is true, because Google's ad stack constitutes cross-context
-tracking and would require an App Tracking Transparency prompt.
+All 3,753 paid-live rows have a server-only signed counterpart. Client runtime
+imports only `mux-public-map.ts`, which preserves logical episode/duration rows
+while omitting all protected playback IDs. Native `.easignore` excludes the
+complete legacy-capability map.
 
-If you add any tracking SDK to RN, you must implement the ATT prompt. First-party
-analytics (`/api/events`) is fine and does not need ATT.
+Paid playback comes from
+`GET /api/playback/<series-slug>--<episode-number>` after server verification of
+the Supabase cookie or Bearer token and current VIP/series entitlement. Signed
+responses are private/no-store, expiry-aware bearer capabilities. Neither
+client persists or logs the URL.
 
-> In RN you do not need `isIOSApp()` heuristics — you *are* the app. Replace it
-> with `Platform.OS === "ios"`. Keep the same hide/show decisions.
+Native uses `expo-video`, not `hls.js` or `react-native-video`. Its hard
+invariant is at most three attached players with release on blur. Token refresh
+must replace the source on an existing player and restore playhead; it must not
+allocate a fourth player.
 
----
+Production signed mode is live. Backend canary proved unentitled paid access
+returns 402/no capability and entitled access returns `policy=signed`, no
+`playbackId`, 1,800-second tokenized stream/poster URLs, and a 200 manifest.
+Final standalone new-client acceptance remains open. Legacy public paid IDs
+coexist because the live 1.2 app depends on them. Do not retire them before 2.0 release and an owner-approved
+forced-update/drain decision.
 
-# PART 1 — Work out what you already have
+See [`MUX.md`](MUX.md) and native `docs/PLAYBACK.md`.
+
+## Series Checkout and Android return
+
+Android calls the authenticated server route to create a canonical $1.99
+Stripe Checkout Session, then opens its URL in the system browser. There is no
+Stripe SDK or card form in the app.
+
+Expo SDK 57 may deliver browser return through both `expo-web-browser` and Expo
+Router. Native `/checkout-return` is therefore mandatory:
+
+- a warm Android return resumes the suspended confirmer;
+- a cold Android return displays recovery-only guidance;
+- invalid or non-Android returns redirect home; and
+- the route itself grants nothing.
+
+Confirmation rebinds the current authenticated user, persisted Stripe
+Customer, Session, catalog offer, canonical amount, Terms policy, financial
+objects, Refunds, and Disputes. It may repair only an exact paid provider state
+and purchase-linked entitlement. A query parameter or browser success screen
+is never authority.
+
+Native reads non-secret authenticated readiness from
+`GET /api/payments/capabilities`. The response is private/no-store and varies on
+Authorization/Cookie. Series readiness distinguishes:
+
+- `compatibility`: exact live Terms flag `false`, Checkout permitted without
+  Stripe's hosted checkbox;
+- `required`: exact flag `true`, hosted Terms consent required; and
+- `unconfigured`: missing/malformed live state, Checkout fail-closed.
+
+Both VIP capabilities must remain false for this release.
+
+## iOS route boundary
+
+Reader mode is enforced before data resolution/rendering, not by deleting a
+sentence after a payment-bearing component mounts. Native tests freeze all of
+these boundaries:
+
+- no price, sale badge, unlock, subscribe, billing, portal, web-purchase, or
+  external-purchase direction;
+- Discover, Search/All Series, and genre views include live titles only;
+- non-live series/episode direct links redirect before episode, auth, catalog,
+  or Mux work and never show “0 episodes,” “All Episodes FREE,” or a fake free
+  Episode 1 CTA;
+- `/learn/*`, `/careers`, `/channels`, `/sitemap`, and other non-core
+  payment-bearing editorial routes redirect before consuming Tier-1 data;
+- `/watch/*`, `/creator`, `/studio`, and `/admin/*` redirect before querying or
+  rendering UGC/admin content;
+- Amazon, StorageBlue, ad/affiliate reporting, creator submissions, and related
+  assets are fail-closed;
+- Shop is physical-order support only, with no products, prices, cart,
+  checkout, Amazon, or new-order path;
+- Reality contains only the completed live Storage Pirates title, with no
+  coming-soon tile or inert carousel controls; and
+- support/legal email actions always verify a handler and show a selectable
+  address fallback.
+
+The root age-assurance gate mounts outside providers/router/content and requires
+the explicit `I am 18 or older` action plus direct AsyncStorage write/readback.
+Read/write failure and an under-18 response remain locked.
+
+## Authentication and account data
+
+Native Supabase sessions persist through `expo-secure-store` (iOS Keychain /
+Android Keystore), with fail-closed migration from legacy AsyncStorage. Never
+store service-role or provider secrets in native code.
+
+Account creation, login, guest mode, entitlement refresh, sign-out/account
+switch, and in-app account deletion must be exercised in the exact standalone
+binary. Deletion preserves only the provider/account tombstone and financial
+evidence required by the server policy; delayed provider events may not recreate
+identity, access, email, saved-list, or analytics data.
+
+## Legal and production dependency
+
+Native legal screens and App Store metadata must match the live web policy. As
+of the latest 2026-08-03 readback, canonical Terms, Privacy, Refund, and Support
+return 200 and parsed/source HTML confirms the August 3 legal date. Authenticated
+payment capabilities is live/private and reports configured/live Series
+`compatibility` mode with both VIP plans false. Re-run canonical readback after
+later deployments; do not take a local render as evidence.
+
+The safe payment deployment sequence is:
+
+1. deploy compatible legal/payment code with tax, VIP, Mux signed mode, and
+   hosted Terms consent off (`STRIPE_CHECKOUT_TOS_CONSENT_REQUIRED=false`);
+2. read back legal pages and authenticated compatibility capabilities;
+3. **Open:** visually set Stripe Public details (currently blank), configure/review the restricted Billing
+   Portal, switch Terms mode to exact `true`, and deploy/read back again;
+4. **Complete provider state:** preserve/read back the one existing webhook at
+   exact 19/19 with wildcard off; no second endpoint, replay, or secret
+   rotation; and
+5. perform one owner-authorized $1.99 smoke purchase without an automatic
+   cleanup Refund.
+
+See [`PAYMENTS.md`](PAYMENTS.md) and
+[`../reports/PAYMENT-CUTOVER-EVIDENCE-2026-08-03.md`](../reports/PAYMENT-CUTOVER-EVIDENCE-2026-08-03.md).
+
+## Cross-repository release gates
+
+Web/backend:
 
 ```bash
-git -C <native-repo> log -1 --date=short --pretty='%ad %h %s'
+npm run test:playback-security
+npm run test:mux-webhook-security
+npm run test:payments
+npm run test:payments:db
+npx tsc --noEmit
+npm run lint
+npm run build
 ```
 
-Take that date and read every section below it. If you cannot tell, **read all of
-Part 2** — the whole web history is only four weeks, so nothing is out of range.
-
-To see the raw web-side history for a range:
+Native:
 
 ```bash
-git -C <web-repo> log --since=2026-06-22 --date=short --pretty='%ad %h %s'
+cd ../verza-native
+npm run typecheck
+npm run lint
+npm run test:android-checkout-return
+npm run test:playback-security
+npm run test:ios-reader-mode
+npx expo export --platform ios
 ```
 
----
-
-# PART 2 — What changed, and what to do
-
-Each block is tagged:
-
-- 🔴 **PORT** — product behaviour or data. The native app must match.
-- 🟡 **ADAPT** — port the behaviour, but the web implementation does not translate.
-- ⚪ **SKIP** — web-only. Do not port.
-
----
-
-## 2.1 🔴 App Store compliance (2026-07-10) — **do this first**
-
-**What changed.** The web app became embeddable in an iOS wrapper without
-breaching Apple's rules: reader-mode purchase hiding (Rule 1), no ad/tracking
-stack in-app (Rule 3), a **support page**, an upgraded **privacy policy**, and
-**in-app account deletion**.
-
-**Why it matters to you.** Apple *requires* an in-app account-deletion path for
-any app with account creation (Guideline 5.1.1(v)). Missing it is an automatic
-rejection.
-
-**Do in RN:**
-- Implement account deletion. The backend already exists: **`POST /api/account/delete`**.
-- Implement Rules 1–3 above.
-- Ship a reachable Support and Privacy screen.
-
-**Source:** `lib/platform.ts`, `components/HideInIOSApp.tsx`,
-`components/ThirdPartyScripts.tsx`, `app/api/account/delete/route.ts`,
-`app/support/page.tsx`, `app/privacy/page.tsx`
-
----
-
-## 2.2 🔴 Content: +362 episodes, catalog and Mux remap (2026-07-08 → 07-11)
-
-**What changed.**
-- **362 episodes added**: 5 new series live, 3 series completed.
-- Episode counts **reconciled against real Mux inventory** — the catalog used to
-  claim episodes that did not exist.
-- **6 trailer episodes removed** from series (trailers are for social promo only).
-- Red Carpet events now actually play: **Exes Premiere (12 eps)**, **Love Awards (13 eps)**.
-
-**Do in RN:** re-copy the data modules. They are pure TypeScript with no DOM
-dependency and drop in almost verbatim:
-
-| File | Lines | What it is |
-| --- | --- | --- |
-| `lib/catalog.ts` | ~1,118 | All ~80 series, categories, posters |
-| `lib/mux-map.ts` | ~4,457 | Episode → Mux playback ID map (4,472 videos) |
-| `lib/series-detail.ts` | ~477 | Rich per-series metadata |
-| `lib/config.ts` | — | **Pricing and free-episode count. See 2.3.** |
-| `lib/theme.ts` | 15 | Design tokens |
-| `lib/i18n.ts` | ~647 | 20 languages |
-| `lib/search-index.ts` | — | Genre/keyword search matching |
-
-> Do **not** hand-edit these. Copy them wholesale, or you will drift from the
-> Mux inventory and ship episodes that do not resolve.
-
----
-
-## 2.3 🔴 Pricing and paywall (2026-06-30 → 07-11)
-
-**What changed.** Pricing settled, and the paywall was redesigned for conversion
-(2026-07-11: prominent "Go Back", gradient bullets, "No ads" copy).
-
-**The numbers — `lib/config.ts` is the source of truth:**
-
-| | |
-| --- | --- |
-| Free episodes per series | **`FREE_EPISODES = 5`** |
-| Summer Sale per-movie unlock | **$1.99** (was $2 — changed 2026-06-30) |
-| VIP monthly | **$9.99** (`VIP_MONTHLY_CENTS = 999`) |
-| VIP yearly | **$79.99** (`VIP_YEARLY_CENTS = 7999`, "Save 33%") |
-| Coin packs | `COIN_PACKS` — 100/300/700/1500/3500 with bonuses |
-| Default coins per episode | `DEFAULT_COIN_PER_EPISODE = 49` |
-
-**Do in RN:** import these constants; never retype the numbers. Then apply
-**Rule 1** — on iOS, the paywall and every price is **hidden**, not shown.
-
----
-
-## 2.4 🟡 Video playback overhaul (2026-07-08 → 07-10) — biggest UX change
-
-**What changed.** A long fight to make playback instant and glitch-free. In order:
-
-- Video now **starts at click time**, not after navigation. The poster is used as
-  the loading state; the player is created immediately and "adopted" by the
-  episode page (`lib/instant-player.ts`).
-- Episode pages made **fully static (SSG)** for ReelShort-speed opens.
-- Eliminated **black flashes** between poster and video (several passes).
-- Fixed **videos pausing/failing from episode 4 onward** (a virtualization bug —
-  too many `<video>` elements alive at once).
-- **Paused frame stays visible** — no black screen on pause.
-- Auto-hide all video chrome after 10s; watermark stays permanent.
-
-**Do in RN:** the *symptoms* are web-specific (hls.js, `<video>` elements, DOM
-adoption) but the **product rules are not**. Reproduce these:
-
-1. Playback begins the moment the poster is tapped — never show a spinner.
-2. Keep at most a small window of players alive; tear down the rest. **This is the
-   actual cause of the "stops working after a few episodes" bug** — do not let
-   every card hold a player.
-3. Never show a black frame. Hold the poster until the first frame is decoded.
-4. On pause, keep the frame.
-5. Auto-hide chrome after 10s; keep the watermark.
-
-`react-native-video` handles Mux HLS directly. Get signed playback URLs from
-**`/api/playback/[episode]`** — do not embed Mux secrets in the app.
-
-**Source:** `lib/instant-player.ts`, `components/EpisodeFeed.tsx`, `components/Player.tsx`
-
----
-
-## 2.5 🔴 Amazon affiliate shop (2026-07-03, rebuilt 2026-07-13) — **new, ship it**
-
-**What changed.** The TikTok Shop products (2026-07-01) were **deleted**. An
-Amazon affiliate storefront replaced them (Associates tag **`verzatv-20`**).
-
-> ⚠️ **If your snapshot is from 2026-07-01 → 07-13 you may have TikTok Shop
-> products.** `lib/sponsors.ts` and `components/SponsoredProducts.tsx` were
-> **deleted**. Delete their RN equivalents.
-
-**Final state — this is what to build:**
-
-- **12 Amazon products**, defined in `lib/amazon-sponsors.ts` (single source of truth).
-- Products appear **only** on the Shop tab and the full store page. They are
-  deliberately **NOT** in the poster grid, **NOT** in search, and **NOT** in the
-  footer — putting them among the posters made the whole app read as an ad.
-- **The Verza bag**: shoppers add products *without leaving the app*, then one
-  handoff pushes the whole bag into their real Amazon cart.
-
-**Four constraints you must not break** (they are Amazon terms, not taste):
-
-1. **Checkout can never happen in-app.** Amazon gives affiliates no checkout API
-   and forbids framing its pages. Payment always completes on Amazon.
-2. **Never display a price.** Amazon only permits prices pulled live from PA-API
-   and refreshed every 24h. The app shows none.
-3. **Product images must come from `m.media-amazon.com`**, never the Associates
-   widget on `ws-na.amazon-adsystem.com` — that is an ad-network domain and ad
-   blockers drop it.
-4. **Disclosure is mandatory**: "Sponsored · Amazon" on every tile plus the
-   Associates disclosure. FTC and Amazon both require it.
-
-**The cart handoff** — build this URL and open it in the system browser:
-
-```
-https://www.amazon.com/gp/aws/cart/add.html
-  ?AssociateTag=verzatv-20
-  &ASIN.1=B08KT2Z93D&Quantity.1=2
-  &ASIN.2=B085P3TYPS&Quantity.2=1
-```
-
-In RN: `Linking.openURL(cartUrl)`. **Do not** open it in an in-app WebView —
-Amazon's login and cart behave badly there, and it muddies attribution.
-
-**Per Rule 2 this is allowed on iOS** — these are physical goods.
-
-**Read before building:** [`AMAZON-SHOP.md`](AMAZON-SHOP.md) and
-[`../reports/DEV-REPORT-2026-07-13-AMAZON-SHOP.md`](../reports/DEV-REPORT-2026-07-13-AMAZON-SHOP.md).
-
-**Source:** `lib/amazon-sponsors.ts`, `lib/amazon-bag.tsx`,
-`components/AmazonProducts.tsx`, `components/AmazonBag.tsx`, `app/shop/page.tsx`,
-`app/amazon/page.tsx`
-
----
-
-## 2.6 🔴 Auth, entitlements and Continue Watching (2026-06-20)
-
-**What changed.** Supabase auth (email + Google/Apple OAuth), persistent
-entitlements, sign-in required before purchase, purchases auto-saved to My List,
-Continue Watching, saved list working for guests *and* signed-in users.
-
-**Do in RN:** use `@supabase/supabase-js` with **AsyncStorage** as the session
-store (not `localStorage`). Apple OAuth is effectively mandatory on iOS if you
-offer any other social login (Guideline 4.8).
-
-Entitlements are server-verified. Call **`/api/entitlements`** and
-**`/api/entitlements/check`** — never trust a local flag.
-
----
-
-## 2.7 🔴 Analytics event stream (2026-06-28 → 06-29)
-
-**What changed.** `analytics_events` persistence in Supabase, a client sink at
-**`/api/events`**, an anon-id beacon, and a closed purchase/revenue funnel with
-server-verified revenue rows (ARPPU, paying users, free→paid rate).
-
-**Do in RN:** emit the same events to `/api/events` so web and native revenue land
-in one funnel. This is **first-party** — no ATT prompt needed (see Rule 3).
-
----
-
-## 2.8 🟡 Creator / UGC pipeline (2026-06-30)
-
-End-to-end: apply → upload → review → watch → payouts, plus an application
-approval flow. Backend is live under **`/api/creator/*`** and `/api/admin/*`.
-
-**Do in RN:** the apply/status screens are worth having. Uploads are heavy on
-mobile — consider deep-linking to the web for the upload step.
-
----
-
-## 2.9 🔴 Search (2026-07-01)
-
-A genre/keyword search index (`lib/search-index.ts`) so searching a *category*
-surfaces every show in it, not just title matches.
-
-**Do in RN:** port `seriesMatchesQuery` verbatim — it is pure logic. Note that
-Amazon products were **removed** from search on 2026-07-13; search returns shows
-only.
-
----
-
-## 2.10 🟡 Branding, gestures and polish (2026-06-23 → 07-04)
-
-- New **white-inside VERZA logo** everywhere; brand capitalised **VERZA**.
-- **Video watermark** (VERZA emblem, top-left, permanent while playing).
-- **Swipe between category tabs** (right = next, left = previous).
-- Back arrow **crossfades into the VERZA logo** after 10s idle on immersive players.
-- Push notifications, install prompt, resume-playback reminder.
-
-**Do in RN:** swipe tabs and the watermark are worth porting (`react-native-gesture-handler`).
-Push → `expo-notifications` / APNs. The "install prompt" is meaningless in a
-native app — **skip it**.
-
----
-
-## 2.11 ⚪ SKIP — web-only, do not port
-
-| | Why |
-| --- | --- |
-| pSEO pages (`/best`, `/compare`, `/guides`, `/watch-in`, `/collections`, `/genres`) | Search-engine surface. Meaningless in an app. |
-| Sitemaps, JSON-LD, OG images, canonical URLs, `llms.txt` | Same. |
-| CSP headers, `ads.txt`, AdSense | Web security/ads. Also see Rule 3. |
-| Desktop iPhone frame (`.device-frame`) | Simulates a phone on desktop. You *are* a phone. |
-| Container queries (`.headline-oneline`) | Use `useWindowDimensions()`. |
-| Google Translate widget | Use `lib/i18n.ts` directly. |
-| Service worker / PWA manifest | Native app. |
-| `lib/platform.ts` `isIOSApp()` heuristics | Use `Platform.OS`. |
-
----
-
-# PART 3 — Platform mapping
-
-| Web | React Native |
-| --- | --- |
-| `localStorage` | `@react-native-async-storage/async-storage` |
-| Next `<Link>` + App Router | React Navigation |
-| Tailwind / CSS | `StyleSheet` or NativeWind |
-| `<video>` + hls.js | `react-native-video` (Mux HLS) |
-| `next/image`, `<img>` | `expo-image` / `<Image>` |
-| `createPortal` modal | `<Modal>` |
-| `window.open(url)` | `Linking.openURL(url)` |
-| `container-type: inline-size` | `useWindowDimensions()` |
-| Stripe Checkout redirect | **See Rules 1 & 2** |
-| `document` / `window` | `Platform`, `Dimensions` |
-
-**The backend is shared.** The RN app should call the same Next.js API routes
-already deployed at `verzatv.com`:
-
-```
-/api/entitlements        /api/entitlements/check     /api/access
-/api/playback/[episode]  /api/events                 /api/coins/balance
-/api/account/delete      /api/auth/callback          /api/creator/*
-```
-
-Do not re-implement business logic client-side. **Never embed Mux, Stripe or
-Supabase service-role secrets in the app bundle** — anyone can unzip an IPA.
-
----
-
-# PART 4 — Suggested order of work
-
-1. **Rules 1–3** (compliance). Everything else is worthless if the app is rejected.
-2. **`/api/account/delete`** wiring (hard requirement).
-3. **Re-copy the data modules** (2.2) — catalog, mux-map, config, theme, i18n.
-4. **Playback rules** (2.4) — especially tearing down players; that is the
-   "breaks after a few episodes" bug.
-5. **Auth + entitlements** (2.6).
-6. **Analytics** (2.7).
-7. **Amazon shop** (2.5) — net-new revenue, allowed on iOS.
-8. Polish (2.10).
-
----
-
-# PART 5 — Verify before you call it done
-
-- [ ] No price, paywall, unlock CTA, VIP card or Summer Sale badge is reachable on iOS.
-- [ ] Merch and Amazon products **are** reachable, and use external checkout (not IAP).
-- [ ] Account deletion works in-app.
-- [ ] No GTM / GA4 / AdSense in the bundle (or ATT is implemented).
-- [ ] Episode counts match `lib/mux-map.ts`; no episode resolves to a missing video.
-- [ ] Open 10+ episodes back to back — playback still works (player teardown).
-- [ ] No black frame on open or on pause.
-- [ ] Amazon cart handoff opens in the **system browser** with `AssociateTag=verzatv-20`.
-- [ ] No Mux / Stripe / Supabase service-role secret in the bundle.
-
----
-
-# Reference
-
-| Doc | What it covers |
-| --- | --- |
-| [`../CHANGELOG.md`](../CHANGELOG.md) | Every dated change on web |
-| [`AMAZON-SHOP.md`](AMAZON-SHOP.md) | Amazon shop operations |
-| [`../reports/DEV-REPORT-2026-07-13-AMAZON-SHOP.md`](../reports/DEV-REPORT-2026-07-13-AMAZON-SHOP.md) | Amazon build report |
-| [`../reference/ARCHITECTURE.md`](../reference/ARCHITECTURE.md) | Web architecture |
-| [`../reference/API-REFERENCE.md`](../reference/API-REFERENCE.md) | API routes |
-| [`../reference/DATA-MODEL.md`](../reference/DATA-MODEL.md) | Supabase schema |
-| [`PAYMENTS.md`](PAYMENTS.md) | Stripe, webhooks, revenue truth |
-| [`MUX.md`](MUX.md) | Video pipeline |
+The current Mac cannot run the SDK 57 cached Expo Go binary and does not need an
+operating-system upgrade for submission. Use the documented EAS standalone
+Simulator build, then the exact production IPA. Before App Store attachment,
+inspect that pinned IPA's `Info.plist`, entitlements, privacy manifests,
+frameworks/extensions, and secrets; historical build 19 is stale and forbidden.
+
+## Documentation ownership
+
+- Web payment/Mux/API/deployment truth lives in this repository.
+- Native routes, player pool, Keychain, app config, screenshots, binary audit,
+  App Store Connect, and shipping mechanics live in the native repository.
+- Shared data is copied only through native `docs/DATA-SYNC.md` and then
+  byte-compared.
+- Update both documentation sets in the same change whenever an API contract,
+  capability response, shared count, route boundary, or release flag changes.

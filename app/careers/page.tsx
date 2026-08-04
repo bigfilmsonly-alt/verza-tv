@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: `Careers | ${BRAND.name}`,
     description:
-      "Open roles at VERZA TV, the first US-based vertical micro-drama studio. Engineering, production, content, and growth.",
+      "Confirmed openings and careers information from VERZA TV.",
     url: `${BASE_URL}/careers`,
     type: "website",
   },
@@ -59,10 +59,8 @@ export default function CareersPage() {
           Careers
         </h1>
         <p className="text-sm mb-8 leading-relaxed" style={{ color: T.textDim }}>
-          Build the next mass-market entertainment format with us. {BRAND.name}{" "}
-          is the first US-based vertical micro-drama studio — a place where the
-          people writing code and the people shooting series share a roadmap and
-          an audience.
+          {BRAND.name} works across short-form production and streaming
+          software. Confirmed openings are published here when available.
         </p>
 
         {/* Culture */}
@@ -84,15 +82,16 @@ export default function CareersPage() {
           </p>
         </div>
 
-        {/* Perks */}
-        <h2
-          className="text-sm font-semibold uppercase tracking-wider mb-3"
-          style={{ color: T.accent }}
-        >
-          Why VERZA TV
-        </h2>
-        <div className="grid grid-cols-1 gap-3 mb-8">
-          {PERKS.map((perk) => (
+        {PERKS.length > 0 && (
+          <>
+            <h2
+              className="text-sm font-semibold uppercase tracking-wider mb-3"
+              style={{ color: T.accent }}
+            >
+              Why VERZA TV
+            </h2>
+            <div className="grid grid-cols-1 gap-3 mb-8">
+              {PERKS.map((perk) => (
             <div
               key={perk.title}
               className="rounded-xl p-4"
@@ -108,8 +107,10 @@ export default function CareersPage() {
                 {perk.detail}
               </p>
             </div>
-          ))}
-        </div>
+              ))}
+            </div>
+          </>
+        )}
 
         {/* Open roles */}
         <h2
@@ -119,7 +120,14 @@ export default function CareersPage() {
           Open Roles
         </h2>
         <div className="flex flex-col gap-2 mb-8">
-          {OPEN_ROLES.map((role) => (
+          {OPEN_ROLES.length === 0 ? (
+            <p
+              className="rounded-xl p-4 text-sm"
+              style={{ background: T.surface, border: `1px solid ${T.line}`, color: T.textDim }}
+            >
+              No openings are currently published.
+            </p>
+          ) : OPEN_ROLES.map((role) => (
             <a
               key={role.title}
               href={`mailto:${CAREERS_EMAIL}?subject=${encodeURIComponent(
@@ -157,7 +165,7 @@ export default function CareersPage() {
           style={{ background: T.surface, border: `1px solid ${T.line}` }}
         >
           <p className="text-sm mb-1" style={{ color: T.textDim }}>
-            Don&apos;t see your role? We&apos;re always meeting great people.
+            General careers contact
           </p>
           <p className="text-sm font-medium" style={{ color: T.text }}>
             {CAREERS_EMAIL}

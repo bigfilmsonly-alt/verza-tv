@@ -7,7 +7,7 @@ import OAuthButtons from "@/components/OAuthButtons";
 
 export const metadata: Metadata = {
   title: `Sign Up | ${BRAND.name}`,
-  description: `Create your ${BRAND.name} account to start streaming micro-dramas, earn coins, and build your watchlist.`,
+  description: `Create your ${BRAND.name} account to stream vertical series, sync eligible access, and build your watchlist.`,
   alternates: { canonical: "/sign-up" },
 };
 
@@ -131,7 +131,7 @@ export default async function SignUpPage({ searchParams }: Props) {
             style={{ accentColor: T.accent }}
           />
           <span className="text-sm" style={{ color: T.textDim }}>
-            I am 13 years or older
+            I am at least 18 years old
           </span>
         </label>
 

@@ -1,42 +1,64 @@
-# Verza TV — SEO & Content Infrastructure
+# SEO and content infrastructure
 
-## Content Source
-The app reads content from a pluggable adapter (`lib/content/source.ts`).
+Last reconciled: **2026-08-03**. This governs web search indexing, not App Store
+keyword metadata. Native App Store ASO lives in the native release audit.
 
-- **Current**: `CONTENT_SOURCE=code` (default) — reads from `lib/catalog.ts`, `lib/series-detail.ts`, `lib/mux-map.ts`
-- **Future**: `CONTENT_SOURCE=supabase` — reads from Supabase content tables
+## Source and canonical origin
 
-### How to flip to Supabase
-1. Set `CONTENT_SOURCE=supabase` in `.env.local`
-2. Apply migrations: `supabase db push` (runs `supabase/migrations/002_content_tables.sql`)
-3. Backfill shows + episodes from the code catalog
-4. Verify: all pages render, sitemap includes correct URLs
+- Code-backed `lib/content/code-source.ts` is production authority.
+- It reads `catalog.ts`, `series-detail.ts`, and **only**
+  `mux-public-map.ts`.
+- `CONTENT_SOURCE=supabase` is a scaffold, not an operational toggle.
+- Production canonical URLs use `https://www.verzatv.com`; the apex redirects.
+- Preview/non-production deployments are always noindex/nofollow.
 
-## Metadata Rules
-- Every page uses builders from `lib/seo/metadata.ts`
-- Builders: `buildHomeMetadata()`, `buildShowMetadata(show)`, `buildEpisodeMetadata(show, ep)`, `buildGenreMetadata(genre)`, `buildArticleMetadata(article)`
-- All canonicals are absolute on `https://verzatv.com`
-- Non-indexable entities get `robots: { index: false, follow: true }`
+Do not flip content source until the adapter, data backfill, RLS, Mux capability
+projection, indexability, sitemap parity, native sync, rollback, and production
+readback have a separately approved release plan.
 
-## JSON-LD Rules
-- Builders in `lib/seo/schema.ts`
-- One `<script type="application/ld+json">` per entity per page (never duplicate)
-- Types: Organization, WebSite, MobileApplication, TVSeries, TVEpisode+VideoObject, BreadcrumbList, ItemList, FAQPage, Article
+## Protected-video rule
 
-## Indexability Gates (`lib/content/indexability.ts`)
-- Show is indexable if: slug + title + synopsis + posterUrl + episodeCount > 0
-- Episode is indexable if: show is indexable + episode has title + muxPlaybackId
-- Transcript is NOT required (60-90s micro-dramas)
-- Gates used in BOTH page metadata AND sitemap inclusion
+The public projection contains 4,262 logical rows but exposes only 459
+intentionally public/free playback IDs. It withholds 3,753 paid-live and 50
+coming-soon IDs. SEO, JSON-LD, sitemaps, share pages, `llms.txt`, browser
+payloads, and metadata may never contain those 3,803 protected capabilities or
+an expiring signed URL.
 
-## Sitemap Structure
-- `/sitemap.xml` — sitemap index
-- `/sitemaps/shows.xml` — all indexable live series
-- `/sitemaps/episodes.xml` — all indexable episodes
-- `/sitemaps/genres.xml` — genre/category landing pages
-- `/sitemaps/pages.xml` — static pages
+For a paid episode, use title/series/poster metadata without a durable video
+content URL. A protected episode must not be made public merely to satisfy a
+VideoObject or indexability check.
 
-## Transcript Pipeline
-- `lib/content/transcripts.ts` — stub, validates input, logs
-- CLI: `npx tsx scripts/attach-transcript.ts <slug> <ep> <file>`
-- No batch automation yet — just the seam for future use
+## Metadata and schema
+
+- Central builders live in `lib/seo/metadata.ts` and `lib/seo/schema.ts`.
+- Canonical, title, and description must be unique and user-serving.
+- Structured data must describe visible, verified facts—no fake ratings,
+  reviews, view counts, release schedules, prices, or availability.
+- Series/episode schema and sitemap inclusion must require a live canonical
+  title. Durable Mux media URLs are free-preview only.
+- Search results remain noindex.
+- Marketing keywords belong in natural title/description copy; hidden text and
+  stuffing are forbidden.
+
+## Sitemaps
+
+- `/sitemap.xml` — index;
+- `/sitemaps/shows.xml` — live/indexable titles;
+- `/sitemaps/episodes.xml` — live/indexable episodes, free media URL only;
+- `/sitemaps/genres.xml` — approved genre/discovery pages; and
+- `/sitemaps/pages.xml` — approved static/editorial pages.
+
+Before deploy, scan generated output for all 3,803 withheld Mux IDs and reject
+any match. After deploy, read back the canonical sitemap origin and confirm the
+preview origin remains noindex.
+
+## Transcript pipeline
+
+`lib/content/transcripts.ts` and
+`npx tsx scripts/attach-transcript.ts <slug> <episode> <file>` provide the
+current seam. Human-review rights, privacy, accuracy, originality, and search
+quality before indexing. Transcripts must never contain secrets, reviewer
+credentials, signed URLs, or protected playback IDs.
+
+See [`seo-governance.md`](seo-governance.md) for quality/sign-off rules and
+[`MUX.md`](MUX.md) for capability security.

@@ -96,9 +96,13 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // Let the Stripe webhook through without rate limiting — Stripe retries on
-  // failure and we must not block legitimate webhook deliveries.
-  if (pathname.startsWith("/api/stripe/webhook")) {
+  // Let Stripe delivery and the fixed, side-effect-free native return bridge
+  // through. A 429 on the latter would strand a paid customer in the browser;
+  // it accepts only two allowlisted query values and grants no access itself.
+  if (
+    pathname.startsWith("/api/stripe/webhook") ||
+    pathname === "/api/checkout/native-return"
+  ) {
     return NextResponse.next();
   }
 

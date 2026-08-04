@@ -2,30 +2,55 @@ import { BRAND, FREE_EPISODES, VIP_PLANS } from "@/lib/config";
 import { getLiveSeries } from "@/lib/catalog";
 import { GENRE_HUBS } from "@/lib/content/genres";
 import { LEARN_PAGES } from "@/lib/content/learn";
+import {
+  vipSubscriptionCheckoutEnabled,
+  vipYearlyCheckoutEnabled,
+} from "@/lib/vip-release-policy";
+
+function availableVipOffers(): string[] {
+  try {
+    const offers: string[] = [];
+    if (vipSubscriptionCheckoutEnabled()) {
+      offers.push(
+        `$${(VIP_PLANS.monthly.cents / 100).toFixed(2)}/month`,
+      );
+    }
+    if (vipYearlyCheckoutEnabled()) {
+      offers.push(`$${(VIP_PLANS.yearly.cents / 100).toFixed(2)}/year`);
+    }
+    return offers;
+  } catch {
+    return [];
+  }
+}
 
 export function GET() {
   const liveCount = getLiveSeries().length;
+  const vipOffers = availableVipOffers();
+  const vipFact = vipOffers.length
+    ? `VIP subscription currently shown on supported purchase surfaces: ${vipOffers.join(" or ")} for paid access while active`
+    : "VIP subscription checkout is not currently offered; do not infer availability from historical or technical material";
   const body = `# ${BRAND.name}
 > ${BRAND.tagline}
 
 ## What is ${BRAND.name}?
-${BRAND.name} is the first US-based vertical micro-drama streaming platform. Founded by Alan Mruvka, co-founder of E! Entertainment Television. Premium short-form cinematic episodes (60-120 seconds each) in vertical 9:16 format, designed for phone-first viewing. Available at ${BRAND.domain}.
+${BRAND.name} is a phone-first vertical entertainment platform founded by Alan Mruvka, co-founder of E! Entertainment Television. It offers short-form cinematic series in vertical 9:16 format at ${BRAND.domain}; episode lengths vary by title.
 
 ## Quick Facts
-- ${liveCount}+ original series: Romance, Thriller, Drama, Reality, Comedy, Mystery, and more
-- Episode format: 60-120 seconds, vertical (9:16), cinema-quality production
-- First ${FREE_EPISODES} episodes of every series are free
-- Full series unlock: $1.99 one-time payment (Summer Sale)
-- VIP subscription: $${(VIP_PLANS.monthly.cents / 100).toFixed(2)}/month or $${(VIP_PLANS.yearly.cents / 100).toFixed(2)}/year for unlimited access
-- Powered by Filmology Labs ($250M production facility, 21 soundstages, Paterson NJ)
+- ${liveCount} currently live series across Romance, Thriller, Drama, Reality, Comedy, Mystery, and more
+- Episode format: short-form vertical (9:16); length varies by title
+- Paid-access series currently include ${FREE_EPISODES} free preview episodes; wholly free titles identify their availability on the title page
+- Full series unlock: $1.99 one-time Series Unlock
+- ${vipFact}
+- Production through Filmology Labs in Paterson, New Jersey
 
 ## What Is a Micro-Drama?
-A micro-drama is a serialized story told in very short episodes (60-120 seconds). Each episode ends on a cliffhanger. The format originated in China and is now growing globally. VERZA TV is the first US-based platform dedicated to this format.
+A micro-drama is a serialized story told in short-form episodes, often designed for phone-first vertical viewing. Episode lengths and story structures vary.
 
 ## How It Works
-1. Browse ${liveCount}+ series across genres
-2. Watch the first 5 episodes free — no account needed
-3. Unlock the full series for $1.99 (Summer Sale), or subscribe to VIP for all series
+1. Browse ${liveCount} currently live series across genres
+2. Check each title page for its current free-preview availability
+3. Buy a $1.99 one-time Series Unlock; choose VIP only if a plan is currently shown on a supported purchase surface
 4. Episodes auto-play in sequence for binge watching
 
 ## Genres

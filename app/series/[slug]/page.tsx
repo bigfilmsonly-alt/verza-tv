@@ -7,12 +7,12 @@ import {
   SERIES,
   getSeriesWithDetail,
   getEpisodesForSeries,
-  formatDuration,
 } from "@/lib/catalog";
-// coins module no longer used — direct $4.99 pricing
+// Coin pricing is no longer used; Series Unlock has one canonical cash price.
 import { seriesSchema, breadcrumbSchema } from "@/lib/schemas";
 import { T } from "@/lib/theme";
 import { FREE_EPISODES } from "@/lib/config";
+import { isSeriesPurchasable } from "@/lib/series-purchase";
 import EpisodeDropdown from "@/components/EpisodeDropdown";
 import HideInIOSApp from "@/components/HideInIOSApp";
 
@@ -61,22 +61,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 /*  Page                                                               */
 /* ------------------------------------------------------------------ */
 
-function hashCode(str: string): number {
-  let h = 0;
-  for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) | 0;
-  return Math.abs(h);
-}
-
 export default async function SeriesPage({ params }: Props) {
   const { slug } = await params;
   const series = getSeriesWithDetail(slug);
   if (!series) notFound();
 
-  const pseudoViews = 50000 + (hashCode(series.slug) % 950000);
-
   const episodes = getEpisodesForSeries(slug);
+  const isPurchasable = isSeriesPurchasable(series);
   const BASE_URL =
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verzatv.com";
 
   return (
     <>
@@ -167,38 +160,21 @@ export default async function SeriesPage({ params }: Props) {
           {series.logline}
         </p>
 
-        {/* Rating + Year */}
-        {series.rating && (
+        {/* Published metadata */}
+        {(series.year || series.channel) && (
           <div className="flex items-center gap-3 mb-3">
-            <span
-              className="flex items-center gap-1 text-xs font-bold px-2 py-1 rounded"
-              style={{ background: `${T.coin}22`, color: T.coin, boxShadow: "0 0 8px rgba(246, 200, 0, 0.2)" }}
-            >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill={T.coin} stroke="none">
-                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-              </svg>
-              {series.rating.toFixed(1)}
-            </span>
             {series.year && (
               <span className="text-xs" style={{ color: T.textMute }}>
                 {series.year}
               </span>
             )}
-            <span className="text-xs" style={{ color: T.textMute }}>
-              {series.channel}
-            </span>
+            {series.channel && (
+              <span className="text-xs" style={{ color: T.textMute }}>
+                {series.channel}
+              </span>
+            )}
           </div>
         )}
-
-        {/* Social proof */}
-        <div className="flex items-center gap-3 mb-3">
-          <span className="text-xs" style={{ color: T.textDim }}>
-            {(pseudoViews).toLocaleString()} views
-          </span>
-          <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "rgba(224, 17, 95, 0.15)", color: T.accent }}>
-            Trending
-          </span>
-        </div>
 
         {/* Description */}
         {series.description && (
@@ -237,7 +213,7 @@ export default async function SeriesPage({ params }: Props) {
           </div>
         )}
 
-        {/* First 5 Free badge */}
+        {/* Title-specific free-preview badge */}
         <div
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold mb-6"
           style={{
@@ -258,7 +234,9 @@ export default async function SeriesPage({ params }: Props) {
           >
             <polygon points="5 3 19 12 5 21 5 3" />
           </svg>
-          First {FREE_EPISODES} Episodes FREE
+          {series.freeEpisodes >= series.episodeCount
+            ? "All Episodes FREE"
+            : `First ${series.freeEpisodes} Episodes FREE`}
         </div>
 
         {series.status === "live" && series.episodeCount > 0 ? (
@@ -295,7 +273,7 @@ export default async function SeriesPage({ params }: Props) {
 
         {/* ---- Unlock Full Series Card (brand-gradient frame) ----
              Hidden inside the iOS app (Apple 3.1.1 — no purchase UI). */}
-        <HideInIOSApp>
+        {isPurchasable && <HideInIOSApp>
         <div
           className="rounded-xl p-[1px] mb-6"
           style={{ background: "linear-gradient(135deg, rgba(224,17,95,0.5), rgba(139,92,246,0.5))" }}
@@ -313,29 +291,25 @@ export default async function SeriesPage({ params }: Props) {
                 className="text-sm font-bold mb-0.5"
                 style={{ color: T.text }}
               >
-                Unlock Full Series
-                <span className="ml-2 px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase align-middle" style={{ letterSpacing: "0.08em", background: "rgba(224,17,95,0.15)", color: "#E0115F" }}>
-                  Summer Sale
-                </span>
+                Series Unlock
               </p>
               <p
                 className="text-xs"
                 style={{ color: T.textDim }}
               >
-                All {series.episodeCount} episodes &middot; one-time payment
+                All {series.episodeCount} episodes &middot; one-time purchase
               </p>
             </div>
             <span
               className="text-base font-bold flex items-baseline gap-1.5"
               style={{ color: T.accent }}
             >
-              <span className="text-xs font-semibold line-through" style={{ color: T.textMute }}>$4.99</span>
               $1.99
             </span>
           </div>
         </div>
         </div>
-        </HideInIOSApp>
+        </HideInIOSApp>}
 
         {/* ---- Episode Dropdown ---- */}
         <EpisodeDropdown

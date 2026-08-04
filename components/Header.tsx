@@ -20,9 +20,7 @@ export default function Header() {
         paddingTop: "env(safe-area-inset-top, 0px)",
       }}
     >
-      {/* Single row — language, logo, search. The Summer Sale $1.99 promo is
-          overlaid directly on the hero poster (see BrowsePage) so it never
-          pushes the posters down or moves on scroll. */}
+      {/* Single row — language, logo, search. */}
       <div className="flex items-center justify-between px-3 py-1">
         {/* Left — language dropdown */}
         <LangDropdown />

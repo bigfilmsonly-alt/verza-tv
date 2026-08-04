@@ -2,13 +2,20 @@
 
 import { useRef, useState, useEffect, useLayoutEffect, useCallback } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import type HlsType from "hls.js";
 import { adoptInstantPlayer } from "@/lib/instant-player";
 import { isIOSApp } from "@/lib/platform";
 import { trackEpisodeStart, trackEpisodeComplete, trackUnlockPrompt, trackUnlockClick } from "@/lib/track";
 import { emit } from "@/lib/analytics";
+import { requireCheckoutUser } from "@/lib/checkout-auth";
 import VideoWatermark from "@/components/VideoWatermark";
+import {
+  PlaybackAccessError,
+  getAuthorizedPlayback,
+  invalidateAuthorizedPlayback,
+  subscribeAuthorizedPlaybackInvalidation,
+  type AuthorizedPlaybackSource,
+} from "@/lib/playback-client";
 import {
   saveLastWatching,
   notifyResume,
@@ -45,7 +52,10 @@ export interface FeedEpisode {
   number: number;
   title: string;
   durationS: number;
+  /** Present only for catalog-free episodes; never expose a paid public ID. */
   playbackId?: string;
+  /** Paid catalog episode: source must come from authenticated /api/playback. */
+  requiresAuthorization: boolean;
   isFree: boolean;
 }
 
@@ -87,6 +97,7 @@ function EpisodeSlide({
   widescreen = false,
   transitionPoster,
   blocked = false,
+  onAccessDenied,
 }: {
   episode: FeedEpisode;
   seriesSlug: string;
@@ -114,6 +125,8 @@ function EpisodeSlide({
   /** True when this episode is behind the paywall for this viewer — the
       video is held paused so paid content never plays under the overlay. */
   blocked?: boolean;
+  /** A cached token can outlive an entitlement. A 401/402 refresh re-locks UI. */
+  onAccessDenied: () => void;
 }) {
   const videoBoxRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -125,7 +138,7 @@ function EpisodeSlide({
   // True once playback has begun; stays true through pauses so the paused frame
   // remains visible (no black poster flash on pause). Reset only on teardown.
   const [started, setStarted] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
   const [showPause, setShowPause] = useState(false);
   const pauseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastTap = useRef(0);
@@ -137,6 +150,13 @@ function EpisodeSlide({
   const audioSwappedRef = useRef(false);
   const reattachCountRef = useRef(0);
   const [attachNonce, setAttachNonce] = useState(0);
+  const [authorizedSource, setAuthorizedSource] =
+    useState<AuthorizedPlaybackSource | null>(null);
+  const [sourceRequestNonce, setSourceRequestNonce] = useState(0);
+  const forceSourceRefreshRef = useRef(false);
+  const sourceRefreshInFlightRef = useRef(false);
+  const protectedRefreshCountRef = useRef(0);
+  const refreshResumePositionRef = useRef(0);
 
   // Keep refs in sync with props
   useEffect(() => { mutedRef.current = muted; }, [muted]);
@@ -150,9 +170,117 @@ function EpisodeSlide({
   // reveals — a stable placeholder makes a black flash or poster flash
   // impossible by construction, on any connection speed.
 
-  const hlsUrl = episode.playbackId
-    ? `https://stream.mux.com/${episode.playbackId}.m3u8`
-    : null;
+  const directFreeUrl =
+    !episode.requiresAuthorization && episode.playbackId
+      ? `https://stream.mux.com/${episode.playbackId}.m3u8`
+      : null;
+  const hlsUrl = blocked
+    ? null
+    : episode.requiresAuthorization
+      ? (authorizedSource?.url ?? null)
+      : directFreeUrl;
+
+  /* Resolve paid sources only for the same active ±1 window that may attach a
+     player. This preserves the five-slide render window and ≤3 decoder/source
+     behavior while moving authorization to the server. Requests are deduped
+     and expiry-aware in playback-client.ts. */
+  useEffect(() => {
+    if (!episode.requiresAuthorization) return;
+    if (blocked) {
+      queueMicrotask(() => setAuthorizedSource(null));
+      invalidateAuthorizedPlayback(seriesSlug, episode.number);
+      return;
+    }
+    if (!isActive && !isNear) return;
+
+    let cancelled = false;
+    const forceRefresh = forceSourceRefreshRef.current;
+    forceSourceRefreshRef.current = false;
+    getAuthorizedPlayback(seriesSlug, episode.number, { forceRefresh })
+      .then((source) => {
+        if (cancelled) return;
+        setAuthorizedSource(source);
+        sourceRefreshInFlightRef.current = false;
+      })
+      .catch((error: unknown) => {
+        if (cancelled) return;
+        sourceRefreshInFlightRef.current = false;
+        setAuthorizedSource(null);
+        if (
+          error instanceof PlaybackAccessError &&
+          (error.status === 401 || error.status === 402)
+        ) {
+          onAccessDenied();
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    episode.requiresAuthorization,
+    episode.number,
+    seriesSlug,
+    blocked,
+    isActive,
+    isNear,
+    sourceRequestNonce,
+    onAccessDenied,
+  ]);
+
+  const refreshProtectedSource = useCallback(() => {
+    if (
+      !episode.requiresAuthorization ||
+      blockedRef.current ||
+      sourceRefreshInFlightRef.current ||
+      protectedRefreshCountRef.current >= 2
+    ) {
+      return false;
+    }
+    protectedRefreshCountRef.current += 1;
+    sourceRefreshInFlightRef.current = true;
+    const video = videoRef.current;
+    if (video && Number.isFinite(video.currentTime)) {
+      refreshResumePositionRef.current = Math.max(0, video.currentTime);
+    }
+    setAuthorizedSource(null);
+    invalidateAuthorizedPlayback(seriesSlug, episode.number);
+    forceSourceRefreshRef.current = true;
+    setSourceRequestNonce((value) => value + 1);
+    return true;
+  }, [episode.requiresAuthorization, episode.number, seriesSlug]);
+
+  // An auth transition invalidates more than the in-memory cache. Remove the
+  // signed capability from hls.js/the media element immediately so an
+  // in-flight response or previously attached URL cannot survive an account
+  // switch in this browser tab.
+  useEffect(() => {
+    if (!episode.requiresAuthorization) return;
+    return subscribeAuthorizedPlaybackInvalidation(() => {
+      forceSourceRefreshRef.current = false;
+      sourceRefreshInFlightRef.current = false;
+      protectedRefreshCountRef.current = 0;
+      refreshResumePositionRef.current = 0;
+      if (hlsRef.current) {
+        try { hlsRef.current.destroy(); } catch {}
+        hlsRef.current = null;
+      }
+      const video = videoRef.current;
+      if (video) {
+        try {
+          video.muted = true;
+          video.pause();
+          video.removeAttribute("src");
+          video.load();
+        } catch {}
+      }
+      attachedRef.current = false;
+      setAuthorizedSource(null);
+      setSourceReady(false);
+      setPlaying(false);
+      setStarted(false);
+      setSourceRequestNonce((value) => value + 1);
+    });
+  }, [episode.requiresAuthorization]);
 
   /* Create — or ADOPT — the video element before the browser's first paint.
      The browse page starts a hidden muted player the instant a poster is
@@ -238,12 +366,15 @@ function EpisodeSlide({
           }
         });
       }
-      setSourceReady(true);
-      setPlaying(!vid.paused);
+      const frameAlreadyReady = vid.readyState >= 2;
+      queueMicrotask(() => {
+        setSourceReady(true);
+        setPlaying(!vid.paused);
+        if (frameAlreadyReady) setStarted(true);
+      });
       // A frame is already decoded → reveal the movie in this same pre-paint
       // pass (the poster never appears). Otherwise reveal on first frame.
-      if (vid.readyState >= 2) setStarted(true);
-      else onFirstFrame(vid, () => setStarted(true));
+      if (!frameAlreadyReady) onFirstFrame(vid, () => setStarted(true));
     } else {
       const vid = document.createElement("video");
       vid.muted = true;
@@ -294,7 +425,7 @@ function EpisodeSlide({
   // decoder hasn't presented a frame to the screen yet.
   function onFirstFrame(vid: HTMLVideoElement, cb: () => void) {
     if ("requestVideoFrameCallback" in vid) {
-      (vid as any).requestVideoFrameCallback(() => cb());
+      vid.requestVideoFrameCallback(() => cb());
     } else {
       // Fallback: double-RAF ensures at least one compositor paint cycle
       requestAnimationFrame(() => requestAnimationFrame(() => cb()));
@@ -304,10 +435,16 @@ function EpisodeSlide({
   // Fire play() on a video element — shared by attach + activation paths.
   const tryPlay = useCallback((vid: HTMLVideoElement) => {
     vid.muted = true; // iOS requires muted for autoplay
-    // Resume seek (only once on the resume-target episode)
+    // A token refresh reuses the same video element/source slot and restores
+    // the exact playhead. It never creates an extra player or restarts a paid
+    // episode from zero after an authenticated retry.
+    const refreshResume = refreshResumePositionRef.current;
     const dur = vid.duration;
     const durKnown = isFinite(dur) && dur > 0;
-    if (
+    if (refreshResume > 0 && (!durKnown || refreshResume < dur)) {
+      refreshResumePositionRef.current = 0;
+      try { vid.currentTime = refreshResume; } catch {}
+    } else if (
       isResumeTarget &&
       !resumeSeekedRef.current &&
       resumePositionS > 2 &&
@@ -438,8 +575,13 @@ function EpisodeSlide({
           if (v && isActiveRef.current && !blockedRef.current) v.play().catch(() => {});
         };
         if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
-          hls.startLoad();
-          resume();
+          // A signed URL is a short-lived bearer capability. Refresh through
+          // our authenticated endpoint before retrying; public/free streams
+          // retain the existing network recovery behavior.
+          if (!refreshProtectedSource()) {
+            hls.startLoad();
+            resume();
+          }
         } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
           if (mediaRecoveriesRef.current < 2) {
             mediaRecoveriesRef.current += 1;
@@ -470,7 +612,17 @@ function EpisodeSlide({
       attachedRef.current = false;
       setSourceReady(false);
     };
-  }, [hlsUrl, shouldLoad, tryPlay, attachNonce]);
+  }, [hlsUrl, shouldLoad, tryPlay, attachNonce, refreshProtectedSource, fullReattach]);
+
+  /* Native-HLS Safari does not use hls.js, so its token/network failures arrive
+     on the media element. The same bounded refresh path handles them. */
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !episode.requiresAuthorization) return;
+    const onError = () => { refreshProtectedSource(); };
+    video.addEventListener("error", onError);
+    return () => video.removeEventListener("error", onError);
+  }, [episode.requiresAuthorization, refreshProtectedSource]);
 
   /* Tear down HLS only when slide is far away (not near) */
   useEffect(() => {
@@ -479,10 +631,12 @@ function EpisodeSlide({
     if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
     if (vid) { vid.pause(); vid.removeAttribute("src"); vid.load(); }
     attachedRef.current = false;
-    setSourceReady(false);
-    setPlaying(false);
-    setStarted(false);
-    setLoading(false);
+    queueMicrotask(() => {
+      setSourceReady(false);
+      setPlaying(false);
+      setStarted(false);
+      setLoading(false);
+    });
   }, [isActive, isNear]);
 
   /* When a slide becomes active AFTER source was already attached (swiping
@@ -497,7 +651,7 @@ function EpisodeSlide({
     } else if (!isActive || blocked) {
       vid.muted = true;
       vid.pause();
-      setPlaying(false);
+      queueMicrotask(() => setPlaying(false));
     }
   }, [isActive, sourceReady, blocked, tryPlay]);
 
@@ -739,12 +893,10 @@ export default function EpisodeFeed({
   episodes,
   startEpisode,
   startPositionS: startPositionProp = 0,
-  freeEpisodes,
   totalEpisodes,
   horizontal = false,
   backHref = "/",
 }: EpisodeFeedProps) {
-  const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Poster the user tapped on the browse page (stored in sessionStorage at
@@ -781,7 +933,8 @@ export default function EpisodeFeed({
   // episodes marked free based on series config only.  A Stripe checkout
   // return carries ?session_id=cs_... which is VERIFIED server-side (the old
   // blind ?unlocked=true param let anyone unlock by editing the URL);
-  // verified sessions are remembered per-device for guest buyers.
+  // verified sessions are remembered only to recover checkout for the same
+  // still-authenticated account after the Stripe return.
   const [authFree, setAuthFree] = useState(() => {
     if (typeof window !== "undefined") {
       // Optimistic while verification runs — a buyer landing back from
@@ -800,6 +953,15 @@ export default function EpisodeFeed({
     const params = new URLSearchParams(window.location.search);
     const sessionId = params.get("session_id");
     const storageKey = `verza-unlock:${seriesSlug}`;
+
+    // A client-side navigation can reuse this component for a different
+    // series. Never carry the prior title's entitlement/auth-settled state
+    // across that boundary while the new checks are in flight.
+    queueMicrotask(() => {
+      if (stale) return;
+      setAuthFree(!!sessionId?.startsWith("cs_"));
+      setAuthResolved(false);
+    });
 
     async function confirmSession(id: string): Promise<boolean> {
       try {
@@ -827,11 +989,15 @@ export default function EpisodeFeed({
         const d = r.ok ? ((await r.json()) as { full?: boolean }) : null;
         if (!stale && d?.full) { setAuthFree(true); return; }
       } catch {}
-      // Guest buyer on this device: re-verify the remembered session.
+      // Re-verify a remembered Checkout session for the signed-in account.
       try {
         const remembered = localStorage.getItem(storageKey);
-        if (remembered && !stale && (await confirmSession(remembered))) setAuthFree(true);
+        if (remembered && !stale && (await confirmSession(remembered))) {
+          setAuthFree(true);
+          return;
+        }
       } catch {}
+      if (!stale) setAuthFree(false);
     })().finally(() => { if (!stale) setAuthResolved(true); });
 
     return () => { stale = true; };
@@ -855,7 +1021,9 @@ export default function EpisodeFeed({
   const [showUnlock, setShowUnlock] = useState(false);
   // Reader mode (Apple 3.1.1): inside the iOS app, no purchase UI may appear.
   const [iosApp, setIosApp] = useState(false);
-  useEffect(() => { if (isIOSApp()) setIosApp(true); }, []);
+  useEffect(() => {
+    if (isIOSApp()) queueMicrotask(() => setIosApp(true));
+  }, []);
 
   // Surface the paywall from the SETTLED active episode, debounced. The
   // IntersectionObserver can flap activeIndex as a swipe settles; deriving +
@@ -877,6 +1045,13 @@ export default function EpisodeFeed({
   }, [activeIndex, authFree, authResolved, episodes, seriesSlug]);
 
   const [unlockLoading, setUnlockLoading] = useState(false);
+  const [unlockError, setUnlockError] = useState<string | null>(null);
+  const handlePlaybackAccessDenied = useCallback(() => {
+    // A refund/dispute/account change can invalidate access after a prior URL
+    // was cached. Re-lock immediately when the authenticated refresh says no.
+    setAuthFree(false);
+    setShowUnlock(true);
+  }, []);
   const [epProgress, setEpProgress] = useState(0);
   const [showToast, setShowToast] = useState(false);
   const [showHeart, setShowHeart] = useState(false);
@@ -900,8 +1075,12 @@ export default function EpisodeFeed({
 
   // Show the chrome for 10s whenever the active video changes (and on mount).
   useEffect(() => {
-    revealActionRail();
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) revealActionRail();
+    });
     return () => {
+      cancelled = true;
       if (actionRailTimer.current) clearTimeout(actionRailTimer.current);
     };
   }, [activeIndex, revealActionRail]);
@@ -981,7 +1160,7 @@ export default function EpisodeFeed({
       const target = container.querySelector(`[data-index="${startIdx}"]`) as HTMLElement | null;
       if (target) target.scrollIntoView({ behavior: "instant" as ScrollBehavior });
     }
-  }, []);
+  }, [episodes, startEpisode]);
 
   /* Auto-advance: pause current, then scroll to next. Slides are looked up by
      data-index (positional children[] indexing breaks once window spacers
@@ -1135,7 +1314,10 @@ export default function EpisodeFeed({
   useEffect(() => {
     try {
       const raw = localStorage.getItem(`verza-liked-${seriesSlug}`);
-      if (raw) setLiked(new Set(JSON.parse(raw) as number[]));
+      if (raw) {
+        const next = new Set(JSON.parse(raw) as number[]);
+        queueMicrotask(() => setLiked(next));
+      }
     } catch {}
   }, [seriesSlug]);
 
@@ -1156,7 +1338,8 @@ export default function EpisodeFeed({
     try {
       const raw = localStorage.getItem("verza-saved");
       const slugs: string[] = raw ? JSON.parse(raw) : [];
-      setIsSaved(slugs.includes(seriesSlug));
+      const saved = slugs.includes(seriesSlug);
+      queueMicrotask(() => setIsSaved(saved));
     } catch {}
   }, [seriesSlug]);
 
@@ -1344,6 +1527,7 @@ export default function EpisodeFeed({
                 widescreen={horizontal}
                 transitionPoster={ep.number === startEpisode ? transitionPoster ?? undefined : undefined}
                 blocked={!ep.isFree && !authFree}
+                onAccessDenied={handlePlaybackAccessDenied}
               />
             </div>
           );
@@ -1426,7 +1610,12 @@ export default function EpisodeFeed({
             document.querySelector<HTMLVideoElement>("video[data-verza-fixed]");
           if (v) {
             if (v.requestFullscreen) v.requestFullscreen();
-            else if ((v as any).webkitEnterFullscreen) (v as any).webkitEnterFullscreen();
+            else {
+              const iosVideo = v as HTMLVideoElement & {
+                webkitEnterFullscreen?: () => void;
+              };
+              iosVideo.webkitEnterFullscreen?.();
+            }
           }
         }}
         className="absolute top-16 right-4 z-50 w-10 h-10 rounded-full flex items-center justify-center border-0 cursor-pointer"
@@ -1670,8 +1859,7 @@ export default function EpisodeFeed({
               <div className="flex flex-col gap-1.5 mb-5 text-left mx-auto" style={{ width: "fit-content" }}>
                 {[
                   `All ${episodes.length} episodes, instantly`,
-                  "Yours forever — watch anytime",
-                  "No ads",
+                  "Access on your Verza account while this title remains available",
                 ].map((line) => (
                   <div key={line} className="flex items-center gap-2">
                     <span
@@ -1685,33 +1873,54 @@ export default function EpisodeFeed({
             )}
             {!iosApp && (
               <p className="mb-3">
-                <span className="text-base line-through mr-2 align-middle" style={{ color: "rgba(255,255,255,0.35)" }}>$4.99</span>
                 <span className="text-3xl font-black align-middle" style={{ color: "#fff" }}>$1.99</span>
-                <span
-                  className="ml-2 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase align-middle"
-                  style={{ letterSpacing: "0.06em", background: "rgba(224,17,95,0.2)", color: "#FF6EA9" }}
-                >
-                  Save 60%
+                <span className="ml-2 text-xs font-semibold align-middle" style={{ color: "rgba(255,255,255,0.65)" }}>
+                  one-time Series Unlock
                 </span>
               </p>
             )}
             {!iosApp && (
             <button
               onClick={async () => {
+                if (!(await requireCheckoutUser())) return;
                 setUnlockLoading(true);
+                setUnlockError(null);
                 trackUnlockClick(seriesSlug);
                 emit("checkout_started", { show_id: seriesSlug, plan_type: "series_unlock", surface: "episode_feed" });
+                let navigating = false;
                 try {
                   const res = await fetch("/api/unlock", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ seriesSlug }),
                   });
-                  const data = await res.json();
-                  if (data.url) window.location.href = data.url;
-                  else setUnlockLoading(false); // non-OK — let them retry
+                  const data = (await res.json().catch(() => ({}))) as {
+                    url?: unknown;
+                    error?: unknown;
+                    alreadyOwned?: unknown;
+                  };
+                  if (!res.ok) {
+                    if (data.alreadyOwned) {
+                      setAuthFree(true);
+                      return;
+                    }
+                    setUnlockError(
+                      typeof data.error === "string"
+                        ? data.error
+                        : "Couldn’t start checkout. Please try again.",
+                    );
+                    return;
+                  }
+                  if (typeof data.url !== "string" || !data.url) {
+                    setUnlockError("Checkout did not open. Please try again.");
+                    return;
+                  }
+                  navigating = true;
+                  window.location.assign(data.url);
                 } catch {
-                  setUnlockLoading(false);
+                  setUnlockError("Network error. Check your connection and try again.");
+                } finally {
+                  if (!navigating) setUnlockLoading(false);
                 }
               }}
               disabled={unlockLoading}
@@ -1723,12 +1932,25 @@ export default function EpisodeFeed({
                 boxShadow: "0 0 40px rgba(224,17,95,0.3)",
               }}
             >
-              {unlockLoading ? "Opening secure checkout…" : "Unlock All Episodes"}
+              {unlockLoading ? "Opening secure checkout…" : "Series Unlock — $1.99 one-time"}
             </button>
+            )}
+            {!iosApp && unlockError && (
+              <p
+                className="mt-2.5 text-xs px-3 py-2 rounded-lg"
+                style={{
+                  color: "#FCA5A5",
+                  background: "rgba(239,68,68,0.12)",
+                  border: "1px solid rgba(239,68,68,0.35)",
+                }}
+                role="alert"
+              >
+                {unlockError}
+              </p>
             )}
             {!iosApp && (
             <p className="mt-2.5 text-[11px]" style={{ color: "rgba(255,255,255,0.4)" }}>
-              One-time payment · Secure checkout via Stripe
+              Secure checkout via Stripe
             </p>
             )}
             <button

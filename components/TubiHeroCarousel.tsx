@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import Image from "next/image";
 
 /**
  * Sliding hero carousel for the Tubi partner panel. Auto-rotates through the
@@ -110,10 +111,12 @@ export default function TubiHeroCarousel({
             onTransitionEnd={onTransitionEnd}
           >
             {slides.map((src, i) => (
-              <img
+              <Image
                 key={i}
                 src={src}
                 alt="Featured free movies and shows on Tubi"
+                width={1080}
+                height={600}
                 draggable={false}
                 className="shrink-0"
                 style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}

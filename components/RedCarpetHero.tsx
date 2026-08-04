@@ -12,6 +12,7 @@ function getHls(): Promise<typeof HlsType | null> {
 }
 
 interface RedCarpetHeroProps {
+  /** Intentionally-public catalog-free preview IDs only. */
   playbackIds: string[]; // episodes 1-5 playbackIds
 }
 
@@ -23,7 +24,6 @@ export default function RedCarpetHero({ playbackIds }: RedCarpetHeroProps) {
   const currentEpRef = useRef(0);
 
   const playbackId = playbackIds[currentEp];
-  if (!playbackId) return null;
 
   // Auto-advance to next episode when current ends
   const handleEnded = useCallback(() => {
@@ -45,7 +45,9 @@ export default function RedCarpetHero({ playbackIds }: RedCarpetHeroProps) {
 
     vid.pause();
     vid.removeAttribute("src");
-    setPlaying(false);
+    queueMicrotask(() => {
+      if (!cancelled) setPlaying(false);
+    });
 
     function doPlay() {
       if (cancelled || !vid) return;
@@ -94,12 +96,14 @@ export default function RedCarpetHero({ playbackIds }: RedCarpetHeroProps) {
 
   // Cleanup on unmount
   useEffect(() => {
+    const vid = videoRef.current;
     return () => {
       if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
-      const vid = videoRef.current;
       if (vid) { vid.pause(); vid.removeAttribute("src"); vid.load(); }
     };
   }, []);
+
+  if (!playbackId) return null;
 
   return (
     <div className="absolute inset-0">

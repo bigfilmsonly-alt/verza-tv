@@ -1,6 +1,7 @@
-# Project Structure
+# Project structure
 
-Directory map of the Verza TV codebase. Generated from the live tree.
+Directory map reconciled with the source tree on **2026-08-03**. Source
+structure is not production-deployment evidence.
 
 ```
 verza-tv/
@@ -19,7 +20,7 @@ verza-tv/
 │   │                         # SEO landing-page clusters
 │   ├── watch-in/[slug]/      # Geo SEO pages
 │   ├── sitemaps/             # XML sitemap route handlers
-│   ├── llms.txt              # LLM crawler manifest
+│   ├── llms.txt/             # LLM crawler-manifest route
 │   ├── about/ press/ careers/ contact/ terms/ privacy/ refund-policy/
 │   │   founder/ alan-mruvka/ media-kit/ brand-assets/ newsroom/
 │   │   partnerships/ editorial-standards/   # Static marketing/legal pages
@@ -32,12 +33,17 @@ verza-tv/
 │   ├── content/  data/       # Catalog + content data
 │   ├── perf/  seo/           # Perf harness, SEO helpers
 │   ├── supabase/             # Supabase client factories
-│   ├── catalog.ts            # 76-series catalog
+│   ├── catalog.ts            # 80-title catalog (79 live, one coming soon)
 │   ├── products.ts           # Merch products
-│   ├── sponsors.ts           # TikTok Shop sponsored products
+│   ├── amazon-sponsors.ts    # Web/Android Amazon affiliate catalog
 │   ├── search-index.ts       # Search tags + matcher
-│   ├── mux.ts / mux-*.ts     # Mux playback + upload + map
-│   ├── coins.ts / vip.ts     # Monetization primitives
+│   ├── mux-public-map.ts     # Client-safe projection (459 public IDs)
+│   ├── mux-private-map.ts    # Server-only complete-map gateway
+│   ├── mux-signed-map.ts     # 3,753 paid-live signed counterparts
+│   ├── mux.ts / mux-*.ts     # Playback authorization/signing + upload
+│   ├── series-purchase*.ts   # Canonical $1.99 offer/recovery/ledger logic
+│   ├── stripe-*.ts           # Consent, tax, webhook, provider policy
+│   ├── coins.ts / vip*.ts    # Coins dormant; VIP release-gated
 │   ├── creator.ts            # Creator pipeline helpers
 │   ├── admin.ts              # Admin auth gate
 │   ├── theme.ts              # Design tokens (T.*)
@@ -47,8 +53,8 @@ verza-tv/
 │   └── env.ts                # Typed env accessor
 │
 ├── supabase/
-│   └── migrations/           # SQL migrations 001–005 (+ seed)
-├── scripts/                  # reconcile-mux.ts, attach-transcript.ts
+│   └── migrations/           # Ordered SQL migrations 001–014 (+ seed/history)
+├── scripts/                  # Mux/payment audits, generators, guarded ops
 ├── public/                   # Static assets (posters, /ads, icons, sw)
 ├── docs/                     # This documentation set
 │
@@ -56,7 +62,8 @@ verza-tv/
 ├── next.config.ts            # Next config (reactStrictMode: false, CSP, images)
 ├── tailwind (postcss.config.mjs)
 ├── tsconfig.json
-├── AGENTS.md / CLAUDE.md      # Editing rules
+├── AGENTS.md                 # Shared editing/release rules
+├── CLAUDE.md / CODEX.md      # Intentional @AGENTS.md pointers
 └── package.json
 ```
 
@@ -79,6 +86,11 @@ mobile, `absolute` on desktop). See [ARCHITECTURE.md](ARCHITECTURE.md).
 
 - All request APIs are async: `await cookies()`, `await headers()`, `await params`.
 - Server-render crawlable content; client components only for interactivity.
-- Never expose API keys or signed URLs to the client.
+- Never expose API keys, paid playback IDs, or signed URLs to the client.
 - Server-side pricing only — never trust client-supplied prices.
-- Revenue is recorded **only** from the Stripe webhook (single source of truth).
+- Provider-backed webhook or exact authenticated confirmation may record/recover
+  a purchase; browser return and client analytics never do.
+- Client runtime imports only `mux-public-map.ts`; complete/private/signed maps
+  stay server/audit-only.
+- A successful build is not production truth; deploy and read back the canonical
+  `https://www.verzatv.com` origin.

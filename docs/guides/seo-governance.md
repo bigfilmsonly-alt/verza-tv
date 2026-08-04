@@ -2,6 +2,10 @@
 
 Rules and standards that govern how Verza TV content is indexed, structured, and validated for search engines. Every contributor and automated pipeline must follow these rules.
 
+Last reconciled: **2026-08-03**. This is web SEO governance, not App Store ASO.
+It is subordinate to the Mux capability boundary: no paid/coming-soon playback
+ID or signed URL may be exposed to satisfy an SEO/schema target.
+
 ---
 
 ## 1. Indexability Rules
@@ -46,7 +50,10 @@ The following mechanisms are already built and operational.
 
 - `robots.txt` blocks all crawlers on non-production deployments (Vercel preview URLs).
 - `X-Robots-Tag: noindex` header is set on all preview deploy responses.
-- Production is the live `www.verzatv.com` / `verzatv.com` domain; preview deploys at `verza-tv-<hash>.vercel.app` are `noindex`.
+- Production is the active canonical `https://www.verzatv.com` origin (the
+  apex redirects). Vercel-generated
+  deployment URLs are preview/operational addresses and must not be treated as
+  an alternate crawlable production origin.
 
 ### Search Results Page
 
@@ -71,12 +78,17 @@ Every **series** must have:
 - Synopsis / description (non-empty, minimum 50 characters)
 - At least 1 published episode
 
-Every **episode** must have:
+Every **indexable video episode** must have:
 
-- Mux asset with a valid playback ID (mapped in `lib/mux-map.ts`)
+- an intentionally public/free Mux asset present in `lib/mux-public-map.ts`;
 - Title (non-empty)
 
 Content that does not meet these minimums MUST be gated behind `noindex` until the gaps are filled.
+
+Paid-live and coming-soon episodes deliberately have no public playback ID in
+the content adapter. They remain noindex as video entities unless a future
+reviewed schema design can describe them without exposing a protected
+capability. Never import `mux-private-map.ts` or `mux-signed-map.ts` into SEO.
 
 ---
 
@@ -88,7 +100,8 @@ Structured data (JSON-LD) is required on every indexable page. The table below d
 | -------------- | -------------------------- | ------------------------------------------------- |
 | Home           | `/`                        | Organization, WebSite, MobileApplication          |
 | Series Detail  | `/series/[slug]`           | TVSeries, BreadcrumbList                           |
-| Episode        | `/series/[slug]/[episode]` | TVEpisode (with VideoObject), TVSeries, BreadcrumbList |
+| Public/free episode | `/series/[slug]/[episode]` | TVEpisode (with VideoObject), TVSeries, BreadcrumbList |
+| Paid episode | `/series/[slug]/[episode]` | No protected VideoObject/content URL; follow current noindex gate |
 | Genre / Browse | `/genre/[slug]`            | ItemList, BreadcrumbList                           |
 | Help / FAQ     | `/help`                    | FAQPage                                            |
 
@@ -129,6 +142,7 @@ Before any new page type ships to production, verify every item below.
 - [ ] Content is original and substantive (not thin or auto-generated)
 - [ ] No hidden text, keyword stuffing, or manipulative patterns
 - [ ] All media assets load correctly (posters, video thumbnails)
+- [ ] Generated HTML/RSC/JSON-LD/sitemaps contain none of the 3,803 withheld Mux IDs or any signed URL
 - [ ] All internal links resolve (no 404s)
 
 ### Technical

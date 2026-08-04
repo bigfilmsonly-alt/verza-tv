@@ -1,7 +1,8 @@
 # Verza TV -- Coding Conventions
 
 This document describes the conventions **currently** in use across the Verza TV
-codebase. Follow these when adding or modifying code.
+codebase, reconciled **2026-08-03**. Follow these with the stricter payment,
+Mux, deployment, and native-boundary rules in [`../../AGENTS.md`](../../AGENTS.md).
 
 ---
 
@@ -29,7 +30,7 @@ docs/           Project documentation
 | Components     | PascalCase `.tsx`  | `SeriesCard.tsx`           |
 | Lib modules    | kebab-case `.ts`   | `mux-playback.ts`         |
 | Pages          | `page.tsx`         | `app/about/page.tsx`       |
-| Route handlers | `route.ts`         | `app/api/coins/route.ts`   |
+| Route handlers | `route.ts`         | `app/api/unlock/route.ts`  |
 | Migrations     | numbered prefix    | `001_schema.sql`           |
 
 ---
@@ -101,8 +102,13 @@ module instead.
 ## Content Source
 
 The app uses a pluggable content adapter defined in `lib/content/source.ts`.
-See `docs/seo.md` for details on switching between the code-based catalog and
-the Supabase-backed source.
+The code adapter is the only supported production source; the Supabase adapter
+is scaffolded and must not be enabled as a simple environment flip. See
+[`CONTENT.md`](CONTENT.md).
+
+Client/SEO content imports `mux-public-map.ts`, never the complete map. New
+catalog/Mux rows go through the shared AST parser and audited generators, then
+sync byte-identically to native.
 
 ---
 
@@ -110,13 +116,17 @@ the Supabase-backed source.
 
 - **One commit per logical change.** Do not bundle unrelated modifications into
   a single commit.
-- **Build must pass before push.** Run `npm run build` (or the equivalent
-  check) and confirm zero errors before pushing to the remote.
+- **All applicable gates must pass before push.** At minimum run typecheck,
+  lint, build, playback-security, and payment tests; production/provider
+  readbacks remain separate.
 
 ---
 
 ## Environment Variables
 
-Typed env access is provided by `lib/env.ts`. Add new variables there so they
-are validated at startup. Never read `process.env` directly outside of
-`lib/env.ts`.
+General typed env access is provided by `lib/env.ts`. Security/release flags may
+use narrow server-only parsers that read `process.env` directly when exact
+`true`/`false`, missing, malformed, and compatibility states must be
+distinguished. Do not route those through a permissive generic helper. Every
+new variable must be documented in [`ENV.md`](ENV.md), kept out of client
+modules unless intentionally public, and covered by missing/malformed tests.

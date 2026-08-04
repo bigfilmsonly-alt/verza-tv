@@ -8,7 +8,7 @@ import { getLiveSeries } from "@/lib/catalog";
 export const metadata: Metadata = {
   title: `About | ${BRAND.name}`,
   description:
-    `VERZA TV is the first US-based vertical micro-drama streaming platform. Founded by Alan Mruvka, co-founder of E! Entertainment Television. ${getLiveSeries().length}+ originals, powered by Filmology Labs.`,
+    `VERZA TV is a phone-first short-form entertainment platform founded by Alan Mruvka, co-founder of E! Entertainment Television. Its current catalog contains ${getLiveSeries().length} live series.`,
   alternates: { canonical: "/about" },
 };
 
@@ -37,7 +37,7 @@ export default function AboutPage() {
             className="text-lg font-semibold leading-relaxed"
             style={{ color: T.text }}
           >
-            The first US-based vertical micro-drama streaming platform.
+            A phone-first platform for short-form vertical entertainment.
           </p>
           <p
             className="text-sm mt-2 leading-relaxed"
@@ -62,8 +62,8 @@ export default function AboutPage() {
             >
               {BRAND.name} is redefining entertainment for the mobile-first
               generation. We produce and distribute premium vertical
-              micro-dramas -- short-form cinematic episodes (60 to 120
-              seconds each) designed for phone-first viewing. Every story
+              micro-dramas -- short-form cinematic episodes designed for
+              phone-first viewing, with length varying by title. Every story
               is crafted to hook you from the first swipe.
             </p>
           </div>
@@ -97,11 +97,10 @@ export default function AboutPage() {
               className="text-sm leading-relaxed"
               style={{ color: T.textDim }}
             >
-              We believe the future of storytelling fits in your pocket.
-              Attention spans are evolving, not shrinking. {BRAND.name}{" "}
-              delivers cinema-quality drama in bite-sized episodes that
-              respect your time while keeping you on the edge of your seat.
-              Every scroll is a new cliffhanger.
+              We believe short-form storytelling should fit naturally into
+              the time viewers have. {BRAND.name} delivers stories and other
+              programming in episodes designed for quick viewing across
+              supported devices.
             </p>
           </div>
 
@@ -116,12 +115,9 @@ export default function AboutPage() {
               className="text-sm leading-relaxed"
               style={{ color: T.textDim }}
             >
-              Our content is powered by Filmology Labs, a $250M
-              state-of-the-art production facility in Paterson, New
-              Jersey. With 21 soundstages, an LED volume wall for virtual
-              production, and 250,000 square feet of production space,
-              Filmology Labs gives {BRAND.name} a vertically integrated
-              advantage no other micro-drama platform can match.
+              Available content is produced by or licensed to {BRAND.name}.
+              Production partners, facilities, format, and availability vary
+              by title.
             </p>
           </div>
 
@@ -136,10 +132,10 @@ export default function AboutPage() {
               className="text-sm leading-relaxed"
               style={{ color: T.textDim }}
             >
-              {getLiveSeries().length}+ original series across Romance, Thriller, Drama,
-              Comedy, Reality, Mystery, Sci-Fi, and Horror. The first 5
-              episodes of every series are free. Unlock the rest with
-              coins or subscribe to VIP for unlimited access.
+              {getLiveSeries().length} live series across Drama, Reality,
+              Music, Podcasts, Red Carpet, and more. Each title identifies its
+              current free episodes. Eligible titles offer a one-time Series
+              Unlock or optional VIP access on supported purchase surfaces.
             </p>
           </div>
         </div>
@@ -155,8 +151,8 @@ export default function AboutPage() {
           {[
             { number: `${getLiveSeries().length}+`, label: "Original Series" },
             { number: "9:16", label: "Vertical Format" },
-            { number: "60-120s", label: "Per Episode" },
-            { number: "5 Free", label: "Episodes per Series" },
+            { number: "Varies", label: "Episode Length" },
+            { number: "Web + Apps", label: "Supported Platforms" },
           ].map((stat) => (
             <div
               key={stat.label}

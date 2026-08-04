@@ -11,7 +11,7 @@ import { isIOSApp } from "@/lib/platform";
 export default function HideInIOSApp({ children }: { children: React.ReactNode }) {
   const [hidden, setHidden] = useState(false);
   useEffect(() => {
-    if (isIOSApp()) setHidden(true);
+    if (isIOSApp()) queueMicrotask(() => setHidden(true));
   }, []);
   if (hidden) return null;
   return <>{children}</>;

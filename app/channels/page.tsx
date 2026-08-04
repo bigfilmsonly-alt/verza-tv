@@ -22,7 +22,7 @@ const CHANNEL_META: Record<
 > = {
   "VERZA Originals": {
     description:
-      "The flagship channel. Romance, thriller, mystery, and revenge \u2014 70+ original micro-dramas produced by VERZA TV.",
+      "The flagship channel for romance, thriller, mystery, revenge, and other vertical micro-dramas in the current VERZA TV catalog.",
     icon: "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z",
     posterLimit: 12,
   },
@@ -34,7 +34,7 @@ const CHANNEL_META: Record<
   },
   "The Vertical Tea": {
     description:
-      "The hottest takes on micro-drama, celebrity scandals, and internet chaos \u2014 served piping hot, sixty seconds at a time.",
+      "Commentary on micro-drama, celebrity scandals, and internet culture in a short-form format.",
     icon: "M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75",
     posterLimit: 20,
   },
@@ -214,7 +214,7 @@ export default function ChannelsPage() {
                       Coming Soon
                     </span>
                     <p className="text-xs" style={{ color: T.textMute }}>
-                      New shows launching soon on this channel
+                      Titles will appear here when they are published
                     </p>
                   </div>
                 </div>

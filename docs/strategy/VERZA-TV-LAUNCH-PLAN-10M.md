@@ -1,5 +1,10 @@
 # VERZA TV — $10M+ LAUNCH & MARKETING PLAN
 
+> **ARCHIVE / UNAPPROVED SCENARIO — June 2026.** Budgets, forecasts, pricing,
+> claims, channel tactics, and app-payment assumptions are hypothetical and not
+> current operational or legal instructions. See
+> [`../LAUNCH-TRUTH.md`](../LAUNCH-TRUTH.md).
+
 **Prepared for:** Alan Mruvka & Verza TV Leadership
 **Date:** June 2026
 **Platform:** https://www.verzatv.com

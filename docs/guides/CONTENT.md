@@ -1,27 +1,49 @@
-# Content System
+# Content system
 
-How the Verza TV content catalog works, from data source to rendering.
+Last reconciled: **2026-08-03**.
 
----
+Catalog truth is code-backed. Supabase stores user/access/financial data, but it
+is not the active source for the editorial catalog.
 
-## Current State
+## Current inventory
 
-- **76 live series** + 1 coming soon in `lib/catalog.ts`
-- Rich detail (descriptions, cast, tags, ratings) for all 77 in `lib/series-detail.ts`
-- ~4,100 episodes mapped to Mux playback IDs in `lib/mux-map.ts`
-- 10 merchandise products in `lib/products.ts`
+| Classification | Titles |
+| --- | ---: |
+| Total catalog rows | 80 |
+| Live | 79 |
+| Paid live | 74 |
+| Wholly free live | 5 |
+| Coming soon | 1 |
 
-All content is served from code. No database reads required for catalog data.
+The complete Mux mapping has 4,262 logical episode rows. Of the 4,212 rows that
+belong to live titles, 459 are intentionally public/free and 3,753 are paid.
+All 50 coming-soon capabilities are also withheld, for 3,803 withheld client
+capabilities total. Every paid-live row has a server-only signed counterpart.
 
----
+Merchandise and Amazon catalogs are separate commerce data. Official
+merchandise Checkout is disabled; Amazon is web/retained Android only and
+fail-closed in iOS 2.0.
 
-## Content Adapter Architecture
+## Sources and projections
 
-The app uses a pluggable content source pattern so the catalog can be swapped from code to Supabase without changing any consuming components.
+| File | Authority / exposure |
+| --- | --- |
+| `lib/catalog.ts` | Canonical 80-title editorial/product classification |
+| `lib/series-detail.ts` | Rich descriptions, cast, tags, ratings, and year |
+| `lib/mux-map.ts` | Complete legacy-capability audit/data-sync anchor; never a client-runtime import |
+| `lib/mux-public-map.ts` | Generated client-safe projection; only 459 playback IDs remain present |
+| `lib/mux-private-map.ts` | `server-only` backend gateway to the complete map |
+| `lib/mux-signed-map.ts` | `server-only` paid public-to-signed correspondence for 3,753 rows |
+| `lib/content/code-source.ts` | Active adapter for crawlable content; imports only the public projection |
 
-### Interface
+The sibling native repository copies designated content modules byte-identically
+under its `src/lib/` tree. It excludes the complete map from EAS archives and
+imports only the public projection at runtime. Do not hand-edit a native copy;
+follow native `docs/DATA-SYNC.md`.
 
-Defined in `lib/content/source.ts`:
+## Content adapter
+
+`lib/content/source.ts` defines the adapter contract:
 
 ```ts
 interface ContentSource {
@@ -35,166 +57,113 @@ interface ContentSource {
 }
 ```
 
-### Switching sources
+`CONTENT_SOURCE=code` (or unset) selects `lib/content/code-source.ts`. That
+adapter filters lists to live titles, merges rich metadata, and puts a durable
+Mux ID into SEO/content data only when the canonical episode is free. Paid and
+coming-soon content cannot leak a playback ID through JSON-LD or sitemaps.
 
-Controlled by the `CONTENT_SOURCE` env var in `.env.local`:
+The Supabase content adapter remains a scaffold. Do not set
+`CONTENT_SOURCE=supabase` in production until its implementation, backfill,
+authorization, indexability, and cross-repo sync have a separate release plan.
 
-| Value | Source | File | Status |
-|-------|--------|------|--------|
-| `code` (default) | TypeScript files | `lib/content/code-source.ts` | Active |
-| `supabase` | Supabase tables | `lib/content/supabase-source.ts` | Scaffolded, not implemented |
+## Free and paid classification
 
-The factory in `lib/content/index.ts` selects the source at startup:
+`freeEpisodes` on each title is the canonical preview boundary. Five titles are
+wholly free. Never hard-code “the first five episodes are free” in logic, SEO,
+legal copy, metadata, or native UI.
 
-```ts
-const type = process.env.CONTENT_SOURCE || "code";
-// "code"     -> createCodeContentSource()
-// "supabase" -> createSupabaseContentSource()  // throws until implemented
+The active paid product is a one-time $1.99 full-series unlock, determined by
+`lib/series-purchase.ts`. A sellable row must exist, be live, contain paid
+episodes, and satisfy the canonical server offer. Dormant `coinPerEpisode`,
+`seasonPassCoins`, `COIN_PACKS`, and `sp()` values are legacy/future product
+data. Coin purchase/balance/season-pass routes fail closed; those fields are not
+permission to expose or sell coins.
+
+## Adding or changing a title
+
+Treat catalog work as a capability/security change, not just editorial copy:
+
+1. Update `lib/catalog.ts` and, when applicable, `lib/series-detail.ts`.
+2. Verify status, episode count, `freeEpisodes`, paid/free product
+   classification, poster path, categories, and indexability.
+3. Add/verify the complete Mux rows in `lib/mux-map.ts`. Never place a signed ID
+   there and never invent a mapping.
+4. Run the shared AST parser/generator. Regex parsing is forbidden: an earlier
+   regex skipped two comment-prefixed slugs and misclassified 25 free IDs.
+5. Regenerate `lib/mux-public-map.ts`. It must expose IDs only through each
+   title's canonical free boundary and withhold every non-live row.
+6. For each new paid-live asset, run the guarded add-only signed-ID operation,
+   re-audit live Mux, and regenerate `lib/mux-signed-map.ts` atomically.
+7. Recopy designated data into native byte-identically and run both repos'
+   security/count gates.
+8. Test web lists, search, genre, series, episode, JSON-LD, sitemaps, Mux
+   authorization, and entitlement behavior.
+9. Test iOS live-only Discover/Search/genre filtering and direct non-live
+   series/episode redirects before data/auth/Mux work.
+10. Deploy the backend and verify production before building a native release
+    that depends on the new data.
+
+Relevant commands:
+
+```bash
+npm run mux:public:audit
+npm run mux:signed:self-test
+npm run mux:signed:audit
+npm run test:playback-security
+npx tsc --noEmit
+npm run lint
+npm run build
 ```
 
-All consuming code imports from `lib/content/index.ts`:
-```ts
-import { content } from "@/lib/content";
-const show = content.getShow("the-blackthornes");
-```
+Use `npm run mux:public:generate` only when intentionally updating the generated
+projection. Use the signed migration's write mode only for an audit-confirmed
+missing paid-live counterpart; all 3,753 current paid-live rows are already
+covered. No routine content command retires a legacy public ID.
 
-### Code source adapter (`lib/content/code-source.ts`)
+## Browse and route behavior
 
-The active adapter that reads from the three TypeScript data files:
+`BROWSE_TABS` defines the web order: Drama, Hot, Tubi, Anime, Español,
+Bollywood, Creators, Reality, Red Carpet, and Music. A live title may appear in
+multiple catalog categories, with these deliberate presentation rules:
 
-1. **Series data** from `lib/catalog.ts` -- adapted to `Show` schema
-2. **Rich detail** from `lib/series-detail.ts` -- merged into descriptions, cast, tags
-3. **Mux playback IDs** from `lib/mux-map.ts` -- mapped into episode `muxPlaybackId`
+| Key / tab | Current web behavior |
+| --- | --- |
+| `drama` | Primary drama grid; dedicated Reality and Red Carpet titles are excluded |
+| `popular` / Hot | Renders the ranked popular set plus titles categorized as `new`; New has no separate tab but still drives its badge |
+| `tubi` | Authorized-partner surface using `public/tubi-logo.png` and the Tubi hero assets; it links to `tubitv.com` and does not embed or represent Tubi playback as Verza content |
+| `anime`, `espanol`, `bollywood` | Coming Soon placeholders until releasable catalog titles exist |
+| `creators` | Web profit-sharing beta/lead surface; it does not make creator ingestion or PPV available |
+| `reality` | Storage Pirates is web Reality-only and is excluded from the Drama grid |
+| `red-carpet`, `music` | Dedicated catalog/presentation surfaces |
 
-The adapter converts between the legacy `Series`/`Episode` types and the canonical `Show`/`Episode` Zod schemas from `lib/content/schemas.ts`.
+Tubi rejects ordinary framing through its browser security policy; a different
+embed or native surface would require specific partner, platform, and release
+review. Do not infer permission for the iOS 2.0 binary from the web
+click-through.
 
-### To flip to Supabase
+Web and eligible Android surfaces can render their supported catalog
+experience. Native iOS applies stricter reader-mode predicates without
+hand-editing shared data:
 
-1. Set `CONTENT_SOURCE=supabase` in `.env.local`
-2. Apply migrations: `supabase db push` (runs `002_content_tables.sql`)
-3. Backfill shows + episodes from the code catalog
-4. Implement `createSupabaseContentSource()` in `lib/content/supabase-source.ts`
-5. Verify all pages render and the sitemap includes correct URLs
+- Discover, Search/All Series, and genres refilter to live, reader-visible
+  titles;
+- direct non-live or reader-excluded series/episode links redirect before
+  catalog, auth, episode, or Mux work;
+- web-only Tubi, creator, affiliate, and promotional behavior does not cross
+  into the iOS release; and
+- payment-bearing non-core editorial routes redirect before consuming Tier-1
+  data.
 
----
+Do not render a coming-soon title as `0 episodes`, “All Episodes FREE,” or a
+fake “Watch Episode 1 Free” action on any platform.
 
-## How to Add a New Series
+## Mux data safety
 
-### Step 1: Add to catalog
+Public preview IDs may be used for free HLS playback and thumbnails. Paid IDs
+must never appear in HTML, RSC payloads, browser/Expo/Hermes bundles, EAS
+archives, SEO, sitemaps, share metadata, analytics, logs, navigation state, or
+persistent storage. Paid playback is obtained only from the server authorization
+route after entitlement/VIP verification.
 
-In `lib/catalog.ts`, add a new entry to the `catalog` array:
-
-```ts
-{
-  slug: "my-new-series",
-  title: "My New Series",
-  logline: "A one-line hook for the series.",
-  genre: "Romance . Thriller",
-  channel: "Verza Originals",
-  categories: ["drama"],        // which browse tabs it appears in
-  episodeCount: 55,
-  posterUrl: "/posters/my-new-series.png",
-  freeEpisodes: 5,
-  coinPerEpisode: 49,
-  seasonPassCoins: sp(55),      // use the sp() helper for discounted pass
-  status: "live",
-},
-```
-
-### Step 2: Add rich detail
-
-In `lib/series-detail.ts`, add a keyed entry to `SERIES_DETAIL`:
-
-```ts
-"my-new-series": {
-  description: "Multi-sentence synopsis...",
-  cast: ["Actor One", "Actor Two", "Actor Three"],
-  tags: ["romance", "thriller", "billionaire"],
-  rating: 8.7,
-  year: 2025,
-  posterMood: "noir",     // one of the PosterMood values
-},
-```
-
-### Step 3: Add poster image
-
-Place the poster image at `public/posters/my-new-series.png`. The filename must match the slug.
-
-### Step 4: Add Mux video mapping (if episodes are uploaded)
-
-In `lib/mux-map.ts`, add an entry to `MUX_MAP`:
-
-```ts
-"my-new-series": [
-  { episode: 1, playbackId: "abc123...", duration: 68 },
-  { episode: 2, playbackId: "def456...", duration: 72 },
-  // ... one entry per episode
-],
-```
-
----
-
-## Browse Categories
-
-Series appear in browse tabs based on their `categories` array. A series can appear in multiple tabs.
-
-| Category | Description |
-|----------|-------------|
-| `drama` | Primary drama catalog |
-| `new` | Recently added series. No standalone tab — folded into **Hot**; still drives the "New" badge. |
-| `popular` | Top-ranked series (by `popularRank`). The **Hot** tab shows `popular` ∪ `new`. |
-| `music` | Music-related content (tab exists, no series yet) |
-| `reality` | Reality/unscripted style (e.g. Storage Pirates). Renders in the Reality tab only — reality titles are excluded from the Drama grid. |
-| `red-carpet` | Red carpet / celebrity content (tab exists, no series yet) |
-| `anime` | Anime vertical — **Coming Soon** (tab live, no series yet) |
-| `espanol` | Spanish-language vertical ("Español") — **Coming Soon** (tab live, ~6 posters planned) |
-| `bollywood` | Bollywood vertical — **Coming Soon** (tab live, no series yet) |
-| `creators` | Creator channels — **Coming Soon** (tab live, no series yet) |
-| `tubi` | Tubi (authorized partner) — logo tab that links out to tubitv.com (a true in-site embed is blocked by Tubi's `X-Frame-Options`) |
-
-The `BROWSE_TABS` constant defines the tab order and display labels. Current
-order: Drama, Hot, Tubi, Anime, Español, Bollywood, Creators, Reality, Red
-Carpet, Music. Tubi is an authorized partner tab (logo → tubitv.com); Anime,
-Español, Bollywood and Creators are Coming Soon placeholders —
-adding live `Series` with the matching `categories` (e.g. `["bollywood"]`) makes
-them render in the standard grid automatically (the Coming Soon card auto-hides).
-
----
-
-## Season Pass Pricing
-
-The `sp()` helper calculates the discounted season pass price:
-
-```ts
-function sp(eps: number) {
-  return Math.round((eps - 5) * 49 * 0.67);
-}
-```
-
-This means: (total episodes - 5 free) * 49 coins * 0.67 discount = season pass coins.
-
-For a 55-episode series: `(55 - 5) * 49 * 0.67 = 1,642 coins` (vs. 2,450 coins buying individually).
-
----
-
-## Episode Generation
-
-Episodes are generated deterministically at runtime by `getEpisodesForSeries()`. There is no episode-level data stored in the catalog -- only the `episodeCount` per series.
-
-- Episode titles: "Episode N"
-- Duration: Deterministic hash-based, 60-120 seconds
-- Free gate: Episodes 1-5 are always free
-- Paid episodes: 49 coins each
-
-Actual durations come from Mux via `mux-map.ts` when available, overriding the hash-based fallback.
-
----
-
-## Mux Mapping
-
-`lib/mux-map.ts` maps `slug + episode number` to a Mux playback ID. This is the bridge between the content catalog and the video pipeline.
-
-- **76 series** mapped (every live series)
-- **~4,100 total episodes** with real playback IDs
-- Used by the code content adapter to populate `muxPlaybackId` on Episode objects
-- Used directly by the Player and ShortsFeed components for thumbnail URLs
+See [`MUX.md`](MUX.md) for token, cache, migration, coexistence, and incident
+rules and [`PAYMENTS.md`](PAYMENTS.md) for canonical offer/access behavior.

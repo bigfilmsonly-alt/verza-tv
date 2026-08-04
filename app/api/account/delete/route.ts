@@ -1,8 +1,103 @@
 import Stripe from "stripe";
 import { getUser } from "@/lib/auth";
+import {
+  isStripeResourceMissing,
+  upsertPaymentAccountTombstone,
+} from "@/lib/stripe-customer";
 import { getServiceClient } from "@/lib/supabase/server";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+type ServiceClient = ReturnType<typeof getServiceClient>;
+
+const TERMINAL_SUBSCRIPTION_STATUSES = new Set([
+  "canceled",
+  "incomplete_expired",
+]);
+
+const PURCHASE_IDENTITY_KEYS = new Set([
+  "billing_email",
+  "client_reference_id",
+  "customer_email",
+  "customer_name",
+  "email",
+  "name",
+  "receipt_email",
+  "user_id",
+  "userId",
+]);
+
+function redactPurchaseIdentity(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(redactPurchaseIdentity);
+  if (!value || typeof value !== "object") return value;
+
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>)
+      .filter(([key]) => !PURCHASE_IDENTITY_KEYS.has(key))
+      .map(([key, nested]) => [key, redactPurchaseIdentity(nested)]),
+  );
+}
+
+function checkoutCustomerId(session: Stripe.Checkout.Session): string | null {
+  return typeof session.customer === "string"
+    ? session.customer
+    : session.customer?.id ?? null;
+}
+
+function checkoutBelongsToUser(
+  session: Stripe.Checkout.Session,
+  userId: string,
+  customerId: string | null,
+): boolean {
+  return (
+    session.client_reference_id === userId ||
+    session.metadata?.userId === userId ||
+    (!!customerId && checkoutCustomerId(session) === customerId)
+  );
+}
+
+async function listOpenUserCheckouts(
+  userId: string,
+  customerId: string | null,
+): Promise<Stripe.Checkout.Session[]> {
+  const sessions: Stripe.Checkout.Session[] = [];
+  const list = stripe.checkout.sessions.list({
+    ...(customerId ? { customer: customerId } : {}),
+    status: "open",
+    limit: 100,
+  });
+  for await (const session of list) {
+    if (!checkoutBelongsToUser(session, userId, customerId)) continue;
+    const boundUserId = session.metadata?.userId || session.client_reference_id;
+    if (boundUserId && boundUserId !== userId) {
+      throw new Error("Stripe Checkout belongs to another user");
+    }
+    sessions.push(session);
+  }
+  return sessions;
+}
+
+async function clearDeletionGuard(
+  supabase: ServiceClient,
+  userId: string,
+): Promise<void> {
+  const tombstone = await supabase
+    .from("payment_account_tombstones")
+    .delete()
+    .eq("user_id", userId);
+  if (tombstone.error && tombstone.error.code !== "42P01" && tombstone.error.code !== "PGRST205") {
+    console.error("[account-delete] Could not clear payment tombstone:", tombstone.error);
+  }
+  const marker = await supabase
+    .from("profiles")
+    .update({
+      deletion_requested_at: null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", userId);
+  if (marker.error) {
+    console.error("[account-delete] Could not clear deletion marker:", marker.error);
+  }
+}
 
 /**
  * POST /api/account/delete
@@ -13,9 +108,11 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
  * app.
  *
  * Removes: profile, watch progress, saved list, entitlements, push
- * subscriptions, and pending entitlements tied to the account email, then
- * deletes the auth user itself. Purchase records are retained (without the
- * account link) as required for financial/legal record-keeping.
+ * subscriptions, then deletes the auth user itself. Purchase records are
+ * retained (without the account link) as required for financial/legal
+ * record-keeping. Email-keyed historical recovery records are not treated as
+ * account-owned because this project's legacy autoconfirm setting does not
+ * prove mailbox ownership; support clears them only after independent proof.
  */
 export async function POST() {
   try {
@@ -25,114 +122,226 @@ export async function POST() {
     }
 
     const supabase = getServiceClient();
+    let deletionGuardSet = false;
+    let authDeleted = false;
 
-    // FIRST: cancel any active VIP subscription. Deleting the profile
-    // destroys the only stripe_customer_id link — without this, the
-    // subscription would keep billing a deleted account forever.
     try {
-      const { data: profile } = await supabase
+
+      // Close the checkout/delete race before touching Stripe. Checkout routes
+      // read this service-owned marker both before and after session creation.
+      const deletionMarker = await supabase
+        .from("profiles")
+        .update({
+          deletion_requested_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", user.id)
+        .select("id")
+        .maybeSingle();
+      if (deletionMarker.error || !deletionMarker.data) {
+        throw new Error(
+          `Could not mark deletion in progress: ${deletionMarker.error?.message ?? "missing profile"}`,
+        );
+      }
+      deletionGuardSet = true;
+
+      const profileResult = await supabase
         .from("profiles")
         .select("stripe_customer_id, stripe_subscription_id")
         .eq("id", user.id)
-        .maybeSingle();
-      if (profile?.stripe_subscription_id) {
-        await stripe.subscriptions.cancel(profile.stripe_subscription_id).catch(() => {});
+        .single();
+      if (profileResult.error || !profileResult.data) {
+        throw new Error(
+          `Could not load billing profile: ${profileResult.error?.message ?? "missing profile"}`,
+        );
       }
-      if (profile?.stripe_customer_id) {
-        const subs = await stripe.subscriptions.list({
-          customer: profile.stripe_customer_id,
-          status: "active",
-          limit: 10,
-        });
-        for (const sub of subs.data) {
-          await stripe.subscriptions.cancel(sub.id).catch(() => {});
+      const profile = profileResult.data;
+      let customerId: string | null = profile.stripe_customer_id;
+
+      // Invalidate every unpaid Checkout. If completion wins the race, the
+      // session is no longer open and the tombstone below makes its delayed
+      // webhook record money without granting access to the deleted account.
+      let openSessions: Stripe.Checkout.Session[] = [];
+      try {
+        openSessions = await listOpenUserCheckouts(user.id, customerId);
+      } catch (error) {
+        if (!customerId || !isStripeResourceMissing(error)) throw error;
+        customerId = null;
+        openSessions = await listOpenUserCheckouts(user.id, null);
+      }
+      for (const session of openSessions) {
+        try {
+          await stripe.checkout.sessions.expire(session.id);
+        } catch (error) {
+          if (isStripeResourceMissing(error)) continue;
+          const current = await stripe.checkout.sessions.retrieve(session.id);
+          if (current.status === "open") throw error;
         }
       }
-    } catch (e) {
-      console.error("[account-delete] Subscription cancel check failed:", e);
-      return Response.json(
-        { error: "Could not cancel your active subscription — contact support@verzatv.com" },
-        { status: 500 },
-      );
-    }
 
-    // Creator accounts with recorded sales: deleting would cascade-destroy
-    // the financial ledger (creator_sales) until migration 009 (ON DELETE
-    // SET NULL) is applied to the live DB. Route those through support.
-    try {
-      const { data: creator } = await supabase
-        .from("creators")
-        .select("id")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      if (creator?.id) {
-        const { count } = await supabase
-          .from("creator_sales")
-          .select("id", { count: "exact", head: true })
-          .eq("creator_id", creator.id);
-        if ((count ?? 0) > 0) {
-          return Response.json(
-            { error: "Creator accounts with sales history are deleted by our team to preserve required financial records — email privacy@verzatv.com and we'll complete it within 30 days." },
-            { status: 409 },
-          );
+      const subscriptionIds = new Set<string>();
+      if (profile?.stripe_subscription_id) subscriptionIds.add(profile.stripe_subscription_id);
+
+      if (customerId) {
+        try {
+          for await (const subscription of stripe.subscriptions.list({
+            customer: customerId,
+            status: "all",
+            limit: 100,
+          })) {
+            const owner = subscription.metadata?.userId;
+            if (owner && owner !== user.id) {
+              throw new Error("Stripe subscription belongs to another user");
+            }
+            subscriptionIds.add(subscription.id);
+          }
+        } catch (error) {
+          if (!isStripeResourceMissing(error)) throw error;
+          customerId = null;
         }
       }
-    } catch (e) {
-      console.error("[account-delete] Creator check failed:", e);
-    }
 
-    let hadFailure = false;
-    const tables = [
-      "watch_progress",
-      "saved_list",
-      "entitlements",
-      "push_subscriptions",
-    ] as const;
+      for (const subscriptionId of subscriptionIds) {
+        let subscription: Stripe.Subscription;
+        try {
+          subscription = await stripe.subscriptions.retrieve(subscriptionId);
+        } catch (error) {
+          if (isStripeResourceMissing(error)) continue;
+          throw error;
+        }
+        const owner = subscription.metadata?.userId;
+        if (owner && owner !== user.id) {
+          throw new Error("Stripe subscription belongs to another user");
+        }
+        if (!TERMINAL_SUBSCRIPTION_STATUSES.has(subscription.status)) {
+          await stripe.subscriptions.cancel(subscription.id);
+        }
+      }
 
-    for (const table of tables) {
-      const { error } = await supabase.from(table).delete().eq("user_id", user.id);
-      if (error) { hadFailure = true; console.error(`[account-delete] Failed to clear ${table}:`, error); }
-    }
-
-    // analytics_events keys user_id as plain text with no FK — no cascade.
-    {
-      const { error } = await supabase.from("analytics_events").delete().eq("user_id", user.id);
-      if (error) { hadFailure = true; console.error("[account-delete] Failed to clear analytics_events:", error); }
-    }
-
-    if (user.email) {
-      const { error } = await supabase
-        .from("pending_entitlements")
-        .delete()
-        .eq("email", user.email.toLowerCase());
-      if (error) { hadFailure = true; console.error("[account-delete] Failed to clear pending entitlements:", error); }
-    }
-
-    // Abort BEFORE the irreversible step if any personal-data wipe failed —
-    // the route stays retryable and the account stays signed-in-able.
-    if (hadFailure) {
-      return Response.json(
-        { error: "Deletion incomplete — please try again or contact support@verzatv.com" },
-        { status: 500 },
+      // Survives profile/auth deletion by design. A delayed signed webhook can
+      // now recognize the former account, preserve the financial row unlinked,
+      // and cancel any subscription without restoring VIP or entitlements. The
+      // RPC atomically coalesces a Customer provisioned by a checkout that lost
+      // the deletion race, so this final provider pass cannot miss it.
+      customerId = await upsertPaymentAccountTombstone(
+        supabase,
+        user.id,
+        customerId,
       );
-    }
 
-    const { error: profileErr } = await supabase.from("profiles").delete().eq("id", user.id);
-    if (profileErr) {
-      console.error("[account-delete] Failed to delete profile:", profileErr);
-      return Response.json(
-        { error: "Deletion incomplete — please try again or contact support@verzatv.com" },
-        { status: 500 },
-      );
-    }
+      const finalOpen = await listOpenUserCheckouts(user.id, customerId);
+      for (const session of finalOpen) {
+        try {
+          await stripe.checkout.sessions.expire(session.id);
+        } catch (error) {
+          if (!isStripeResourceMissing(error)) throw error;
+        }
+      }
+      if (customerId) {
+        try {
+          for await (const subscription of stripe.subscriptions.list({
+            customer: customerId,
+            status: "all",
+            limit: 100,
+          })) {
+            const owner = subscription.metadata?.userId;
+            if (owner && owner !== user.id) {
+              throw new Error("Stripe subscription belongs to another user");
+            }
+            if (!TERMINAL_SUBSCRIPTION_STATUSES.has(subscription.status)) {
+              await stripe.subscriptions.cancel(subscription.id);
+            }
+          }
+        } catch (error) {
+          if (!isStripeResourceMissing(error)) throw error;
+        }
+      }
 
-    const { error: authErr } = await supabase.auth.admin.deleteUser(user.id);
-    if (authErr) {
-      console.error("[account-delete] Failed to delete auth user:", authErr);
-      return Response.json({ error: "Deletion failed — contact support@verzatv.com" }, { status: 500 });
-    }
+      const remainingOpen = await listOpenUserCheckouts(user.id, customerId);
+      if (remainingOpen.length > 0) {
+        throw new Error("An open Stripe Checkout remains after expiration");
+      }
 
-    return Response.json({ ok: true });
+      // Stripe keeps the immutable payment/refund ledger after Customer
+      // deletion. Remove the live Customer object so its email and account UUID
+      // are not retained as an active profile; the service-only tombstone above
+      // keeps only the provider ID needed to classify delayed signed events.
+      if (customerId) {
+        try {
+          await stripe.customers.del(customerId);
+        } catch (error) {
+          if (!isStripeResourceMissing(error)) throw error;
+        }
+      }
+
+      let hadFailure = false;
+      const tables = [
+        "watch_progress",
+        "saved_list",
+        "entitlements",
+        "push_subscriptions",
+        "creator_signups",
+        "feedback",
+      ] as const;
+
+      for (const table of tables) {
+        const { error } = await supabase.from(table).delete().eq("user_id", user.id);
+        const optionalLegacyTableMissing =
+          table === "feedback" &&
+          (error?.code === "42P01" || error?.code === "PGRST205");
+        if (error && !optionalLegacyTableMissing) {
+          hadFailure = true;
+          console.error(`[account-delete] Failed to clear ${table}:`, error);
+        }
+      }
+
+      // analytics_events keys user_id as plain text with no FK — no cascade.
+      {
+        const { error } = await supabase.from("analytics_events").delete().eq("user_id", user.id);
+        if (error) { hadFailure = true; console.error("[account-delete] Failed to clear analytics_events:", error); }
+      }
+
+      if (hadFailure) {
+        throw new Error("One or more personal-data tables could not be cleared");
+      }
+
+      // Purchase rows remain as a tax/refund ledger, but the account link and
+      // checkout identity are not part of that minimum record. Scrub both
+      // top-level and nested identity fields before the profile FK is nulled.
+      const purchases = await supabase
+        .from("purchases")
+        .select("id, metadata")
+        .eq("user_id", user.id);
+      if (purchases.error) {
+        throw new Error(`Could not load purchase ledger: ${purchases.error.message}`);
+      }
+      for (const purchase of purchases.data ?? []) {
+        const redacted = await supabase
+          .from("purchases")
+          .update({ metadata: redactPurchaseIdentity(purchase.metadata) })
+          .eq("id", purchase.id)
+          .eq("user_id", user.id);
+        if (redacted.error) {
+          throw new Error(`Could not redact purchase ledger: ${redacted.error.message}`);
+        }
+      }
+
+      // Delete Auth last. profiles.id cascades from auth.users, which in turn
+      // nulls the purchase user_id and deletes remaining account-owned rows.
+      // Keeping the profile until this succeeds means a transient Auth Admin
+      // failure can clear the guard and be retried instead of orphaning a login.
+      const { error: authErr } = await supabase.auth.admin.deleteUser(user.id);
+      if (authErr) {
+        throw new Error(`Could not delete auth user: ${authErr.message}`);
+      }
+      authDeleted = true;
+
+      return Response.json({ ok: true });
+    } finally {
+      if (deletionGuardSet && !authDeleted) {
+        await clearDeletionGuard(supabase, user.id);
+      }
+    }
   } catch (err) {
     console.error("[account-delete] Error:", err);
     return Response.json({ error: "Deletion failed — contact support@verzatv.com" }, { status: 500 });
