@@ -1,6 +1,6 @@
 # Verza TV documentation index
 
-Last full Markdown reconciliation: **2026-08-03**.
+Last full Markdown reconciliation: **2026-08-05**.
 
 The documentation has three explicit statuses:
 
@@ -22,18 +22,22 @@ readback.
 | Operational | [`LAUNCH-TRUTH.md`](LAUNCH-TRUTH.md) | Current catalog, payments, Mux, tax, legal-deploy, webhook, and submission truth |
 | Operational | [`../AGENTS.md`](../AGENTS.md) | Mandatory engineering/release rules shared by humans, Claude, and Codex |
 | Operational | [`guides/PAYMENTS.md`](guides/PAYMENTS.md) | Payment/access authority, safeguards, cutover, and incident boundaries |
+| Operational | [`guides/APPLE-IAP.md`](guides/APPLE-IAP.md) | Exact 74-product StoreKit registry, backend trust boundary, migration 015, rollout, canaries, and stop rules |
 | Operational | [`reports/PAYMENT-CUTOVER-EVIDENCE-2026-08-03.md`](reports/PAYMENT-CUTOVER-EVIDENCE-2026-08-03.md) | Exact non-secret current payment baseline, commands, and stop conditions |
 | Operational | [`guides/MUX.md`](guides/MUX.md) | Public-capability projection, signed playback, coexistence, and retirement gate |
 | Operational | [`guides/DEPLOYMENT.md`](guides/DEPLOYMENT.md) | Vercel deployment order and production readback |
-| Operational | [`guides/REACT-NATIVE-SYNC.md`](guides/REACT-NATIVE-SYNC.md) | Web/backend ↔ native data, payment, reader-mode, and release boundary |
+| Operational | [`guides/REACT-NATIVE-SYNC.md`](guides/REACT-NATIVE-SYNC.md) | Web/backend ↔ native data, Stripe/StoreKit payment, content-policy, and release boundary |
 | Operational | [`guides/RUNBOOK.md`](guides/RUNBOOK.md) | Routine operations and incident response |
 
 ## Current platform snapshot
 
 - **Production URL:** https://www.verzatv.com
 - **Catalog:** 80 titles; 79 live; 74 paid-live; five wholly free; one coming soon
-- **Series Unlock:** $1.99 one-time on web and eligible Android surfaces
-- **iOS:** reader mode; no digital purchase UI, prices, links, or directions
+- **Series Unlock:** one-time full-series access; Stripe $1.99 USD on web/
+  eligible Android and Apple non-consumable with $1.99 US base/StoreKit-
+  localized price on iOS
+- **iOS:** StoreKit is the only digital purchase path; no Stripe/web checkout
+  or external-purchase direction
 - **VIP:** $9.99/month and $79.99/year configuration exists but both plans are
   hidden and API-blocked
 - **Coins / creator PPV / official merch Checkout:** disabled/fail-closed
@@ -49,12 +53,24 @@ readback.
   while its verification secret is intentionally absent, so ingestion is off
 - **Open payment gates:** Stripe Public details is blank; required-consent
   mode/portal and the controlled $1.99 smoke remain open
+- **Apple IAP production:** commit `a9b537844a8878851ecfe4c0e310f405b68fc6ef`,
+  migration 015, Apple-aware legal copy, exact enabled preflight, and narrow
+  Sandbox allowlist passed canonical readback; ASC production/sandbox V2 URLs
+  are exact, but real signed notification delivery and an actual Sandbox
+  transaction remain open
+- **Apple product/owner gates:** all 74 ASC products still need review
+  screenshots and report `MISSING_METADATA`; Paid Applications banking/tax,
+  `Video` tax category, DSA trader status, and TestFlight proof remain open
+- **Credential incident:** Stripe secret/webhook, Supabase service role, and
+  paired Mux token credentials still require dashboard rotation, Sensitive
+  replacement deployment/canary, and predecessor revocation
 
 ## Operational guides
 
 | Document | Scope |
 | --- | --- |
 | [`guides/AMAZON-SHOP.md`](guides/AMAZON-SHOP.md) | Web/Android Amazon affiliate rules; iOS 2.0 is fail-closed |
+| [`guides/APPLE-IAP.md`](guides/APPLE-IAP.md) | Apple StoreKit product, verification, ledger, migration, deployment, and App Store gates |
 | [`guides/CONTENT.md`](guides/CONTENT.md) | Catalog, public/private Mux projections, and content update workflow |
 | [`guides/CONTRIBUTING.md`](guides/CONTRIBUTING.md) | Local workflow, gates, documentation responsibility |
 | [`guides/CONVENTIONS.md`](guides/CONVENTIONS.md) | Current implementation conventions |
@@ -64,7 +80,7 @@ readback.
 | [`guides/MUX.md`](guides/MUX.md) | Playback capability and signed-ID operations |
 | [`guides/PAYMENTS.md`](guides/PAYMENTS.md) | Stripe, ledger, entitlements, notices, tax, and cutover |
 | [`guides/PORTING-VERZA-TV-TAB.md`](guides/PORTING-VERZA-TV-TAB.md) | Archived web-extraction guide for a separate project; not the Expo/native release architecture |
-| [`guides/REACT-NATIVE-SYNC.md`](guides/REACT-NATIVE-SYNC.md) | Native synchronization contract |
+| [`guides/REACT-NATIVE-SYNC.md`](guides/REACT-NATIVE-SYNC.md) | Native synchronization and StoreKit/backend contract |
 | [`guides/RUNBOOK.md`](guides/RUNBOOK.md) | Operations and incident response |
 | [`guides/seo-governance.md`](guides/seo-governance.md) | Indexing/content governance |
 | [`guides/seo.md`](guides/seo.md) | SEO/content infrastructure |

@@ -3,7 +3,51 @@
 > **Historical record.** Entries describe the state/claims at the time they
 > were written and are not current deployment or release instructions. Old
 > prices, counts, availability, and App Store assumptions are superseded by
-> [`LAUNCH-TRUTH.md`](LAUNCH-TRUTH.md).
+> [`LAUNCH-TRUTH.md`](LAUNCH-TRUTH.md). In particular, July reader-mode/no-IAP
+> entries are superseded by the August 5 StoreKit architecture below.
+
+## 2026-08-05 — Apple StoreKit non-consumable backend deployed
+
+Source/database architecture:
+
+- added the append-only exact 74-title Apple product registry using immutable
+  `com.verzatv.app.series.<slug_with_underscores>` IDs and a separate retired-
+  product overlay;
+- pinned `@apple/app-store-server-library` 3.1.0 and added production/sandbox
+  Apple JWS verification for canonical bundle/app, non-consumable type,
+  quantity, purchased ownership, account token, product/series, timestamps,
+  and optional price/currency;
+- added authenticated preflight and signed-transaction/restore routes plus the
+  public Apple-signed V2 notification route;
+- added migration 015 with append/update-only purchase/notification ledgers,
+  monotonic signed-event ordering, idempotent notification claims, explicit
+  orphan-only deleted-account restore, and independent Stripe/Apple/manual/
+  alternate-Apple entitlement sources; and
+- updated Terms, Privacy, Refund, Help, and account-deletion behavior for Apple
+  billing, Apple-decided refunds, restoration, ledger retention, and source-
+  specific revocation.
+
+App Store Connect readback:
+
+- all 74 non-consumables exist with exact `en-US` metadata, $1.99 US base price
+  plus storefront equalization, the reviewed 173-territory set, title-specific
+  review notes, Family Sharing off, and hosted content off; and
+- all 74 still report `MISSING_METADATA` because each needs its real IAP review
+  screenshot.
+
+Backend commit `a9b537844a8878851ecfe4c0e310f405b68fc6ef` is pushed and
+live on the canonical alias. Migration 015 structural/RLS/RPC/privilege/source-
+preservation readback passed; Apple-aware Terms/Privacy/Refund/Help and negative
+routes passed; authenticated no-charge preflight returned the exact product
+with private/no-store. Production preflight is exact true with a narrow
+Sandbox allowlist. ASC V2 production/sandbox URLs are exact with sibling
+integrity unchanged.
+
+Still open: real signed notification delivery, an actual Sandbox transaction,
+Paid Applications banking/tax, App Store `Video` tax-category readback, DSA
+trader status, screenshots, exact TestFlight purchase/restore/refund matrix,
+owner approval, ReviewSubmission attachment, and the separate five-credential
+provider rotation/revocation gate.
 
 ## 2026-08-03 — App Store backend/payment/playback hardening
 

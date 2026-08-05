@@ -1,6 +1,6 @@
 # Operations runbook — Verza TV
 
-Last reconciled: **2026-08-03**. Start with
+Last reconciled: **2026-08-05**. Start with
 [`../LAUNCH-TRUTH.md`](../LAUNCH-TRUTH.md). Production and local source are
 different until a deployment is read back.
 
@@ -13,8 +13,8 @@ different until a deployment is read back.
 - [ ] `npm run test:payments` passes.
 - [ ] rollback-only `npm run test:payments:db` passes.
 - [ ] `npx tsc --noEmit`, `npm run lint`, and `npm run build` pass.
-- [ ] migrations `009`–`014` remain applied/read back before matching webhook
-      code is deployed.
+- [x] migrations `009`–`015` are applied/read back; Apple structural, RLS, RPC,
+      privilege, and independent-source preservation checks pass.
 - [ ] client bundles and the native EAS archive contain none of the 3,803
       withheld Mux capabilities or any secret.
 
@@ -63,6 +63,24 @@ different until a deployment is read back.
 - [ ] the smoke purchase is preserved; no automatic cleanup Refund is issued.
 - [ ] coins, creator PPV, official merch Checkout, monthly VIP, and yearly VIP
       remain hidden/fail-closed.
+- [ ] all 74 Apple product IDs exactly match both append-only manifests; current
+      ASC metadata/price/173-territory/review-note readback stays exact, Family
+      Sharing/content hosting stay off, and every IAP review screenshot is
+      attached so no product remains `MISSING_METADATA`.
+- [ ] Paid Applications banking/tax is active; App Store app tax category is
+      saved/read back as `Video`; DSA trader state is declared/verified.
+- [x] migration 015 and Apple-aware legal siblings are deployed/read back;
+      Apple V2 production+sandbox URLs target the exact canonical route with
+      sibling integrity unchanged.
+- [x] exact enabled Apple preflight plus narrow allowlist behavior passed an
+      authenticated no-charge 200/exact-product/private-no-store canary; unauth
+      preflight is 401 and malformed notification is 400.
+- [ ] Apple's real signed V2 test notification is processed idempotently.
+- [ ] one controlled TestFlight Sandbox purchase/cancel/pending/restore/refund/
+      revoke/multi-source/deletion/playback matrix passes.
+- [ ] exposed Stripe secret/webhook, Supabase service role, and paired Mux
+      tokens are rotated as Sensitive replacements, canaried, then predecessors
+      revoked.
 
 Live Public details is currently blank and the own-account API write was
 rejected with 403. This is a Dashboard/manual gate, not permission to bypass
@@ -74,8 +92,9 @@ fail-closed production state.
 
 ### Native/App Store
 
-- [ ] iOS exposes no digital price, purchase, subscribe, billing, portal, web
-      purchase, or purchase direction.
+- [ ] iOS exposes StoreKit localized price, purchase, and restore only for the
+      exact 74 Series Unlocks; it exposes no Stripe, web checkout, competing
+      billing, VIP purchase, coins, or external-purchase direction.
 - [ ] iOS Amazon, ads/affiliate placements, UGC/admin routes, non-core
       payment-bearing editorial routes, and non-live titles fail closed before
       query/render.
@@ -146,6 +165,14 @@ and private APIs have correct status/cache headers, payment capabilities match
 the deployed Terms phase, and free/paid playback matches the deployed Mux flag.
 See [`DEPLOYMENT.md`](DEPLOYMENT.md).
 
+For Apple IAP, migration 015, Apple-aware legal pages, negative routes, exact
+enabled preflight/narrow allowlist, and V2 production/sandbox URL configuration
+are complete. Still canary Apple's real signed V2 notification at
+`https://www.verzatv.com/api/iap/apple/notifications`, then run the actual
+TestFlight transaction matrix and close product/agreement/tax/trader/screenshot
+gates. The secret-safe commands and stop rules are in
+[`APPLE-IAP.md`](APPLE-IAP.md#safe-deployment-and-readback).
+
 ## Submit sitemaps
 
 Use the canonical `https://www.verzatv.com/sitemap.xml` in Google Search Console
@@ -169,7 +196,7 @@ paid/coming-soon Mux capability appears in XML.
 1. Stop and record the endpoint, deployment SHA/timestamp, event IDs/types,
    delivery status, and matching provider object IDs. Do not charge or Refund
    merely to manufacture an incident test.
-2. Confirm migrations `009`–`014`, deployed webhook version, signing secret,
+2. Confirm migrations `009`–`015`, deployed webhook version, signing secret,
    exact endpoint event set, and database suite before any resend.
 3. Build an allowlist of only failed/missed **post-cutover** events supported by
    deployed code/schema. Resend through Stripe's signed mechanism and verify
@@ -196,6 +223,10 @@ paid/coming-soon Mux capability appears in XML.
 | Free video missing | catalog `freeEpisodes`, public projection, exact Mux row | Regenerate/audit projection; never expose a paid ID as a shortcut |
 | Native black video or unrelated fetches fail | attached-player count and release-on-blur | Restore ≤3-player invariant before changing network/auth code |
 | Checkout unconfigured | live key mode and exact Terms flag | Use explicit phase value; never treat missing/malformed as false |
+| Apple preflight 503 | migration/deploy lineage, exact Apple flag, product registry, account access/deletion state | Keep sales closed; do not bypass preflight or manually grant access |
+| Apple notification 500/409 | signed V2 payload, environment, notification claim/attempt, inner transaction, allowlist for Sandbox | Let Apple retry after fixing verification/ledger state; never acknowledge an unverified payload |
+| StoreKit repeatedly redelivers | backend `verified`/`finishAuthorized`, durable ledger result, native finish ordering | Finish only after durable authorization; never finish merely because StoreKit UI succeeded |
+| Apple refund removes too much access | entitlement's Stripe/Apple/manual sources and alternate active Apple originals | Stop sales and reconcile provider-specific source; never delete the whole row blindly |
 | Duplicate-charge risk | persisted Customer plus all paginated paid/open Checkout history | Stop; do not create a replacement Customer or another Session |
 | Webhook red | exact one endpoint and 19-event allowlist after compatible deploy | Do not create a second endpoint or replay history |
 | Legal runtime gate fails | canonical alias and August 3 markers | Stop payment cutover; deploy/read back correct copy |

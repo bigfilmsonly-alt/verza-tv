@@ -1,6 +1,6 @@
 # Project structure
 
-Directory map reconciled with the source tree on **2026-08-03**. Source
+Directory map reconciled with the source tree on **2026-08-05**. Source
 structure is not production-deployment evidence.
 
 ```
@@ -11,6 +11,7 @@ verza-tv/
 │   │   ├── dashboard/
 │   │   └── review/
 │   ├── api/                  # Route handlers (see API-REFERENCE.md)
+│   │   └── iap/apple/        # StoreKit preflight, signed transaction, V2 notifications
 │   ├── series/[slug]/[episode]/   # Episode watch page (immersive feed)
 │   ├── creator/  studio/     # Creator dashboard (UGC pipeline)
 │   ├── shop/[slug]/          # Merch storefront
@@ -43,6 +44,7 @@ verza-tv/
 │   ├── mux.ts / mux-*.ts     # Playback authorization/signing + upload
 │   ├── series-purchase*.ts   # Canonical $1.99 offer/recovery/ledger logic
 │   ├── stripe-*.ts           # Consent, tax, webhook, provider policy
+│   ├── apple-iap-*.ts        # Append-only products, JWS trust, ledger, public roots
 │   ├── coins.ts / vip*.ts    # Coins dormant; VIP release-gated
 │   ├── creator.ts            # Creator pipeline helpers
 │   ├── admin.ts              # Admin auth gate
@@ -53,7 +55,7 @@ verza-tv/
 │   └── env.ts                # Typed env accessor
 │
 ├── supabase/
-│   └── migrations/           # Ordered SQL migrations 001–014 (+ seed/history)
+│   └── migrations/           # Ordered SQL migrations 001–015 (+ seed/history)
 ├── scripts/                  # Mux/payment audits, generators, guarded ops
 ├── public/                   # Static assets (posters, /ads, icons, sw)
 ├── docs/                     # This documentation set
@@ -90,6 +92,8 @@ mobile, `absolute` on desktop). See [ARCHITECTURE.md](ARCHITECTURE.md).
 - Server-side pricing only — never trust client-supplied prices.
 - Provider-backed webhook or exact authenticated confirmation may record/recover
   a purchase; browser return and client analytics never do.
+- Apple product identity is append-only; StoreKit UI/transaction IDs never
+  grant access without backend JWS verification and ledger reconciliation.
 - Client runtime imports only `mux-public-map.ts`; complete/private/signed maps
   stay server/audit-only.
 - A successful build is not production truth; deploy and read back the canonical

@@ -3,6 +3,8 @@
 > **ARCHIVE — 2026-07-11 snapshot; the filename is not current authority.**
 > Many blockers, counts, prices, and architecture facts changed during the
 > 2026-08-03 hardening. Use [`../LAUNCH-TRUTH.md`](../LAUNCH-TRUTH.md).
+> The separate native app and August 5 74-product StoreKit backend supersede
+> every no-native/reader-mode/no-IAP conclusion in this July snapshot.
 
 **Date:** 2026-07-11 · **Repo:** `Splash-Studio/verza-tv` @ `195c806` · **Live:** https://www.verzatv.com
 **Method:** Deterministic verification (build, typecheck, lint, route sweep, live DB reads, production HTTP probes, Stripe/Mux API reads) + a 10-agent verification fleet, all read-only. Nothing was modified, no test charges were made.

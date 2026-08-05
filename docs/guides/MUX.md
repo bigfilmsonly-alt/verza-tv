@@ -1,7 +1,7 @@
 # Mux playback, authorization, and signed-ID cutover
 
 This is the authoritative runbook for catalog video delivery. It covers the
-web client, the native reader client in sibling repo `../verza-native`, the
+web client, the native StoreKit-capable client in sibling repo `../verza-native`, the
 server authorization endpoint, the generated signed-ID inventory, and the
 one-way production cutover. Read it before changing any Mux ID, playback URL,
 entitlement gate, player cache, or release flag.
@@ -415,8 +415,8 @@ npx expo export --platform ios
 ```
 
 Also perform real-device/TestFlight playback and purchase/access tests. A
-successful build does not exercise Mux authorization, Apple receipt/account
-state, background expiry, or device decoder limits.
+successful build does not exercise Mux authorization, Apple signed-transaction/
+account state, background expiry, or device decoder limits.
 
 ## Incident response
 

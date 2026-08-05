@@ -1,6 +1,6 @@
 # Tech stack
 
-Verified from `package.json` on **2026-08-03**.
+Verified from `package.json` on **2026-08-05**.
 
 > Next.js 16.3.0 has breaking/version-specific behavior. Read the relevant
 > exact local guide under `node_modules/next/dist/docs/` before writing framework
@@ -18,15 +18,18 @@ Verified from `package.json` on **2026-08-03**.
 | `@mux/mux-node` | `^14.1.1` | Server Mux API and signing support |
 | `hls.js` | `^1.6.16` | Web HLS fallback/player runtime |
 | `stripe` | `^22.2.2` | Server Checkout, provider retrieval, webhooks |
+| `@apple/app-store-server-library` | `3.1.0` | Apple transaction/V2 notification JWS verification and StoreKit types |
 | `resend` | `^6.14.0` | Guarded transactional notice sending |
 | `web-push` | `^3.6.7` | Web push/VAPID |
 | `zod` | `^4.4.3` | Runtime validation |
 | `@vercel/analytics` | `^2.0.1` | Web analytics |
 | `@vercel/speed-insights` | `^2.0.0` | Web performance telemetry |
 
-No client-side Stripe SDK is installed. Current digital checkout is
-server-created and Stripe-hosted. No Anthropic SDK is installed; AI scaffolding
-must degrade/fail safely and is not a native-launch dependency.
+No client-side Stripe SDK is installed. Web/eligible-Android digital checkout
+is server-created and Stripe-hosted; iOS purchase UI lives in the native
+StoreKit module while this server verifies Apple-signed data. No Anthropic SDK
+is installed; AI scaffolding must degrade/fail safely and is not a native-
+launch dependency.
 
 ## Development/build tooling
 
@@ -72,7 +75,8 @@ and portal configuration command are not routine verification.
 | Service | Role | Current release note |
 | --- | --- | --- |
 | Vercel | Canonical web/backend deployment | Local source is ahead of verified production |
-| Supabase | Auth, Postgres, RLS, access/payment ledgers | Migrations `009`–`014` applied/read back |
+| Supabase | Auth, Postgres, RLS, access/payment ledgers | Migrations `009`–`015` applied/read back; Apple structural/RLS/RPC/privilege/source checks passed |
+| Apple App Store | 74 StoreKit non-consumables and signed transaction/V2 notification source | Backend/legal/enabled preflight and V2 URL configuration live; all products need review screenshots; signed delivery/transaction and owner agreement/tax/trader/TestFlight gates open |
 | Mux | Encoding, HLS, public/signed capability IDs, creator asset events | Signed mode live; 402/no-capability and entitled signed 1,800-second URL/manifest canary passed; standalone native acceptance open. Creator webhook hardening is deployed but returns 503 while its separate verification secret is intentionally absent, so ingestion stays off |
 | Stripe | Hosted Checkout, financial source, signed webhooks | Compatibility capabilities live; canonical webhook exact 19/19; Public details/required consent/portal/smoke open; VIP closed; tax off/zero registrations |
 | Resend | Payment notices | VIP notice/monitoring launch gate remains closed |
@@ -83,6 +87,8 @@ and portal configuration command are not routine verification.
 - Tailwind v4 uses `postcss.config.mjs`; there is no Tailwind v3 config flow.
 - Preview/non-production deployments must remain noindex.
 - Protected Mux capabilities and every secret are server-only.
+- Apple public trust anchors are not credentials; signed transaction/notification
+  payloads and sandbox user UUIDs still must not enter logs/docs.
 - A successful `next build` proves compilation/static generation, not provider
   configuration, production alias ownership, payment fulfillment, signed
   playback, or native behavior.

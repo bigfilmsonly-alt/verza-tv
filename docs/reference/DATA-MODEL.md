@@ -1,6 +1,6 @@
 # Data model
 
-Last reconciled: **2026-08-03**. SQL migrations plus production readback are
+Last reconciled: **2026-08-05**. SQL migrations plus production readback are
 database authority. `lib/supabase/schema.ts` still contains several legacy
 minimal interfaces and must not be used as a complete database catalog.
 
@@ -68,10 +68,18 @@ new profile merely because provider lookup failed.
 ### `entitlements`
 
 Current Series access is one row per `(user_id, series_slug)`. Important fields
-are `purchase_id`, nullable `episode_number`, `granted_at`, and optional expiry.
-Current Series Unlock grants use `episode_number = null` and link to the exact
-financial purchase. Grant, revoke, and restoration RPCs lock the purchase row so
-an adverse event cannot race a confirmation and resurrect access.
+are nullable Stripe `purchase_id`, nullable Apple
+`apple_original_transaction_id`, non-null `manual_grant`, nullable
+`episode_number`, `granted_at`, and optional expiry. Full-series grants use
+`episode_number = null`. Migration 015 classifies every pre-existing row with
+no Stripe/Apple source as an intentional manual grant.
+
+One row may carry Stripe, Apple, and manual sources simultaneously. Provider-
+specific adverse events clear only their own source; the row is deleted only
+when no valid source remains. A revoked Apple original may fall back to another
+active verified Apple original for the same account/title. Grant, revoke, and
+restoration RPCs row-lock provider state so an older/equal-clock event cannot
+resurrect access.
 
 Clients may read their own entitlements. Only verified server/payment flows may
 grant current paid access.
@@ -165,6 +173,30 @@ Subscription, nullable user, one-way recipient digest, amount/currency, period,
 Terms version, legal payload, send state/attempt, provider message ID, and
 timestamps—never the email address itself.
 
+### `apple_iap_purchases`
+
+Production migration 015 adds one canonical row per Apple
+`original_transaction_id`, with unique latest transaction ID, nullable current
+VERZA owner, hashed purchase-time `appAccountToken`, immutable product/series/
+environment identity, active/refunded/revoked state, provider timestamps,
+optional Apple price/currency, and the signed-transaction SHA-256. The raw JWS
+and raw account token are not stored.
+
+The row is append/update-only to service role; anon/authenticated have no table
+access and service role has no delete privilege. `signed_date` is the monotonic
+clock. At equal clock, refunded outranks revoked, which outranks active. The
+profile FK uses `ON DELETE SET NULL`, retaining pseudonymized provider evidence
+after account deletion without retaining access.
+
+### `apple_iap_notifications`
+
+Production migration 015 adds one private row per V2 notification UUID, including
+type/subtype/environment, optional original transaction, processing state,
+attempt count, signed/created/updated/processed times, and a bounded last error.
+Claim/finish RPCs return acquired/busy/processed semantics, allow stale or
+failed retry, and prevent concurrent double reconciliation. Like the purchase
+ledger it is append/update-only to service role and unreadable by clients.
+
 ## Creator and content tables
 
 Creator tables exist for the web pipeline, but creator PPV is disabled and the
@@ -189,11 +221,13 @@ expose stored Mux IDs.
 | `012_payment_account_tombstones.sql` | Minimal deletion/payment identity and atomic Customer coalescing |
 | `013_stripe_dispute_ledger.sql` | Provider-idempotent ordered Dispute reconciliation |
 | `014_payment_notices_and_content_rls.sql` | VIP Terms/notice evidence and fail-closed optional content RLS |
+| `015_apple_iap_series_unlocks.sql` | Apple purchase/notification ledgers, multi-source entitlements, monotonic adverse-event and deleted-account restore behavior |
 
 Migrations `009`–`014` are applied and independently read back in the current
-production project. Any fresh environment must apply migrations in filename
-order and run the rollback-only database suite before matching payment/webhook
-code. Never edit an applied migration to change production history.
+production project. Migration 015 is also applied; structural, RLS, RPC,
+privilege, and independent-source preservation readbacks passed. Any fresh
+environment must apply migrations in filename order before matching payment/
+webhook code. Never edit an applied migration to change production history.
 
 ## RLS and authority rules
 
@@ -204,7 +238,9 @@ code. Never edit an applied migration to change production history.
 - profiles, query strings, analytics, browser return, and local storage do not
   grant access; and
 - provider financial records can outlive account identity, but cannot recreate
-  identity or entitlement after deletion.
+  identity or entitlement after deletion except through the explicit,
+  cryptographically verified StoreKit restore of an already-orphaned original
+  after the former profile and Auth user are proven absent.
 
 See [`../guides/PAYMENTS.md`](../guides/PAYMENTS.md) for exact fulfillment and
 adverse-event policy and [`../guides/MUX.md`](../guides/MUX.md) for playback

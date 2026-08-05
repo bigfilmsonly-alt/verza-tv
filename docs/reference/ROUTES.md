@@ -1,15 +1,18 @@
 # Route reference
 
-Last reconciled: **2026-08-03**. The source tree contains 60 `page.tsx` files,
-42 `app/api/**/route.ts` handlers, and seven SEO/meta route handlers. Counts are
+Last reconciled: **2026-08-05**. The source tree contains 60 `page.tsx` files,
+45 `app/api/**/route.ts` handlers, and seven SEO/meta route handlers. Counts are
 file inventories, not proof that every route is enabled or deployed.
 
-Latest production readback verifies August 3 legal/support, payment
+The August 3 Stripe/Mux production baseline verifies legal/support, payment
 compatibility capabilities, signed paid playback, and the exact 19-event Stripe
 webhook. The hardened creator Mux webhook is also deployed and fail-closed at
 503 while its verification secret is intentionally absent. Required
 Terms/portal/smoke remain open. See
 [`../LAUNCH-TRUTH.md`](../LAUNCH-TRUTH.md).
+The three newly counted Apple IAP routes are live: preflight positive/negative
+and invalid-notification behavior passed; real signed notification/transaction
+delivery remains open.
 
 ## Consumer catalog and playback pages
 
@@ -27,8 +30,8 @@ Terms/portal/smoke remain open. See
 
 Web availability does not define native iOS availability. Native iOS refilters
 Discover/Search/genre to live titles and redirects non-live series/episode deep
-links before data/auth/Mux work. Payment-bearing route families remain reader
-mode there.
+links before data/auth/Mux work. Eligible iOS series expose StoreKit only;
+Stripe/web checkout and external-purchase direction remain absent.
 
 ## Account, support, and legal pages
 
@@ -60,8 +63,8 @@ investor/partnership, brand/media, collections/best/watch-in/guides/learn,
 share/clip, careers, channels, sitemap, and comparison route families.
 
 Several are deliberately unavailable in native iOS because they consume
-payment-bearing Tier-1 data or promote unsupported surfaces. Native reader-mode
-tests, not this web route list, define the exact redirect boundary.
+payment-bearing Tier-1 data or promote unsupported surfaces. Native App Store
+compliance tests, not this web route list, define the exact redirect boundary.
 
 ## Payment/access API routes
 
@@ -69,6 +72,9 @@ tests, not this web route list, define the exact redirect boundary.
 | --- | --- | --- |
 | `POST` | `/api/unlock` | Canonical authenticated $1.99 Series Checkout |
 | `GET` | `/api/unlock/confirm` | Exact authenticated provider-backed recovery |
+| `POST` | `/api/iap/apple/preflight` | Live authenticated StoreKit offer/product preflight; exact-product/private-no-store canary passed |
+| `POST` | `/api/iap/apple/transactions` | Live authenticated signed transaction/restore reconciliation; real JWS canary open |
+| `POST` | `/api/iap/apple/notifications` | Live Apple-signed V2 provider reconciliation; invalid 400/ASC URL readback passed, signed delivery open |
 | `GET` | `/api/payments/capabilities` | Live/private: Series compatibility configured/live; both VIP false |
 | `GET` | `/api/access` | Canonical episode access |
 | `GET` | `/api/entitlements`, `/api/entitlements/check` | Current-user access data |

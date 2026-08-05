@@ -6,6 +6,12 @@ while monthly and yearly VIP remain hidden and server-blocked. No step in this
 document authorizes changing a successful Charge, Refund, Dispute, payout, or
 historical entitlement.
 
+> **Stripe-only snapshot.** The August 5 Apple StoreKit backend/migration and
+> 74-product rollout are newer and governed by
+> [`../guides/APPLE-IAP.md`](../guides/APPLE-IAP.md). Apple migration/backend
+> deployment is now live, but nothing in this dated Stripe record proves or
+> authorizes Apple notifications, testing, products, or submission.
+
 ## Current production/cutover state
 
 - The approved production Supabase project has migrations `009`–`014` applied

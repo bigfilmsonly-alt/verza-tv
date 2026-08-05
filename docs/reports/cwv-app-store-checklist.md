@@ -4,6 +4,8 @@
 > Store assumptions and is not the iOS 2.0 submission checklist. Current truth:
 > [`../LAUNCH-TRUTH.md`](../LAUNCH-TRUTH.md) and the native repository release
 > audit.
+> The current backend supports 74 StoreKit non-consumables; any unchecked or
+> reader-only Apple IAP item below is historical and not the current gate list.
 
 ## Core Web Vitals Targets
 

@@ -2,7 +2,8 @@
 
 Web product and production backend for the Verza TV native app: a catalog of
 short, vertical micro-dramas delivered through Mux, with Supabase identity and
-entitlements and server-created Stripe Checkout on eligible platforms.
+entitlements, server-created Stripe Checkout on web/eligible Android, and
+server-verified Apple StoreKit non-consumables on iOS.
 
 - **Production:** https://www.verzatv.com
 - **Hosting:** Vercel project `codevibes/verza-tv`
@@ -10,12 +11,17 @@ entitlements and server-created Stripe Checkout on eligible platforms.
 - **Current release truth:** [`docs/LAUNCH-TRUTH.md`](docs/LAUNCH-TRUTH.md)
 
 > Production and the working tree are intentionally distinguished. As of the
-> latest 2026-08-03 readback, August 3 legal/support, live payment capabilities
+> the 2026-08-03 Stripe/Mux baseline, August 3 legal/support, live payment capabilities
 > in compatibility mode, signed paid playback, and the exact 19-event Stripe
 > webhook are production-verified. Stripe Public details, required-consent
 > mode/portal, and the controlled $1.99 smoke remain open. The hardened creator
 > Mux webhook is deployed and returns 503 while its verification secret is
-> intentionally absent, so creator ingestion remains unavailable.
+> intentionally absent, so creator ingestion remains unavailable. The August 5
+> Apple IAP backend at commit `a9b537844a8878851ecfe4c0e310f405b68fc6ef`,
+> migration 015, Apple-aware legal copy, exact enabled preflight, and narrow
+> Sandbox allowlist are now production-read-back. ASC V2 URLs are configured;
+> real signed notification delivery and an actual Sandbox transaction remain
+> open.
 
 ## Product state
 
@@ -24,18 +30,19 @@ entitlements and server-created Stripe Checkout on eligible platforms.
 | Catalog | 80 titles: 79 live and one coming soon; 74 paid-live, five wholly free |
 | Web browse | Drama, Hot, Tubi, Anime, Español, Bollywood, Creators, Reality, Red Carpet, Music. New is folded into Hot; Anime/Español/Bollywood are placeholders; Storage Pirates is Reality-only. Hero arrows were removed in favor of automatic rotation, dots, and tab/swipe navigation. |
 | Tubi partner | Authorized web partner logo/hero panel and outbound `tubitv.com` CTA; browser policy prevents an ordinary embed. This web surface does not enter the iOS 2.0 client. |
-| Series access | $1.99 one-time full-series unlock on web and eligible Android surfaces |
-| iOS | Reader mode: existing entitlements only; no digital price, purchase, subscribe, billing, external-purchase direction, Tubi partner promotion, or creator surface |
+| Series access | One-time full-series unlock: canonical $1.99 USD Stripe Checkout on web/eligible Android; Apple non-consumable with $1.99 US base and StoreKit-localized price on iOS |
+| iOS | Apple StoreKit is the only purchase path; no Stripe/web checkout or external-purchase direction, Tubi partner promotion, ads/affiliate placement, or creator surface |
 | VIP | $9.99/month and $79.99/year code paths are hidden and API-blocked pending separate release gates |
 | Coins | Disabled; purchase, balance, and season-pass routes fail closed |
 | Creator beta / PPV | The web lead form and `/api/creator/beta` exist, but the Mux ingestion path remains fail-closed and creator PPV is disabled pending verification, ownership, fulfillment, and payout controls |
 | Official merch Checkout | Disabled pending inventory, variants, shipping, tax, pricing, and fulfillment |
 | Amazon affiliate shop | Web/retained Android system-browser handoff; fail-closed in the iOS 2.0 client |
 
-Stripe Checkout is hosted by Stripe and created by the server. There is no
+Stripe Checkout is hosted by Stripe and created by the server. iOS purchase UI
+uses StoreKit and sends Apple's signed transaction to this backend. There is no
 client-side Stripe SDK, Elements form, native card collection, or client-trusted
-price. Browser return never grants access; provider-backed reconciliation and a
-purchase-linked entitlement do.
+price. Browser return and purchase UI state never grant access; exact provider-
+backed reconciliation and a source-linked entitlement do.
 
 ## Video authorization
 
@@ -63,7 +70,7 @@ URLs, entitlement checks, tokens, or Mux policy IDs.
 | Styling | Tailwind CSS v4 |
 | Identity/data | Supabase Auth, Postgres, RLS, service-role server operations |
 | Video | Mux HLS; `hls.js` on web; server-generated JWTs for paid playback |
-| Payments | Stripe-hosted Checkout, verified webhooks, durable Supabase ledger |
+| Payments | Stripe-hosted Checkout/webhooks plus Apple StoreKit signed transactions/V2 notifications, durable multi-provider Supabase ledger |
 | Notices | Resend, guarded by release flags and idempotent private evidence |
 | Hosting | Vercel; Cloudflare/GoDaddy DNS path |
 
@@ -89,6 +96,9 @@ Key current modules:
 - `lib/stripe-checkout-consent.ts` — explicit compatibility/required Terms mode
 - `lib/series-checkout-recovery.ts` — durable provider-history recovery
 - `lib/stripe-webhook-events.ts` — reviewed webhook event contract
+- `lib/apple-iap-product-manifest.ts` — append-only 74-product Apple registry
+- `lib/apple-iap-verification.ts` — StoreKit transaction/notification JWS verification
+- `lib/apple-iap-ledger.ts` — Apple ledger and entitlement reconciliation
 
 ## Local setup
 
@@ -149,6 +159,20 @@ verifies Public details, the next deployment must use exact `true`.
 Missing, empty, malformed, or unrecognized live-key configuration fails closed.
 Final cutover requires `true`.
 
+The iOS Series Unlock path is a separate Apple rollout. App Store Connect has
+all 74 non-consumables provisioned at a $1.99 US base price, but each still
+needs its IAP review screenshot and currently reports `MISSING_METADATA`.
+Migration 015/routes/legal/preflight and notification URL configuration are
+complete. A real signed notification, sandbox purchase/restore/refund matrix,
+Paid Applications agreement, `Video` tax category, DSA trader declaration, and
+exact TestFlight proof remain open. See
+[`docs/guides/APPLE-IAP.md`](docs/guides/APPLE-IAP.md).
+
+The separate credential-transcript gate remains open: rotate the Stripe secret/
+webhook, Supabase service role, and paired Mux token credentials through their
+dashboards, install replacements as Vercel `Sensitive`, deploy/canary, then
+revoke predecessors without reading values into logs or docs.
+
 Do not infer tax registration from authority to sell nationwide, expand the
 webhook before compatible code is live, create a second webhook endpoint,
 replay historical events, or automatically refund a controlled smoke purchase.
@@ -159,11 +183,17 @@ cutover record in
 
 ## Database and deployment
 
-Migrations `009` through `014` support the current payment ledger, RLS,
+Migrations `009` through `014` support the current production payment ledger, RLS,
 account-deletion tombstones, disputes, Terms evidence, and notice evidence.
 They are already applied/read back in the current production project; any new
 environment must apply migrations in filename order before matching webhook
 code.
+
+Migration `015_apple_iap_series_unlocks.sql` adds the Apple purchase/
+notification ledgers plus multi-source entitlement reconciliation. It is
+applied and production-read-back with its schema, RPC, RLS, privileges, and
+source-preservation checks passing. Never rewrite it or deploy code whose
+required RPCs are absent.
 
 Deployment is an explicit operation followed by production readback:
 
@@ -180,6 +210,7 @@ payment/Mux phase ordering.
 
 - [`docs/LAUNCH-TRUTH.md`](docs/LAUNCH-TRUTH.md) — current source vs production vs deferred truth
 - [`docs/guides/PAYMENTS.md`](docs/guides/PAYMENTS.md) — payment/access invariants and cutover
+- [`docs/guides/APPLE-IAP.md`](docs/guides/APPLE-IAP.md) — exact 74-product StoreKit mapping, backend, migration, rollout, and canaries
 - [`docs/guides/MUX.md`](docs/guides/MUX.md) — capability projection, signed playback, legacy coexistence
 - [`docs/guides/REACT-NATIVE-SYNC.md`](docs/guides/REACT-NATIVE-SYNC.md) — web/backend ↔ native boundary
 - [`docs/guides/PORTING-VERZA-TV-TAB.md`](docs/guides/PORTING-VERZA-TV-TAB.md) — archived web-extraction guide; not the Expo/native release architecture

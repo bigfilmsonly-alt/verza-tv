@@ -1,6 +1,6 @@
 # Web/backend → React Native sync guide
 
-Last reconciled: **2026-08-03**.
+Last reconciled: **2026-08-05**.
 
 The sibling repository `../../verza-native` is an Expo SDK 57 client. This web
 repository is its backend and the canonical source for shared content data.
@@ -18,8 +18,8 @@ between the two repositories.
 | --- | --- | --- | --- |
 | Browse live catalog | Yes | Yes | Yes, refiltered to live titles |
 | Play free previews | Yes | Yes | Yes |
-| Play owned/VIP content | Yes | Yes | Yes, reader mode |
-| $1.99 Series Unlock | Stripe-hosted Checkout | Server-created Stripe Checkout opened in system browser | No price, CTA, link, direction, or Checkout |
+| Play owned/VIP content | Yes | Yes | Yes, server-authorized |
+| One-time Series Unlock | Stripe-hosted Checkout, canonical $1.99 USD | Server-created Stripe Checkout opened in system browser, canonical $1.99 USD | Apple StoreKit non-consumable, $1.99 US base and localized `displayPrice` |
 | VIP purchase | Hidden/API-blocked | Hidden/API-blocked | Hidden/API-blocked |
 | Coins / episode purchase | Disabled | Disabled | Disabled |
 | Official merch new order | Disabled | Disabled | No; support for prior physical orders only |
@@ -27,16 +27,17 @@ between the two repositories.
 | Creator/UGC surface | Web feature remains separately gated | Not a launch dependency | Absent; direct routes redirect before query/render |
 | Ads/affiliate placements | Web policy applies | Retained disclosures/controls | Fail-closed; ASC Advertising answer remains No |
 
-Digital access acquired on the web is represented by Supabase entitlement/VIP
-state and may be consumed by the iOS reader app. The iOS app never tells users
-where or how to purchase. The fact that web or Android may sell a product does
-not make that product safe to expose on iOS.
+Digital access from either provider is represented by a Supabase entitlement/
+VIP read at playback, but Stripe and Apple keep independent immutable source
+ledgers. The iOS app may offer only StoreKit; it never directs users to web/
+Android/Stripe purchase. The fact that web or Android may sell the same logical
+series does not make that payment method safe to expose on iOS.
 
 ## Current product accounting
 
 - 80 catalog titles total;
 - 79 live titles and one coming soon;
-- 74 canonical $1.99 paid-live Series Unlock SKUs;
+- 74 canonical paid-live Series Unlock SKUs and append-only Apple product IDs;
 - five wholly free live titles; and
 - per-title free-preview counts come from `freeEpisodes`.
 
@@ -60,6 +61,9 @@ At minimum, the native data-sync runbook covers:
 - `lib/series-detail.ts` → `src/lib/series-detail.ts`;
 - shared configuration, i18n, product/editorial data named in native
   `docs/DATA-SYNC.md`; and
+- `lib/apple-iap-product-manifest.ts` ↔ native Apple product manifest: exact 74
+  slug/product pairs and retired overlay, verified for semantic parity before
+  any build or App Store product mutation; and
 - generated assets/projections only through their audited generators.
 
 After any web catalog change:
@@ -71,7 +75,9 @@ After any web catalog change:
 4. regenerate the server-only signed map;
 5. copy the designated shared modules byte-identically;
 6. run byte-comparison and catalog/Mux count gates in both repositories; and
-7. rerun iOS route-boundary tests rather than altering shared data.
+7. regenerate/provision a new Apple product only after the paid-live/rights
+   gates pass; never delete or recycle an old mapping; and
+8. rerun iOS route-boundary and StoreKit tests rather than altering shared data.
 
 ## Mux capability boundary
 
@@ -140,14 +146,42 @@ Authorization/Cookie. Series readiness distinguishes:
 
 Both VIP capabilities must remain false for this release.
 
+## iOS StoreKit and backend contract
+
+The native app must call backend preflight before loading/buying a series
+product. The backend returns the immutable product ID only after authenticated
+paid-live/no-access/no-VIP/no-deletion checks and exact Apple release enablement.
+Native then loads that exact StoreKit non-consumable and displays Apple's
+localized price; it must not hard-code `$1.99` as the storefront price.
+
+Every purchase uses the current lower-cased Supabase user UUID as
+`appAccountToken`. Native sends Apple's signed transaction plus expected series
+to `/api/iap/apple/transactions`. It may finish StoreKit only when the backend
+returns both `verified=true` and `finishAuthorized=true`; playback/access uses
+the separate `accessGranted`/entitlement state. A refunded or revoked canonical
+transaction can be finish-authorized without access.
+
+Restore uses the same route with `restoreMode=true`. It is idempotent for the
+same account and may not steal from another live VERZA account. Rebinding is
+limited to a purchase already in the server ledger whose prior profile/Auth
+identity is truly gone and whose owner was nulled by deletion. App Store V2
+notifications at the canonical backend route reconcile charge/refund/revoke/
+refund-reversed state independently of native launch.
+
+Migration 015 allows one entitlement to retain Stripe, Apple, and manual
+sources. Native must refresh authoritative access after every purchase,
+restore, account switch/deletion, or adverse event; it must not persist a local
+unlock bit. Full contract and the exact 74 mappings are in
+[`APPLE-IAP.md`](APPLE-IAP.md).
+
 ## iOS route boundary
 
-Reader mode is enforced before data resolution/rendering, not by deleting a
-sentence after a payment-bearing component mounts. Native tests freeze all of
-these boundaries:
+Platform policy is enforced before data resolution/rendering, not by deleting
+a sentence after an unsupported payment-bearing component mounts. Native tests
+freeze all of these boundaries:
 
-- no price, sale badge, unlock, subscribe, billing, portal, web-purchase, or
-  external-purchase direction;
+- only StoreKit localized Series Unlock price/purchase/restore; no Stripe,
+  portal, web-purchase, external-purchase direction, coins, or VIP purchase;
 - Discover, Search/All Series, and genre views include live titles only;
 - non-live series/episode direct links redirect before episode, auth, catalog,
   or Mux work and never show “0 episodes,” “All Episodes FREE,” or a fake free
@@ -188,7 +222,9 @@ of the latest 2026-08-03 readback, canonical Terms, Privacy, Refund, and Support
 return 200 and parsed/source HTML confirms the August 3 legal date. Authenticated
 payment capabilities is live/private and reports configured/live Series
 `compatibility` mode with both VIP plans false. Re-run canonical readback after
-later deployments; do not take a local render as evidence.
+later deployments; do not take a local render as evidence. Apple-aware billing,
+refund, restore, deletion, and processor wording is now deployed/read back as a
+complete sibling set.
 
 The safe payment deployment sequence is:
 
@@ -202,6 +238,13 @@ The safe payment deployment sequence is:
    rotation; and
 5. perform one owner-authorized $1.99 smoke purchase without an automatic
    cleanup Refund.
+
+The independent Apple backend sequence is complete through migration 015,
+routes/legal, exact enabled preflight/narrow allowlist, no-charge canary, and
+ASC V2 URL configuration. Still canary Apple's real signed V2 notification,
+finish all product/agreement/tax/trader/screenshot gates, then pass the pinned
+TestFlight purchase/cancel/pending/restore/refund/deletion/multi-source/playback
+matrix. App Review is later and requires the owner's exact-build approval.
 
 See [`PAYMENTS.md`](PAYMENTS.md) and
 [`../reports/PAYMENT-CUTOVER-EVIDENCE-2026-08-03.md`](../reports/PAYMENT-CUTOVER-EVIDENCE-2026-08-03.md).
@@ -228,7 +271,7 @@ npm run typecheck
 npm run lint
 npm run test:android-checkout-return
 npm run test:playback-security
-npm run test:ios-reader-mode
+npm run test:ios-app-store-compliance
 npx expo export --platform ios
 ```
 
@@ -236,7 +279,8 @@ The current Mac cannot run the SDK 57 cached Expo Go binary and does not need an
 operating-system upgrade for submission. Use the documented EAS standalone
 Simulator build, then the exact production IPA. Before App Store attachment,
 inspect that pinned IPA's `Info.plist`, entitlements, privacy manifests,
-frameworks/extensions, and secrets; historical build 19 is stale and forbidden.
+frameworks/extensions, StoreKit linkage/product strings, and secrets; every
+earlier reader-mode diagnostic artifact is superseded and forbidden.
 
 ## Documentation ownership
 

@@ -1,6 +1,6 @@
 # Content system
 
-Last reconciled: **2026-08-03**.
+Last reconciled: **2026-08-05**.
 
 Catalog truth is code-backed. Supabase stores user/access/financial data, but it
 is not the active source for the editorial catalog.
@@ -142,12 +142,12 @@ review. Do not infer permission for the iOS 2.0 binary from the web
 click-through.
 
 Web and eligible Android surfaces can render their supported catalog
-experience. Native iOS applies stricter reader-mode predicates without
+experience. Native iOS applies stricter App Store content/promotion predicates without
 hand-editing shared data:
 
-- Discover, Search/All Series, and genres refilter to live, reader-visible
+- Discover, Search/All Series, and genres refilter to live, iOS-visible
   titles;
-- direct non-live or reader-excluded series/episode links redirect before
+- direct non-live or iOS-excluded series/episode links redirect before
   catalog, auth, episode, or Mux work;
 - web-only Tubi, creator, affiliate, and promotional behavior does not cross
   into the iOS release; and

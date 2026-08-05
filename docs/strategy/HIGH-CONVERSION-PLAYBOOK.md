@@ -3,8 +3,9 @@
 
 > **ARCHIVE / IDEATION — June 2026.** Old prices, fabricated/estimated social
 > proof, permanent-sale urgency, IAP, VIP, and notification ideas below are not
-> approved implementation instructions. Truthful marketing, reader mode, and
-> current product gates outrank conversion ideas. See
+> approved implementation instructions. The current 74-product Apple StoreKit
+> design supersedes every reader-mode/no-IAP assumption below; truthful
+> marketing and current product gates outrank conversion ideas. See
 > [`../LAUNCH-TRUTH.md`](../LAUNCH-TRUTH.md).
 
 ---

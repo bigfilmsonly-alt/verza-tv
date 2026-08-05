@@ -1,6 +1,6 @@
 # Component reference
 
-Last reconciled: **2026-08-03**. This is a source inventory, not proof a feature
+Last reconciled: **2026-08-05**. This is a source inventory, not proof a feature
 is deployed or enabled. Inspect the component and its server route/release gate
 before changing behavior.
 
@@ -10,13 +10,14 @@ before changing behavior.
 | --- | --- |
 | `Header`, `Footer`, `FooterSitemap`, `BottomNav` | Web shell/navigation; the footer's creator entry routes to `/studio` |
 | `CategoryTabs` | Sticky web category bar: Drama, Hot, Tubi, Anime, Español, Bollywood, Creators, Reality, Red Carpet, Music. New is folded into Hot. Tubi uses the licensed `public/tubi-logo.png` partner mark and opens its dedicated click-through panel; Anime, Español, Bollywood, and Creators remain placeholder categories until releasable catalog content exists. |
-| `HideInIOSApp` | Web-wrapper reader-mode helper; native uses `Platform.OS` and route boundaries instead |
+| `HideInIOSApp` | Web-wrapper guard that hides unsupported web/Stripe surfaces; native uses `Platform.OS`, route boundaries, and its own StoreKit components instead |
 | `ThirdPartyScripts` | Web analytics/third-party loading boundary |
 | `ScrollToTop`, `HorizontalBackButton`, `InstallPrompt` | Navigation/install polish |
 
 Web component visibility is not the iOS App Store boundary. Native iOS 2.0
-independently fails closed for payments, Amazon, ads/affiliate placements,
-UGC/admin, and non-core payment-bearing routes before query/render.
+independently allows only its exact StoreKit Series Unlock flow and fails closed
+for Stripe/web payment, Amazon, ads/affiliate placements, UGC/admin, and non-
+core payment-bearing routes before query/render.
 
 ## Catalog, browse, and search
 
@@ -60,6 +61,10 @@ from the server authorization API; components may not persist or log them.
 `SummerSaleBadge.tsx` and the old TikTok `SponsoredProducts.tsx` no longer
 exist. Never reintroduce a global sale badge, coin pack, client Stripe SDK, or
 hard-coded “five free” behavior from archived docs.
+
+The iOS StoreKit purchase/restore UI lives in the native repository, not in
+these web components. Its product, transaction, and entitlement contract is
+documented in [`../guides/APPLE-IAP.md`](../guides/APPLE-IAP.md).
 
 ## Commerce
 

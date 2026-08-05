@@ -1,8 +1,9 @@
 # Verza TV -- Coding Conventions
 
 This document describes the conventions **currently** in use across the Verza TV
-codebase, reconciled **2026-08-03**. Follow these with the stricter payment,
-Mux, deployment, and native-boundary rules in [`../../AGENTS.md`](../../AGENTS.md).
+codebase, reconciled **2026-08-05**. Follow these with the stricter payment,
+Apple IAP, Mux, deployment, and native-boundary rules in
+[`../../AGENTS.md`](../../AGENTS.md).
 
 ---
 
@@ -130,3 +131,8 @@ use narrow server-only parsers that read `process.env` directly when exact
 distinguished. Do not route those through a permissive generic helper. Every
 new variable must be documented in [`ENV.md`](ENV.md), kept out of client
 modules unless intentionally public, and covered by missing/malformed tests.
+
+Apple product IDs are immutable external identities. Add mappings only through
+the reviewed append-only manifest; retirement is an overlay, not deletion.
+Apple transaction and notification JWS verification stays server-only, and a
+StoreKit success callback never substitutes for the canonical ledger RPC.

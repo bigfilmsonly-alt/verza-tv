@@ -1,6 +1,6 @@
 # Environment reference
 
-Last reconciled: **2026-08-03**. The operational authority, rollout semantics,
+Last reconciled: **2026-08-05**. The operational authority, rollout semantics,
 and safe placeholder file are in [`../guides/ENV.md`](../guides/ENV.md). This is
 a concise index only; current code remains authoritative for reads.
 
@@ -72,6 +72,20 @@ wildcard off. Public details remains blank; the restricted portal, second
 exact-true deployment, and controlled paid smoke remain open. Final Terms/portal
 cutover requires Terms mode true.
 
+## Apple StoreKit release
+
+| Variable | Exposure | Notes |
+| --- | --- | --- |
+| `APPLE_IAP_ENABLED` | Server/Sensitive | Exact `true` opens authenticated new-purchase preflight. Any other state closes preflight but does not stop signed transaction/restore/adverse-event/notification reconciliation. |
+| `APPLE_IAP_SANDBOX_ALLOWED_USER_IDS` | Sensitive | Comma-separated Supabase UUIDs accepted from Apple-signed Sandbox/TestFlight account tokens; empty denies Sandbox fulfillment. |
+
+A names/type/target-only 2026-08-05 Vercel readback found both variables as
+Production `Sensitive`; values were not read or printed. Independent behavior
+readback proves exact true preflight and a narrow Sandbox allowlist, but does
+not disclose membership. StoreKit signed-data verification uses Apple's public
+roots and needs no App Store Server API private-key variable. See
+[`../guides/APPLE-IAP.md`](../guides/APPLE-IAP.md).
+
 ## Email, cron, AI, push, and admin
 
 | Variable | Exposure | Notes |
@@ -99,3 +113,8 @@ These are not persistent application configuration:
 
 Use `.env.local.example` for names/placeholders. Never copy real values into a
 Markdown file.
+
+The current external credential-rotation gate covers `STRIPE_SECRET_KEY`,
+`STRIPE_WEBHOOK_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`, and the paired
+`MUX_TOKEN_ID`/`MUX_TOKEN_SECRET`. Replace them as Vercel `Sensitive`, canary,
+then revoke predecessors without value readback.

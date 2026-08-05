@@ -9,7 +9,7 @@ notices.
 
 # Verza TV — web/backend
 
-Last reconciled with code and release state: **2026-08-03**.
+Last reconciled with code and release state: **2026-08-05**.
 
 This Next.js application is the web product and the production backend for the
 native client in `../verza-native`. Read
@@ -22,7 +22,8 @@ playback, legal copy, catalog data, or release configuration. `CLAUDE.md` and
 - Next.js 16 App Router, React 19, TypeScript strict, Tailwind v4
 - Supabase auth/data with RLS and server-only service-role operations
 - Mux HLS with server-authorized signed playback for paid episodes
-- Stripe-hosted Checkout and webhooks; no client-side Stripe SDK
+- Stripe-hosted Checkout/webhooks for web and eligible Android; Apple StoreKit
+  non-consumables plus signed-transaction/V2-notification verification for iOS
 - Resend for guarded payment notices
 - Vercel production deployment at `https://www.verzatv.com`
 
@@ -34,17 +35,28 @@ playback, legal copy, catalog data, or release configuration. `CLAUDE.md` and
    hardened creator Mux-webhook route are live. The Mux route currently returns
    503 because its verification secret is intentionally absent; creator
    ingestion remains unavailable. Stripe Public details, required-consent
-   mode/portal, and the controlled $1.99 smoke remain open.
+   mode/portal, and the controlled $1.99 smoke remain open. Apple commit
+   `a9b537844a8878851ecfe4c0e310f405b68fc6ef` is live on the canonical alias:
+   migration 015/schema/RLS/RPC/privileges passed readback; Apple-aware legal
+   pages and negative routes passed; authenticated no-charge preflight returned
+   the exact product with private/no-store; production preflight is true and
+   the Sandbox allowlist is narrow. ASC V2 production/sandbox URLs are exact,
+   but no real signed notification or Sandbox purchase has completed yet.
    Never describe local code or a successful build as deployed.
-2. **The product sold now is a $1.99 full-series unlock.** The catalog has 80
+2. **The product sold now is a full-series unlock.** The catalog has 80
    rows: 79 live, of which 74 are paid and five are wholly free, plus one
-   coming-soon row. Coins, per-episode unlocks, creator PPV, merchandise
-   Checkout, and both VIP plans are disabled/fail-closed. VIP price constants
-   are future configuration, not current availability.
+   coming-soon row. Web/eligible Android use a canonical $1.99 USD Stripe
+   Checkout; iOS uses one Apple non-consumable per paid-live series with a
+   $1.99 US base price and StoreKit-localized storefront pricing. Coins,
+   per-episode unlocks, creator PPV, merchandise Checkout, and both VIP plans
+   are disabled/fail-closed. VIP price constants are future configuration, not
+   current availability.
 3. **Platform payment boundaries are load-bearing.** Web and eligible Android
    surfaces may open server-created Stripe Checkout in the system browser. The
-   iOS app is reader mode: no digital price, unlock, subscribe, billing, or
-   external-purchase direction. iOS may consume existing entitlements only.
+   iOS app sells eligible Series Unlocks only through Apple StoreKit; it may not
+   expose Stripe, web checkout, competing payment methods, or external-purchase
+   direction. Both providers converge on server-authorized entitlements, but
+   their immutable ledgers and adverse events remain independent.
 4. **Browser return never grants access.** Exact provider-backed confirmation,
    immutable purchase identity, canonical price/catalog validation, and a
    purchase-linked entitlement are required. Never trust query strings,
@@ -74,20 +86,33 @@ playback, legal copy, catalog data, or release configuration. `CLAUDE.md` and
    Stripe/Mux secrets, signing keys, signed URLs, reviewer credentials, or
    one-time codes in source, client bundles, docs, screenshots, logs, or EAS
    archives.
-10. **Migrations and webhook code move in order.** Migrations `009`–`014` must
+10. **Migrations and webhook code move in order.** Migrations `009`–`015` must
     be applied/read back before the matching payment code is deployed. Preserve
     historical Charges, Refunds, purchases, entitlements, and provider IDs; no
-    cleanup Refund is authorized.
-11. **The iOS binary excludes UGC, ads, affiliate placements, and digital
-    commerce.** Web/Android availability does not make a surface safe on iOS.
-    Keep the native route-level gates and reader-mode tests aligned when shared
-    data or APIs change.
+    cleanup Refund is authorized. Migration 015 is additive and keeps Apple,
+    Stripe, manual, and alternate-Apple entitlement sources independent.
+11. **The iOS binary excludes UGC, ads, affiliate placements, Stripe, and web
+    purchase steering.** Its only digital-commerce path is the exact StoreKit
+    non-consumable flow. Web/Android availability does not make a surface safe
+    on iOS. Keep the native route-level gates and App Store compliance tests
+    aligned when shared data or APIs change.
 12. **Catalog and Mux projections are generated, not hand-sanitized.** Keep the
     web/native public projections byte-identical and use the audited generation
     scripts. `lib/mux-private-map.ts` and `lib/mux-signed-map.ts` are server-only.
 13. **All Next request APIs are async.** Await `cookies()`, `headers()`, and
     `params`. Prefer Server Components; use client components only for genuine
     interactivity. Preview deployments remain `noindex`.
+14. **Apple product identity is append-only.** The 74 exact slug/product pairs
+    live in `lib/apple-iap-product-manifest.ts`; never derive an arbitrary ID,
+    recycle one, or delete a retired mapping. New-purchase preflight is gated
+    separately from durable transaction/refund/revocation/restore/notification
+    reconciliation. Read [`docs/guides/APPLE-IAP.md`](docs/guides/APPLE-IAP.md)
+    before changing any Apple route, product, migration, flag, or legal copy.
+15. **The credential-transcript incident remains an external launch gate.**
+    Rotate the Stripe secret/webhook, Supabase service-role, and paired Mux token
+    ID/secret through provider dashboards, install replacements as Vercel
+    `Sensitive`, deploy/canary, then revoke predecessors. Never read or print
+    values during names/type/target readback.
 
 ## Required pre-release gates
 

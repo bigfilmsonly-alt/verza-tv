@@ -2,14 +2,19 @@
 
 The deployment chain from local development to production.
 
-> **Latest 2026-08-03 readback:** canonical August 3 legal/support is live;
+> **Stripe/Mux baseline, 2026-08-03:** canonical August 3 legal/support is live;
 > payment capabilities reports live Series compatibility and VIP false;
 > signed Mux backend canary passed; and the one canonical Stripe webhook is
 > exact 19/19. Stripe Public details/required Terms/portal, the $1.99 smoke,
 > and standalone native acceptance remain open. The hardened creator Mux
 > webhook is deployed and returns 503 while its verification secret is
 > intentionally absent, leaving creator ingestion unavailable. Never promote
-> local source to “live” without canonical-origin readback.
+> local source to “live” without canonical-origin readback. The August 5 Apple
+> IAP commit `a9b537844a8878851ecfe4c0e310f405b68fc6ef`, migration
+> 015, routes, legal changes, enabled preflight, and narrow allowlist are live
+> and read back. Both Apple Vercel variable names are Production `Sensitive`.
+> ASC V2 URLs are exact; signed delivery and a real Sandbox transaction remain
+> open.
 
 ---
 
@@ -67,7 +72,7 @@ Payment changes are not an ordinary push. Follow
 [`PAYMENTS.md`](PAYMENTS.md#release-sequence-and-verification) and the dated
 cutover evidence exactly:
 
-1. **Complete for current deployment:** run the source and rollback-only database gates; migrations `009`–`014` are
+1. **Complete for current Stripe deployment:** run the source and rollback-only database gates; migrations `009`–`014` are
    already applied/read back in the current production database;
 2. **Complete:** first deploy legal/payment compatibility with automatic tax,
    mode, every VIP flag, and hosted Terms consent off—the Terms flag must be
@@ -81,6 +86,46 @@ cutover evidence exactly:
    webhook at exact 19/19, wildcard off, with no second endpoint, replay, or
    secret rotation; the full cutover audit still awaits Terms/portal; then
 6. **Open:** perform one authorized $1.99 smoke purchase without an automatic Refund.
+
+### Apple IAP deployment order
+
+The Apple path is a separate release train. Steps 1–5 and the URL-configuration
+part of step 6 are complete for the current commit. Follow
+[`APPLE-IAP.md`](APPLE-IAP.md) and stop at each readback:
+
+1. freeze the exact backend commit and pass payment, database, type, lint,
+   build, audit, and manifest-parity gates;
+2. link the approved Supabase project outside the transcript, run
+   `npx supabase@2.67.1 migration list --linked`, then
+   `npx supabase@2.67.1 db push --linked --dry-run`; stop unless 015 is the only
+   pending migration;
+3. apply exactly 015 with `npx supabase@2.67.1 db push --linked`, read migration
+   history back, and rerun `npm run test:payments:db`;
+4. verify the two Production Apple variable names are `Sensitive`; current
+   behavior proves exact true preflight and a narrow Sandbox allowlist without
+   printing values;
+5. deploy via `npx vercel --prod --yes`, record the immutable deployment, then
+   verify it owns `https://www.verzatv.com` and read back Apple-aware legal
+   pages plus unauthenticated/malformed negative route behavior;
+6. configure App Store Server Notifications V2 production and sandbox to
+   `https://www.verzatv.com/api/iap/apple/notifications`—this URL/V2/sibling
+   readback is complete—then send Apple's signed test notification and prove
+   one processed UUID plus idempotent redelivery;
+7. complete the 74 product screenshots, agreement/tax/trader/product attachment
+   gates; exact true preflight is already live for controlled testing; and
+8. pass the exact TestFlight purchase/cancel/pending/restore/refund/revoke/
+   account-switch/deletion/multi-source/playback matrix before App Review.
+
+If Apple purchase initiation must stop, set preflight false and redeploy while
+leaving transaction finishing, restore, refunds/revocations, and notifications
+available. Migration 015 is additive and must remain; never rewrite an applied
+migration or delete a provider ledger as rollback.
+
+The final production security cutover also requires provider-dashboard
+rotation of the exposed Stripe secret/webhook, Supabase service-role, and paired
+Mux token credentials. Install replacements as Vercel `Sensitive`, deploy and
+canary the dependent routes, then revoke predecessors. Inspect only names,
+types, and targets; never export values into a terminal transcript.
 
 Never deploy webhook code before its schema, expand the endpoint before
 compatible runtime is live, create a second endpoint, or replay historical
@@ -146,6 +191,9 @@ therefore contains no bulk retirement command.
     creator ingestion/products remain deferred
   - `/api/unlock` -- authenticated $1.99 full-series Checkout
   - `/api/unlock/confirm` -- authenticated Series Unlock recovery
+  - `/api/iap/apple/preflight` -- authenticated StoreKit product eligibility
+  - `/api/iap/apple/transactions` -- authenticated signed transaction/restore reconciliation
+  - `/api/iap/apple/notifications` -- Apple-signed V2 provider reconciliation
   - `/api/unlock/season-pass` -- retired; returns 410
   - `/api/subscribe` -- release-gated VIP Checkout
   - `/api/subscribe/confirm` -- authenticated VIP recovery
@@ -249,7 +297,7 @@ The final command runs `next build` with Turbopack. The source build is designed
 to compile without live provider credentials, but that says nothing about the
 production environment. Provider inventory, authenticated capability, legal
 page, webhook, signed-playback, and controlled purchase gates remain separate
-and require the exact readbacks in the payment and Mux runbooks.
+and require the exact readbacks in the payment, Apple IAP, and Mux runbooks.
 
 ---
 

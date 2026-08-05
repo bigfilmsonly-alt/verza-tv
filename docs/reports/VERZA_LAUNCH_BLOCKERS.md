@@ -4,6 +4,8 @@
 > materially changed; others require fresh readback. Do not use this list as the
 > submission gate. Current authority:
 > [`../LAUNCH-TRUTH.md`](../LAUNCH-TRUTH.md).
+> The native app now exists separately and the deployed August 5 backend uses 74
+> StoreKit non-consumables; reader-mode/no-native assertions below are obsolete.
 
 Generated 2026-07-11 from a full read-only audit (deterministic checks + 10-agent verification fleet). Every item below was verified against code, the live database, or the production site — not assumed.
 

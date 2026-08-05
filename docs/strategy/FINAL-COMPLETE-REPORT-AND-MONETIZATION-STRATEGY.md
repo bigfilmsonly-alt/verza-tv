@@ -5,6 +5,8 @@
 > legal/compliance advice, production truth, or authorization to enable VIP,
 > coins, creator PPV, merch, ads, or iOS purchases. Current authority:
 > [`../LAUNCH-TRUTH.md`](../LAUNCH-TRUTH.md).
+> The deployed August 5 backend supports 74 Apple StoreKit non-consumables; every
+> no-IAP/reader-only assertion below is historical, not a current prohibition.
 
 **Platform:** https://www.verzatv.com (LIVE)
 **Date:** June 22, 2026

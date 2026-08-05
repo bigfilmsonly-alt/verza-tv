@@ -4,19 +4,24 @@ This document describes the payment system that exists in code. It is an
 operations and engineering runbook, not a substitute for legal or accounting
 review.
 
-> **Release status, latest 2026-08-03 readback:** August 3 legal/support and
+> **Stripe baseline, 2026-08-03:** August 3 legal/support and
 > authenticated Series capabilities are live in explicit `compatibility` mode;
 > both VIP capabilities are false. One canonical enabled Stripe webhook now has
 > the exact 19-event allowlist, wildcard off, no second endpoint/replay/secret
 > rotation, and rejects unsigned delivery with 400. Stripe Public details is
 > still blank; required-consent mode, the restricted portal, and the controlled
-> $1.99 smoke remain open.
+> $1.99 Stripe smoke remain open. The August 5 Apple StoreKit backend/migration
+> 015/legal/preflight are production-read-back and ASC V2 URLs are exact. No
+> real signed notification or Sandbox transaction has completed; all 74 Apple
+> products still need IAP review screenshots and the owner/App Store gates in
+> [`APPLE-IAP.md`](APPLE-IAP.md).
 
 ## Launch state
 
 | Product | Current state | Payment surface |
 | --- | --- | --- |
-| Full-series unlock | Production capabilities configured/live on web and supported Android surfaces in compatibility mode; $1.99 one-time; controlled hardened-path smoke still open | Stripe Checkout |
+| Full-series unlock — web/eligible Android | Production capabilities configured/live in compatibility mode; $1.99 USD one-time; controlled hardened-path smoke still open | Stripe Checkout |
+| Full-series unlock — iOS | Backend/migration/legal/enabled preflight production-read-back; 74 ASC nonconsumables at $1.99 US base/Apple-localized prices; signed notification, actual transaction, screenshots, agreements, tax/trader and TestFlight gates open | Apple StoreKit |
 | VIP monthly | Code-ready at $9.99/month; hidden and API-blocked until transactional notices, Billing Portal, and webhook cutover gates pass | Stripe Checkout subscription |
 | VIP yearly | Code-ready at $79.99/year; separately hidden and API-blocked until the secured annual 15–45-day reminder path also passes | Stripe Checkout subscription |
 | Coins / episode unlocks / coin season passes | Disabled; endpoints fail closed | None |
@@ -24,15 +29,14 @@ review.
 | Official VERZA merchandise | Disabled unless `MERCH_CHECKOUT_ENABLED=true`; do not enable until variants, shipping, tax, inventory, confirmed prices, and fulfillment exist | Stripe Checkout |
 | Amazon affiliate products | Enabled; Amazon owns pricing and checkout | Amazon system-browser handoff |
 
-The iOS app is a reader app. It displays previously acquired series and VIP
-access but never displays digital prices, digital purchase links, purchase
-directions, or digital checkout. Users purchase digital access on the web;
-Supabase entitlements sync to the app. The iOS 2.0 Shop is physical-order
-support only, and Amazon is fail-closed; web and retained Android commerce does
-not make either purchase surface reachable in this iOS release.
+The iOS app offers eligible Series Unlocks only through Apple StoreKit. It never
+shows Stripe/web checkout, a competing processor, or external-purchase
+direction. StoreKit supplies the localized product price and Apple bills the
+customer. The iOS Shop remains physical-order support only, Amazon stays fail-
+closed, and VIP remains hidden/API-blocked.
 
 Catalog classification is exact: 80 total titles, 79 live, 74 canonical paid
-Series Unlock SKUs, five wholly free live titles, and one coming-soon title.
+Series Unlock SKUs/Apple product mappings, five wholly free live titles, and one coming-soon title.
 Free-preview counts come from each title's `freeEpisodes`; there is no global
 five-episode promise.
 
@@ -55,6 +59,13 @@ VIP prices and intervals come from `VIP_PLANS` in `lib/config.ts`. Checkout
 routes must never accept a client-supplied price, title, interval, user ID, or
 entitlement target.
 
+`lib/apple-iap-product-manifest.ts` is the separate append-only Apple identity
+authority for exactly those same 74 paid-live titles. Each product is a non-
+consumable with a $1.99 US base price; the native app displays Apple's localized
+StoreKit price. A catalog title can cease new sales without deleting or
+recycling its Apple mapping, because restore/refund/revocation processing must
+recognize the original forever.
+
 ## Authentication and ownership
 
 Digital checkout requires a verified Supabase user. `getUser()` accepts either
@@ -70,6 +81,12 @@ the identity into all relevant Stripe objects:
 Clients check for a session before emitting `checkout_started` and route guests
 to sign-in with a local, validated return path. The API repeats the auth check;
 client state is never authoritative.
+
+Apple purchases bind the exact lower-cased Supabase user UUID into StoreKit's
+`appAccountToken`. The backend verifies that Apple-signed token before a new
+purchase can grant access. Restore may not move a purchase from another live
+VERZA account; only an explicitly requested restore of an already-ledgered,
+orphaned purchase from a provably deleted account may rebind.
 
 ## Full-series unlock flow
 
@@ -96,6 +113,38 @@ client state is never authoritative.
 
 The success query parameter never grants access by itself. Access is true only
 after provider-backed confirmation or a server/RLS entitlement check.
+
+### iOS StoreKit full-series flow
+
+1. Native authenticates the exact Supabase account and calls
+   `POST /api/iap/apple/preflight` with the canonical series slug.
+2. The server rejects non-paid/non-live/retired products, current VIP or series
+   access, deletion-in-progress, mapping drift, missing auth, and any state
+   other than exact `APPLE_IAP_ENABLED=true`.
+3. Native loads the returned immutable product ID from StoreKit, displays
+   Apple's localized `displayPrice`, and starts the non-consumable purchase with
+   `appAccountToken` equal to the current Supabase user UUID.
+4. Native sends Apple's signed transaction JWS plus expected series to
+   `POST /api/iap/apple/transactions`. The server verifies Apple's trust chain,
+   bundle/app/environment, product/type/quantity/ownership/reason, exact account
+   token, identifiers, and timestamps before calling the row-locked ledger RPC.
+5. Only a response with `verified=true` and `finishAuthorized=true` permits
+   StoreKit transaction finishing. `accessGranted` is separate: a canonical
+   refunded or revoked transaction is durably finishable without access.
+6. `POST /api/iap/apple/notifications` independently handles Apple's signed V2
+   `ONE_TIME_CHARGE`, `REFUND`, `REVOKE`, and `REFUND_REVERSED` events using an
+   idempotent notification ledger and monotonic Apple-signed event clock.
+7. Playback still rechecks the materialized entitlement at
+   `GET /api/playback/<series>--<episode>`; neither StoreKit UI, a transaction ID,
+   nor a native success screen is playback authority.
+
+New-purchase preflight can be disabled without disabling signed transaction
+finishing, restore, refund/revocation, or V2 notifications. This is required for
+a safe sales rollback. Sandbox/TestFlight fulfillment also requires the signed
+account UUID in `APPLE_IAP_SANDBOX_ALLOWED_USER_IDS`.
+
+The exact product registry, payload contracts, deployment order, and test
+matrix are in [`APPLE-IAP.md`](APPLE-IAP.md).
 
 ### Entitlement-to-playback boundary
 
@@ -268,7 +317,7 @@ routes remain the final enforcement boundary.
 `stripe-signature` with `STRIPE_WEBHOOK_SECRET`. Never place this route behind
 user authentication.
 
-Migrations `009` through `014` must be applied in filename order before
+Migrations `009` through `015` must be applied in filename order before
 deploying the matching payment/webhook code. In particular they provide:
 
 - preservation of historical creator financial rows (`009`);
@@ -288,7 +337,10 @@ deploying the matching payment/webhook code. In particular they provide:
 - a provider-idempotent, service-only Stripe dispute ledger and ordered dispute
   reconciliation RPC (`013`); and
 - private, durable VIP Checkout-consent and customer-notice evidence, plus
-  fail-closed RLS for optional content tables when present (`014`).
+  fail-closed RLS for optional content tables when present (`014`); and
+- append/update-only Apple purchase/notification ledgers, monotonic StoreKit
+  reconciliation, and independent Stripe/Apple/manual entitlement sources
+  (`015`).
 
 The handler returns 2xx only after durable processing. A failed database or
 fulfillment operation is recorded and returns 5xx so Stripe retries. Concurrent
@@ -320,6 +372,15 @@ The Stripe endpoint must deliver at least:
 purchase uniqueness makes it duplicate-safe, but `invoice.paid` is canonical.
 Provider event delivery order is not assumed.
 
+Apple uses a distinct public endpoint,
+`POST /api/iap/apple/notifications`, configured in App Store Connect for V2
+production and sandbox delivery at
+`https://www.verzatv.com/api/iap/apple/notifications`. It does not share the
+Stripe secret or event allowlist. The handler verifies Apple's signed outer and
+inner JWS, claims the notification UUID, and keeps processing adverse events
+even when new Apple purchase preflight is off. A hand-built payload, copied JWS,
+or HTTP 200 from an unsigned request is not a canary.
+
 Account deletion sets a database guard before touching Stripe, expires open
 Checkout Sessions, cancels and re-lists subscriptions, and atomically preserves
 only the deleted user UUID plus Stripe Customer ID in a service-only tombstone.
@@ -329,6 +390,13 @@ cancels any non-terminal subscription, updates the tombstone event timestamp,
 and emits no entitlement, saved-list row, email, or analytics event. An event
 which overlaps the reversible phase before the tombstone exists returns 5xx so
 Stripe retries after deletion either commits or rolls back.
+
+The same successful profile/Auth cascade removes all account-owned entitlement
+sources and changes retained Apple ledger ownership to `NULL`; it does not
+refund the App Store purchase. A failed deletion keeps the Apple binding and
+independent sources recoverable after the guard clears. Explicit StoreKit
+restore can rebind only an already-orphaned canonical original after the former
+profile and Auth user are proven absent.
 
 VIP lifecycle events retrieve the current Subscription from Stripe before
 writing profile state, so an out-of-order cancellation snapshot cannot regress
@@ -362,6 +430,15 @@ refunded historical creator purchases. The access policy is deterministic:
 Grant, refund, dispute, and restoration RPCs lock the financial row(s), so an
 out-of-order confirmation cannot resurrect access after a refund and an older
 dispute event cannot override a later resolution.
+
+Apple refunds/revocations are separate provider state. The app does not issue
+or promise an Apple refund; Apple decides App Store refund requests. A verified
+`REFUND` or `REVOKE` clears only the matching Apple original from the
+entitlement. Stripe access, a manual/support grant, or another active verified
+Apple original remains. Equal-clock adverse Apple state outranks active state,
+and only a genuinely later signed `REFUND_REVERSED` may restore that original.
+The server can return `finishAuthorized=true` for a durably recorded canonical
+terminal transaction while independently returning `accessGranted=false`.
 
 Dispute events retrieve the current Dispute and Charge from Stripe instead of
 trusting an out-of-order event snapshot. Migration `013` records each provider
@@ -406,13 +483,21 @@ classification, and tax-exclusive display before collection. Never infer that
 $1.99, $9.99, or $79.99 includes tax, and do not enable automatic tax until the
 decision is recorded and end-to-end test-mode Checkout is verified.
 
+Apple commerce is not controlled by `STRIPE_AUTOMATIC_TAX_ENABLED`. Apple
+collects and bills through the App Store under its agreements and storefront
+rules. Before App Review, App Store Connect must separately show the app tax
+category `Video` after a complete sibling-field readback, and the Paid
+Applications banking/tax agreement must be active. Those App Store steps do not
+establish or change Stripe nexus/registrations.
+
 ## Access checks
 
 For a requested catalog episode, server access is evaluated as:
 
 1. episode is within that series' canonical free-episode count;
 2. authenticated profile has active, unexpired VIP access; or
-3. authenticated user owns a `(user_id, series_slug)` entitlement.
+3. authenticated user owns a `(user_id, series_slug)` entitlement backed by at
+   least one current Stripe, Apple, or manual source.
 
 Relevant routes are `GET /api/access`,
 `GET /api/entitlements/check?series=<slug>&episode=<n>`, and the playback route.
@@ -476,9 +561,10 @@ completes at Amazon and hardcoded Amazon prices are forbidden.
    Preserve the three historical paid Checkout Sessions and the separately
    documented predecessor direct-PaymentIntent population during release work.
 2. Run `npm run test:payments`, `npm run test:payments:db`, `npx tsc --noEmit`,
-   lint, and the production build. Apply migrations `009` through `014` in order
+   lint, and the production build. Apply migrations `009` through `015` in order
    and verify constraints, functions, RLS, and service-role-only permissions
-   before deploying webhook code.
+   before deploying the matching Stripe/Apple webhook code. Migrations 009–015
+   are production-read-back.
 3. Complete and record the sales-tax/legal decision above. Keep
    `STRIPE_AUTOMATIC_TAX_ENABLED=false` until registrations and collection are
    independently approved.
@@ -523,8 +609,26 @@ completes at Amazon and hardcoded Amazon prices are forbidden.
    paid-but-unfulfilled or duplicate logical purchases and any failed,
    ambiguous, or overdue customer notice.
 10. Verify web and Android guest sign-in routing and purchase return behavior.
-11. Verify the iOS build has no reachable digital price, purchase, subscribe,
-   billing, or external purchase-link UI.
+11. **Complete:** migration 015, Apple routes/legal siblings, exact enabled
+    preflight/narrow allowlist, canonical negative route/cache behavior, and
+    authenticated no-charge product mapping passed production readback.
+12. **URL configuration complete; delivery open:** App Store Server
+    Notifications V2 production and sandbox use the canonical HTTPS route with
+    sibling integrity preserved. Still pass Apple's real signed test-
+    notification canary; do not use a fabricated/copy-pasted JWS.
+13. Complete all 74 IAP screenshots/readbacks, Paid Applications banking/tax,
+    App Store `Video` tax category, DSA trader status, and exact app-version/IAP
+    attachment prerequisites.
+14. Enable exact Apple preflight and run one controlled TestFlight Sandbox
+    purchase plus cancel, interrupted/pending, restore, duplicate-tap,
+    cross-live-account denial, deletion/orphan rebind, refund/revocation,
+    multi-source, offline/retry, and paid-playback cases.
+15. Verify iOS exposes StoreKit localized price/purchase/restore only; it must
+    contain no Stripe, web checkout, external-purchase direction, VIP purchase,
+    coins, or competing billing UI.
+16. Tie all evidence to the exact backend commit/deployment/migration, Apple
+    product-manifest hash, and pinned TestFlight build before the owner approves
+    App Review submission.
 
 The command-by-command current cutover record, stop conditions, and baseline
 totals are in
@@ -535,3 +639,9 @@ gate for yearly, and legal approval; it is not part of the Series cutover.
 Never deploy the webhook code before its migration, rotate/change live Stripe
 configuration without recording the exact endpoint/event set, or issue a live
 charge/refund as part of a code-only verification pass.
+
+Separate external launch blocker: rotate the exposed Stripe secret/webhook,
+Supabase service-role, and paired Mux token credentials through provider
+dashboards. Install replacements as Vercel `Sensitive`, deploy and canary every
+dependent path, then revoke predecessors. Never export/read values for
+documentation or names/type/target evidence.

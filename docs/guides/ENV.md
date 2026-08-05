@@ -3,12 +3,15 @@
 Copy `.env.local.example` to `.env.local` and fill in real values.
 Never commit `.env.local` -- it is gitignored.
 
-> Latest 2026-08-03 readback: production signed playback is exact `true` and its
+> Stripe/Mux baseline, 2026-08-03: production signed playback is exact `true` and its
 > access/manifest canary passed; payment Terms mode is exact `false`
 > compatibility with both VIP capabilities false; the canonical Stripe webhook
 > is exact 19/19. Stripe Public details remains blank, so required Terms mode,
-> the restricted Billing Portal, and the paid smoke remain open. Do not infer a
-> value from this document; provider/readback evidence is authority.
+> the restricted Billing Portal, and the paid smoke remain open. On 2026-08-05
+> the two Apple IAP variable names were present in Production as `Sensitive`.
+> Raw values were not read; behavior readback proves exact enabled preflight and
+> a narrowly scoped Sandbox allowlist. Do not infer membership from this
+> document; provider/readback evidence is authority.
 
 ---
 
@@ -33,6 +36,8 @@ Never commit `.env.local` -- it is gitignored.
 | `STRIPE_AUTOMATIC_TAX_ENABLED` | Exact `true`/`false`. Keep `false` until registrations/tax review are complete. | For payments | No |
 | `STRIPE_CHECKOUT_TOS_CONSENT_REQUIRED` | Required exact `true`/`false` for live keys. `false` is compatibility mode without Stripe's hosted Terms checkbox; `true` is required only after Public details has the Terms URL. Missing, empty, or malformed values fail closed. | Live payments | No |
 | `STRIPE_BILLING_PORTAL_CONFIGURATION_ID` | Exact reviewed `bpc_...` configuration used for authenticated VIP management/cancellation. | VIP payments | No |
+| `APPLE_IAP_ENABLED` | Only exact `true` permits authenticated new-purchase preflight. Missing, `false`, or any other value closes preflight; signed transaction/restore/refund/revocation/notification reconciliation stays available. | iOS StoreKit launch | No; store as Sensitive operational state |
+| `APPLE_IAP_SANDBOX_ALLOWED_USER_IDS` | Comma-separated Supabase UUIDs accepted from Apple-signed Sandbox/TestFlight `appAccountToken` values. Empty denies Sandbox fulfillment; Production transactions do not use it. | iOS StoreKit testing/review | **Sensitive personal identifier set** |
 | `VIP_TRANSACTIONAL_NOTICES_ENABLED` | Exact `true`/`false`. Enables VIP sale UI/API only after application-owned acknowledgment, renewal receipt, and cancellation email delivery is verified. | VIP payments | No |
 | `VIP_ANNUAL_RENEWAL_NOTICES_ENABLED` | Exact `true`/`false`. Enables the secured daily 15–45-day yearly reminder route; does not itself expose yearly checkout. | Yearly VIP | No |
 | `VIP_YEARLY_CHECKOUT_ENABLED` | Exact `true`/`false`. Yearly UI/API remains blocked unless transactional notices, annual notices, Resend, and cron-secret checks also pass. | Yearly VIP | No |
@@ -74,6 +79,11 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
 STRIPE_AUTOMATIC_TAX_ENABLED=false
 STRIPE_CHECKOUT_TOS_CONSENT_REQUIRED=false
 STRIPE_BILLING_PORTAL_CONFIGURATION_ID=bpc_...
+
+# Apple StoreKit (server only)
+APPLE_IAP_ENABLED=false
+APPLE_IAP_SANDBOX_ALLOWED_USER_IDS=
+
 VIP_TRANSACTIONAL_NOTICES_ENABLED=false
 VIP_ANNUAL_RENEWAL_NOTICES_ENABLED=false
 VIP_YEARLY_CHECKOUT_ENABLED=false
@@ -120,6 +130,14 @@ HTTP 503 `Webhook verification unavailable`, with no unsigned fallback. Before
 enabling ingestion, configure a real provider secret through the approved
 secret store and pass a signed-event canary; never reuse a playback signing key.
 
+The Apple verifier does not require an App Store Server API private key. It
+validates StoreKit transaction and V2 notification JWS data using Apple's
+public root certificates, pinned app identity, and exact product registry.
+`APPLE_IAP_ENABLED` gates only new purchase preflight so a sales rollback cannot
+strand valid StoreKit transactions or suppress refunds/revocations. The sandbox
+allowlist is checked against the UUID Apple signed into the transaction; never
+put review UUIDs or signed JWS payloads in source/logs.
+
 ---
 
 ## Vercel Setup
@@ -129,6 +147,19 @@ In the Vercel dashboard, add each secret variable under
 are encrypted and hidden in logs. Use separate values for Preview vs
 Production if needed (e.g. `sk_test_` for preview, `sk_live_` for
 production).
+
+The names-only 2026-08-05 Production readback found both Apple variables
+targeted to Production and typed `Sensitive`. Values were not exported or
+printed. Authenticated behavior separately proves exact true preflight and a
+narrow Sandbox allowlist; real signed notification and transaction canaries
+remain open. Preserve that values-blind procedure. See
+[`APPLE-IAP.md`](APPLE-IAP.md).
+
+The Stripe secret/webhook, Supabase service-role, and paired Mux token
+credentials are subject to the 2026-08-03 transcript-incident rotation gate.
+Replace through provider dashboards, store replacements as `Sensitive`, deploy/
+canary, then revoke predecessors. A names/type/target readback must never read a
+value.
 
 `STRIPE_PUBLIC_DETAILS_TOS_READY=true` is a one-command operator attestation for
 `npm run stripe:portal:configure`; do not persist it in Vercel. Set it only after

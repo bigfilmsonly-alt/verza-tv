@@ -4,6 +4,13 @@ Status: **review only**. The companion SQL file
 `PROPOSED_015_legacy_stripe_charge_quarantine.sql` is intentionally outside
 `supabase/migrations/` and contains no seed statements.
 
+> **Name collision / current authority:** production migration 015 is now
+> `015_apple_iap_series_unlocks.sql`; this proposal was never promoted and must
+> not be renamed/applied as migration 015. Current payment/Apple truth is in
+> [`../LAUNCH-TRUTH.md`](../LAUNCH-TRUTH.md),
+> [`../guides/PAYMENTS.md`](../guides/PAYMENTS.md), and
+> [`../guides/APPLE-IAP.md`](../guides/APPLE-IAP.md).
+
 ## Why this exists
 
 The live Stripe account contains a predecessor payment population that predates

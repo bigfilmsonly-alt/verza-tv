@@ -1,6 +1,6 @@
 # Contributing to Verza TV
 
-Last reconciled: **2026-08-03**. Read [`../../AGENTS.md`](../../AGENTS.md) and
+Last reconciled: **2026-08-05**. Read [`../../AGENTS.md`](../../AGENTS.md) and
 [`../LAUNCH-TRUTH.md`](../LAUNCH-TRUTH.md) first; payment, Mux, catalog, legal,
 and native-contract changes have additional release gates.
 
@@ -48,7 +48,9 @@ and native-contract changes have additional release gates.
 
 See [`CONTENT.md`](CONTENT.md) and [`RUNBOOK.md`](RUNBOOK.md). A catalog change
 also requires public/signed Mux regeneration, native byte-sync, and client
-capability scans; never hand-edit the native copy.
+capability scans; never hand-edit the native copy. A paid-live title/product
+change additionally requires the append-only Apple mapping and App Store
+workflow in [`APPLE-IAP.md`](APPLE-IAP.md); never recycle an Apple product ID.
 
 ## Commit Messages
 
