@@ -19,17 +19,17 @@ const FAQ_ITEMS = [
   {
     question: "How do I unlock a series on a supported purchase surface?",
     answer:
-      `Sign in, open the series, and use the unlock option shown after the free episodes. The current price and full terms are shown before Stripe checkout. Digital checkout is not offered in the iOS app.`,
+      `Sign in, open the series, and use the unlock option shown after the free episodes. On iPhone and iPad, eligible Series Unlocks are non-consumable in-app purchases billed by Apple at the localized price shown in Apple's purchase sheet. Other supported purchase surfaces show their price and terms before Stripe checkout.`,
   },
   {
     question: "How do I use an existing unlock on another device?",
     answer:
-      "Sign in with the same account used for the purchase. Series Unlock and VIP access are verified from your account and sync to supported devices, including the iOS app.",
+      "Sign in with the same VERZA account used for the purchase. On iPhone or iPad, tap Restore Purchases in Profile or on a Series Unlock screen. If the prior VERZA account was permanently deleted, an Apple-verified orphaned purchase may be reclaimed to the current account; a purchase linked to another live VERZA account cannot transfer.",
   },
   {
     question: "What payment methods do you accept?",
     answer:
-      `Direct purchases use Stripe checkout and support the payment methods displayed there. Card details are entered with Stripe and are not stored on our servers.`,
+      `Apple processes iPhone and iPad in-app purchases using the payment methods available for your Apple Account. Other direct purchases use the methods displayed by Stripe Checkout. VERZA does not receive or store your full payment-card number from either provider.`,
   },
   {
     question: "How do I manage or cancel VIP?",

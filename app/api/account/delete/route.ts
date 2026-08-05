@@ -305,7 +305,6 @@ export async function POST(request: Request) {
       const tables = [
         "watch_progress",
         "saved_list",
-        "entitlements",
         "push_subscriptions",
         "creator_signups",
         "feedback",

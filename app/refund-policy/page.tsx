@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/refund-policy" },
 };
 
-const LAST_UPDATED = "August 3, 2026";
+const LAST_UPDATED = "August 5, 2026";
 
 const sectionHeading = {
   color: T.text,
@@ -59,10 +59,11 @@ export default function RefundPolicyPage() {
           <p className="text-sm leading-relaxed" style={bodyText}>
             Thank you for using {BRAND.name}. This Refund Policy explains our
             practices regarding Series Unlocks, VIP subscriptions, and direct
-            merchandise orders. The native iOS app does not offer digital
-            purchases. This policy applies to purchases billed directly by
-            {" "}{BRAND.name} through Stripe and does not limit rights that
-            cannot be waived under applicable law.
+            merchandise orders. Apple bills and administers Series Unlocks
+            purchased in the iPhone or iPad app. Other supported purchase
+            surfaces are billed directly by {BRAND.name} through Stripe. This
+            policy does not limit rights that cannot be waived under applicable
+            law.
           </p>
         </div>
 
@@ -104,6 +105,24 @@ export default function RefundPolicyPage() {
             full refund ends access granted by that purchase when the refund is
             processed. This does not affect episodes that are otherwise free or
             access obtained through a separate valid purchase or membership.
+          </p>
+          <p className="text-sm leading-relaxed mt-3" style={bodyText}>
+            Apple decides refund requests for Apple in-app purchases. Request
+            an Apple refund at{" "}
+            <a
+              href="https://reportaproblem.apple.com/"
+              rel="noopener noreferrer"
+              style={{ color: T.accent }}
+            >
+              reportaproblem.apple.com
+            </a>{" "}
+            or through Apple Support. VERZA cannot issue or guarantee an Apple refund, but we
+            can investigate access, verification, and account-linking problems.
+            Before buying again, use Restore Purchases while signed in to the
+            original VERZA account when it still exists. If it was permanently
+            deleted, an Apple-verified orphaned purchase may be reclaimed to the
+            current account; a purchase linked to another live VERZA account
+            cannot transfer.
           </p>
         </div>
 
@@ -170,14 +189,15 @@ export default function RefundPolicyPage() {
             5. Payment Disputes and Chargebacks
           </h2>
           <p className="text-sm leading-relaxed" style={bodyText}>
-            Access tied to a payment may be suspended while a bank or payment
-            provider investigates a chargeback. A lost chargeback ends the
-            matching Series Unlock or VIP access; a lost VIP chargeback also
-            cancels the matching subscription. If the dispute is resolved in
-            your favor, access is restored only when the original account,
-            product, and payment or subscription remain valid. Contact support
-            first when possible so we can investigate billing or access errors
-            promptly. Nothing in this section limits non-waivable rights.
+            Access tied to a payment may be suspended or removed when a bank or
+            payment provider reports a chargeback, refund, or revocation. A
+            lost chargeback ends the matching Series Unlock or VIP access; a
+            lost VIP chargeback also cancels the matching subscription. If the
+            provider later reports the transaction as valid and active, access
+            is restored only when the original product and account association
+            remain valid. Contact support first when possible so we can
+            investigate billing or access errors promptly. Nothing in this
+            section limits non-waivable rights.
           </p>
         </div>
 

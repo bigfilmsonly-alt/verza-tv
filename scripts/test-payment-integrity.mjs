@@ -823,6 +823,22 @@ function runCodeAndCatalogSuite() {
       accountDeletePost.indexOf("deletion_requested_at:"),
     "account identity mismatch must fail before the deletion marker write",
   );
+  assert.doesNotMatch(
+    accountDeletePost,
+    /\.from\(\s*["']entitlements["']\s*\)/,
+    "account deletion must leave entitlements to the successful profile FK cascade",
+  );
+  assert.doesNotMatch(
+    accountDeletePost,
+    /delete_account_entitlements_for_deletion/,
+    "account deletion must not purge entitlements before Auth succeeds",
+  );
+  assert.ok(
+    accountDeletePost.indexOf("deletion_requested_at:") <
+      accountDeletePost.indexOf("redactPurchaseIdentity(purchase.metadata)") <
+        accountDeletePost.indexOf("auth.admin.deleteUser"),
+    "account deletion must set the guard and finish cleanup/redaction before Auth deletion",
+  );
   assert.match(unlockRoute, /consent_collection:\s*consentCollection/);
   assert.match(subscribeRoute, /consent_collection:\s*consentCollection/);
   assert.match(unlockRoute, /This is not a subscription and does not renew/);
@@ -1922,7 +1938,7 @@ async function runDatabaseSuite() {
     throw new Error("Could not derive a safe Supabase project ref");
   }
 
-  const migrations = ["009", "010", "011", "012", "013", "014"].map((prefix) => {
+  const migrations = ["009", "010", "011", "012", "013", "014", "015"].map((prefix) => {
     const filename = join(
       ROOT,
       "supabase/migrations",
@@ -1933,6 +1949,7 @@ async function runDatabaseSuite() {
         "012": "012_payment_account_tombstones.sql",
         "013": "013_stripe_dispute_ledger.sql",
         "014": "014_payment_notices_and_content_rls.sql",
+        "015": "015_apple_iap_series_unlocks.sql",
       }[prefix],
     );
     return readFileSync(filename, "utf8");
@@ -1943,6 +1960,8 @@ async function runDatabaseSuite() {
   const staleEventId = `evt_stale_${suffix}`;
   const sessionId = `cs_${suffix}`;
   const paymentIntentId = `pi_${suffix}`;
+  const appleGuardSessionId = `cs_apple_guard_${suffix}`;
+  const appleGuardPaymentIntentId = `pi_apple_guard_${suffix}`;
   const disputeSessionId = `in_${suffix}`;
   const disputePaymentIntentId = `pi_dispute_${suffix}`;
   const disputeId = `dp_${suffix}`;
@@ -1960,6 +1979,13 @@ async function runDatabaseSuite() {
   const otherCustomerId = `cus_other_${suffix}`;
   const userId = "10000000-0000-4000-8000-000000000001";
   const otherUserId = "10000000-0000-4000-8000-000000000002";
+  const appleOriginalTransactionId = `${Date.now()}${process.pid}`;
+  const appleDeleteOriginalTransactionId = `${Date.now()}${process.pid}9`;
+  const appleDeleteSessionId = `cs_apple_delete_${suffix}`;
+  const appleDeletePaymentIntentId = `pi_apple_delete_${suffix}`;
+  const appleAlternateOriginalA = `${Date.now()}${process.pid}11`;
+  const appleAlternateOriginalB = `${Date.now()}${process.pid}12`;
+  const appleRestoreOriginalTransactionId = `${Date.now()}${process.pid}13`;
 
   const assertions = `
 do $payment_tests$
@@ -1970,10 +1996,17 @@ declare
   tombstone_result record;
   original_deleted_at timestamptz;
   test_user_id uuid := gen_random_uuid();
+  delete_test_user_id uuid := gen_random_uuid();
+  restore_test_user_id uuid := gen_random_uuid();
   series_purchase_id uuid;
+  apple_guard_purchase_id uuid;
+  apple_delete_purchase_id uuid;
   vip_purchase_id uuid;
   series_dispute_purchase_id uuid;
   access_result boolean;
+  apple_result record;
+  apple_claim_result text;
+  apple_notification_id uuid := gen_random_uuid();
   orphan_refund_count integer;
   locked_table text;
 begin
@@ -1985,12 +2018,438 @@ begin
     ${sqlLiteral(`payment-integrity-${suffix}@example.invalid`)}, '', now(),
     '{}'::jsonb, '{}'::jsonb, now(), now()
   );
+  insert into auth.users (
+    id, aud, role, email, encrypted_password, email_confirmed_at,
+    raw_app_meta_data, raw_user_meta_data, created_at, updated_at
+  ) values (
+    restore_test_user_id, 'authenticated', 'authenticated',
+    ${sqlLiteral(`payment-restore-${suffix}@example.invalid`)}, '', now(),
+    '{}'::jsonb, '{}'::jsonb, now(), now()
+  );
+  insert into auth.users (
+    id, aud, role, email, encrypted_password, email_confirmed_at,
+    raw_app_meta_data, raw_user_meta_data, created_at, updated_at
+  ) values (
+    delete_test_user_id, 'authenticated', 'authenticated',
+    ${sqlLiteral(`payment-delete-${suffix}@example.invalid`)}, '', now(),
+    '{}'::jsonb, '{}'::jsonb, now(), now()
+  );
 
   insert into public.entitlements (
     user_id, series_slug, purchase_id, expires_at
   ) values (
     test_user_id, 'manual-review-entitlement', null, null
   );
+
+  -- A provider event can race the multi-step account-deletion flow after its
+  -- guard is set. The guard may then be cleared because a later deletion step
+  -- failed. Keep the durable purchase/account binding while the profile still
+  -- exists, withhold access during the guard, and prove an exact replay can
+  -- recover the entitlement after rollback of the deletion attempt.
+  select * into apple_result from public.record_apple_series_transaction(
+    ${sqlLiteral(`${appleOriginalTransactionId}01`)},
+    ${sqlLiteral(appleOriginalTransactionId)},
+    test_user_id, test_user_id, false,
+    'com.verzatv.app.series.the_ceo', 'the-ceo', 'Production', 'active',
+    now() - interval '5 minutes', now() - interval '4 minutes', null,
+    1990, 'usd', repeat('a', 64)
+  );
+  if not apple_result.purchase_active
+     or not apple_result.access_granted
+     or apple_result.canonical_status <> 'active'
+     or apple_result.account_rebound then
+    raise exception 'initial Apple transaction did not grant exact-account access';
+  end if;
+
+  update public.profiles
+    set deletion_requested_at = now()
+    where id = test_user_id;
+  select * into apple_result from public.record_apple_series_transaction(
+    ${sqlLiteral(`${appleOriginalTransactionId}01`)},
+    ${sqlLiteral(appleOriginalTransactionId)},
+    test_user_id, test_user_id, false,
+    'com.verzatv.app.series.the_ceo', 'the-ceo', 'Production', 'active',
+    now() - interval '5 minutes', now() - interval '2 minutes', null,
+    1990, 'usd', repeat('b', 64)
+  );
+  if apple_result.access_granted then
+    raise exception 'Apple event granted access while account deletion was guarded';
+  end if;
+  if (select user_id from public.apple_iap_purchases
+      where original_transaction_id = ${sqlLiteral(appleOriginalTransactionId)})
+      is distinct from test_user_id then
+    raise exception 'deletion guard orphaned the durable Apple account binding';
+  end if;
+
+  update public.profiles
+    set deletion_requested_at = null
+    where id = test_user_id;
+  select * into apple_result from public.record_apple_series_transaction(
+    ${sqlLiteral(`${appleOriginalTransactionId}01`)},
+    ${sqlLiteral(appleOriginalTransactionId)},
+    test_user_id, test_user_id, false,
+    'com.verzatv.app.series.the_ceo', 'the-ceo', 'Production', 'active',
+    now() - interval '5 minutes', now() - interval '1 minute', null,
+    1990, 'usd', repeat('c', 64)
+  );
+  if not apple_result.purchase_active
+     or not apple_result.access_granted
+     or apple_result.canonical_status <> 'active'
+     or not exists (
+       select 1 from public.entitlements
+       where user_id = test_user_id
+         and series_slug = 'the-ceo'
+         and apple_original_transaction_id = ${sqlLiteral(appleOriginalTransactionId)}
+     ) then
+    raise exception 'exact Apple replay did not recover after failed deletion';
+  end if;
+
+  -- A Stripe refund can race the same deletion guard. It is provider-specific:
+  -- even while deletion is pending, deleting the Stripe source must preserve
+  -- the independent Apple source in case a later deletion step fails.
+  insert into public.purchases (
+    user_id, type, series_slug, amount_cents, subtotal_cents, tax_cents,
+    total_cents, currency, status, stripe_session_id, stripe_payment_intent
+  ) values (
+    test_user_id, 'series_unlock', 'the-ceo', 199, 199, 0,
+    199, 'usd', 'completed', ${sqlLiteral(appleGuardSessionId)},
+    ${sqlLiteral(appleGuardPaymentIntentId)}
+  ) returning id into apple_guard_purchase_id;
+  access_result := public.grant_series_entitlement_for_purchase(
+    apple_guard_purchase_id, test_user_id, 'the-ceo'
+  );
+  if not access_result or not exists (
+    select 1 from public.entitlements
+    where user_id = test_user_id
+      and series_slug = 'the-ceo'
+      and purchase_id = apple_guard_purchase_id
+      and apple_original_transaction_id = ${sqlLiteral(appleOriginalTransactionId)}
+  ) then
+    raise exception 'mixed Stripe/Apple deletion-race fixture did not grant';
+  end if;
+
+  update public.profiles
+    set deletion_requested_at = now()
+    where id = test_user_id;
+  select * into refund_result from public.reconcile_purchase_refund(
+    ${sqlLiteral(appleGuardPaymentIntentId)}, 199
+  );
+  if refund_result.purchase_status <> 'refunded'
+     or not exists (
+       select 1 from public.entitlements
+       where user_id = test_user_id
+         and series_slug = 'the-ceo'
+         and purchase_id is null
+         and apple_original_transaction_id = ${sqlLiteral(appleOriginalTransactionId)}
+     ) then
+    raise exception 'guarded Stripe refund destroyed independent Apple access';
+  end if;
+  update public.profiles
+    set deletion_requested_at = null
+    where id = test_user_id;
+  if not exists (
+    select 1 from public.entitlements
+    where user_id = test_user_id
+      and series_slug = 'the-ceo'
+      and apple_original_transaction_id = ${sqlLiteral(appleOriginalTransactionId)}
+  ) then
+    raise exception 'failed deletion did not retain Apple access after Stripe refund';
+  end if;
+
+  -- Refund/reversal is monotonic. Neither an older nor equal-clock active
+  -- device replay may resurrect a newer refund; a genuinely later reversal may.
+  select * into apple_result from public.record_apple_series_transaction(
+    ${sqlLiteral(`${appleOriginalTransactionId}01`)},
+    ${sqlLiteral(appleOriginalTransactionId)},
+    test_user_id, test_user_id, false,
+    'com.verzatv.app.series.the_ceo', 'the-ceo', 'Production', 'refunded',
+    now() - interval '5 minutes', now(), now(),
+    1990, 'usd', repeat('4', 64)
+  );
+  if apple_result.purchase_active or apple_result.access_granted
+     or apple_result.canonical_status <> 'refunded'
+     or exists (
+       select 1 from public.entitlements
+       where user_id = test_user_id and series_slug = 'the-ceo'
+     ) then
+    raise exception 'Apple refund did not revoke Apple-only access';
+  end if;
+  select * into apple_result from public.record_apple_series_transaction(
+    ${sqlLiteral(`${appleOriginalTransactionId}01`)},
+    ${sqlLiteral(appleOriginalTransactionId)},
+    test_user_id, test_user_id, false,
+    'com.verzatv.app.series.the_ceo', 'the-ceo', 'Production', 'active',
+    now() - interval '5 minutes', now() - interval '30 seconds', null,
+    1990, 'usd', repeat('5', 64)
+  );
+  if apple_result.purchase_active or apple_result.access_granted
+     or apple_result.canonical_status <> 'refunded' then
+    raise exception 'stale Apple active replay resurrected a refund';
+  end if;
+  select * into apple_result from public.record_apple_series_transaction(
+    ${sqlLiteral(`${appleOriginalTransactionId}01`)},
+    ${sqlLiteral(appleOriginalTransactionId)},
+    test_user_id, test_user_id, false,
+    'com.verzatv.app.series.the_ceo', 'the-ceo', 'Production', 'active',
+    now() - interval '5 minutes', now(), null,
+    1990, 'usd', repeat('6', 64)
+  );
+  if apple_result.purchase_active or apple_result.access_granted
+     or apple_result.canonical_status <> 'refunded' then
+    raise exception 'equal-clock Apple active replay resurrected a refund';
+  end if;
+  select * into apple_result from public.record_apple_series_transaction(
+    ${sqlLiteral(`${appleOriginalTransactionId}01`)},
+    ${sqlLiteral(appleOriginalTransactionId)},
+    test_user_id, test_user_id, false,
+    'com.verzatv.app.series.the_ceo', 'the-ceo', 'Production', 'active',
+    now() - interval '5 minutes', now() + interval '1 second', null,
+    1990, 'usd', repeat('7', 64)
+  );
+  if not apple_result.purchase_active or not apple_result.access_granted
+     or apple_result.canonical_status <> 'active' then
+    raise exception 'later Apple refund reversal did not restore access';
+  end if;
+
+  -- A manual/support source survives an Apple refund of the same title.
+  update public.entitlements
+    set manual_grant = true
+    where user_id = test_user_id and series_slug = 'the-ceo';
+  select * into apple_result from public.record_apple_series_transaction(
+    ${sqlLiteral(`${appleOriginalTransactionId}01`)},
+    ${sqlLiteral(appleOriginalTransactionId)},
+    test_user_id, test_user_id, false,
+    'com.verzatv.app.series.the_ceo', 'the-ceo', 'Production', 'refunded',
+    now() - interval '5 minutes', now() + interval '2 seconds', now(),
+    1990, 'usd', repeat('8', 64)
+  );
+  if apple_result.purchase_active or not apple_result.access_granted
+     or not exists (
+       select 1 from public.entitlements
+       where user_id = test_user_id
+         and series_slug = 'the-ceo'
+         and purchase_id is null
+         and apple_original_transaction_id is null
+         and manual_grant
+     ) then
+    raise exception 'Apple refund removed an independent manual grant';
+  end if;
+
+  -- Two separately verified Apple originals can back the same title. Revoking
+  -- the selected source must fall back to the other active purchase.
+  select * into apple_result from public.record_apple_series_transaction(
+    ${sqlLiteral(`${appleAlternateOriginalA}01`)},
+    ${sqlLiteral(appleAlternateOriginalA)},
+    test_user_id, test_user_id, false,
+    'com.verzatv.app.series.the_crown', 'the-crown', 'Production', 'active',
+    now() - interval '5 minutes', now() - interval '4 minutes', null,
+    1990, 'usd', repeat('9', 64)
+  );
+  select * into apple_result from public.record_apple_series_transaction(
+    ${sqlLiteral(`${appleAlternateOriginalB}01`)},
+    ${sqlLiteral(appleAlternateOriginalB)},
+    test_user_id, test_user_id, false,
+    'com.verzatv.app.series.the_crown', 'the-crown', 'Production', 'active',
+    now() - interval '3 minutes', now() - interval '2 minutes', null,
+    1990, 'usd', repeat('a', 64)
+  );
+  if (select apple_original_transaction_id from public.entitlements
+      where user_id = test_user_id and series_slug = 'the-crown')
+      <> ${sqlLiteral(appleAlternateOriginalB)} then
+    raise exception 'newer independent Apple purchase was not selected';
+  end if;
+  select * into apple_result from public.record_apple_series_transaction(
+    ${sqlLiteral(`${appleAlternateOriginalB}01`)},
+    ${sqlLiteral(appleAlternateOriginalB)},
+    test_user_id, test_user_id, false,
+    'com.verzatv.app.series.the_crown', 'the-crown', 'Production', 'refunded',
+    now() - interval '3 minutes', now(), now(),
+    1990, 'usd', repeat('b', 64)
+  );
+  if not apple_result.access_granted
+     or (select apple_original_transaction_id from public.entitlements
+         where user_id = test_user_id and series_slug = 'the-crown')
+        <> ${sqlLiteral(appleAlternateOriginalA)} then
+    raise exception 'Apple refund did not fall back to another active original';
+  end if;
+  begin
+    delete from public.apple_iap_purchases
+      where original_transaction_id = ${sqlLiteral(appleAlternateOriginalA)};
+    raise exception 'referenced Apple ledger row was deleted';
+  exception when foreign_key_violation then null;
+  end;
+
+  -- A live VERZA owner cannot be displaced. After its profile is actually
+  -- deleted, the same signed purchase-time token may be explicitly rebound.
+  select * into apple_result from public.record_apple_series_transaction(
+    ${sqlLiteral(`${appleRestoreOriginalTransactionId}01`)},
+    ${sqlLiteral(appleRestoreOriginalTransactionId)},
+    restore_test_user_id, restore_test_user_id, false,
+    'com.verzatv.app.series.twist_of_time', 'twist-of-time', 'Production', 'active',
+    now() - interval '5 minutes', now() - interval '4 minutes', null,
+    1990, 'usd', repeat('c', 64)
+  );
+  begin
+    perform * from public.record_apple_series_transaction(
+      ${sqlLiteral(`${appleRestoreOriginalTransactionId}01`)},
+      ${sqlLiteral(appleRestoreOriginalTransactionId)},
+      restore_test_user_id, test_user_id, true,
+      'com.verzatv.app.series.twist_of_time', 'twist-of-time', 'Production', 'active',
+      now() - interval '5 minutes', now() - interval '3 minutes', null,
+      1990, 'usd', repeat('d', 64)
+    );
+    raise exception 'live Apple purchase owner was displaced';
+  exception when others then
+    if sqlerrm = 'live Apple purchase owner was displaced' then raise; end if;
+  end;
+  delete from auth.users where id = restore_test_user_id;
+  if (select user_id from public.apple_iap_purchases
+      where original_transaction_id = ${sqlLiteral(appleRestoreOriginalTransactionId)})
+      is not null then
+    raise exception 'deleted Apple purchase owner was not orphaned';
+  end if;
+  begin
+    perform * from public.record_apple_series_transaction(
+      ${sqlLiteral(`${appleRestoreOriginalTransactionId}01`)},
+      ${sqlLiteral(appleRestoreOriginalTransactionId)},
+      restore_test_user_id, test_user_id, false,
+      'com.verzatv.app.series.twist_of_time', 'twist-of-time', 'Production', 'active',
+      now() - interval '5 minutes', now() - interval '2 minutes', null,
+      1990, 'usd', repeat('e', 64)
+    );
+    raise exception 'orphaned Apple purchase rebound without explicit restore';
+  exception when others then
+    if sqlerrm = 'orphaned Apple purchase rebound without explicit restore' then raise; end if;
+  end;
+  select * into apple_result from public.record_apple_series_transaction(
+    ${sqlLiteral(`${appleRestoreOriginalTransactionId}01`)},
+    ${sqlLiteral(appleRestoreOriginalTransactionId)},
+    restore_test_user_id, test_user_id, true,
+    'com.verzatv.app.series.twist_of_time', 'twist-of-time', 'Production', 'active',
+    now() - interval '5 minutes', now() - interval '1 minute', null,
+    1990, 'usd', repeat('f', 64)
+  );
+  if not apple_result.account_rebound or not apple_result.access_granted
+     or (select user_id from public.apple_iap_purchases
+         where original_transaction_id = ${sqlLiteral(appleRestoreOriginalTransactionId)})
+        is distinct from test_user_id
+     or (select app_account_token_sha256 from public.apple_iap_purchases
+         where original_transaction_id = ${sqlLiteral(appleRestoreOriginalTransactionId)})
+        <> encode(extensions.digest(lower(restore_test_user_id::text), 'sha256'), 'hex') then
+    raise exception 'explicit deleted-account Apple rebind failed or changed token identity';
+  end if;
+
+  -- Notification claims are idempotent and retry-safe.
+  apple_claim_result := public.claim_apple_iap_notification(
+    apple_notification_id, 'ONE_TIME_CHARGE', null, 'Production', now()
+  );
+  if apple_claim_result <> 'acquired' then
+    raise exception 'Apple notification claim was not acquired';
+  end if;
+  apple_claim_result := public.claim_apple_iap_notification(
+    apple_notification_id, 'ONE_TIME_CHARGE', null, 'Production', now()
+  );
+  if apple_claim_result <> 'busy' then
+    raise exception 'concurrent Apple notification claim was not busy';
+  end if;
+  if not public.finish_apple_iap_notification(
+    apple_notification_id, 'processed', ${sqlLiteral(appleOriginalTransactionId)}, null
+  ) then
+    raise exception 'Apple notification did not finish';
+  end if;
+  apple_claim_result := public.claim_apple_iap_notification(
+    apple_notification_id, 'ONE_TIME_CHARGE', null, 'Production', now()
+  );
+  if apple_claim_result <> 'processed' then
+    raise exception 'processed Apple notification was not idempotent';
+  end if;
+
+  -- A successful profile FK cascade is the only all-source deletion path. A
+  -- live profile must preserve Apple/manual sources from a provider-specific
+  -- DELETE even while deletion_requested_at is set; only actual parent deletion
+  -- removes the entitlement and pseudonymizes the retained Apple ledger.
+  select * into apple_result from public.record_apple_series_transaction(
+    ${sqlLiteral(`${appleDeleteOriginalTransactionId}01`)},
+    ${sqlLiteral(appleDeleteOriginalTransactionId)},
+    delete_test_user_id, delete_test_user_id, false,
+    'com.verzatv.app.series.she_is_mine', 'she-is-mine', 'Production', 'active',
+    now() - interval '5 minutes', now() - interval '4 minutes', null,
+    1990, 'usd', repeat('d', 64)
+  );
+  insert into public.purchases (
+    user_id, type, series_slug, amount_cents, subtotal_cents, tax_cents,
+    total_cents, currency, status, stripe_session_id, stripe_payment_intent
+  ) values (
+    delete_test_user_id, 'series_unlock', 'she-is-mine', 199, 199, 0,
+    199, 'usd', 'completed', ${sqlLiteral(appleDeleteSessionId)},
+    ${sqlLiteral(appleDeletePaymentIntentId)}
+  ) returning id into apple_delete_purchase_id;
+  access_result := public.grant_series_entitlement_for_purchase(
+    apple_delete_purchase_id, delete_test_user_id, 'she-is-mine'
+  );
+  update public.entitlements
+    set manual_grant = true
+    where user_id = delete_test_user_id
+      and series_slug = 'she-is-mine';
+  if not access_result or not exists (
+    select 1 from public.entitlements
+    where user_id = delete_test_user_id
+      and series_slug = 'she-is-mine'
+      and purchase_id = apple_delete_purchase_id
+      and apple_original_transaction_id = ${sqlLiteral(appleDeleteOriginalTransactionId)}
+      and manual_grant
+  ) then
+    raise exception 'all-source account deletion fixture did not grant';
+  end if;
+
+  update public.profiles
+    set deletion_requested_at = now()
+    where id = delete_test_user_id;
+  delete from public.entitlements
+    where user_id = delete_test_user_id
+      and series_slug = 'she-is-mine';
+  if not exists (
+    select 1 from public.entitlements
+    where user_id = delete_test_user_id
+      and series_slug = 'she-is-mine'
+      and purchase_id is null
+      and apple_original_transaction_id = ${sqlLiteral(appleDeleteOriginalTransactionId)}
+      and manual_grant
+  ) then
+    raise exception 'guarded provider delete destroyed independent sources';
+  end if;
+  update public.profiles
+    set deletion_requested_at = null
+    where id = delete_test_user_id;
+  if not exists (
+    select 1 from public.entitlements
+    where user_id = delete_test_user_id
+      and series_slug = 'she-is-mine'
+      and apple_original_transaction_id = ${sqlLiteral(appleDeleteOriginalTransactionId)}
+      and manual_grant
+  ) then
+    raise exception 'failed deletion guard clear did not preserve access sources';
+  end if;
+
+  update public.profiles
+    set deletion_requested_at = now()
+    where id = delete_test_user_id;
+  delete from auth.users where id = delete_test_user_id;
+  if exists (
+       select 1 from public.profiles where id = delete_test_user_id
+     ) or exists (
+       select 1 from public.entitlements where user_id = delete_test_user_id
+     ) then
+    raise exception 'successful account deletion did not cascade account-owned access';
+  end if;
+  if not exists (
+    select 1 from public.apple_iap_purchases
+    where original_transaction_id = ${sqlLiteral(appleDeleteOriginalTransactionId)}
+      and user_id is null
+      and status = 'active'
+  ) then
+    raise exception 'successful account deletion did not retain an orphaned Apple ledger';
+  end if;
 
   select count(*) into orphan_refund_count
     from public.reconcile_purchase_refund(
@@ -2329,6 +2788,14 @@ begin
      or has_table_privilege('authenticated', 'public.payment_account_tombstones', 'SELECT') then
     raise exception 'payment service tables are client-readable';
   end if;
+  if has_table_privilege('anon', 'public.apple_iap_purchases', 'SELECT')
+     or has_table_privilege('authenticated', 'public.apple_iap_purchases', 'SELECT')
+     or has_table_privilege('anon', 'public.apple_iap_notifications', 'SELECT')
+     or has_table_privilege('authenticated', 'public.apple_iap_notifications', 'SELECT')
+     or has_table_privilege('service_role', 'public.apple_iap_purchases', 'DELETE')
+     or has_table_privilege('service_role', 'public.apple_iap_notifications', 'DELETE') then
+    raise exception 'Apple purchase/notification ledger privileges are too broad';
+  end if;
   if has_table_privilege('anon', 'public.payment_notices', 'SELECT')
      or has_table_privilege('authenticated', 'public.vip_checkout_consents', 'SELECT') then
     raise exception 'VIP consent/notice evidence is client-readable';
@@ -2387,7 +2854,7 @@ $payment_tests$;
     const body = await response.text();
     throw new Error(`rollback-only database suite failed (${response.status}): ${body}`);
   }
-  console.log("payment database suite: PASS (migrations 009-014 twice; transaction rolled back)");
+  console.log("payment database suite: PASS (migrations 009-015 twice; transaction rolled back)");
 }
 
 runCodeAndCatalogSuite();

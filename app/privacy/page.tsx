@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/privacy" },
 };
 
-const LAST_UPDATED = "August 3, 2026";
+const LAST_UPDATED = "August 5, 2026";
 
 const sectionHeading = {
   color: T.text,
@@ -90,8 +90,13 @@ export default function PrivacyPage() {
                   <strong style={{ color: T.text }}>Purchase Information:</strong>{" "}
                   Transaction and entitlement details related to Series
                   Unlocks, VIP subscriptions, and physical merchandise.
-                  Payment card information is entered with Stripe outside the
-                  native app and is not stored on our servers. Limited legacy
+                  Apple processes iPhone and iPad in-app purchases; Stripe
+                  processes checkout on other supported purchase surfaces. We
+                  may receive product, transaction, price, currency,
+                  purchase-state, refund or revocation, and account-link details
+                  needed to verify access and prevent fraud. We do not receive
+                  or store your full payment-card number from Apple or Stripe.
+                  Limited legacy
                   purchase-recovery records may remain keyed to the checkout
                   email when a historical purchase was never linked to an
                   authenticated account. For VIP, we also retain the accepted
@@ -195,8 +200,10 @@ export default function PrivacyPage() {
             <li className="text-sm leading-relaxed" style={bodyText}>
               <strong style={{ color: T.text }}>Service Providers:</strong>{" "}
               With third-party vendors who assist in operating the Service.
-              These currently include: <strong style={{ color: T.text }}>Stripe</strong>{" "}
-              (external checkout and payment processing),{" "}
+              These currently include: <strong style={{ color: T.text }}>Apple</strong>{" "}
+              (iPhone and iPad in-app purchase processing and transaction
+              status), <strong style={{ color: T.text }}>Stripe</strong>{" "}
+              (supported external checkout and payment processing),{" "}
               <strong style={{ color: T.text }}>Supabase</strong> (account
               authentication and database hosting),{" "}
               <strong style={{ color: T.text }}>Mux</strong> (video delivery and
@@ -351,7 +358,9 @@ export default function PrivacyPage() {
             needed, we delete or anonymize it. Legacy
             unlinked purchase-recovery records may be retained for support and
             fraud prevention until ownership is independently verified or the
-            record is no longer needed.
+            record is no longer needed. Apple purchase records may retain the
+            provider transaction identifiers and a one-way hash of the
+            purchase-time account token instead of the raw token.
           </p>
         </div>
 
@@ -389,7 +398,10 @@ export default function PrivacyPage() {
             transactions and required subscription consent/notice evidence may
             be retained, separated from the deleted account, where required for
             tax, accounting, dispute, fraud-prevention, or legal-compliance
-            purposes. Deleting an authenticated account does not automatically
+            purposes. An eligible Apple non-consumable may later be reclaimed
+            to a new VERZA account only through Apple-verified Restore
+            Purchases; a purchase linked to another live VERZA account cannot
+            transfer. Deleting an authenticated account does not automatically
             delete a separate legacy recovery record that is keyed only to a
             checkout email and has never been linked to that account. To claim
             or delete such a record, contact us so we can independently verify

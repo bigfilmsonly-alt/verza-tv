@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/terms" },
 };
 
-const LAST_UPDATED = "August 3, 2026";
+const LAST_UPDATED = "August 5, 2026";
 
 const sectionHeading = {
   color: T.text,
@@ -118,10 +118,11 @@ export default function TermsPage() {
               specific series and an auto-renewing{" "}
               <strong style={{ color: T.text }}>VIP subscription</strong> for
               access while the subscription remains active. Digital purchases
-              are offered through our website and supported non-iOS surfaces.
-              The native iOS application does not offer digital purchases; it
-              allows signed-in users to view content they are already entitled
-              to access.
+              may be offered through different providers by platform. The
+              iPhone and iPad app offers eligible Series Unlocks as Apple
+              non-consumable in-app purchases. Supported website and Android
+              purchase surfaces use Stripe Checkout. VIP is not sold in the
+              iPhone or iPad app.
             </p>
             <p className="text-sm leading-relaxed" style={bodyText}>
               <strong style={{ color: T.text }}>VIP Auto-Renewal:</strong> The
@@ -145,7 +146,14 @@ export default function TermsPage() {
               Series Unlock applies only to the series identified at checkout,
               is tied to the authenticated account used for the purchase, and
               is non-transferable. It grants a license to view available
-              content; it is not ownership of the content. A limited number of
+              content; it is not ownership of the content. Apple displays the
+              localized price before an iPhone or iPad purchase is confirmed
+              and bills the purchaser&apos;s Apple Account. Eligible Apple
+              purchases may be restored while signed in to the same VERZA
+              account. If that account was permanently deleted, an
+              Apple-verified orphaned purchase may be reclaimed to a new VERZA
+              account; a purchase linked to another live VERZA account cannot
+              be transferred. A limited number of
               legacy purchases were completed before authenticated checkout was
               required. Any request to claim or alter one of those unlinked
               records requires independent purchase or mailbox verification;
@@ -154,7 +162,7 @@ export default function TermsPage() {
             </p>
             <p className="text-sm leading-relaxed" style={bodyText}>
               <strong style={{ color: T.text }}>Physical Goods:</strong> Direct
-              merchandise orders are processed through Stripe checkout.
+              merchandise orders, where offered, are processed through Stripe checkout.
               Product availability, taxes, shipping, and other material terms
               shown at checkout are part of the order. Purchases completed on
               Amazon are transactions with Amazon or the applicable seller and
@@ -163,7 +171,8 @@ export default function TermsPage() {
             <p className="text-sm leading-relaxed" style={bodyText}>
               <strong style={{ color: T.text }}>Refunds:</strong> Except as
               required by applicable law or described in our Refund Policy,
-              purchases are final. The Refund Policy explains how to report a
+              purchases are final. Apple processes and decides refund requests
+              for purchases billed through Apple. The Refund Policy explains how to report a
               duplicate, unauthorized, inaccessible, or otherwise erroneous
               transaction.
             </p>
