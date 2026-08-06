@@ -101,9 +101,11 @@ part of step 6 are complete for the current commit. Follow
    pending migration;
 3. apply exactly 015 with `npx supabase@2.67.1 db push --linked`, read migration
    history back, and rerun `npm run test:payments:db`;
-4. verify the two Production Apple variable names are `Sensitive`; current
-   behavior proves exact true preflight and a narrow Sandbox allowlist without
-   printing values;
+4. verify the Production preflight flag and both Sandbox allowlist names are
+   `Sensitive`; preserve the existing owner-test list and add the standing App
+   Review VERZA UUID only through the separate review variable. Current behavior
+   proves exact true preflight and the narrow owner-test list without printing
+   values; the review variable requires a replacement deploy/readback;
 5. deploy via `npx vercel --prod --yes`, record the immutable deployment, then
    verify it owns `https://www.verzatv.com` and read back Apple-aware legal
    pages plus unauthenticated/malformed negative route behavior;

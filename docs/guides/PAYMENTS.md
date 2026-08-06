@@ -141,7 +141,10 @@ after provider-backed confirmation or a server/RLS entitlement check.
 New-purchase preflight can be disabled without disabling signed transaction
 finishing, restore, refund/revocation, or V2 notifications. This is required for
 a safe sales rollback. Sandbox/TestFlight fulfillment also requires the signed
-account UUID in `APPLE_IAP_SANDBOX_ALLOWED_USER_IDS`.
+account UUID in the strict union of `APPLE_IAP_SANDBOX_ALLOWED_USER_IDS` (owner
+testing) and `APPLE_IAP_SANDBOX_REVIEW_ALLOWED_USER_IDS` (standing App Review
+account). Malformed configuration in either list denies all Sandbox
+fulfillment; neither list affects Production transactions.
 
 The exact product registry, payload contracts, deployment order, and test
 matrix are in [`APPLE-IAP.md`](APPLE-IAP.md).

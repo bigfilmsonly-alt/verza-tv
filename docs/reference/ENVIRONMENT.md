@@ -77,13 +77,16 @@ cutover requires Terms mode true.
 | Variable | Exposure | Notes |
 | --- | --- | --- |
 | `APPLE_IAP_ENABLED` | Server/Sensitive | Exact `true` opens authenticated new-purchase preflight. Any other state closes preflight but does not stop signed transaction/restore/adverse-event/notification reconciliation. |
-| `APPLE_IAP_SANDBOX_ALLOWED_USER_IDS` | Sensitive | Comma-separated Supabase UUIDs accepted from Apple-signed Sandbox/TestFlight account tokens; empty denies Sandbox fulfillment. |
+| `APPLE_IAP_SANDBOX_ALLOWED_USER_IDS` | Sensitive | Owner-test Supabase UUIDs accepted from Apple-signed Sandbox/TestFlight account tokens. |
+| `APPLE_IAP_SANDBOX_REVIEW_ALLOWED_USER_IDS` | Sensitive | Standing App Review VERZA-account UUIDs. It is unioned with the owner-test list only after strict UUID parsing; malformed configuration in either list denies all Sandbox fulfillment, and both empty denies all. Production transactions are unaffected. |
 
-A names/type/target-only 2026-08-05 Vercel readback found both variables as
-Production `Sensitive`; values were not read or printed. Independent behavior
-readback proves exact true preflight and a narrow Sandbox allowlist, but does
-not disclose membership. StoreKit signed-data verification uses Apple's public
-roots and needs no App Store Server API private-key variable. See
+A names/type/target-only 2026-08-05 Vercel readback found the preflight flag and
+owner-test allowlist as Production `Sensitive`; values were not read or printed.
+The review-account variable is a pending rollout input and must receive the same
+values-blind readback after it is added without replacing the owner-test list.
+Independent behavior readback proves exact true preflight and a narrow Sandbox
+allowlist, but does not disclose membership. StoreKit signed-data verification
+uses Apple's public roots and needs no App Store Server API private-key variable. See
 [`../guides/APPLE-IAP.md`](../guides/APPLE-IAP.md).
 
 ## Email, cron, AI, push, and admin

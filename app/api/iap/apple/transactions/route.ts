@@ -6,10 +6,10 @@ import {
   recordAppleSeriesTransaction,
 } from "@/lib/apple-iap-ledger";
 import {
-  appleSandboxUserAllowed,
   normalizeAppleTransaction,
   verifyAppleSignedTransaction,
 } from "@/lib/apple-iap-verification";
+import { appleSandboxUserAllowed } from "@/lib/apple-iap-sandbox-policy";
 import { privateJson } from "@/lib/private-json";
 import { getServiceClient } from "@/lib/supabase/server";
 

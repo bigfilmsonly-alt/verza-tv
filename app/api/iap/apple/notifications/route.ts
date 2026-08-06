@@ -10,11 +10,11 @@ import {
   type ApplePurchaseStatus,
 } from "@/lib/apple-iap-ledger";
 import {
-  appleSandboxUserAllowed,
   normalizeAppleTransaction,
   verifyAppleSignedNotification,
   verifyAppleSignedTransaction,
 } from "@/lib/apple-iap-verification";
+import { appleSandboxUserAllowed } from "@/lib/apple-iap-sandbox-policy";
 import { privateJson } from "@/lib/private-json";
 
 export const runtime = "nodejs";

@@ -8,10 +8,13 @@ Never commit `.env.local` -- it is gitignored.
 > compatibility with both VIP capabilities false; the canonical Stripe webhook
 > is exact 19/19. Stripe Public details remains blank, so required Terms mode,
 > the restricted Billing Portal, and the paid smoke remain open. On 2026-08-05
-> the two Apple IAP variable names were present in Production as `Sensitive`.
-> Raw values were not read; behavior readback proves exact enabled preflight and
-> a narrowly scoped Sandbox allowlist. Do not infer membership from this
-> document; provider/readback evidence is authority.
+> the two then-deployed Apple IAP variable names were present in Production as
+> `Sensitive`. Raw values were not read; behavior readback proves exact enabled
+> preflight and a narrowly scoped owner-test Sandbox allowlist. The distinct App
+> Review allowlist variable described below is a pending rollout input; do not
+> claim it is live before a names/type/target readback and replacement deploy.
+> Do not infer membership from this document; provider/readback evidence is
+> authority.
 
 ---
 
@@ -37,7 +40,8 @@ Never commit `.env.local` -- it is gitignored.
 | `STRIPE_CHECKOUT_TOS_CONSENT_REQUIRED` | Required exact `true`/`false` for live keys. `false` is compatibility mode without Stripe's hosted Terms checkbox; `true` is required only after Public details has the Terms URL. Missing, empty, or malformed values fail closed. | Live payments | No |
 | `STRIPE_BILLING_PORTAL_CONFIGURATION_ID` | Exact reviewed `bpc_...` configuration used for authenticated VIP management/cancellation. | VIP payments | No |
 | `APPLE_IAP_ENABLED` | Only exact `true` permits authenticated new-purchase preflight. Missing, `false`, or any other value closes preflight; signed transaction/restore/refund/revocation/notification reconciliation stays available. | iOS StoreKit launch | No; store as Sensitive operational state |
-| `APPLE_IAP_SANDBOX_ALLOWED_USER_IDS` | Comma-separated Supabase UUIDs accepted from Apple-signed Sandbox/TestFlight `appAccountToken` values. Empty denies Sandbox fulfillment; Production transactions do not use it. | iOS StoreKit testing/review | **Sensitive personal identifier set** |
+| `APPLE_IAP_SANDBOX_ALLOWED_USER_IDS` | Comma-separated Supabase UUIDs for owner-controlled Apple Sandbox/TestFlight accounts. It is unioned with the review list only after strict UUID validation. | iOS StoreKit owner testing | **Sensitive personal identifier set** |
+| `APPLE_IAP_SANDBOX_REVIEW_ALLOWED_USER_IDS` | Comma-separated Supabase UUIDs for the standing App Review VERZA account. Keeping this separate prevents reviewer provisioning from replacing owner-test access. Empty is allowed; if either configured list contains an invalid UUID or empty comma-delimited entry, all Sandbox fulfillment is denied. Production transactions do not use either list. | iOS App Review | **Sensitive personal identifier set** |
 | `VIP_TRANSACTIONAL_NOTICES_ENABLED` | Exact `true`/`false`. Enables VIP sale UI/API only after application-owned acknowledgment, renewal receipt, and cancellation email delivery is verified. | VIP payments | No |
 | `VIP_ANNUAL_RENEWAL_NOTICES_ENABLED` | Exact `true`/`false`. Enables the secured daily 15–45-day yearly reminder route; does not itself expose yearly checkout. | Yearly VIP | No |
 | `VIP_YEARLY_CHECKOUT_ENABLED` | Exact `true`/`false`. Yearly UI/API remains blocked unless transactional notices, annual notices, Resend, and cron-secret checks also pass. | Yearly VIP | No |
@@ -83,6 +87,7 @@ STRIPE_BILLING_PORTAL_CONFIGURATION_ID=bpc_...
 # Apple StoreKit (server only)
 APPLE_IAP_ENABLED=false
 APPLE_IAP_SANDBOX_ALLOWED_USER_IDS=
+APPLE_IAP_SANDBOX_REVIEW_ALLOWED_USER_IDS=
 
 VIP_TRANSACTIONAL_NOTICES_ENABLED=false
 VIP_ANNUAL_RENEWAL_NOTICES_ENABLED=false
@@ -135,8 +140,11 @@ validates StoreKit transaction and V2 notification JWS data using Apple's
 public root certificates, pinned app identity, and exact product registry.
 `APPLE_IAP_ENABLED` gates only new purchase preflight so a sales rollback cannot
 strand valid StoreKit transactions or suppress refunds/revocations. The sandbox
-allowlist is checked against the UUID Apple signed into the transaction; never
-put review UUIDs or signed JWS payloads in source/logs.
+owner-test and App Review allowlists are unioned only after strict UUID parsing
+and checked against the UUID Apple signed into the transaction. An invalid or
+empty comma-delimited entry in either non-empty setting denies every Sandbox
+transaction; empty settings grant nothing. Production transactions bypass these
+Sandbox-only lists. Never put review UUIDs or signed JWS payloads in source/logs.
 
 ---
 
@@ -148,11 +156,15 @@ are encrypted and hidden in logs. Use separate values for Preview vs
 Production if needed (e.g. `sk_test_` for preview, `sk_live_` for
 production).
 
-The names-only 2026-08-05 Production readback found both Apple variables
-targeted to Production and typed `Sensitive`. Values were not exported or
-printed. Authenticated behavior separately proves exact true preflight and a
-narrow Sandbox allowlist; real signed notification and transaction canaries
-remain open. Preserve that values-blind procedure. See
+The names-only 2026-08-05 Production readback found the preflight flag and
+owner-test allowlist targeted to Production and typed `Sensitive`. Values were
+not exported or printed. Before App Review, add
+`APPLE_IAP_SANDBOX_REVIEW_ALLOWED_USER_IDS` as a separate Production
+`Sensitive` value without replacing the owner-test list, redeploy, and perform
+the same names/type/target-only readback. Authenticated behavior separately
+proves exact true preflight and a narrow owner-test allowlist; real signed
+notification and transaction canaries remain open. Preserve that values-blind
+procedure. See
 [`APPLE-IAP.md`](APPLE-IAP.md).
 
 The Stripe secret/webhook, Supabase service-role, and paired Mux token

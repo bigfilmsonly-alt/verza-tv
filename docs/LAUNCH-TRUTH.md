@@ -130,8 +130,10 @@ deleted account, never a purchase attached to another live account.
 `APPLE_IAP_ENABLED` gates new preflight only. Signed transaction finishing,
 refunds, revocations, restores, and notifications remain available when new
 sales are stopped. Sandbox/TestFlight fulfillment additionally requires the
-signed `appAccountToken` UUID in the server-only allowlist. Full architecture,
-mapping, rollout, and canaries are in
+signed `appAccountToken` UUID in the strict server-only union of the owner-test
+and standing App Review allowlists. Invalid configuration in either list denies
+all Sandbox fulfillment, and neither list affects Production transactions. Full
+architecture, mapping, rollout, and canaries are in
 [`guides/APPLE-IAP.md`](guides/APPLE-IAP.md).
 
 ## Terms-consent and webhook cutover

@@ -181,11 +181,3 @@ export function normalizeAppleTransaction(
 export function appleIapEnabled(): boolean {
   return process.env.APPLE_IAP_ENABLED === "true";
 }
-
-export function appleSandboxUserAllowed(userId: string): boolean {
-  return (process.env.APPLE_IAP_SANDBOX_ALLOWED_USER_IDS ?? "")
-    .split(",")
-    .map((value) => value.trim().toLowerCase())
-    .filter(Boolean)
-    .includes(userId.toLowerCase());
-}

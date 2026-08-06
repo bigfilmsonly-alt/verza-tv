@@ -24,9 +24,11 @@ Apple non-consumable full-series unlock support is now live at backend commit
   returned 200 with the exact product and private/no-store, unauthenticated
   preflight returned 401, malformed notification returned 400, and Terms,
   Privacy, Refund, and Help returned 200 with Apple wording;
-- `APPLE_IAP_ENABLED` is exact true and the Sandbox allowlist is narrowly set;
-  both variable names remain Production `Sensitive` and no raw value was
-  printed;
+- `APPLE_IAP_ENABLED` is exact true and the owner-test Sandbox allowlist is
+  narrowly set; both then-deployed variable names remain Production `Sensitive`
+  and no raw value was printed. Source now supports a distinct standing App
+  Review allowlist, but that third variable is not live until it is added,
+  read back by name/type/target, and deployed;
 - App Store Server Notifications V2 production and sandbox URLs are configured
   to the exact canonical route with sibling settings unchanged, but no real
   Apple-signed test notification has been delivered yet; and
@@ -269,7 +271,8 @@ purge `entitlements` before the profile/Auth deletion succeeds.
 | Variable | Exact semantics | Exposure |
 | --- | --- | --- |
 | `APPLE_IAP_ENABLED` | Only exact `true` opens new-purchase preflight. Missing, `false`, or any other value closes preflight. It does not disable transaction verification or notifications. | Server-only release flag; store as Sensitive in production |
-| `APPLE_IAP_SANDBOX_ALLOWED_USER_IDS` | Comma-separated Supabase user UUIDs whose signed `appAccountToken` may create Sandbox/TestFlight ledger state. Empty denies all Sandbox transaction fulfillment. Production transactions do not use this allowlist. | Server-only personal identifier set; Sensitive |
+| `APPLE_IAP_SANDBOX_ALLOWED_USER_IDS` | Comma-separated Supabase user UUIDs for owner-controlled Sandbox/TestFlight testing. | Server-only personal identifier set; Sensitive |
+| `APPLE_IAP_SANDBOX_REVIEW_ALLOWED_USER_IDS` | Comma-separated Supabase user UUIDs for the standing App Review VERZA account. It is unioned with the owner-test list only after strict UUID parsing. Empty settings grant nothing; any invalid UUID or empty comma-delimited entry in either non-empty list denies all Sandbox fulfillment. Production transactions do not use either list. | Server-only personal identifier set; Sensitive |
 
 Do not put sandbox/reviewer UUIDs, access tokens, Apple login details, one-time
 codes, signed JWS payloads, or provider credentials in Git, Markdown, tickets,
@@ -318,18 +321,24 @@ names and structure, never secret values.
    npm run test:payments:db
    ```
 
-4. In the approved Vercel secret UI, verify both Apple variable names target
-   Production and are `Sensitive`. A fresh rollout starts with new-purchase
-   preflight false and the smallest required Sandbox UUID allowlist. Never
-   print either value. The current deployment has exact true preflight for
-   controlled TestFlight testing and a narrow allowlist.
+4. In the approved Vercel secret UI, verify the preflight flag and both Sandbox
+   allowlist names target Production and are `Sensitive`. Keep owner-test UUIDs
+   in `APPLE_IAP_SANDBOX_ALLOWED_USER_IDS`; add the standing App Review VERZA
+   UUID only to `APPLE_IAP_SANDBOX_REVIEW_ALLOWED_USER_IDS`, without reading or
+   replacing the first list. A fresh rollout starts with new-purchase preflight
+   false and the smallest required UUID sets. Never print any value. The current
+   deployment has exact true preflight and the narrow owner-test allowlist; the
+   separate review variable requires a replacement deploy and readback.
    The names/type-only CLI readback is:
 
    ```bash
    npx vercel env ls production --format json
    ```
 
-   Inspect only `key`, `type`, and `target`; do not export or pull values.
+   Inspect only `key`, `type`, and `target`; do not export or pull values. Stop
+   if either allowlist is not `Sensitive`, targets the wrong environment, or
+   contains a malformed value; code denies all Sandbox fulfillment when either
+   configured list fails strict UUID parsing.
 
 5. Deploy the frozen commit and record the immutable deployment URL before
    checking the canonical alias:

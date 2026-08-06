@@ -59,6 +59,9 @@ function runCodeAndCatalogSuite() {
   const checkoutConsent = loadTypeScriptModule(
     "lib/stripe-checkout-consent.ts",
   );
+  const appleSandboxPolicy = loadTypeScriptModule(
+    "lib/apple-iap-sandbox-policy.ts",
+  );
   const vipReleasePolicy = loadTypeScriptModule("lib/vip-release-policy.ts");
   assert.equal(checkoutConsent.STRIPE_CHECKOUT_TERMS_VERSION, "2026-08-03");
   const vipSubscriptionState = loadTypeScriptModule(
@@ -76,6 +79,50 @@ function runCodeAndCatalogSuite() {
     "@/lib/stripe-tax": stripeTax,
   });
   const config = loadTypeScriptModule("lib/config.ts");
+
+  const ownerSandboxUserId = "11111111-1111-4111-8111-111111111111";
+  const reviewSandboxUserId = "22222222-2222-4222-8222-222222222222";
+  const sandboxAllowlistEnvNames = [
+    "APPLE_IAP_SANDBOX_ALLOWED_USER_IDS",
+    "APPLE_IAP_SANDBOX_REVIEW_ALLOWED_USER_IDS",
+  ];
+  const originalSandboxAllowlistEnv = Object.fromEntries(
+    sandboxAllowlistEnvNames.map((name) => [name, process.env[name]]),
+  );
+  try {
+    for (const name of sandboxAllowlistEnvNames) delete process.env[name];
+    assert.equal(appleSandboxPolicy.appleSandboxUserAllowed(ownerSandboxUserId), false);
+
+    process.env.APPLE_IAP_SANDBOX_ALLOWED_USER_IDS = ownerSandboxUserId;
+    assert.equal(appleSandboxPolicy.appleSandboxUserAllowed(ownerSandboxUserId), true);
+    assert.equal(appleSandboxPolicy.appleSandboxUserAllowed(reviewSandboxUserId), false);
+
+    process.env.APPLE_IAP_SANDBOX_REVIEW_ALLOWED_USER_IDS =
+      reviewSandboxUserId.toUpperCase();
+    assert.equal(appleSandboxPolicy.appleSandboxUserAllowed(ownerSandboxUserId), true);
+    assert.equal(appleSandboxPolicy.appleSandboxUserAllowed(reviewSandboxUserId), true);
+    assert.equal(
+      appleSandboxPolicy.appleSandboxUserAllowed(reviewSandboxUserId.toUpperCase()),
+      true,
+    );
+    assert.equal(appleSandboxPolicy.appleSandboxUserAllowed("not-a-uuid"), false);
+
+    process.env.APPLE_IAP_SANDBOX_REVIEW_ALLOWED_USER_IDS =
+      `${reviewSandboxUserId},invalid`;
+    assert.equal(appleSandboxPolicy.appleSandboxUserAllowed(ownerSandboxUserId), false);
+    assert.equal(appleSandboxPolicy.appleSandboxUserAllowed(reviewSandboxUserId), false);
+
+    process.env.APPLE_IAP_SANDBOX_REVIEW_ALLOWED_USER_IDS = reviewSandboxUserId;
+    process.env.APPLE_IAP_SANDBOX_ALLOWED_USER_IDS = `${ownerSandboxUserId},`;
+    assert.equal(appleSandboxPolicy.appleSandboxUserAllowed(ownerSandboxUserId), false);
+    assert.equal(appleSandboxPolicy.appleSandboxUserAllowed(reviewSandboxUserId), false);
+  } finally {
+    for (const name of sandboxAllowlistEnvNames) {
+      const value = originalSandboxAllowlistEnv[name];
+      if (value === undefined) delete process.env[name];
+      else process.env[name] = value;
+    }
+  }
 
   const mergedPrivateResponse = privateResponse.privateJson(
     { ok: true },
@@ -765,6 +812,14 @@ function runCodeAndCatalogSuite() {
     join(ROOT, "app/api/payments/capabilities/route.ts"),
     "utf8",
   );
+  const appleTransactionRoute = readFileSync(
+    join(ROOT, "app/api/iap/apple/transactions/route.ts"),
+    "utf8",
+  );
+  const appleNotificationRoute = readFileSync(
+    join(ROOT, "app/api/iap/apple/notifications/route.ts"),
+    "utf8",
+  );
   const llmsRoute = readFileSync(join(ROOT, "app/llms.txt/route.ts"), "utf8");
   const aiHostRoute = readFileSync(
     join(ROOT, "app/api/ai-host/route.ts"),
@@ -932,6 +987,16 @@ function runCodeAndCatalogSuite() {
   assert.match(paymentCapabilities, /vipYearlyCheckoutEnabled/);
   assert.match(paymentCapabilities, /yearlyCheckoutEnabled/);
   assert.match(paymentCapabilities, /private, no-store/);
+  assert.match(
+    appleTransactionRoute,
+    /transaction\.environment === Environment\.SANDBOX &&\s*!appleSandboxUserAllowed\(user\.id\)/,
+    "authenticated Sandbox fulfillment must use the strict union allowlist",
+  );
+  assert.match(
+    appleNotificationRoute,
+    /environment === Environment\.SANDBOX &&\s*!appleSandboxUserAllowed\(transaction\.userId\)/,
+    "Sandbox notifications must use the strict union allowlist",
+  );
   assert.match(llmsRoute, /vipYearlyCheckoutEnabled/);
   assert.match(aiHostRoute, /YEARLY_VIP_AVAILABLE/);
   assert.doesNotMatch(publicVipCopy, /monthly\s*(?:or|\/)\s*yearly VIP/i);
