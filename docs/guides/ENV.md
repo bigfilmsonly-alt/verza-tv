@@ -8,13 +8,13 @@ Never commit `.env.local` -- it is gitignored.
 > compatibility with both VIP capabilities false; the canonical Stripe webhook
 > is exact 19/19. Stripe Public details remains blank, so required Terms mode,
 > the restricted Billing Portal, and the paid smoke remain open. On 2026-08-05
-> the two then-deployed Apple IAP variable names were present in Production as
-> `Sensitive`. Raw values were not read; behavior readback proves exact enabled
-> preflight and a narrowly scoped owner-test Sandbox allowlist. The distinct App
-> Review allowlist variable described below is a pending rollout input; do not
-> claim it is live before a names/type/target readback and replacement deploy.
-> Do not infer membership from this document; provider/readback evidence is
-> authority.
+> all three Apple IAP variable names are present in Production as `Sensitive`.
+> Raw values were not read; behavior readback proves exact enabled preflight and
+> a narrowly scoped owner-test Sandbox allowlist. An authorized operator added
+> only the standing App Review VERZA UUID to the distinct review setting, and a
+> post-deploy names/type/target-only readback verified all three settings. Do not
+> infer either allowlist's membership from this document; provider/readback
+> evidence is authority.
 
 ---
 
@@ -156,15 +156,13 @@ are encrypted and hidden in logs. Use separate values for Preview vs
 Production if needed (e.g. `sk_test_` for preview, `sk_live_` for
 production).
 
-The names-only 2026-08-05 Production readback found the preflight flag and
-owner-test allowlist targeted to Production and typed `Sensitive`. Values were
-not exported or printed. Before App Review, add
-`APPLE_IAP_SANDBOX_REVIEW_ALLOWED_USER_IDS` as a separate Production
-`Sensitive` value without replacing the owner-test list, redeploy, and perform
-the same names/type/target-only readback. Authenticated behavior separately
-proves exact true preflight and a narrow owner-test allowlist; real signed
-notification and transaction canaries remain open. Preserve that values-blind
-procedure. See
+The post-deploy 2026-08-05 Production readback found the preflight flag and both
+allowlists targeted to Production and typed `Sensitive`. Values were not
+exported or printed. `APPLE_IAP_SANDBOX_REVIEW_ALLOWED_USER_IDS` was added as a
+separate setting without replacing the owner-test list. Authenticated behavior
+separately proves exact true preflight and a narrow owner-test allowlist; a real
+signed reviewer/test transaction and notification canary remain open. Preserve
+that values-blind procedure. See
 [`APPLE-IAP.md`](APPLE-IAP.md).
 
 The Stripe secret/webhook, Supabase service-role, and paired Mux token

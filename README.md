@@ -17,11 +17,12 @@ server-verified Apple StoreKit non-consumables on iOS.
 > mode/portal, and the controlled $1.99 smoke remain open. The hardened creator
 > Mux webhook is deployed and returns 503 while its verification secret is
 > intentionally absent, so creator ingestion remains unavailable. The August 5
-> Apple IAP backend at commit `a9b537844a8878851ecfe4c0e310f405b68fc6ef`,
-> migration 015, Apple-aware legal copy, exact enabled preflight, and narrow
-> Sandbox allowlist are now production-read-back. ASC V2 URLs are configured;
-> real signed notification delivery and an actual Sandbox transaction remain
-> open.
+> Apple IAP base commit `a9b537844a8878851ecfe4c0e310f405b68fc6ef`,
+> migration 015, and strict owner-test/App Review allowlist hardening
+> `fe07bedcd4c4da79d35ec9c669aaec8a71be5b14` are production-read-back. All
+> three Apple settings are Production Sensitive without value exposure. ASC V2
+> URLs are configured; real signed notification delivery and an actual Sandbox
+> transaction remain open.
 
 ## Product state
 

@@ -8,8 +8,10 @@ signed-binary inspection, screenshots, and App Store submission remain owned by
 
 ## Release truth
 
-Apple non-consumable full-series unlock support is now live at backend commit
-`a9b537844a8878851ecfe4c0e310f405b68fc6ef`:
+Apple non-consumable full-series unlock support is live from base commit
+`a9b537844a8878851ecfe4c0e310f405b68fc6ef`; current production source
+`fe07bedcd4c4da79d35ec9c669aaec8a71be5b14` adds the strict, separate standing
+App Review allowlist:
 
 - the 74 immutable non-consumable product IDs exist in App Store Connect;
 - each has current `en-US` metadata, a US base price of $1.99 with Apple's
@@ -25,10 +27,12 @@ Apple non-consumable full-series unlock support is now live at backend commit
   preflight returned 401, malformed notification returned 400, and Terms,
   Privacy, Refund, and Help returned 200 with Apple wording;
 - `APPLE_IAP_ENABLED` is exact true and the owner-test Sandbox allowlist is
-  narrowly set; both then-deployed variable names remain Production `Sensitive`
-  and no raw value was printed. Source now supports a distinct standing App
-  Review allowlist, but that third variable is not live until it is added,
-  read back by name/type/target, and deployed;
+  narrowly set. Deployment `dpl_F31v4CLY4vAS4s8MMU2JSDrYANfh` from exact
+  source `fe07bedcd4c4da79d35ec9c669aaec8a71be5b14` added strict union support
+  for a distinct standing App Review allowlist; an authorized operator
+  provisioned that separate setting and a post-deploy names/type/target-only
+  readback found all three Apple variables Production `Sensitive` without
+  printing raw values;
 - App Store Server Notifications V2 production and sandbox URLs are configured
   to the exact canonical route with sibling settings unchanged, but no real
   Apple-signed test notification has been delivered yet; and
@@ -282,7 +286,7 @@ required for this verification-only architecture.
 ## Safe deployment and readback
 
 The current release completed steps 1–6 and the configuration portion of step
-7 at commit `a9b537844a8878851ecfe4c0e310f405b68fc6ef`. Keep this full
+7 at production source `fe07bedcd4c4da79d35ec9c669aaec8a71be5b14`. Keep this full
 sequence for any fresh environment or replacement deployment. Commands show
 names and structure, never secret values.
 
@@ -327,8 +331,8 @@ names and structure, never secret values.
    UUID only to `APPLE_IAP_SANDBOX_REVIEW_ALLOWED_USER_IDS`, without reading or
    replacing the first list. A fresh rollout starts with new-purchase preflight
    false and the smallest required UUID sets. Never print any value. The current
-   deployment has exact true preflight and the narrow owner-test allowlist; the
-   separate review variable requires a replacement deploy and readback.
+   deployment has exact true preflight, the narrow owner-test allowlist, and the
+   separately provisioned standing App Review setting.
    The names/type-only CLI readback is:
 
    ```bash

@@ -80,13 +80,14 @@ cutover requires Terms mode true.
 | `APPLE_IAP_SANDBOX_ALLOWED_USER_IDS` | Sensitive | Owner-test Supabase UUIDs accepted from Apple-signed Sandbox/TestFlight account tokens. |
 | `APPLE_IAP_SANDBOX_REVIEW_ALLOWED_USER_IDS` | Sensitive | Standing App Review VERZA-account UUIDs. It is unioned with the owner-test list only after strict UUID parsing; malformed configuration in either list denies all Sandbox fulfillment, and both empty denies all. Production transactions are unaffected. |
 
-A names/type/target-only 2026-08-05 Vercel readback found the preflight flag and
-owner-test allowlist as Production `Sensitive`; values were not read or printed.
-The review-account variable is a pending rollout input and must receive the same
-values-blind readback after it is added without replacing the owner-test list.
+A post-deploy names/type/target-only 2026-08-05 Vercel readback found the
+preflight flag and both allowlists as Production `Sensitive`; values were not
+read or printed. An authorized operator added only the standing review-account
+UUID to the separate review setting without replacing the owner-test list.
 Independent behavior readback proves exact true preflight and a narrow Sandbox
-allowlist, but does not disclose membership. StoreKit signed-data verification
-uses Apple's public roots and needs no App Store Server API private-key variable. See
+owner-test allowlist, but does not disclose membership. StoreKit signed-data
+verification uses Apple's public roots and needs no App Store Server API
+private-key variable. See
 [`../guides/APPLE-IAP.md`](../guides/APPLE-IAP.md).
 
 ## Email, cron, AI, push, and admin

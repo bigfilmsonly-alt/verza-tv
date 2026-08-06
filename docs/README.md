@@ -53,10 +53,11 @@ readback.
   while its verification secret is intentionally absent, so ingestion is off
 - **Open payment gates:** Stripe Public details is blank; required-consent
   mode/portal and the controlled $1.99 smoke remain open
-- **Apple IAP production:** commit `a9b537844a8878851ecfe4c0e310f405b68fc6ef`,
-  migration 015, Apple-aware legal copy, exact enabled preflight, and narrow
-  Sandbox allowlist passed canonical readback; ASC production/sandbox V2 URLs
-  are exact, but real signed notification delivery and an actual Sandbox
+- **Apple IAP production:** base commit `a9b537844a8878851ecfe4c0e310f405b68fc6ef`,
+  migration 015, and strict owner-test/App Review allowlist hardening
+  `fe07bedcd4c4da79d35ec9c669aaec8a71be5b14` passed canonical readback; all
+  three Apple settings are Production Sensitive, and ASC production/sandbox V2
+  URLs are exact, but real signed notification delivery and an actual Sandbox
   transaction remain open
 - **Apple product/owner gates:** all 74 ASC products still need review
   screenshots and report `MISSING_METADATA`; Paid Applications banking/tax,

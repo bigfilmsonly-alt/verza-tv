@@ -35,12 +35,15 @@ playback, legal copy, catalog data, or release configuration. `CLAUDE.md` and
    hardened creator Mux-webhook route are live. The Mux route currently returns
    503 because its verification secret is intentionally absent; creator
    ingestion remains unavailable. Stripe Public details, required-consent
-   mode/portal, and the controlled $1.99 smoke remain open. Apple commit
-   `a9b537844a8878851ecfe4c0e310f405b68fc6ef` is live on the canonical alias:
+   mode/portal, and the controlled $1.99 smoke remain open. Apple base commit
+   `a9b537844a8878851ecfe4c0e310f405b68fc6ef` plus strict Sandbox/App Review
+   allowlist hardening `fe07bedcd4c4da79d35ec9c669aaec8a71be5b14` are live on
+   the canonical alias:
    migration 015/schema/RLS/RPC/privileges passed readback; Apple-aware legal
    pages and negative routes passed; authenticated no-charge preflight returned
    the exact product with private/no-store; production preflight is true and
-   the Sandbox allowlist is narrow. ASC V2 production/sandbox URLs are exact,
+   both Sandbox allowlists are narrow and Production `Sensitive`. ASC V2
+   production/sandbox URLs are exact,
    but no real signed notification or Sandbox purchase has completed yet.
    Never describe local code or a successful build as deployed.
 2. **The product sold now is a full-series unlock.** The catalog has 80

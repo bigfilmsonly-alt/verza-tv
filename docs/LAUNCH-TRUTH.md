@@ -6,8 +6,9 @@
 
 **Status:** legal/payment compatibility, exact Stripe webhook, and signed Mux
 backend are production-verified from the August 3 deployment. Apple StoreKit
-commit `a9b537844a8878851ecfe4c0e310f405b68fc6ef`, migration 015,
-Apple-aware legal copy, and three Apple API routes are now production-read-back.
+base commit `a9b537844a8878851ecfe4c0e310f405b68fc6ef`, migration 015,
+Apple-aware legal copy, three Apple API routes, and reviewer-allowlist hardening
+`fe07bedcd4c4da79d35ec9c669aaec8a71be5b14` are production-read-back.
 No real signed Apple notification or Sandbox purchase has completed; Apple/
 Stripe owner gates, credential rotation, exact TestFlight acceptance, and final
 submission remain open.
@@ -186,8 +187,9 @@ Verified live as of this snapshot:
 - the hardened creator Mux-webhook route, whose production readback returns 503
   while `MUX_WEBHOOK_SECRET` is intentionally absent. No unsigned payload is
   accepted and creator ingestion remains unavailable; and
-- Apple commit `a9b537844a8878851ecfe4c0e310f405b68fc6ef`: migration
-  015 structural/RLS/RPC/privilege/source-preservation readback passed;
+- Apple base commit `a9b537844a8878851ecfe4c0e310f405b68fc6ef` plus
+  reviewer-allowlist hardening `fe07bedcd4c4da79d35ec9c669aaec8a71be5b14`:
+  migration 015 structural/RLS/RPC/privilege/source-preservation readback passed;
   authenticated no-charge preflight returned 200 with exact product and
   private/no-store, unauthenticated preflight returned 401, malformed
   notification returned 400, and Apple-aware legal siblings returned 200 with

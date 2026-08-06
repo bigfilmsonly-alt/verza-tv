@@ -9,8 +9,10 @@ versioned local Next.js docs before changing a payload.
 > playback, and one exact-19 Stripe webhook. Required Terms/portal and the live
 > $1.99 smoke remain open. The hardened Mux creator webhook is deployed and
 > returns 503 while its verification secret is intentionally absent; creator
-> ingestion remains unavailable. The three Apple IAP routes are live at commit
-> `a9b537844a8878851ecfe4c0e310f405b68fc6ef`; negative routes and
+> ingestion remains unavailable. The three Apple IAP routes are live from base
+> commit `a9b537844a8878851ecfe4c0e310f405b68fc6ef`, with strict separate App
+> Review allowlist hardening live from
+> `fe07bedcd4c4da79d35ec9c669aaec8a71be5b14`; negative routes and
 > authenticated no-charge preflight passed, while real signed notification and
 > transaction delivery remain open.
 

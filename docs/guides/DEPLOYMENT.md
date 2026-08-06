@@ -10,11 +10,12 @@ The deployment chain from local development to production.
 > webhook is deployed and returns 503 while its verification secret is
 > intentionally absent, leaving creator ingestion unavailable. Never promote
 > local source to “live” without canonical-origin readback. The August 5 Apple
-> IAP commit `a9b537844a8878851ecfe4c0e310f405b68fc6ef`, migration
-> 015, routes, legal changes, enabled preflight, and narrow allowlist are live
-> and read back. Both Apple Vercel variable names are Production `Sensitive`.
-> ASC V2 URLs are exact; signed delivery and a real Sandbox transaction remain
-> open.
+> IAP base commit `a9b537844a8878851ecfe4c0e310f405b68fc6ef` plus strict
+> owner-test/App Review allowlist hardening
+> `fe07bedcd4c4da79d35ec9c669aaec8a71be5b14`, migration 015, routes, legal
+> changes, and enabled preflight are live and read back. All three Apple Vercel
+> variable names are Production `Sensitive`. ASC V2 URLs are exact; signed
+> delivery and a real Sandbox transaction remain open.
 
 ---
 
@@ -105,7 +106,8 @@ part of step 6 are complete for the current commit. Follow
    `Sensitive`; preserve the existing owner-test list and add the standing App
    Review VERZA UUID only through the separate review variable. Current behavior
    proves exact true preflight and the narrow owner-test list without printing
-   values; the review variable requires a replacement deploy/readback;
+   values; the post-deploy readback now shows all three settings Production
+   `Sensitive`;
 5. deploy via `npx vercel --prod --yes`, record the immutable deployment, then
    verify it owns `https://www.verzatv.com` and read back Apple-aware legal
    pages plus unauthenticated/malformed negative route behavior;
