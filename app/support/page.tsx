@@ -16,8 +16,16 @@ const faqs = [
     a: "Check your connection first, then close and reopen the app or refresh the page. If a specific episode still won't play, email support@verzatv.com with the series name, episode number, device, and app or browser version.",
   },
   {
+    q: "How are iPhone and iPad Series Unlocks purchased?",
+    a: "Eligible full-series unlocks in the iPhone and iPad app are one-time, non-consumable in-app purchases processed only by Apple through StoreKit. Apple shows the localized price before confirmation and bills your Apple Account. You do not need to visit a website or use Stripe to buy an iPhone or iPad Series Unlock.",
+  },
+  {
     q: "I paid to unlock a series but it's still locked",
-    a: "Series Unlocks are tied to the authenticated account used at checkout. Sign in with that account and reopen the series. If it is still locked, email support@verzatv.com with the account email, series name, and transaction details so we can investigate without asking for full card information.",
+    a: "Series Unlocks are tied to the authenticated VERZA account used for the purchase. Sign in with that account and reopen the series. For an Apple in-app purchase, tap Restore Purchases in Profile or on a Series Unlock screen before buying again. If it is still locked, email support@verzatv.com with the account email, series name, and non-sensitive transaction details. Never send your Apple Account password or full payment-card number.",
+  },
+  {
+    q: "How do I restore an Apple Series Unlock?",
+    a: "On iPhone or iPad, sign in to the same VERZA account used for the purchase, then tap Restore Purchases in Profile or on a Series Unlock screen. Restore Purchases rechecks eligible non-consumable purchases with Apple and does not create a new charge. A purchase linked to another live VERZA account cannot be transferred.",
   },
   {
     q: "How do I manage or cancel my VIP subscription?",
@@ -25,7 +33,37 @@ const faqs = [
   },
   {
     q: "How do refunds work?",
-    a: "See our Refund Policy, then email support@verzatv.com with your account email and transaction details. Direct VERZA TV purchases use Stripe; purchases completed after an Amazon handoff are governed by Amazon or the applicable seller's policy.",
+    a: (
+      <>
+        For an iPhone or iPad Series Unlock, Apple handles billing and decides
+        refund requests. Request an eligible refund at{" "}
+        <a
+          href="https://reportaproblem.apple.com/"
+          rel="noopener noreferrer"
+          target="_blank"
+          style={{ color: T.accent }}
+        >
+          reportaproblem.apple.com
+        </a>{" "}
+        or visit{" "}
+        <a
+          href="https://support.apple.com/billing"
+          rel="noopener noreferrer"
+          target="_blank"
+          style={{ color: T.accent }}
+        >
+          Apple Billing Support
+        </a>
+        . VERZA cannot issue or guarantee an Apple refund, but we can help with
+        access, verification, or account-linking problems. For a purchase shown
+        on a Stripe receipt, follow our Refund Policy or email
+        support@verzatv.com with non-sensitive transaction details.
+      </>
+    ),
+  },
+  {
+    q: "Are physical merchandise orders the same as Series Unlocks?",
+    a: "No. A Series Unlock is digital viewing access; physical merchandise is a separate transaction and never unlocks app content. For a previous direct merchandise order, email support@verzatv.com with the order number. A purchase completed after an Amazon handoff is sold and fulfilled by Amazon or the identified seller, whose return and refund policy applies.",
   },
   {
     q: "How do I delete my account?",

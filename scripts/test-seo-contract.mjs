@@ -483,6 +483,39 @@ for (const legalOrSupportPage of [
   );
 }
 
+const supportPage = allPageSources.get("app/support/page.tsx");
+assert.ok(supportPage, "app/support/page.tsx must remain a page");
+assert.match(
+  supportPage,
+  /one-time, non-consumable in-app purchases processed only by Apple through StoreKit/,
+  "support must explain the Apple-only iPhone/iPad Series Unlock purchase path",
+);
+assert.match(
+  supportPage,
+  /Restore Purchases/,
+  "support must explain how to restore an Apple Series Unlock",
+);
+assert.match(
+  supportPage,
+  /https:\/\/reportaproblem\.apple\.com\//,
+  "support must link Apple's refund-request path",
+);
+assert.match(
+  supportPage,
+  /https:\/\/support\.apple\.com\/billing/,
+  "support must link Apple's billing-support path",
+);
+assert.match(
+  supportPage,
+  /physical merchandise is a separate transaction and never unlocks app content/,
+  "support must keep physical merchandise distinct from digital Series Unlocks",
+);
+assert.doesNotMatch(
+  supportPage,
+  /Direct VERZA TV purchases use Stripe/,
+  "support must not collapse Apple in-app purchases into Stripe",
+);
+
 console.log(
   `SEO contract: PASS (${auditedDocumentTitles} document-title branches; ${
     formerlyDoubledSitemapUrlCount} former sitemap duplicates; ${browseKeys.length} browse tabs; ${
