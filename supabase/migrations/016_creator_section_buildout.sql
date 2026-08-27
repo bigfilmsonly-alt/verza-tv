@@ -1,4 +1,10 @@
--- 010: Creator section buildout (Work Order #1) — data model + RLS.
+-- 016: Creator section buildout (Work Order #1) — data model + RLS.
+--
+-- Renumbered from 010 on 2026-08-27: 010_payment_integrity.sql already owns
+-- that slot and is part of the load-bearing 009-015 payment sequence already
+-- applied in production (AGENTS.md rule 10). This migration touches only
+-- public.creators and public.profiles, has no dependency on the payment
+-- sequence, and is additive, so it lands cleanly after 015.
 --
 -- EXTENDS the existing single `creators` table (which already serves as both the
 -- application record AND the creator profile) rather than splitting into separate
