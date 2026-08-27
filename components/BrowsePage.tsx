@@ -870,10 +870,12 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                 grid every 12 tiles; they now live in the shop section of the
                 footer, so browsing stays purely editorial. */}
             {gridItems.map((s) => {
-              // A coming-soon title has key art and no video. It builds no page,
-              // so it must not be a <Link> — tapping one would 404. It renders as
-              // an inert tile carrying the art and a COMING SOON badge, the same
-              // treatment the Reality tab gives its unshot titles.
+              // A coming-soon title has key art and no video. It still gets a
+              // real detail page — art, logline, a Coming Soon pill, no player
+              // and no purchase card — so the tile opens /series/<slug> rather
+              // than /series/<slug>/1, which is the episode route and would have
+              // nothing to play. What it must never show is the play affordance
+              // or a NEW badge, both of which promise a video starts on tap.
               const soon = s.status === "coming_soon";
               const art = (
                 <>
@@ -908,9 +910,13 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               );
 
               return soon ? (
-                <div key={s.slug} className="block min-w-0" aria-label={`${s.title} — coming soon`}>
+                <Link
+                  key={s.slug}
+                  href={`/series/${s.slug}`}
+                  className="block no-underline min-w-0 transition-transform active:scale-[0.97]"
+                >
                   {art}
-                </div>
+                </Link>
               ) : (
                 <Link
                   key={s.slug}

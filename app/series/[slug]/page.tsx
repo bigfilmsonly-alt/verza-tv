@@ -37,10 +37,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const series = getSeriesWithDetail(slug);
   if (!series) return { title: "Not Found" };
 
+  // A coming-soon title has no episodes. Promising "Watch Free" in the tab and
+  // in search results is a claim the page cannot honour, and letting a page
+  // with nothing to play get indexed is thin content under a false headline.
+  const soon = series.status === "coming_soon";
+
   return {
-    title: `${series.title} — Watch Free on VERZA TV`,
+    title: soon
+      ? `${series.title} — Coming Soon to VERZA TV`
+      : `${series.title} — Watch Free on VERZA TV`,
     description: series.logline,
     alternates: { canonical: `/series/${slug}` },
+    ...(soon ? { robots: { index: false, follow: true } } : null),
     openGraph: {
       title: series.title,
       description: series.logline,
@@ -148,7 +156,9 @@ export default async function SeriesPage({ params }: Props) {
             className="text-xs font-medium"
             style={{ color: T.textDim }}
           >
-            {series.episodeCount} episodes
+            {/* A coming-soon title has no episode count worth printing; "0
+                episodes" reads as a broken page rather than an unreleased one. */}
+            {series.status === "coming_soon" ? "Episodes announced soon" : `${series.episodeCount} episodes`}
           </span>
         </div>
 
@@ -213,8 +223,11 @@ export default async function SeriesPage({ params }: Props) {
           </div>
         )}
 
-        {/* Title-specific free-preview badge */}
-        <div
+        {/* Title-specific free-preview badge. Live only: for a coming-soon
+            title freeEpisodes and episodeCount are both 0, so the >= test below
+            is true and this would advertise "All Episodes FREE" on a series
+            that has no episodes to give away. */}
+        {series.status === "live" && <div
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold mb-6"
           style={{
             background: `${T.accent}33`,
@@ -237,7 +250,7 @@ export default async function SeriesPage({ params }: Props) {
           {series.freeEpisodes >= series.episodeCount
             ? "All Episodes FREE"
             : `First ${series.freeEpisodes} Episodes FREE`}
-        </div>
+        </div>}
 
         {series.status === "live" && series.episodeCount > 0 ? (
           <Link
