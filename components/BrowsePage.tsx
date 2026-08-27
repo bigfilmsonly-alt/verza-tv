@@ -207,8 +207,17 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               !TAB_EXCLUSIVE.some((c) => s.categories.includes(c)),
           )
         : tabData[activeTab] ?? [];
-    if (shuffleSeed === 0 || activeTab === "popular") return base;
-    const shuffled = shuffleWithSeed(base, shuffleSeed + activeTab.length);
+    // Playable titles always sort ahead of coming-soon ones, before and after
+    // the shuffle. The shuffle is what makes a tab feel fresh on every load, but
+    // it is indifferent to status, so without this the unplayable tiles scatter
+    // through the grid and a viewer hits one before they have seen everything
+    // they can actually watch.
+    const playableFirst = (list: Series[]) => [
+      ...list.filter((s) => s.status === "live"),
+      ...list.filter((s) => s.status !== "live"),
+    ];
+    if (shuffleSeed === 0 || activeTab === "popular") return playableFirst(base);
+    const shuffled = playableFirst(shuffleWithSeed(base, shuffleSeed + activeTab.length));
     if (activeTab !== "drama") return shuffled;
     // Pin the featured six to the top in FEATURED_NEW order; everything else
     // keeps its freshly shuffled order behind them.
