@@ -14,7 +14,7 @@
  * on a number. Every claim below is a fact that is true today.
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { T } from "@/lib/theme";
@@ -123,8 +123,27 @@ export default function CreatorsLanding({
   const [query, setQuery] = useState("");
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
+  /* Live channel shelf + CTA state. Both are best-effort: if either request
+     fails the page still renders (empty showcase, "Become a creator" CTA)
+     rather than breaking the recruitment surface. */
+  const [liveChannels, setLiveChannels] = useState<CreatorChannel[]>(channels);
+  const [approved, setApproved] = useState(isApprovedCreator);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/creator/channels")
+      .then((r) => r.json())
+      .then((d) => { if (!cancelled && Array.isArray(d?.channels)) setLiveChannels(d.channels); })
+      .catch(() => {});
+    fetch("/api/creator/me")
+      .then((r) => r.json())
+      .then((d) => { if (!cancelled && d?.creator?.status === "approved") setApproved(true); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
   const visible = query.trim()
-    ? channels.filter((c) => {
+    ? liveChannels.filter((c) => {
         const q = query.trim().toLowerCase();
         return (
           c.displayName.toLowerCase().includes(q) ||
@@ -132,10 +151,10 @@ export default function CreatorsLanding({
           c.titles.some((t) => t.title.toLowerCase().includes(q))
         );
       })
-    : channels;
+    : liveChannels;
 
-  const ctaHref = isApprovedCreator ? "/studio" : "/creator";
-  const ctaLabel = isApprovedCreator ? "Creator dashboard" : "Become a creator";
+  const ctaHref = approved ? "/studio" : "/creator";
+  const ctaLabel = approved ? "Creator dashboard" : "Become a creator";
 
   return (
     <div style={{ paddingBottom: "calc(96px + env(safe-area-inset-bottom, 0px))" }}>
@@ -334,10 +353,10 @@ export default function CreatorsLanding({
             style={{ background: T.raised, border: `1px dashed ${T.line}` }}
           >
             <p className="text-[14px] font-bold" style={{ color: T.text }}>
-              {channels.length === 0 ? "The first channels are being built" : "No match"}
+              {liveChannels.length === 0 ? "The first channels are being built" : "No match"}
             </p>
             <p className="text-[13px] mt-1.5 leading-relaxed" style={{ color: T.textDim }}>
-              {channels.length === 0
+              {liveChannels.length === 0
                 ? "Creator channels are opening now. Apply and yours could be among the first on the platform."
                 : "Try a different creator or show name."}
             </p>
@@ -348,7 +367,7 @@ export default function CreatorsLanding({
               <div key={c.handle}>
                 {/* Ribbon: the channel name */}
                 <Link
-                  href={`/c/${c.handle}`}
+                  href={`/@${c.handle}`}
                   className="flex items-center gap-2.5 mb-2.5 no-underline"
                 >
                   {c.avatarUrl ? (
@@ -380,7 +399,7 @@ export default function CreatorsLanding({
                   {c.titles.map((t) => (
                     <Link
                       key={t.slug}
-                      href={`/series/${t.slug}/1`}
+                      href={`/watch/${t.slug}`}
                       className="block no-underline shrink-0"
                       style={{ width: "31%", minWidth: 104 }}
                     >
