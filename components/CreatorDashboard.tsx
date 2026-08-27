@@ -214,6 +214,8 @@ function ApprovedDashboard({ me }: { me: Me }) {
 
       <EarningsPanel />
 
+      <ChannelEditor />
+
       <Uploader muxReady={!!me.muxReady} onCreated={loadContent} />
 
       <h2 className="text-sm font-bold mt-7 mb-3" style={{ color: T.text }}>
@@ -252,9 +254,183 @@ function ApprovedDashboard({ me }: { me: Me }) {
 /* ------------------------------------------------------------------ */
 /*  Earnings panel                                                     */
 /* ------------------------------------------------------------------ */
+/* ================================================================== */
+/*  Channel editor (stage 5)                                           */
+/*  The creator's only write path to their public /@handle page.       */
+/*  Collapsed by default so it never competes with the upload flow.    */
+/* ================================================================== */
+interface ChannelState {
+  handle: string;
+  displayName: string;
+  bio: string;
+  avatarUrl: string;
+  bannerUrl: string;
+  website: string;
+  social: Record<string, string>;
+  published: boolean;
+}
+
+function ChannelEditor() {
+  const [open, setOpen] = useState(false);
+  const [ch, setCh] = useState<ChannelState | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/creator/channel", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (!cancelled && d?.channel) setCh(d.channel); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  const set = (patch: Partial<ChannelState>) =>
+    setCh((prev) => (prev ? { ...prev, ...patch } : prev));
+
+  async function save(extra: Partial<ChannelState> = {}) {
+    if (!ch) return;
+    setBusy(true);
+    setMsg(null);
+    try {
+      const res = await fetch("/api/creator/channel", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...ch, ...extra }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setMsg({ kind: "err", text: body?.error ?? "Could not save" });
+      } else {
+        if (extra.published !== undefined) set({ published: extra.published });
+        setMsg({ kind: "ok", text: extra.published === true ? "Channel is live" : "Saved" });
+      }
+    } catch {
+      setMsg({ kind: "err", text: "Could not save" });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (!ch) return null;
+
+  return (
+    <div className="mt-4 rounded-2xl overflow-hidden" style={{ border: `1px solid ${T.line}` }}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left"
+        style={{ background: T.raised }}
+      >
+        <span>
+          <span className="text-sm font-bold block" style={{ color: T.text }}>Your channel</span>
+          <span className="text-[11px]" style={{ color: ch.published ? T.success : T.textMute }}>
+            {ch.published ? `Live at verzatv.com/@${ch.handle}` : "Not published yet"}
+          </span>
+        </span>
+        <span className="text-lg leading-none" style={{ color: T.textMute, transform: open ? "rotate(45deg)" : "none", transition: "transform .18s" }}>+</span>
+      </button>
+
+      {open && (
+        <div className="px-4 py-4 flex flex-col gap-3" style={{ background: T.surface }}>
+          <Field label="Handle">
+            <input
+              value={ch.handle}
+              onChange={(e) => set({ handle: e.target.value })}
+              placeholder="yourname"
+              style={input}
+            />
+            <p className="text-[11px] mt-1" style={{ color: T.textMute }}>
+              verzatv.com/@{ch.handle || "yourname"}
+            </p>
+          </Field>
+
+          <Field label="Channel name">
+            <input value={ch.displayName} onChange={(e) => set({ displayName: e.target.value })} style={input} />
+          </Field>
+
+          <Field label="Bio">
+            <textarea
+              value={ch.bio}
+              onChange={(e) => set({ bio: e.target.value.slice(0, 400) })}
+              rows={3}
+              style={{ ...input, resize: "vertical" }}
+            />
+            <p className="text-[11px] mt-1" style={{ color: T.textMute }}>{ch.bio.length}/400</p>
+          </Field>
+
+          <Field label="Avatar image URL">
+            <input value={ch.avatarUrl} onChange={(e) => set({ avatarUrl: e.target.value })} placeholder="https://" style={input} />
+          </Field>
+
+          <Field label="Banner image URL">
+            <input value={ch.bannerUrl} onChange={(e) => set({ bannerUrl: e.target.value })} placeholder="https://" style={input} />
+          </Field>
+
+          <Field label="Website">
+            <input value={ch.website} onChange={(e) => set({ website: e.target.value })} placeholder="https://" style={input} />
+          </Field>
+
+          {(["instagram", "tiktok", "youtube", "imdb"] as const).map((k) => (
+            <Field key={k} label={k[0].toUpperCase() + k.slice(1)}>
+              <input
+                value={ch.social?.[k] ?? ""}
+                onChange={(e) => set({ social: { ...ch.social, [k]: e.target.value } })}
+                placeholder="https://"
+                style={input}
+              />
+            </Field>
+          ))}
+
+          {msg && <Notice color={msg.kind === "ok" ? T.success : T.accent}>{msg.text}</Notice>}
+
+          <div className="flex items-center gap-2 mt-1">
+            <button
+              onClick={() => save()}
+              disabled={busy}
+              className="flex-1 py-3 rounded-xl text-sm font-bold"
+              style={{ background: T.raised, color: T.text, opacity: busy ? 0.6 : 1 }}
+            >
+              {busy ? "Saving…" : "Save"}
+            </button>
+            <button
+              onClick={() => save({ published: !ch.published })}
+              disabled={busy}
+              className="flex-1 py-3 rounded-xl text-sm font-bold"
+              style={{
+                background: ch.published ? T.raised : `linear-gradient(135deg, ${T.accent}, ${T.purple})`,
+                color: "#fff",
+                opacity: busy ? 0.6 : 1,
+              }}
+            >
+              {ch.published ? "Unpublish" : "Publish channel"}
+            </button>
+          </div>
+
+          {ch.published && (
+            <a
+              href={`/@${ch.handle}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[12px] font-semibold text-center no-underline"
+              style={{ color: T.accent }}
+            >
+              View your public channel
+            </a>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function EarningsPanel() {
   const [data, setData] = useState<{
     totals: { titles: number; published: number; sales: number; grossCents: number; creatorCents: number };
+    // /api/creator/analytics already computes per-title views; the panel just
+    // never surfaced them.
+    items?: { views: number }[];
+    payoutEmail?: string | null;
   } | null>(null);
 
   useEffect(() => {
@@ -265,14 +441,24 @@ function EarningsPanel() {
   }, []);
 
   const t = data?.totals;
+  const totalViews = (data?.items ?? []).reduce((sum, i) => sum + (i.views ?? 0), 0);
   return (
     <div
-      className="rounded-2xl p-4 grid grid-cols-3 gap-2"
+      className="rounded-2xl p-4 grid grid-cols-4 gap-2"
       style={{ background: "rgba(139,92,246,0.08)", border: `1px solid rgba(139,92,246,0.2)` }}
     >
       <Stat label="Earnings" value={t ? money(t.creatorCents) : "-"} accent />
+      <Stat label="Views" value={t ? String(totalViews) : "-"} />
       <Stat label="Sales" value={t ? String(t.sales) : "-"} />
       <Stat label="Live" value={t ? String(t.published) : "-"} />
+      {/* Payout status. Deliberately states readiness only, never an amount
+          owed or a payment date: raw banking detail never enters the app and
+          commercial terms go to approved creators separately. */}
+      <p className="col-span-4 text-[11px] text-center mt-1" style={{ color: T.textMute }}>
+        {data?.payoutEmail
+          ? `Payouts set up for ${data.payoutEmail}`
+          : "Payout details are collected separately after approval"}
+      </p>
     </div>
   );
 }
