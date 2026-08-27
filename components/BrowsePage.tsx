@@ -341,7 +341,9 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
   const gridItems = filtered.slice(0, page * PAGE_SIZE);
   const hasMore = gridItems.length < filtered.length;
   const sentinelRef = useRef<HTMLDivElement | null>(null);
-  useEffect(() => { setPage(1); }, [activeTab]);
+  // queueMicrotask, matching the shuffleSeed/loadMe pattern elsewhere in this
+  // file: a synchronous setState inside an effect cascades renders.
+  useEffect(() => { queueMicrotask(() => setPage(1)); }, [activeTab]);
   useEffect(() => {
     if (!hasMore) return;
     const el = sentinelRef.current;

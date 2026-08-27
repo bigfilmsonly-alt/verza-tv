@@ -1026,7 +1026,8 @@ export default function EpisodeFeed({
   const [hasSwiped, setHasSwiped] = useState(false);
   useEffect(() => {
     const idx = episodes.findIndex((e) => e.number === startEpisode);
-    if (activeIndex !== (idx >= 0 ? idx : 0)) setHasSwiped(true);
+    // Deferred: a synchronous setState inside an effect cascades renders.
+    if (activeIndex !== (idx >= 0 ? idx : 0)) queueMicrotask(() => setHasSwiped(true));
   }, [activeIndex, episodes, startEpisode]);
   const [muted, setMuted] = useState(() => {
     if (typeof window !== "undefined") return localStorage.getItem("verza-muted") !== "false";
