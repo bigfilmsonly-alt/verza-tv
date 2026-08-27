@@ -27,9 +27,9 @@ const GENRE_DESCRIPTIONS: Record<string, string> = {
   anime:
     "The Anime category is marked coming soon on VERZA TV; no anime titles are currently live in this catalog.",
   espanol:
-    "The Español category is marked coming soon on VERZA TV; no Spanish-language titles are currently live in this catalog.",
+    "Telenovela-style micro-dramas in Spanish on VERZA TV. Forbidden romance, betrayal and power, every episode vertical and under two minutes.",
   bollywood:
-    "The Bollywood category is marked coming soon on VERZA TV; no Bollywood titles are currently live in this catalog.",
+    "Hindi-language micro-dramas on VERZA TV. Arranged matches, family drama and second chances, with English subtitles throughout.",
   creators:
     "Learn about the Verza creator program and apply to the current profit-sharing beta. No independent-creator series are currently live in this catalog.",
   tubi:

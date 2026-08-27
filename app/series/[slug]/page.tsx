@@ -43,9 +43,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const soon = series.status === "coming_soon";
 
   return {
-    title: soon
-      ? `${series.title} — Coming Soon to VERZA TV`
-      : `${series.title} — Watch Free on VERZA TV`,
+    // No brand suffix here: the root template in app/layout.tsx already appends
+    // " | VERZA TV", so spelling it out produced "… on VERZA TV | VERZA TV" on
+    // all 91 series pages. The episode route has always relied on the template
+    // and reads correctly, so this matches its convention rather than adding a
+    // third one.
+    title: soon ? `${series.title} — Coming Soon` : `${series.title} — Watch Free`,
     description: series.logline,
     alternates: { canonical: `/series/${slug}` },
     ...(soon ? { robots: { index: false, follow: true } } : null),
@@ -90,7 +93,7 @@ export default async function SeriesPage({ params }: Props) {
             logline: series.logline,
             genre: series.genre,
             episodeCount: series.episodeCount,
-            posterUrl: `${BASE_URL}${series.posterUrl}`,
+            posterUrl: series.posterUrl,
           }),
           breadcrumbSchema([
             { name: "Home", url: BASE_URL },

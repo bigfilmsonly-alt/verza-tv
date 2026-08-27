@@ -146,9 +146,15 @@ export default function EpisodeDropdown({
                   <span className="text-[10px] font-bold flex-shrink-0" style={{ color: T.accent }}>NOW</span>
                 ) : isFree ? (
                   <span className="text-[10px] font-bold flex-shrink-0" style={{ color: T.success }}>FREE</span>
-                ) : ep.number === freeEpisodes + 1 ? (
-                  <span className="text-[10px] font-bold flex-shrink-0" style={{ color: T.accent }}>$1.99</span>
                 ) : (
+                  /* Every paid row gets the same padlock. This slot used to
+                     stamp "$1.99" on the first paid episode only, which was
+                     wrong twice over. It implied per-episode pricing when the
+                     product is a single full-series unlock, and this component
+                     mounts OUTSIDE the HideInIOSApp wrapper on the series page,
+                     so that price rendered inside the iOS WebView — an Apple
+                     3.1.1 violation, in hard-coded USD on top of a StoreKit
+                     flow that localises its own storefront pricing. */
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={T.textMute} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                     <path d="M7 11V7a5 5 0 0 1 10 0v4" />

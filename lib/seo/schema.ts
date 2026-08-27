@@ -144,7 +144,12 @@ export function tvSeriesSchema(show: TVSeriesInput) {
     genre: show.genre,
     numberOfEpisodes: show.episodeCount,
     url: `${BASE_URL}/series/${show.slug}`,
-    image: show.posterUrl ? `${BASE_URL}${show.posterUrl}` : undefined,
+    // new URL() is idempotent: it resolves a relative path against BASE_URL and
+    // returns an already-absolute one untouched. Two call sites used to prefix
+    // BASE_URL themselves before calling in, producing
+    // "https://www.verzatv.comhttps://www.verzatv.com/posters/..." on every
+    // series and episode page. Hardening here means neither convention breaks it.
+    image: show.posterUrl ? new URL(show.posterUrl, BASE_URL).href : undefined,
     ...(show.rating
       ? {
           contentRating: show.rating,

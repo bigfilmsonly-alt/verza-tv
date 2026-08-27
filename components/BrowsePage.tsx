@@ -49,16 +49,10 @@ const TAB_EXCLUSIVE: BrowseCategory[] = ["espanol", "bollywood", "reality", "red
    exact set the hero carousel rotates through. They are PINNED, not shuffled:
    the rest of Drama reshuffles every load, so without this the promoted drop
    sank into the grid and the hero showed whatever landed first.
-   Order here IS display order — reorder this array to reorder the shelf.
-   Every entry must be live, Drama-visible and carry categories ["new"]; they
-   render the NEW badge in both placements. Kept out: the-crown, which has
-   popularRank 4 and is already promoted through Hot as Trending.
-   On Drama this set is the ONLY source of a NEW badge. Deriving the badge from
-   categories:["new"] as well scattered it over four more tiles further down the
-   shuffled grid (married-to-my-brothers-ex, tangled-in-desire,
-   the-escaping-mistress, trial-marriage-to-a-billionaire-s2), so "new" read as
-   random rather than as this week's drop. The category-derived badge still
-   applies on Hot, where it marks the New half of that consolidated tab. */
+   Order here IS display order — reorder this array to reorder the shelf, and
+   it drives both the badged top shelf and the hero, so the two always agree.
+   Every entry must be live, Drama-visible and carry categories ["new"].
+   Kept out: the-crown, which has popularRank 4 and is promoted through Hot. */
 const FEATURED_NEW = [
   "lost-and-found",
   "help-im-falling-in-love-with-my-rude-ceo",
@@ -67,7 +61,6 @@ const FEATURED_NEW = [
   "the-inheritance-game",
   "billionaire-daughters-love-triangle",
 ] as const;
-const FEATURED_NEW_SET = new Set<string>(FEATURED_NEW);
 
 /* ------------------------------------------------------------------ */
 /*  Badges are POSITIONAL, and the same rule runs on every browse tab.  */
@@ -94,6 +87,28 @@ const FEATURED_NEW_SET = new Set<string>(FEATURED_NEW);
 /* ------------------------------------------------------------------ */
 const TRENDING_SLOTS = 3;
 const NEW_SLOTS = 6;
+/* New is an editorial claim about a curated shelf, so it only applies where the
+   head IS hand-picked: Drama's featured six and the two language drops. Hot is
+   excluded because its order is popularRank — position 1 there means "most
+   watched", not "newest". Badging Hot positionally put NEW on the six
+   highest-ranked titles in the catalogue while the titles actually tagged
+   new sat unbadged further down, which is the label pointing at exactly the
+   wrong thing. Hot still shows Trending, because on a popularity chart the top
+   three genuinely are. */
+const NEW_BADGE_TABS = new Set<BrowseCategory>(["drama", "espanol", "bollywood"]);
+
+/* Tabs that render their own section instead of the shared poster grid. They
+   are never empty even when tabData is, so the Coming Soon placeholder must not
+   fire on them. Kept as one list because these used to be five scattered
+   `activeTab === "..."` checks with no fallback, which is exactly how Anime
+   ended up rendering a blank page. */
+const CUSTOM_SECTION_TABS = new Set<BrowseCategory>([
+  "tubi",
+  "creators",
+  "music",
+  "reality",
+  "red-carpet",
+]);
 /* Below this many playable titles a tab has no shelf to rank, and calling the
    top three of three "Trending" is noise dressed as editorial. Such a tab
    renders clean. */
@@ -263,27 +278,23 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
     const CURATED_MAX = 12;
     if (base.length <= CURATED_MAX) return playableFirst(base);
 
-    if (shuffleSeed === 0) return playableFirst(base);
-
-    if (activeTab === "drama") {
-      // Drama's featured block is the FEATURED_NEW six, in that exact order.
-      // Everything behind it reshuffles per load: the badged shelf stays fixed
-      // and deliberate while the long tail still feels fresh on a return visit.
-      const featured = FEATURED_NEW.map((slug) => base.find((x) => x.slug === slug)).filter(
-        (x): x is Series => Boolean(x),
-      );
-      const tail = shuffleWithSeed(
-        base.filter((x) => !FEATURED_NEW_SET.has(x.slug)),
-        shuffleSeed + activeTab.length,
-      );
-      return [...featured, ...playableFirst(tail)];
-    }
-
-    // Any other long tab: hold the first NEW_SLOTS in catalogue order so the
-    // badged shelf is stable, shuffle only what sits behind it.
-    const head = base.slice(0, NEW_SLOTS);
-    const tail = shuffleWithSeed(base.slice(NEW_SLOTS), shuffleSeed + activeTab.length);
-    return playableFirst([...head, ...tail]);
+    // The head is computed BEFORE the shuffle-seed check on purpose. shuffleSeed
+    // is 0 on the server and on the first client render, so returning early here
+    // used to paint one set of badges into the shipped HTML and a different set
+    // a frame after mount — the badged shelf visibly hopped to three other
+    // titles, and the hero showed something that was not tile 0. The featured
+    // block is deterministic, so it must be identical in all three states;
+    // only the tail is allowed to depend on the seed.
+    const head =
+      activeTab === "drama"
+        ? FEATURED_NEW.map((slug) => base.find((x) => x.slug === slug)).filter(
+            (x): x is Series => Boolean(x),
+          )
+        : base.slice(0, NEW_SLOTS);
+    const headSet = new Set(head.map((x) => x.slug));
+    const rest = base.filter((x) => !headSet.has(x.slug));
+    const tail = shuffleSeed === 0 ? rest : shuffleWithSeed(rest, shuffleSeed + activeTab.length);
+    return [...head, ...playableFirst(tail)];
   }, [activeTab, tabData, liveSeries, shuffleSeed]);
   // The hero rotates the SAME six that are pinned at the top of Drama, so the
   // carousel and the top shelf always show the same titles and the same flyers.
@@ -378,6 +389,12 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
     },
     [activeTab, activeTabs],
   );
+
+  // Display name for the current tab, for the empty-state panel. Falls back to
+  // the key so a tab added without a label still reads as a section rather than
+  // as "undefined is coming soon".
+  const activeTabLabel =
+    activeTabs.find((tb) => tb.key === activeTab)?.label ?? activeTab;
 
   // Swipe between tabs: swipe left → next tab, swipe right → prev tab
   const touchStartX = useRef<number | null>(null);
@@ -565,11 +582,51 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </div>
       )}
 
-      {/* Coming Soon — for empty categories (skip Reality/Music/Red Carpet since they show inline).
-          Anime & Español launch here: a branded placeholder that auto-hides the
-          moment their posters exist. Other empty categories fall back to the
-          generic message. Same card, icon, colors and spacing as the rest of the
-          site — no new design language. */}
+      {/* Coming Soon — the branded placeholder for a tab with no titles yet.
+          This comment used to describe a panel that had been deleted, so Anime
+          rendered nothing at all: no hero, no grid, no custom section, and
+          .tab-slide sets no min-height, so the footer slid up flush under the
+          tab bar and a top-level nav tab looked broken rather than unlaunched.
+          Espanol and Bollywood have since launched and auto-hide from here, as
+          the original comment promised. It reuses the Coming Soon badge palette
+          so it introduces no new design language. */}
+      {gridItems.length === 0 && !CUSTOM_SECTION_TABS.has(activeTab) && (
+        <div className="px-6 pt-10 pb-16 flex flex-col items-center text-center">
+          <div
+            className="w-full max-w-sm rounded-2xl px-6 py-10"
+            style={{
+              background: BADGE_STYLE.soon.bg,
+              border: "1px solid rgba(255,255,255,0.28)",
+              backdropFilter: "blur(4px)",
+            }}
+          >
+            <div
+              className="mx-auto mb-4 flex items-center justify-center rounded-full"
+              style={{ width: 44, height: 44, background: "rgba(255,255,255,0.08)" }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F5F4F8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+            </div>
+            <p className="text-base font-bold mb-1.5" style={{ color: "#F5F4F8" }}>
+              {activeTabLabel} is coming soon
+            </p>
+            <p className="text-xs leading-relaxed" style={{ color: "#8A8A9A" }}>
+              We&rsquo;re lining up the first titles for this section. Everything else on
+              VERZA is ready to watch right now.
+            </p>
+            <button
+              type="button"
+              onClick={() => selectTab("drama")}
+              className="mt-5 inline-flex items-center justify-center rounded-full px-5 py-2.5 text-xs font-bold transition-transform active:scale-95"
+              style={{ background: "linear-gradient(135deg, #E0115F, #8B5CF6)", color: "#fff" }}
+            >
+              Browse Drama
+            </button>
+          </div>
+        </div>
+      )}
       {/* Tubi — authorized partner. Full, polished, high-converting promo that
           click-throughs to tubitv.com in a new tab (X-Frame-Options blocks a true
           in-site embed; native app uses a WebView). Copy is original value-prop,
@@ -953,7 +1010,8 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               // the guard is explicit so a future ordering change cannot put a
               // "Trending" badge on something with no video.
               const trending = badgesApply && !soon && i < TRENDING_SLOTS;
-              const isNew = badgesApply && !soon && i < NEW_SLOTS;
+              const isNew =
+                badgesApply && !soon && i < NEW_SLOTS && NEW_BADGE_TABS.has(activeTab);
               const art = (
                 <>
                   <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>

@@ -8,6 +8,7 @@ import {
   getSeriesBySlug,
   getEpisode,
   getEpisodesForSeries,
+  getReturnTab,
 } from "@/lib/catalog";
 import { getPlayback } from "@/lib/mux-public-map";
 import {
@@ -122,13 +123,10 @@ export default async function EpisodePage({ params }: Props) {
   // Horizontal swipe is only for WIDESCREEN (16:9) content. Red carpet clips
   // are vertical 9:16 — they play in the standard vertical feed like dramas.
   const isHorizontalSwipe = slug === "storage-pirates";
-  const backTab = series.categories.includes("red-carpet")
-    ? "red-carpet"
-    : series.categories.includes("reality")
-      ? "reality"
-      : series.categories.includes("music")
-        ? "music"
-        : null;
+  // Derived from the shared list rather than a hand-written chain, so a title
+  // on a language tab returns to that tab instead of to "/" — which is Drama,
+  // and Drama excludes every tab-exclusive category by construction.
+  const backTab = getReturnTab(series);
 
   return (
     <>
@@ -141,7 +139,7 @@ export default async function EpisodePage({ params }: Props) {
               logline: series.logline,
               genre: series.genre,
               episodeCount: series.episodeCount,
-              posterUrl: `${BASE_URL}${series.posterUrl}`,
+              posterUrl: series.posterUrl,
             },
             {
               number: ep.number,
@@ -161,7 +159,7 @@ export default async function EpisodePage({ params }: Props) {
             logline: series.logline,
             genre: series.genre,
             episodeCount: series.episodeCount,
-            posterUrl: `${BASE_URL}${series.posterUrl}`,
+            posterUrl: series.posterUrl,
           }),
           breadcrumbSchema([
             { name: "Home", url: BASE_URL },

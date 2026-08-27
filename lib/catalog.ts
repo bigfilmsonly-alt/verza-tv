@@ -24,10 +24,11 @@ export const BROWSE_TABS: { key: BrowseCategory; label: string }[] = [
   // logo and a sponsored outbound partner spotlight; it does not expose Tubi
   // playback capabilities inside Verza.
   { key: "tubi", label: "Tubi" },
-  // Anime, Español, Bollywood and Creators launch in a "Coming Soon" state: no
-  // series carry these categories yet, so getSeriesByCategory() returns [] and
-  // BrowsePage shows the branded placeholder. Adding live Series with the matching
-  // category (e.g. categories: ["bollywood"]) later renders them in the standard grid.
+  // Español and Bollywood are LIVE (5 and 6 playable titles, plus their
+  // coming-soon slate). Anime is the only category still carrying no rows at
+  // all: getSeriesByCategory("anime") returns [] and BrowsePage renders the
+  // branded Coming Soon placeholder. Adding live Series with the matching
+  // category renders them in the standard grid and the placeholder auto-hides.
   { key: "anime", label: "Anime" },
   { key: "espanol", label: "Español" },
   { key: "bollywood", label: "Bollywood" },
@@ -38,6 +39,27 @@ export const BROWSE_TABS: { key: BrowseCategory; label: string }[] = [
   { key: "red-carpet", label: "Red Carpet" },
   { key: "music", label: "Music" },
 ];
+
+/* Categories that own their own browse tab. A title carrying one of these is
+   NOT in the Drama grid, so backing out of one of its episodes must return to
+   that tab and not to "/". Exported as one list because this used to be two
+   hand-written chains — TAB_EXCLUSIVE in BrowsePage and a separate ternary in
+   the episode page — and the episode-page copy was never updated when Espanol
+   and Bollywood launched, ejecting viewers of 651 episode pages into a grid
+   that structurally cannot contain the title they just left. One list, so the
+   next tab cannot regress the same way. Order matters: first match wins. */
+export const TAB_EXCLUSIVE_CATEGORIES: BrowseCategory[] = [
+  "red-carpet",
+  "reality",
+  "music",
+  "espanol",
+  "bollywood",
+];
+
+/** The browse tab a series belongs to, or null when it lives in the Drama grid. */
+export function getReturnTab(series: Series): BrowseCategory | null {
+  return TAB_EXCLUSIVE_CATEGORIES.find((c) => series.categories.includes(c)) ?? null;
+}
 
 export type PosterMood =
   | "ballroom" | "noir" | "rose" | "sunset" | "ice"
@@ -788,7 +810,13 @@ export const catalog: Series[] = [
     channel: "VERZA Originals",
     categories: ["drama"],
     episodeCount: 56,
-    posterUrl: "/posters/the-dumb-billionaire-heiress-in-love.png",
+    /* Its own art, which was already in the repo and referenced by nothing.
+       This pointed at the Part I poster — art belonging to a different,
+       wholly-free series whose public title is "A Fortune to Die For" and whose
+       key art has THAT title burned into it. So this page rendered an H1 of
+       "…Pt. II" over a poster reading "A FORTUNE TO DIE FOR", and both series
+       shipped the same hero, og:image and JSON-LD thumbnail. */
+    posterUrl: "/posters/the-dumb-billionaire-heiress-pt-2.png",
     freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(56), status: "live",
   },
   {
