@@ -295,11 +295,24 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
     // titles, and the hero showed something that was not tile 0. The featured
     // block is deterministic, so it must be identical in all three states;
     // only the tail is allowed to depend on the seed.
+    // Drama's head is two pinned shelves: the FEATURED_NEW drop, then the three
+    // highest-ranked titles in the catalogue. Slots 7-9 used to be whatever the
+    // shuffle dropped there, so the Trending row named three different titles on
+    // every reload — the badge was fixed but its subjects were not, which is the
+    // same randomness one level down. Pinning by popularRank also makes the
+    // label true, and makes Drama name the same three titles Hot ranks 1-3
+    // instead of the two tabs contradicting each other.
     const head =
       activeTab === "drama"
-        ? FEATURED_NEW.map((slug) => base.find((x) => x.slug === slug)).filter(
-            (x): x is Series => Boolean(x),
-          )
+        ? [
+            ...FEATURED_NEW.map((slug) => base.find((x) => x.slug === slug)).filter(
+              (x): x is Series => Boolean(x),
+            ),
+            ...base
+              .filter((x) => x.popularRank && !FEATURED_NEW.includes(x.slug as never))
+              .sort((a, b) => (a.popularRank ?? 99) - (b.popularRank ?? 99))
+              .slice(0, TRENDING_END - TRENDING_START),
+          ]
         : base.slice(0, NEW_SLOTS);
     const headSet = new Set(head.map((x) => x.slug));
     const rest = base.filter((x) => !headSet.has(x.slug));
