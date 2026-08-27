@@ -1,6 +1,6 @@
 export function GET() {
   const baseUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verzatv.com";
 
   const sitemaps = [
     `${baseUrl}/sitemaps/shows.xml`,

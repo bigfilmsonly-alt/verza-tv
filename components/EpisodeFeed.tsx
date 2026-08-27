@@ -532,11 +532,15 @@ function EpisodeSlide({
     async function attach() {
       if (cancelled || !vid || !hlsUrl) return;
 
-      // Prefer hls.js (MSE) whenever it's supported — Chrome, Edge, Firefox,
-      // desktop Safari. Some Chrome versions answer "maybe" to
-      // canPlayType(HLS) but then stall forever at readyState 0, so native
-      // HLS is only trustworthy where hls.js CAN'T run (iOS Safari, which
-      // has no MSE — and where native HLS genuinely works).
+      // Prefer hls.js (MSE) whenever it's supported. Some Chrome versions
+      // answer "maybe" to canPlayType(HLS) but then stall forever at
+      // readyState 0, so native HLS is only trusted where hls.js CAN'T run.
+      //
+      // DO NOT assume this branch means "not iOS". hls.js resolves
+      // ManagedMediaSource first and iPhone Safari has shipped it since
+      // iOS 17.1, so Hls.isSupported() is TRUE on a modern iPhone and the MSE
+      // path below runs there — a transmux Worker + SourceBuffer per attached
+      // slide, not the single cheap native element this file used to assume.
       const Hls = await getHls();
       if (cancelled || !vid) return;
 
@@ -1012,6 +1016,18 @@ export default function EpisodeFeed({
     const idx = episodes.findIndex((e) => e.number === startEpisode);
     return idx >= 0 ? idx : 0;
   });
+
+  // A poster belongs to ENTERING a series, not to moving through it. It covers
+  // the cold-start gap on the episode the viewer arrives on; from the first
+  // swipe onward every slide loads over plain black instead, so episode to
+  // episode transitions flash black rather than flashing the poster. Slides are
+  // windowed and remount, so this is tracked for the whole session rather than
+  // derived per slide.
+  const [hasSwiped, setHasSwiped] = useState(false);
+  useEffect(() => {
+    const idx = episodes.findIndex((e) => e.number === startEpisode);
+    if (activeIndex !== (idx >= 0 ? idx : 0)) setHasSwiped(true);
+  }, [activeIndex, episodes, startEpisode]);
   const [muted, setMuted] = useState(() => {
     if (typeof window !== "undefined") return localStorage.getItem("verza-muted") !== "false";
     return true;
@@ -1043,6 +1059,27 @@ export default function EpisodeFeed({
     }, 250);
     return () => clearTimeout(t);
   }, [activeIndex, authFree, authResolved, episodes, seriesSlug]);
+
+  /* Keep the document title in step with the episode the viewer is actually on.
+     The feed advances episodes with history.replaceState, which updates the URL
+     but does NOT re-run the route's generateMetadata — so the tab kept showing
+     the episode the viewer ENTERED on no matter how far they swiped. Mirror the
+     server's format, including the "| VERZA TV" that layout.tsx's title.template
+     appends server-side. og/twitter follow so an in-page share reflects the
+     current episode; crawlers still read the correct per-episode server tags. */
+  useEffect(() => {
+    const ep = episodes[activeIndex];
+    if (!ep) return;
+    document.title = `${seriesTitle} — ${ep.title} | VERZA TV`;
+    const url = `${window.location.origin}/series/${seriesSlug}/${ep.number}`;
+    const setMeta = (selector: string, value: string) => {
+      const el = document.querySelector<HTMLMetaElement>(selector);
+      if (el) el.content = value;
+    };
+    setMeta('meta[property="og:title"]', `${ep.title} — ${seriesTitle}`);
+    setMeta('meta[property="og:url"]', url);
+    setMeta('meta[name="twitter:title"]', `${ep.title} — ${seriesTitle}`);
+  }, [activeIndex, episodes, seriesSlug, seriesTitle]);
 
   const [unlockLoading, setUnlockLoading] = useState(false);
   const [unlockError, setUnlockError] = useState<string | null>(null);
@@ -1508,7 +1545,7 @@ export default function EpisodeFeed({
               <EpisodeSlide
                 episode={ep}
                 seriesSlug={seriesSlug}
-                posterUrl={posterUrl}
+                posterUrl={!hasSwiped && ep.number === startEpisode ? posterUrl : ""}
                 isActive={i === activeIndex}
                 isNear={Math.abs(i - activeIndex) <= 1}
                 muted={muted}

@@ -9,7 +9,7 @@ import { getPlayback } from "@/lib/mux-public-map";
 import { getClipBySlug, clipDuration, clipDeepLink, clipAppScheme } from "@/lib/clips";
 import JsonLd from "@/components/JsonLd";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verzatv.com";
 const APP_ID = process.env.NEXT_PUBLIC_APPLE_APP_ID; // Smart App Banner only when a real App Store id exists
 
 /** Only catalog-free episodes may publish durable Mux image/video URLs. */

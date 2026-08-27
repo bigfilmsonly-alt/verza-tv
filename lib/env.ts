@@ -7,7 +7,7 @@ function getEnv(key: string, required = false): string {
 }
 
 export const env = {
-  siteUrl: getEnv("NEXT_PUBLIC_SITE_URL") || "https://verzatv.com",
+  siteUrl: getEnv("NEXT_PUBLIC_SITE_URL") || "https://www.verzatv.com",
   supabaseUrl: getEnv("SUPABASE_URL"),
   supabaseAnonKey: getEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
   supabaseServiceKey: getEnv("SUPABASE_SERVICE_ROLE_KEY"),

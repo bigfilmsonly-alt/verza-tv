@@ -35,6 +35,16 @@ function shuffleWithSeed<T>(arr: T[], seed: number): T[] {
   return out;
 }
 
+/* Categories whose titles live in their OWN tab and nowhere else. The Drama
+   grid is the catch-all, so anything listed here is subtracted from it.
+   - espanol / bollywood: language-exclusive. A Spanish or Hindi title in the
+     English Drama grid is a content mismatch, not a bonus.
+   - reality / red-carpet: those tabs render their own custom sections, so a
+     title appearing in Drama as well would be a duplicate.
+   Add a category here the moment it gets its own tab. scripts/audit-perf.ts
+   asserts every tab-exclusive category is present. */
+const TAB_EXCLUSIVE: BrowseCategory[] = ["espanol", "bollywood", "reality", "red-carpet"];
+
 function Badge({ type }: { type: "trending" | "new" }) {
   return (
     <div
@@ -154,9 +164,8 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
       activeTab === "drama"
         ? liveSeries.filter(
             (s) =>
-              s.slug !== "too-much-junk" &&
-              !s.categories.includes("red-carpet") &&
-              !s.categories.includes("reality"),
+              s.slug !== "too-much-junk" && // Music tab only
+              !TAB_EXCLUSIVE.some((c) => s.categories.includes(c)),
           )
         : tabData[activeTab] ?? [];
     if (shuffleSeed === 0 || activeTab === "popular") return base;
@@ -174,10 +183,15 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
   useEffect(() => {
     queueMicrotask(() => setHeroIdx(0));
     if (typeof window !== "undefined") {
-      window.scrollTo(0, 0);
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
-      (document.querySelector(".device-screen") as HTMLElement | null)?.scrollTo?.(0, 0);
+      // Every one of these MUST pass behavior:"instant". globals.css sets
+      // `* { scroll-behavior: smooth }`, which applies to these scrolling
+      // elements too, so a bare scrollTo(0,0) ANIMATES the reset — switching
+      // tabs visibly scrolled the page up instead of opening at the top.
+      const instant = { top: 0, left: 0, behavior: "instant" as ScrollBehavior };
+      window.scrollTo(instant);
+      document.documentElement.scrollTo(instant);
+      document.body.scrollTo?.(instant);
+      (document.querySelector(".device-screen") as HTMLElement | null)?.scrollTo?.(instant);
     }
   }, [activeTab]);
 
@@ -283,7 +297,29 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
   );
 
   // Show ALL filtered series in the grid (not just the ones after the hero)
-  const gridItems = filtered;
+  // The grid grows in pages instead of mounting the whole catalogue at once.
+  // A decoded bitmap costs width*height*4 in RAM regardless of file size, and
+  // the Drama tab is ~78 tiles; that standing cost left a phone with no
+  // headroom before the video pipelines allocated. The sentinel loads the next
+  // page before the user reaches it, so scrolling still feels continuous.
+  // Crawlers are unaffected: app/page.tsx renders every title in <noscript>.
+  const PAGE_SIZE = 24;
+  const [page, setPage] = useState(1);
+  const gridItems = filtered.slice(0, page * PAGE_SIZE);
+  const hasMore = gridItems.length < filtered.length;
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => { setPage(1); }, [activeTab]);
+  useEffect(() => {
+    if (!hasMore) return;
+    const el = sentinelRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => { if (entries.some((e) => e.isIntersecting)) setPage((prev) => prev + 1); },
+      { rootMargin: "800px 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [hasMore, gridItems.length]);
 
   return (
     <div onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
@@ -884,10 +920,19 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                 }}
               >
                 {current.posterUrl ? (
-                  /* All hero posters stay mounted and CROSSFADE — swapping a
-                     single img src hard-cut between slides. */
-                  heroSlides.map((s, i) =>
-                    s.posterUrl ? (
+                  /* Hero posters CROSSFADE, so two layers must be mounted at
+                     once — swapping a single img src hard-cut between slides.
+                     But only TWO: the outgoing slide and the one coming next.
+                     Mounting all of them kept ~30MB of decoded bitmap pinned in
+                     the viewport, where WebKit never reclaims it because every
+                     layer is technically visible, and this subtree remounts on
+                     every tab switch. The incoming layer is mounted a full
+                     rotation early, so it is decoded before it fades in. */
+                  heroSlides.map((s, i) => {
+                    const activeIdx = heroIdx % heroSlides.length;
+                    const nextIdx = (activeIdx + 1) % heroSlides.length;
+                    if (i !== activeIdx && i !== nextIdx) return null;
+                    return s.posterUrl ? (
                       <Image
                         key={s.slug}
                         src={s.posterUrl}
@@ -896,10 +941,10 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                         priority={i === 0}
                         sizes="(max-width: 440px) 80vw, 320px"
                         className="object-contain hero-crossfade"
-                        style={{ opacity: i === heroIdx % heroSlides.length ? 1 : 0 }}
+                        style={{ opacity: i === activeIdx ? 1 : 0 }}
                       />
-                    ) : null,
-                  )
+                    ) : null;
+                  })
                 ) : (
                   <div
                     className="absolute inset-0 flex items-center justify-center text-lg font-bold"
@@ -1005,6 +1050,10 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                 </Link>
             ))}
           </div>
+          {/* Paging sentinel — the observer above watches this and appends the
+              next page while it is still a screen below the fold, so the grid
+              reads as one continuous list. Rendered only while pages remain. */}
+          {hasMore && <div ref={sentinelRef} aria-hidden="true" style={{ height: 1 }} />}
         </section>
       )}
         </div>

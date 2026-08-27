@@ -9,7 +9,7 @@ import { T } from "@/lib/theme";
 import { BRAND } from "@/lib/config";
 import { BEST_LISTS, getBestList } from "@/lib/data/best-lists";
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verzatv.com";
 
 /* ------------------------------------------------------------------ */
 /*  Static params                                                      */

@@ -47,8 +47,6 @@ const btnStyle = {
 /* ------------------------------------------------------------------ */
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
-const BASE_REDIRECT = "https://www.verzatv.com/api/auth/callback";
-
 export default function OAuthButtons({ redirectNext }: { redirectNext?: string }) {
   const handleOAuth = async (provider: "google" | "apple") => {
     const supabase = createBrowserSupabase();
@@ -56,9 +54,11 @@ export default function OAuthButtons({ redirectNext }: { redirectNext?: string }
       console.error("Supabase client not available — missing env vars");
       return;
     }
+    // Use the current origin so this works on localhost, preview, and prod.
+    const baseRedirect = `${window.location.origin}/api/auth/callback`;
     const redirectTo = redirectNext && redirectNext !== "/"
-      ? `${BASE_REDIRECT}?next=${encodeURIComponent(redirectNext)}`
-      : BASE_REDIRECT;
+      ? `${baseRedirect}?next=${encodeURIComponent(redirectNext)}`
+      : baseRedirect;
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: { redirectTo },

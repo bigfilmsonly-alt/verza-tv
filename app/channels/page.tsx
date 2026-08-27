@@ -7,7 +7,7 @@ import { getChannels, getSeriesByChannel, type Series } from "@/lib/catalog";
 import { organizationSchema } from "@/lib/seo/schema";
 import JsonLd from "@/components/JsonLd";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verzatv.com";
 
 export const metadata: Metadata = {
   title: "Channels",

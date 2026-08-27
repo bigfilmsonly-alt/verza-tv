@@ -1,7 +1,7 @@
 import { getLiveSeries } from "@/lib/catalog";
 
 const BASE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verzatv.com";
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */

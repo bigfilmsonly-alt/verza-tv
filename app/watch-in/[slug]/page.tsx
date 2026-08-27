@@ -8,7 +8,7 @@ import JsonLd from "@/components/JsonLd";
 import { T } from "@/lib/theme";
 import { LOCATIONS, getLocation, type LocationPage } from "@/lib/data/locations";
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verzatv.com";
 
 /* ------------------------------------------------------------------ */
 /*  Deterministic shuffle so each location surfaces a different mix,    */

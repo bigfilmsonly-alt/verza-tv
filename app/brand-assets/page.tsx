@@ -6,7 +6,7 @@ import { T } from "@/lib/theme";
 import { BRAND } from "@/lib/config";
 import { BRAND_VOICE, TYPOGRAPHY_NOTES } from "@/lib/data/company";
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verzatv.com";
 
 export const metadata: Metadata = {
   title: "Brand Assets",

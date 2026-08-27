@@ -34,7 +34,7 @@ export default async function GenreHubPage({ params }: Props) {
   const genre = getGenreHub(slug);
   if (!genre || !genre.editorialApproved) notFound();
 
-  const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
+  const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verzatv.com";
 
   // 1) Strict tag match against the series' genre string + tags array.
   const allSeries = getLiveSeries();

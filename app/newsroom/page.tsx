@@ -6,7 +6,7 @@ import { T } from "@/lib/theme";
 import { BRAND } from "@/lib/config";
 import { PRESS_RELEASES, IN_THE_NEWS } from "@/lib/data/company";
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verzatv.com";
 
 export const metadata: Metadata = {
   title: "Newsroom",

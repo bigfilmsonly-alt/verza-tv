@@ -87,7 +87,7 @@ export async function generateMetadata({
     `Explore ${label.toLowerCase()} micro-dramas on VERZA TV.`;
 
   const BASE_URL =
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verzatv.com";
 
   return {
     title: `${label} Micro-Dramas on VERZA TV`,
@@ -122,7 +122,7 @@ export default async function GenrePage({
   const description = GENRE_DESCRIPTIONS[genre];
 
   const BASE_URL =
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verzatv.com";
 
   // Match broadly: "romance" matches "Mystery romance", "Billionaire romance", etc.
   const matches = catalog.filter(

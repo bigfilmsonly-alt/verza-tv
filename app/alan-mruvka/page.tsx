@@ -6,7 +6,7 @@ import { T } from "@/lib/theme";
 import { BRAND } from "@/lib/config";
 import { ALAN_SAMEAS, ALAN_SUBPAGES } from "@/lib/data/alan";
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verzatv.com";
 
 const DESCRIPTION =
   "Alan Mruvka is a co-founder of E! Entertainment Television and the founder of VERZA TV, the US-based vertical micro-drama streaming platform. Biography, legacy, and vision.";

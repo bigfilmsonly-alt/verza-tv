@@ -7,7 +7,7 @@ import { T } from "@/lib/theme";
 import { BRAND } from "@/lib/config";
 import { BEST_LISTS } from "@/lib/data/best-lists";
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verzatv.com";
 
 const PAGE_TITLE = `Best-Of Lists: What to Watch on ${BRAND.name}`;
 const PAGE_DESC =

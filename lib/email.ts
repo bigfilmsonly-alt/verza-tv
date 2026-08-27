@@ -116,6 +116,67 @@ export async function sendWelcomeEmail(email: string, name: string) {
 }
 
 /* ---- Purchase confirmation ---- */
+/* ---- Auth transactional (branded; replaces Supabase's raw templates) ----
+   Both take a Supabase-generated action link and wrap it in Verza branding.
+   esc() on the link is main's existing escaper — these are the only two
+   user-supplied values in the template. */
+export async function sendPasswordResetEmail(email: string, actionLink: string) {
+  return resend.emails.send({
+    from: FROM,
+    to: email,
+    subject: "Reset your VERZA TV password",
+    html: `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 500px; margin: 0 auto; background: #07070E; color: #F5F4F8; padding: 40px 24px; border-radius: 16px;">
+        <img src="https://www.verzatv.com/logo.png" alt="VERZA TV" width="140" style="display: block; margin: 0 auto 24px;" />
+        <h1 style="font-size: 22px; text-align: center; margin: 0 0 16px;">Reset your password</h1>
+        <p style="font-size: 14px; color: #A0A0B0; text-align: center; line-height: 1.6; margin: 0 0 24px;">
+          We received a request to reset the password for your VERZA TV account. Tap the button below to choose a new one. This link expires soon, so use it while it is fresh.
+        </p>
+        <div style="text-align: center; margin: 0 0 24px;">
+          <a href="${esc(actionLink)}" style="display: inline-block; background: linear-gradient(135deg, #E0115F, #8B5CF6); color: #fff; padding: 14px 32px; border-radius: 50px; text-decoration: none; font-weight: 700; font-size: 14px;">
+            Reset Password
+          </a>
+        </div>
+        <p style="font-size: 12px; color: #6B6B7B; text-align: center; line-height: 1.6; margin: 0 0 24px;">
+          If you did not request this, you can safely ignore this email. Your password will stay the same.
+        </p>
+        <p style="font-size: 11px; color: #6B6B7B; text-align: center;">
+          &copy; 2026 VERZA TV. All rights reserved.
+        </p>
+      </div>
+    `,
+  }).catch((e) => console.error("[email] Password reset failed:", e));
+}
+
+/* ---- Email verification (branded soft verification, replaces raw template) ---- */
+export async function sendVerificationEmail(email: string, actionLink: string) {
+  return resend.emails.send({
+    from: FROM,
+    to: email,
+    subject: "Verify your VERZA TV email",
+    html: `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 500px; margin: 0 auto; background: #07070E; color: #F5F4F8; padding: 40px 24px; border-radius: 16px;">
+        <img src="https://www.verzatv.com/logo.png" alt="VERZA TV" width="140" style="display: block; margin: 0 auto 24px;" />
+        <h1 style="font-size: 22px; text-align: center; margin: 0 0 16px;">Confirm your email</h1>
+        <p style="font-size: 14px; color: #A0A0B0; text-align: center; line-height: 1.6; margin: 0 0 24px;">
+          Welcome to VERZA TV. Confirm your email address to secure your account and keep your library, purchases, and watchlist safe.
+        </p>
+        <div style="text-align: center; margin: 0 0 24px;">
+          <a href="${esc(actionLink)}" style="display: inline-block; background: linear-gradient(135deg, #E0115F, #8B5CF6); color: #fff; padding: 14px 32px; border-radius: 50px; text-decoration: none; font-weight: 700; font-size: 14px;">
+            Verify Email
+          </a>
+        </div>
+        <p style="font-size: 12px; color: #6B6B7B; text-align: center; line-height: 1.6; margin: 0 0 24px;">
+          If you did not create a VERZA TV account, you can ignore this email.
+        </p>
+        <p style="font-size: 11px; color: #6B6B7B; text-align: center;">
+          &copy; 2026 VERZA TV. All rights reserved.
+        </p>
+      </div>
+    `,
+  }).catch((e) => console.error("[email] Verification failed:", e));
+}
+
 export async function sendPurchaseConfirmation(
   email: string,
   name: string,

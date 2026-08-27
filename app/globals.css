@@ -212,6 +212,34 @@ body {
   border-radius: 8px;
 }
 
+/* Creator application wizard: direction-aware step transition (180ms). */
+@keyframes wizardInNext {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes wizardInPrev {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.wizard-step {
+  animation: wizardInNext 180ms ease-out both;
+}
+.wizard-step[data-dir="-1"] {
+  animation-name: wizardInPrev;
+}
+
+/* Fade only when the viewer prefers reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  @keyframes wizardFade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  .wizard-step,
+  .wizard-step[data-dir="-1"] {
+    animation: wizardFade 120ms ease-out both;
+  }
+}
+
 /* Respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .animate-fadeIn,
