@@ -85,8 +85,19 @@ const FEATURED_NEW = [
 /*  is carried by the title wherever it sits. Those tiles always sort    */
 /*  last, so they never collide with the featured block.                */
 /* ------------------------------------------------------------------ */
-const TRENDING_SLOTS = 3;
+/* Two stacked shelves, in this order, on every curated tab:
+     slots 1-6  New       — the drop, two full rows of three
+     slots 7-9  Trending  — the row directly beneath it
+     slot 10+   nothing
+   No tile ever carries both. The top row reads as one clean block of New
+   rather than a stack of two badges competing in opposite corners. */
 const NEW_SLOTS = 6;
+const TRENDING_START = NEW_SLOTS;
+const TRENDING_END = NEW_SLOTS + 3;
+/* Hot is the exception, and it is not a curated shelf — it is a rank order. Its
+   slot 1 genuinely is the most-watched title, so Trending belongs at the TOP
+   there, not on row three, and New never applies. */
+const HOT_TRENDING_SLOTS = 3;
 /* New is an editorial claim about a curated shelf, so it only applies where the
    head IS hand-picked: Drama's featured six and the two language drops. Hot is
    excluded because its order is popularRank — position 1 there means "most
@@ -114,24 +125,23 @@ const CUSTOM_SECTION_TABS = new Set<BrowseCategory>([
    renders clean. */
 const MIN_PLAYABLE_FOR_BADGES = 4;
 
-/* Fixed corners, always. Trending owns the top-left on every surface and New
-   owns the top-right, so a badge never moves between tiles — a badge that
-   changes corner depending on what else is on the poster is the same
-   randomness this system exists to remove. The top three carry both. */
+/* One corner, always: top-left, on every badge and every surface. The shelves
+   are mutually exclusive, so no tile can carry two badges and there is nothing
+   to route around — and a badge that sits in a different corner depending on
+   which shelf it belongs to is the same randomness this system removes. */
 const BADGE_STYLE = {
-  trending: { bg: "#E0115F", label: "Trending", corner: "left" },
-  new: { bg: "#8B5CF6", label: "New", corner: "right" },
+  trending: { bg: "#E0115F", label: "Trending" },
+  new: { bg: "#8B5CF6", label: "New" },
   /* Neutral slate, not brand pink/violet: Trending and New invite a tap and
-     this one explicitly does not. It takes the left corner because a
-     coming-soon title is never in the featured block. */
-  soon: { bg: "rgba(12,12,20,0.82)", label: "Coming Soon", corner: "left" },
+     this one explicitly does not. */
+  soon: { bg: "rgba(12,12,20,0.82)", label: "Coming Soon" },
 } as const;
 
 function Badge({ type, large = false }: { type: keyof typeof BADGE_STYLE; large?: boolean }) {
-  const { bg, label, corner } = BADGE_STYLE[type];
+  const { bg, label } = BADGE_STYLE[type];
   const pos = large
-    ? `top-2 ${corner === "left" ? "left-2" : "right-2"} px-2 py-1 text-[10px]`
-    : `top-1.5 ${corner === "left" ? "left-1.5" : "right-1.5"} px-1.5 py-0.5 text-[8px]`;
+    ? "top-2 left-2 px-2 py-1 text-[10px]"
+    : "top-1.5 left-1.5 px-1.5 py-0.5 text-[8px]";
   return (
     <div
       className={`absolute z-10 rounded font-bold uppercase tracking-wider ${pos}`}
@@ -1009,9 +1019,14 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               // never in the featured block because it always sorts last, but
               // the guard is explicit so a future ordering change cannot put a
               // "Trending" badge on something with no video.
-              const trending = badgesApply && !soon && i < TRENDING_SLOTS;
-              const isNew =
-                badgesApply && !soon && i < NEW_SLOTS && NEW_BADGE_TABS.has(activeTab);
+              const curated = NEW_BADGE_TABS.has(activeTab);
+              const isNew = badgesApply && !soon && curated && i < NEW_SLOTS;
+              const trending =
+                badgesApply &&
+                !soon &&
+                (curated
+                  ? i >= TRENDING_START && i < TRENDING_END
+                  : activeTab === "popular" && i < HOT_TRENDING_SLOTS);
               const art = (
                 <>
                   <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
