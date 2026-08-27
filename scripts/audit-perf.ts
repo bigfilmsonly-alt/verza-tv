@@ -206,6 +206,47 @@ check("language/section tabs do not leak into the Drama grid", () => {
 });
 
 /* ------------------------------------------------------------------ */
+check("no earnings promises or turnaround SLAs in rendered copy", () => {
+  // origin/main deliberately stripped "keep 80% of every sale" and "within 48
+  // hours" from creator-facing copy. Commercial terms go to approved creators
+  // separately; an earnings promise shipped inside the iOS binary is an App
+  // Store rejection risk. Owner confirmed main's copy is authoritative.
+  const roots = ["app", "components"];
+  const banned: { re: RegExp; why: string }[] = [
+    { re: /\b80\s*\/\s*20\b/, why: "revenue split figure" },
+    { re: /\b(keep|earn|receive)\s+(up to\s+)?\d{1,3}\s*%/i, why: "earnings promise" },
+    { re: /\d{1,3}\s*%\s*(of every sale|revenue share|of net revenue)/i, why: "earnings promise" },
+    { re: /(eighty|seventy|ninety)\s+percent/i, why: "earnings promise (spelled out)" },
+    { re: /within\s+\d+\s*(hours|business days|days)\b/i, why: "turnaround SLA" },
+    { re: /\b\d\s+to\s+\d\s+business days\b/i, why: "turnaround SLA" },
+  ];
+  const hits: string[] = [];
+  const walk = (dir: string) => {
+    for (const entry of fs.readdirSync(path.join(ROOT, dir), { withFileTypes: true })) {
+      const rel = path.join(dir, entry.name);
+      if (entry.isDirectory()) { walk(rel); continue; }
+      if (!/\.(tsx?|mdx?)$/.test(entry.name)) continue;
+      fs.readFileSync(path.join(ROOT, rel), "utf8").split("\n").forEach((line, i) => {
+        const code = line.trim();
+        // Skip comments and CSS keyframe percentages ("80% { transform: ... }").
+        if (code.startsWith("//") || code.startsWith("*") || code.startsWith("/*")) return;
+        if (/^\d{1,3}%\s*\{/.test(code)) return;
+        for (const b of banned) {
+          if (b.re.test(line)) hits.push(`${rel}:${i + 1} (${b.why}) ${code.slice(0, 88)}`);
+        }
+      });
+    }
+  };
+  roots.forEach(walk);
+  if (hits.length) {
+    hits.slice(0, 10).forEach((h) => fail(h));
+    if (hits.length > 10) fail(`…and ${hits.length - 10} more`);
+  } else {
+    pass("no earnings promises or SLA commitments in rendered copy");
+  }
+});
+
+/* ------------------------------------------------------------------ */
 console.log(`\n${"─".repeat(60)}`);
 console.log(problems === 0
   ? `✅ PERF GUARD: ${checks} checks, 0 failures`

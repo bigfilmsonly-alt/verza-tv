@@ -632,8 +632,8 @@ function StepRights({
           style={{ color: T.accent, textDecoration: "underline" }}
         >
           VERZA Creator Agreement
-        </Link>{" "}
-        (80/20 revenue split).
+        </Link>
+        .
       </CheckRow>
     </div>
   );

@@ -45,6 +45,24 @@ function shuffleWithSeed<T>(arr: T[], seed: number): T[] {
    asserts every tab-exclusive category is present. */
 const TAB_EXCLUSIVE: BrowseCategory[] = ["espanol", "bollywood", "reality", "red-carpet"];
 
+/* The six titles pinned to the top of the Drama grid, in this order, and the
+   exact set the hero carousel rotates through. They are PINNED, not shuffled:
+   the rest of Drama reshuffles every load, so without this the promoted drop
+   sank into the grid and the hero showed whatever landed first.
+   Order here IS display order — reorder this array to reorder the shelf.
+   Every entry must be live, Drama-visible and carry categories ["new"]; they
+   render the NEW badge in both placements. Kept out: the-crown, which has
+   popularRank 4 and is already promoted through Hot as Trending. */
+const FEATURED_NEW = [
+  "lost-and-found",
+  "help-im-falling-in-love-with-my-rude-ceo",
+  "tied-by-fate",
+  "twist-of-time",
+  "the-inheritance-game",
+  "billionaire-daughters-love-triangle",
+] as const;
+const FEATURED_NEW_SET = new Set<string>(FEATURED_NEW);
+
 function Badge({ type }: { type: "trending" | "new" }) {
   return (
     <div
@@ -169,12 +187,27 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
           )
         : tabData[activeTab] ?? [];
     if (shuffleSeed === 0 || activeTab === "popular") return base;
-    return shuffleWithSeed(base, shuffleSeed + activeTab.length);
+    const shuffled = shuffleWithSeed(base, shuffleSeed + activeTab.length);
+    if (activeTab !== "drama") return shuffled;
+    // Pin the featured six to the top in FEATURED_NEW order; everything else
+    // keeps its freshly shuffled order behind them.
+    const pinned = FEATURED_NEW.map((slug) => shuffled.find((x) => x.slug === slug)).filter(
+      (x): x is Series => Boolean(x),
+    );
+    return [...pinned, ...shuffled.filter((x) => !FEATURED_NEW_SET.has(x.slug))];
   }, [activeTab, tabData, liveSeries, shuffleSeed]);
-  // The Mistress Trap flyer isn't full-bleed like the other posters, so keep it out of the hero slideshow
-  const heroSlides = filtered
-    .filter((s) => s.slug !== "the-mistress-trap")
-    .slice(0, 4);
+  // The hero rotates the SAME six that are pinned at the top of Drama, so the
+  // carousel and the top shelf always show the same titles and the same flyers.
+  // On other tabs it falls back to that tab's first four. The Mistress Trap
+  // flyer isn't full-bleed like the other posters, so it stays out either way.
+  const heroSlides = useMemo(() => {
+    const pool = filtered.filter((s) => s.slug !== "the-mistress-trap");
+    if (activeTab !== "drama") return pool.slice(0, 4);
+    const six = FEATURED_NEW.map((slug) => pool.find((x) => x.slug === slug)).filter(
+      (x): x is Series => Boolean(x),
+    );
+    return six.length ? six : pool.slice(0, 6);
+  }, [filtered, activeTab]);
   const current = heroSlides[heroIdx % Math.max(heroSlides.length, 1)];
 
   // Every time the active section changes, reset the hero AND scroll back to
@@ -587,14 +620,14 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               className="relative mt-4 mx-auto text-[15px] leading-relaxed"
               style={{ color: "#A0A0B0", maxWidth: "34ch" }}
             >
-              Bring your own show to Verza. Upload it, build an audience, and earn from every viewer who unlocks your work.
+              Bring your own show to Verza. Upload it, build an audience, and reach viewers who are already here.
             </p>
 
             {/* Three compact benefit chips — honest program facts only. */}
             <div className="relative mt-6 flex flex-col gap-2.5">
               {[
                 {
-                  label: "Keep up to 80% of every sale",
+                  label: "Commercial terms shared on approval",
                   icon: (
                     <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
                   ),
@@ -1028,7 +1061,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                   <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
                     <Poster src={s.posterUrl} alt={s.title} />
                     {s.popularRank && s.popularRank <= 5 && <Badge type="trending" />}
-                    {!s.popularRank && s.categories.includes("new") && <Badge type="new" />}
+                    {(FEATURED_NEW_SET.has(s.slug) || (!s.popularRank && s.categories.includes("new"))) && <Badge type="new" />}
                     <div
                       className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
                       style={{ background: "rgba(0,0,0,0.3)" }}

@@ -7,7 +7,7 @@ import { AGREEMENT_VERSION } from "@/lib/creator-client";
 export const metadata: Metadata = {
   title: "Creator Agreement",
   description:
-    "Draft VERZA Creator Agreement covering the 80/20 revenue split, content license, term, rights, and payments. Placeholder pending legal counsel.",
+    "Draft VERZA Creator Agreement covering revenue share, content license, term, rights, and payments. Placeholder pending legal counsel.",
   alternates: { canonical: "/legal/creator-agreement" },
   robots: { index: false, follow: false },
 };
@@ -17,10 +17,15 @@ const bodyText = { color: T.textDim };
 
 const SECTIONS: { title: string; body: string[] }[] = [
   {
-    title: "1. Revenue Share (80/20)",
+    title: "1. Revenue Share",
     body: [
-      "For each paid transaction on content you license to VERZA TV, you receive eighty percent (80%) of the net revenue and VERZA retains twenty percent (20%) as its platform fee. Net revenue means the amount VERZA actually collects after payment processor fees, refunds, chargebacks, and applicable taxes.",
-      "This placeholder section describes the intended commercial terms only. Final defined terms, payout timing, minimum thresholds, and reporting will be set out in the executed agreement.",
+      // No figures here on purpose. Commercial terms are provided separately to
+      // approved creators; publishing a split in-app would be an earnings
+      // promise in the iOS binary. Counsel fills this in for the executed
+      // agreement. See scripts/audit-perf.ts, which fails the build on
+      // percentage or payout promises in rendered copy.
+      "For each paid transaction on content you license to VERZA TV, you receive a share of net revenue and VERZA retains a platform fee. Net revenue means the amount VERZA actually collects after payment processor fees, refunds, chargebacks, and applicable taxes.",
+      "This placeholder section describes the structure only. The revenue share, payout timing, minimum thresholds, and reporting are provided to approved creators and set out in the executed agreement.",
     ],
   },
   {
