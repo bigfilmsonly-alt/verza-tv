@@ -31,8 +31,10 @@ export const BROWSE_TABS: { key: BrowseCategory; label: string }[] = [
   { key: "anime", label: "Anime" },
   { key: "espanol", label: "Español" },
   { key: "bollywood", label: "Bollywood" },
-  { key: "creators", label: "Creators" },
+  // Reality before Creators — owner-specified tab order. scripts/audit-perf.ts
+  // asserts this exact sequence so it cannot silently drift again.
   { key: "reality", label: "Reality" },
+  { key: "creators", label: "Creators" },
   { key: "red-carpet", label: "Red Carpet" },
   { key: "music", label: "Music" },
 ];

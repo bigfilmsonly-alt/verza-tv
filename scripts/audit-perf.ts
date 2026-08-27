@@ -206,6 +206,23 @@ check("language/section tabs do not leak into the Drama grid", () => {
 });
 
 /* ------------------------------------------------------------------ */
+check("browse tab order matches the owner-specified sequence", () => {
+  // This drifted once: a rebase onto a base that still had Creators before
+  // Reality silently reverted the owner's ordering, and it shipped.
+  const EXPECTED = ["Drama", "Hot", "Tubi", "Anime", "Español", "Bollywood",
+                    "Reality", "Creators", "Red Carpet", "Music"];
+  const src = read("lib/catalog.ts");
+  const block = src.match(/export const BROWSE_TABS[\s\S]*?\n\];/);
+  if (!block) { fail("BROWSE_TABS not found in lib/catalog.ts"); return; }
+  const actual = [...block[0].matchAll(/label:\s*"([^"]+)"/g)].map((m) => m[1]);
+  if (actual.join("|") !== EXPECTED.join("|")) {
+    fail(`browse tab order drifted.\n     expected: ${EXPECTED.join(", ")}\n     actual:   ${actual.join(", ")}`);
+  } else {
+    pass(`tab order correct (${actual.length} tabs, Reality before Creators)`);
+  }
+});
+
+/* ------------------------------------------------------------------ */
 check("no earnings promises or turnaround SLAs in rendered copy", () => {
   // origin/main deliberately stripped "keep 80% of every sale" and "within 48
   // hours" from creator-facing copy. Commercial terms go to approved creators
