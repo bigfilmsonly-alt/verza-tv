@@ -1227,22 +1227,12 @@ export const catalog: Series[] = [
     posterUrl: "/posters/i-cant-resist-my-mansion-gardener.png",
     freeEpisodes: 0, coinPerEpisode: 0, seasonPassCoins: 0, status: "coming_soon",
   },
-  /* Titled in Portuguese because the key art is Portuguese (AMOR EM DOSE
-     DUPLA). Labelling Portuguese art with a Spanish title would be the exact
-     language mismatch this catalog holds titles back over. It sits on the
-     Espanol tab because there is no Portuguese tab; if a viewer should never
-     see Portuguese there, delete this one row — nothing else depends on it. */
-  {
-    slug: "love-in-double-dose",
-    title: "Amor em Dose Dupla",
-    logline: "Dois amores, dois mundos e uma mentira que os liga. Ele planeou o golpe perfeito e o destino escreveu outro final.",
-    genre: "Romance · Traição",
-    channel: "VERZA Originals",
-    categories: ["espanol"],
-    episodeCount: 0,
-    posterUrl: "/posters/love-in-double-dose.png",
-    freeEpisodes: 0, coinPerEpisode: 0, seasonPassCoins: 0, status: "coming_soon",
-  },
+  /* love-in-double-dose is deliberately ABSENT. Its key art is Portuguese
+     (AMOR EM DOSE DUPLA) and there is no Portuguese tab, so it was pulled off
+     Espanol by owner decision on 2026-08-27: a Spanish-language tab should not
+     show Portuguese art. The poster stays staged on disk, untracked, until
+     either Spanish art or a Portuguese section exists. Do not re-add it to
+     "espanol" — that is the decision, not an oversight. */
 ];
 
 /* ------------------------------------------------------------------ */

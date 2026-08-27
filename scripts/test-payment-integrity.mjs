@@ -675,7 +675,7 @@ function runCodeAndCatalogSuite() {
   // move whenever a coming-soon title is added, which is harmless. Live rows and
   // sellable rows moving is what actually warrants a payment review, so they get
   // their own guards rather than hiding behind the total.
-  assert.equal(catalog.length, 97, "catalog size changed; review payment SKU policy");
+  assert.equal(catalog.length, 96, "catalog size changed; review payment SKU policy");
   assert.equal(
     catalog.filter((series) => series.status === "live").length,
     91,
@@ -683,7 +683,7 @@ function runCodeAndCatalogSuite() {
   );
   assert.equal(
     catalog.filter((series) => series.status === "coming_soon").length,
-    6,
+    5,
     "coming-soon count changed; these must never be sellable",
   );
   assert.equal(purchasable.length, 86, "unlock SKU count changed; review checkout coverage");
