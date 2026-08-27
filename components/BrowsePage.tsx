@@ -69,22 +69,57 @@ const FEATURED_NEW = [
 ] as const;
 const FEATURED_NEW_SET = new Set<string>(FEATURED_NEW);
 
-/* "soon" marks a title we hold key art for but no footage. It reads as a
-   neutral slate rather than the brand pink/violet on purpose: Trending and New
-   are invitations to tap, and this one is explicitly not. */
+/* ------------------------------------------------------------------ */
+/*  Badges are POSITIONAL, and the same rule runs on every browse tab.  */
+/*                                                                      */
+/*  The first three tiles of a tab are Trending. The first six are New. */
+/*  Nothing below position six carries a badge at all.                  */
+/*                                                                      */
+/*  Positional, not data-driven, because the old rule read popularRank  */
+/*  and categories:["new"] off individual titles and then let the grid  */
+/*  shuffle scatter those tiles anywhere. Ten badges landing in random  */
+/*  places on every reload is the definition of sporadic: "Trending"    */
+/*  meant nothing about where a title sat, and a viewer could scroll     */
+/*  past position 40 and still meet a New badge.                        */
+/*                                                                      */
+/*  Tying the badge to POSITION makes the top of every tab a deliberate */
+/*  editorial shelf — the first row is what we are pushing, the second  */
+/*  row is the rest of the drop, and everything after is catalogue. It  */
+/*  also means the badge can never contradict the ordering, because it   */
+/*  IS the ordering.                                                    */
+/*                                                                      */
+/*  Coming-soon is the one exception: it is a status, not a rank, so it  */
+/*  is carried by the title wherever it sits. Those tiles always sort    */
+/*  last, so they never collide with the featured block.                */
+/* ------------------------------------------------------------------ */
+const TRENDING_SLOTS = 3;
+const NEW_SLOTS = 6;
+/* Below this many playable titles a tab has no shelf to rank, and calling the
+   top three of three "Trending" is noise dressed as editorial. Such a tab
+   renders clean. */
+const MIN_PLAYABLE_FOR_BADGES = 4;
+
+/* Fixed corners, always. Trending owns the top-left on every surface and New
+   owns the top-right, so a badge never moves between tiles — a badge that
+   changes corner depending on what else is on the poster is the same
+   randomness this system exists to remove. The top three carry both. */
 const BADGE_STYLE = {
-  trending: { bg: "#E0115F", label: "Trending" },
-  new: { bg: "#8B5CF6", label: "New" },
-  soon: { bg: "rgba(12,12,20,0.82)", label: "Coming Soon" },
+  trending: { bg: "#E0115F", label: "Trending", corner: "left" },
+  new: { bg: "#8B5CF6", label: "New", corner: "right" },
+  /* Neutral slate, not brand pink/violet: Trending and New invite a tap and
+     this one explicitly does not. It takes the left corner because a
+     coming-soon title is never in the featured block. */
+  soon: { bg: "rgba(12,12,20,0.82)", label: "Coming Soon", corner: "left" },
 } as const;
 
 function Badge({ type, large = false }: { type: keyof typeof BADGE_STYLE; large?: boolean }) {
-  const { bg, label } = BADGE_STYLE[type];
+  const { bg, label, corner } = BADGE_STYLE[type];
+  const pos = large
+    ? `top-2 ${corner === "left" ? "left-2" : "right-2"} px-2 py-1 text-[10px]`
+    : `top-1.5 ${corner === "left" ? "left-1.5" : "right-1.5"} px-1.5 py-0.5 text-[8px]`;
   return (
     <div
-      className={`absolute z-10 rounded font-bold uppercase tracking-wider ${
-        large ? "top-2 left-2 px-2 py-1 text-[10px]" : "top-1.5 left-1.5 px-1.5 py-0.5 text-[8px]"
-      }`}
+      className={`absolute z-10 rounded font-bold uppercase tracking-wider ${pos}`}
       style={{
         background: bg,
         color: "#fff",
@@ -207,24 +242,48 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               !TAB_EXCLUSIVE.some((c) => s.categories.includes(c)),
           )
         : tabData[activeTab] ?? [];
-    // Playable titles always sort ahead of coming-soon ones, before and after
-    // the shuffle. The shuffle is what makes a tab feel fresh on every load, but
-    // it is indifferent to status, so without this the unplayable tiles scatter
+    // Playable titles always sort ahead of coming-soon ones. The shuffle is
+    // indifferent to status, so without this the unplayable tiles scatter
     // through the grid and a viewer hits one before they have seen everything
     // they can actually watch.
     const playableFirst = (list: Series[]) => [
       ...list.filter((s) => s.status === "live"),
       ...list.filter((s) => s.status !== "live"),
     ];
-    if (shuffleSeed === 0 || activeTab === "popular") return playableFirst(base);
-    const shuffled = playableFirst(shuffleWithSeed(base, shuffleSeed + activeTab.length));
-    if (activeTab !== "drama") return shuffled;
-    // Pin the featured six to the top in FEATURED_NEW order; everything else
-    // keeps its freshly shuffled order behind them.
-    const pinned = FEATURED_NEW.map((slug) => shuffled.find((x) => x.slug === slug)).filter(
-      (x): x is Series => Boolean(x),
-    );
-    return [...pinned, ...shuffled.filter((x) => !FEATURED_NEW_SET.has(x.slug))];
+
+    // Hot is a ranked chart; its order IS the content, so it never shuffles.
+    if (activeTab === "popular") return playableFirst(base);
+
+    // A curated tab is small enough to read as one deliberate shelf, so it
+    // renders in catalogue order every time. Shuffling six Espanol titles does
+    // not aid discovery, it just makes a hand-picked section look accidental —
+    // and with positional badges it would move Trending onto a different title
+    // on every reload. Only a tab long enough to have a genuine tail shuffles,
+    // and even then only the tail.
+    const CURATED_MAX = 12;
+    if (base.length <= CURATED_MAX) return playableFirst(base);
+
+    if (shuffleSeed === 0) return playableFirst(base);
+
+    if (activeTab === "drama") {
+      // Drama's featured block is the FEATURED_NEW six, in that exact order.
+      // Everything behind it reshuffles per load: the badged shelf stays fixed
+      // and deliberate while the long tail still feels fresh on a return visit.
+      const featured = FEATURED_NEW.map((slug) => base.find((x) => x.slug === slug)).filter(
+        (x): x is Series => Boolean(x),
+      );
+      const tail = shuffleWithSeed(
+        base.filter((x) => !FEATURED_NEW_SET.has(x.slug)),
+        shuffleSeed + activeTab.length,
+      );
+      return [...featured, ...playableFirst(tail)];
+    }
+
+    // Any other long tab: hold the first NEW_SLOTS in catalogue order so the
+    // badged shelf is stable, shuffle only what sits behind it.
+    const head = base.slice(0, NEW_SLOTS);
+    const tail = shuffleWithSeed(base.slice(NEW_SLOTS), shuffleSeed + activeTab.length);
+    return playableFirst([...head, ...tail]);
   }, [activeTab, tabData, liveSeries, shuffleSeed]);
   // The hero rotates the SAME six that are pinned at the top of Drama, so the
   // carousel and the top shelf always show the same titles and the same flyers.
@@ -364,11 +423,12 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
   // than the shared 3-column grid. Their key art is full-bleed 9:16 and reads
   // poorly at 33vw.
   const twoUp = activeTab === "espanol" || activeTab === "bollywood";
-  // These are the newest drops, so every tile carries NEW. Render-time on
-  // purpose: tagging the series categories:["new"] would also pull them into
-  // the Hot tab and the English-only best-of lists, which are surfaces these
-  // language titles are deliberately kept out of.
-  const badgeAsNew = twoUp;
+  // Espanol and Bollywood used to badge EVERY tile as New, on the reasoning
+  // that the whole section was a fresh drop. It defeated itself: a badge on all
+  // six tiles carries no information and just adds visual noise. They now run
+  // the same positional rule as every other tab.
+  const badgesApply =
+    filtered.filter((s) => s.status === "live").length >= MIN_PLAYABLE_FOR_BADGES;
 
   // The grid grows in pages instead of mounting the whole catalogue at once.
   // A decoded bitmap costs width*height*4 in RAM regardless of file size, and
@@ -878,7 +938,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
             {/* Posters only. Sponsored products used to be injected into this
                 grid every 12 tiles; they now live in the shop section of the
                 footer, so browsing stays purely editorial. */}
-            {gridItems.map((s) => {
+            {gridItems.map((s, i) => {
               // A coming-soon title has key art and no video. It still gets a
               // real detail page — art, logline, a Coming Soon pill, no player
               // and no purchase card — so the tile opens /series/<slug> rather
@@ -886,12 +946,20 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               // nothing to play. What it must never show is the play affordance
               // or a NEW badge, both of which promise a video starts on tap.
               const soon = s.status === "coming_soon";
+              // Position drives the badge, not the title's own fields. i is the
+              // index into the rendered grid, so slot 0-2 is Trending and slot
+              // 0-5 is New on every tab, identically. A coming-soon tile is
+              // never in the featured block because it always sorts last, but
+              // the guard is explicit so a future ordering change cannot put a
+              // "Trending" badge on something with no video.
+              const trending = badgesApply && !soon && i < TRENDING_SLOTS;
+              const isNew = badgesApply && !soon && i < NEW_SLOTS;
               const art = (
                 <>
                   <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
                     <Poster src={s.posterUrl} alt={s.title} sizes={twoUp ? "(max-width: 440px) 50vw, 220px" : "(max-width: 440px) 33vw, 146px"} />
-                    {!soon && s.popularRank && s.popularRank <= 5 && <Badge type="trending" large={twoUp} />}
-                    {!soon && (FEATURED_NEW_SET.has(s.slug) || badgeAsNew || (activeTab !== "drama" && !s.popularRank && s.categories.includes("new"))) && <Badge type="new" large={twoUp} />}
+                    {trending && <Badge type="trending" large={twoUp} />}
+                    {isNew && <Badge type="new" large={twoUp} />}
                     {soon && <Badge type="soon" large={twoUp} />}
                     {/* The play affordance is the promise that a tap starts a
                         video. Coming-soon tiles make no such promise. */}
