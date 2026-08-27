@@ -52,7 +52,13 @@ const TAB_EXCLUSIVE: BrowseCategory[] = ["espanol", "bollywood", "reality", "red
    Order here IS display order — reorder this array to reorder the shelf.
    Every entry must be live, Drama-visible and carry categories ["new"]; they
    render the NEW badge in both placements. Kept out: the-crown, which has
-   popularRank 4 and is already promoted through Hot as Trending. */
+   popularRank 4 and is already promoted through Hot as Trending.
+   On Drama this set is the ONLY source of a NEW badge. Deriving the badge from
+   categories:["new"] as well scattered it over four more tiles further down the
+   shuffled grid (married-to-my-brothers-ex, tangled-in-desire,
+   the-escaping-mistress, trial-marriage-to-a-billionaire-s2), so "new" read as
+   random rather than as this week's drop. The category-derived badge still
+   applies on Hot, where it marks the New half of that consolidated tab. */
 const FEATURED_NEW = [
   "lost-and-found",
   "help-im-falling-in-love-with-my-rude-ceo",
@@ -860,7 +866,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                   <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
                     <Poster src={s.posterUrl} alt={s.title} sizes={twoUp ? "(max-width: 440px) 50vw, 220px" : "(max-width: 440px) 33vw, 146px"} />
                     {s.popularRank && s.popularRank <= 5 && <Badge type="trending" large={twoUp} />}
-                    {(FEATURED_NEW_SET.has(s.slug) || badgeAsNew || (!s.popularRank && s.categories.includes("new"))) && <Badge type="new" large={twoUp} />}
+                    {(FEATURED_NEW_SET.has(s.slug) || badgeAsNew || (activeTab !== "drama" && !s.popularRank && s.categories.includes("new"))) && <Badge type="new" large={twoUp} />}
                     <div
                       className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
                       style={{ background: "rgba(0,0,0,0.3)" }}

@@ -1059,11 +1059,33 @@ export const catalog: Series[] = [
     posterUrl: "/posters/the-goat-mistress-es.png",
     freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(60), status: "live",
   },
+  /*  Language is signalled the same way every row in this tab does it: */
+  /*  the title and logline are written in Spanish and the key art      */
+  /*  carries a Spanish lockup. A buyer cannot mistake what they get.   */
+  /*  Mux holds a second cut of this show under                         */
+  /*  im-having-my-professors-baby_EN, identical footage with English   */
+  /*  burned-in subtitles. It stays dark because no English key art     */
+  /*  exists; shipping it behind this Spanish poster would create the   */
+  /*  exact pre-purchase ambiguity this tab is structured to avoid.     */
+  {
+    slug: "im-having-my-professors-baby-es",
+    title: "Estoy embarazada de mi profesor",
+    logline: "Una prueba de embarazo en el bano de la facultad y el unico hombre que no puede enterarse esta parado frente al pizarron. Lo que empezo como una nota alta termina siendo el secreto que puede hundirlos a los dos.",
+    genre: "Drama · Romance prohibido",
+    channel: "VERZA Originals",
+    categories: ["espanol"],
+    episodeCount: 61,
+    posterUrl: "/posters/im-having-my-professors-baby-es.png",
+    freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(61), status: "live",
+  },
   /* ================================================================ */
   /*  BOLLYWOOD TAB — Hindi language originals                        */
   /*  Only titles whose streams AND key art both exist ship here.      */
-  /*  Salt and Pepper (60 eps) and Love for Sale (60 eps) are verified */
-  /*  complete in Mux and stay out until their posters land.           */
+  /*  Salt and Pepper and Love for Sale were held here for weeks       */
+  /*  waiting on key art. Their posters landed 2026-08-27 and both     */
+  /*  ship in this pass, along with The Breakup Podcast and Reset.     */
+  /*  All four carry Hindi audio with English burned-in subtitles and  */
+  /*  English title lockups, matching the two titles already live.     */
   /* ================================================================ */
   {
     slug: "falling-for-flatmate",
@@ -1086,6 +1108,50 @@ export const catalog: Series[] = [
     episodeCount: 57,
     posterUrl: "/posters/dil-dosa-dosti.png",
     freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(57), status: "live",
+  },
+  {
+    slug: "salt-and-pepper",
+    title: "Salt & Pepper",
+    logline: "The families agreed on the match before either of them was asked. Standing back to back at their own engagement, neither can admit that the person they cannot stand is the person they cannot stop thinking about.",
+    genre: "Romance · Family drama",
+    channel: "VERZA Originals",
+    categories: ["bollywood"],
+    episodeCount: 60,
+    posterUrl: "/posters/salt-and-pepper.png",
+    freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(60), status: "live",
+  },
+  {
+    slug: "love-for-sale",
+    title: "Love for Sale",
+    logline: "A marriage arranged as a business transaction, signed in a hall full of witnesses who believe every word of it. She takes the deal to save her family and discovers the price was never money.",
+    genre: "Romance · Drama",
+    channel: "VERZA Originals",
+    categories: ["bollywood"],
+    episodeCount: 60,
+    posterUrl: "/posters/love-for-sale.png",
+    freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(60), status: "live",
+  },
+  {
+    slug: "the-breakup-podcast",
+    title: "The Breakup Podcast",
+    logline: "She built a following telling strangers how to survive heartbreak, on air, three nights a week. Then both men she has been talking about walk into the studio.",
+    genre: "Romance · Comedy",
+    channel: "VERZA Originals",
+    categories: ["bollywood"],
+    episodeCount: 60,
+    posterUrl: "/posters/the-breakup-podcast.png",
+    freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(60), status: "live",
+  },
+  {
+    slug: "reset",
+    title: "Reset",
+    logline: "Three days on the clock and one chance to undo the night that cost him everything. Every version he tries costs him something he did not expect to lose.",
+    genre: "Thriller · Romance",
+    channel: "VERZA Originals",
+    categories: ["bollywood"],
+    episodeCount: 56,
+    posterUrl: "/posters/reset.png",
+    freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(56), status: "live",
   },
 ];
 

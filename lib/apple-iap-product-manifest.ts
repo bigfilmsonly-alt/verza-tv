@@ -95,6 +95,16 @@ export const APPLE_SERIES_PRODUCT_IDS = {
   /* Appended 2026-08-27 (Bollywood, restored after branch reset). */
   "falling-for-flatmate": "com.verzatv.app.series.falling_for_flatmate",
   "dil-dosa-dosti": "com.verzatv.app.series.dil_dosa_dosti",
+
+  /* Appended 2026-08-27 (dark-inventory ingest: four Bollywood titles whose
+     key art finally landed, plus the Spanish cut of the professor title).
+     The English cut of that title is deliberately absent: it exists in Mux
+     but has no English key art, so it has no product until art ships. */
+  "salt-and-pepper": "com.verzatv.app.series.salt_and_pepper",
+  "love-for-sale": "com.verzatv.app.series.love_for_sale",
+  "the-breakup-podcast": "com.verzatv.app.series.the_breakup_podcast",
+  "reset": "com.verzatv.app.series.reset",
+  "im-having-my-professors-baby-es": "com.verzatv.app.series.im_having_my_professors_baby_es",
 } as const;
 
 export type AppleSeriesProductSlug = keyof typeof APPLE_SERIES_PRODUCT_IDS;
