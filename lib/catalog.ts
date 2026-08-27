@@ -1153,6 +1153,96 @@ export const catalog: Series[] = [
     posterUrl: "/posters/reset.png",
     freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(56), status: "live",
   },
+  /* ================================================================ */
+  /*  COMING SOON — key art delivered, footage has not arrived.        */
+  /*                                                                   */
+  /*  These six carry finished, correct-language key art and ZERO Mux  */
+  /*  streams. They exist so the Bollywood and Espanol tabs show the    */
+  /*  slate we have actually bought rather than stopping dead at the    */
+  /*  last playable title.                                             */
+  /*                                                                   */
+  /*  status "coming_soon" is load-bearing, not cosmetic. It keeps them */
+  /*  out of generateStaticParams (so no page is built and no URL       */
+  /*  resolves), out of getLiveSeries(), out of the Apple manifest, and */
+  /*  out of every purchase path. BrowsePage renders them as inert      */
+  /*  tiles: no <Link>, no episode route, nothing to tap.               */
+  /*                                                                   */
+  /*  episodeCount stays 0 on purpose. The normalizer below skips       */
+  /*  non-live rows, so nothing here can ever advertise an episode that */
+  /*  has no video behind it. When footage lands, add the streams and   */
+  /*  flip status to "live" — that is the whole migration.              */
+  /* ================================================================ */
+  {
+    slug: "the-chairmans-revenge",
+    title: "The Chairman's Revenge",
+    logline: "They voted him out of the company he built and toasted the decision the same night. He let them, because the only way to learn who moved against him was to stop being the man in the chair.",
+    genre: "Drama · Corporate power",
+    channel: "VERZA Originals",
+    categories: ["bollywood"],
+    episodeCount: 0,
+    posterUrl: "/posters/the-chairmans-revenge.png",
+    freeEpisodes: 0, coinPerEpisode: 0, seasonPassCoins: 0, status: "coming_soon",
+  },
+  {
+    slug: "protected-by-the-devil",
+    title: "Protected by the Devil",
+    logline: "The man the city is terrified of is the only one standing between her and the people who want her silenced. Accepting his protection means never being able to ask what he wants in return.",
+    genre: "Romance · Dark thriller",
+    channel: "VERZA Originals",
+    categories: ["bollywood"],
+    episodeCount: 0,
+    posterUrl: "/posters/protected-by-the-devil.png",
+    freeEpisodes: 0, coinPerEpisode: 0, seasonPassCoins: 0, status: "coming_soon",
+  },
+  {
+    slug: "the-last-will",
+    title: "The Last Will",
+    logline: "The will is read to a room of people who each expected to hear their own name. What it actually says turns one family into rivals before the ink has finished drying.",
+    genre: "Drama · Inheritance",
+    channel: "VERZA Originals",
+    categories: ["bollywood"],
+    episodeCount: 0,
+    posterUrl: "/posters/the-last-will.png",
+    freeEpisodes: 0, coinPerEpisode: 0, seasonPassCoins: 0, status: "coming_soon",
+  },
+  {
+    slug: "the-billionaires-apron",
+    title: "The Billionaire's Apron",
+    logline: "He owns the estate. The chef owns the kitchen, and refuses to be impressed by any of it. Neither of them planned on the argument that turns into something else entirely.",
+    genre: "Romance · Comedy",
+    channel: "VERZA Originals",
+    categories: ["bollywood"],
+    episodeCount: 0,
+    posterUrl: "/posters/the-billionaires-apron.png",
+    freeEpisodes: 0, coinPerEpisode: 0, seasonPassCoins: 0, status: "coming_soon",
+  },
+  {
+    slug: "i-cant-resist-my-mansion-gardener",
+    title: "No puedo resistir a mi jardinero de la mansión",
+    logline: "Ella tiene el apellido, la casa y un matrimonio que todos envidian. El jardinero es el unico que la mira como si nada de eso importara.",
+    genre: "Romance · Prohibido",
+    channel: "VERZA Originals",
+    categories: ["espanol"],
+    episodeCount: 0,
+    posterUrl: "/posters/i-cant-resist-my-mansion-gardener.png",
+    freeEpisodes: 0, coinPerEpisode: 0, seasonPassCoins: 0, status: "coming_soon",
+  },
+  /* Titled in Portuguese because the key art is Portuguese (AMOR EM DOSE
+     DUPLA). Labelling Portuguese art with a Spanish title would be the exact
+     language mismatch this catalog holds titles back over. It sits on the
+     Espanol tab because there is no Portuguese tab; if a viewer should never
+     see Portuguese there, delete this one row — nothing else depends on it. */
+  {
+    slug: "love-in-double-dose",
+    title: "Amor em Dose Dupla",
+    logline: "Dois amores, dois mundos e uma mentira que os liga. Ele planeou o golpe perfeito e o destino escreveu outro final.",
+    genre: "Romance · Traição",
+    channel: "VERZA Originals",
+    categories: ["espanol"],
+    episodeCount: 0,
+    posterUrl: "/posters/love-in-double-dose.png",
+    freeEpisodes: 0, coinPerEpisode: 0, seasonPassCoins: 0, status: "coming_soon",
+  },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -1205,6 +1295,22 @@ export function getSeriesByCategory(cat: BrowseCategory): Series[] {
       .sort((a, b) => (a.popularRank ?? 99) - (b.popularRank ?? 99));
   }
   return catalog.filter((s) => s.status === "live" && s.categories.includes(cat));
+}
+
+/* Browse-grid variant: playable titles first, then the coming-soon slate.
+   getSeriesByCategory() stays live-only because everything else that calls it
+   — Discover, sitemaps, counts — must never see a title with no video. Only
+   the browse grid wants the fuller picture, and it renders the coming-soon
+   rows as inert tiles. Order is deliberate: a viewer scrolling Bollywood or
+   Espanol reaches every playable title before hitting anything they cannot
+   open. */
+export function getBrowseSeriesByCategory(cat: BrowseCategory): Series[] {
+  const live = getSeriesByCategory(cat);
+  if (cat === "popular") return live;
+  const soon = catalog.filter(
+    (s) => s.status === "coming_soon" && s.categories.includes(cat),
+  );
+  return [...live, ...soon];
 }
 
 export function getSeriesByChannel(channel: string): Series[] {

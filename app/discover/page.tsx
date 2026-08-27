@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { catalog, BROWSE_TABS, getLiveSeries, getSeriesByCategory } from "@/lib/catalog";
+import { BROWSE_TABS, getLiveSeries, getSeriesByCategory } from "@/lib/catalog";
 import { T } from "@/lib/theme";
 import SearchBar from "@/components/SearchBar";
 
@@ -15,6 +15,7 @@ export const metadata: Metadata = {
 
 export default function DiscoverPage() {
   const activeTabs = BROWSE_TABS.filter(tab => getSeriesByCategory(tab.key).length > 0);
+  const live = getLiveSeries();
 
   return (
     <section className="px-4 pt-6 pb-8">
@@ -23,7 +24,9 @@ export default function DiscoverPage() {
       </h1>
 
       <div className="mb-8">
-        <SearchBar series={catalog} />
+        {/* Live only. A coming-soon title builds no page, so surfacing one in
+            search would hand the viewer a result that cannot be opened. */}
+        <SearchBar series={live} />
       </div>
 
       {/* Browse Categories */}
@@ -58,7 +61,10 @@ export default function DiscoverPage() {
         All Series
       </h2>
       <div className="flex flex-col gap-3">
-        {catalog.map((series) => (
+        {/* Live only, for the same reason as the search box above: every row
+            here is a <Link> into /series/<slug>, and only live titles build
+            that page. */}
+        {live.map((series) => (
           <Link
             key={series.slug}
             href={`/series/${series.slug}`}

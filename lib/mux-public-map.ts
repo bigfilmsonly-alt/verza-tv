@@ -1,6 +1,6 @@
 /* Auto-generated public Mux catalog map — do not hand-edit.
  *
- * Source fingerprint: b02c0eaa00d7c56de8dd7c6d9fc241ee5c2b7e0a7c41b4730991efb7f7d1d458
+ * Source fingerprint: 2e7ea93f95470f243d110bd43f254ac955c8d28741a6c9257fcc8cb0c9689b79
  * Public playback IDs: 519
  * Protected playback IDs withheld: 4394
  *

@@ -183,7 +183,11 @@ export default async function GenrePage({
           {liveMatches.length} live series
         </p>
 
-        {matches.length === 0 ? (
+        {/* liveMatches, not matches: every row below is a <Link> into
+            /series/<slug>, and coming-soon titles build no such page. Using the
+            unfiltered list here would render a guaranteed 404 for any
+            coming-soon title whose genre string happens to match. */}
+        {liveMatches.length === 0 ? (
           <div
             className="rounded-xl p-8 text-center"
             style={{ background: T.surface }}
@@ -197,7 +201,7 @@ export default async function GenrePage({
           </div>
         ) : (
           <div className="flex flex-col gap-3">
-            {matches.map((series) => (
+            {liveMatches.map((series) => (
               <Link
                 key={series.slug}
                 href={`/series/${series.slug}`}

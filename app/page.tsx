@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { catalog, getLiveSeries, getSeriesByCategory, BROWSE_TABS } from "@/lib/catalog";
+import { catalog, getLiveSeries, getBrowseSeriesByCategory, BROWSE_TABS } from "@/lib/catalog";
 import { organizationSchema, webSiteSchema, mobileAppSchema } from "@/lib/schemas";
 import JsonLd from "@/components/JsonLd";
 import BrowsePage from "@/components/BrowsePage";
@@ -14,9 +14,11 @@ export const metadata: Metadata = {
 export default function HomePage() {
   const live = getLiveSeries();
 
-  // Pre-render all tab data for SSR — real content in the HTML
+  // Pre-render all tab data for SSR — real content in the HTML.
+  // Browse variant: includes the coming-soon slate so Bollywood and Espanol
+  // show every title we hold art for, not only the ones that play.
   const tabData = Object.fromEntries(
-    BROWSE_TABS.map((tab) => [tab.key, getSeriesByCategory(tab.key)])
+    BROWSE_TABS.map((tab) => [tab.key, getBrowseSeriesByCategory(tab.key)])
   );
 
   // Show ALL tabs including empty ones
@@ -40,9 +42,17 @@ export default function HomePage() {
               <ul>
                 {(tabData[tab.key] ?? []).map((s) => (
                   <li key={s.slug}>
-                    <a href={`/series/${s.slug}`} style={{ color: "#A0A0B0" }}>
-                      {s.title} — {s.genre} ({s.episodeCount} episodes)
-                    </a>
+                    {/* Coming-soon rows build no page, so they get plain text.
+                        Linking them would hand crawlers a guaranteed 404. */}
+                    {s.status === "live" ? (
+                      <a href={`/series/${s.slug}`} style={{ color: "#A0A0B0" }}>
+                        {s.title} — {s.genre} ({s.episodeCount} episodes)
+                      </a>
+                    ) : (
+                      <span style={{ color: "#A0A0B0" }}>
+                        {s.title} — {s.genre} (coming soon)
+                      </span>
+                    )}
                   </li>
                 ))}
               </ul>

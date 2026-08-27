@@ -671,8 +671,31 @@ function runCodeAndCatalogSuite() {
 
   const catalog = catalogModule.catalog;
   const purchasable = catalog.filter(seriesPurchase.isSeriesPurchasable);
-  assert.equal(catalog.length, 91, "catalog size changed; review payment SKU policy");
+  // Three separate counts, because they fail for different reasons. Total rows
+  // move whenever a coming-soon title is added, which is harmless. Live rows and
+  // sellable rows moving is what actually warrants a payment review, so they get
+  // their own guards rather than hiding behind the total.
+  assert.equal(catalog.length, 97, "catalog size changed; review payment SKU policy");
+  assert.equal(
+    catalog.filter((series) => series.status === "live").length,
+    91,
+    "live series count changed; review payment SKU policy",
+  );
+  assert.equal(
+    catalog.filter((series) => series.status === "coming_soon").length,
+    6,
+    "coming-soon count changed; these must never be sellable",
+  );
   assert.equal(purchasable.length, 86, "unlock SKU count changed; review checkout coverage");
+  // A coming-soon row has no video, no price and no Apple product. If one ever
+  // reaches a checkout path it would sell a title that cannot be watched.
+  for (const series of catalog.filter((s) => s.status === "coming_soon")) {
+    assert.ok(
+      !seriesPurchase.isSeriesPurchasable(series),
+      `${series.slug} is coming_soon but reads as purchasable`,
+    );
+    assert.equal(mux.MUX_MAP[series.slug], undefined, `${series.slug} must have no playback rows`);
+  }
   assert.equal(new Set(purchasable.map((series) => series.slug)).size, 86);
   for (const series of purchasable) {
     assert.equal(series.status, "live", `${series.slug} is not live`);

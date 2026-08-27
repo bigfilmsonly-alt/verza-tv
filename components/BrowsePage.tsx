@@ -69,18 +69,31 @@ const FEATURED_NEW = [
 ] as const;
 const FEATURED_NEW_SET = new Set<string>(FEATURED_NEW);
 
-function Badge({ type, large = false }: { type: "trending" | "new"; large?: boolean }) {
+/* "soon" marks a title we hold key art for but no footage. It reads as a
+   neutral slate rather than the brand pink/violet on purpose: Trending and New
+   are invitations to tap, and this one is explicitly not. */
+const BADGE_STYLE = {
+  trending: { bg: "#E0115F", label: "Trending" },
+  new: { bg: "#8B5CF6", label: "New" },
+  soon: { bg: "rgba(12,12,20,0.82)", label: "Coming Soon" },
+} as const;
+
+function Badge({ type, large = false }: { type: keyof typeof BADGE_STYLE; large?: boolean }) {
+  const { bg, label } = BADGE_STYLE[type];
   return (
     <div
       className={`absolute z-10 rounded font-bold uppercase tracking-wider ${
         large ? "top-2 left-2 px-2 py-1 text-[10px]" : "top-1.5 left-1.5 px-1.5 py-0.5 text-[8px]"
       }`}
       style={{
-        background: type === "trending" ? "#E0115F" : "#8B5CF6",
+        background: bg,
         color: "#fff",
+        ...(type === "soon"
+          ? { backdropFilter: "blur(4px)", border: "1px solid rgba(255,255,255,0.28)" }
+          : null),
       }}
     >
-      {type === "trending" ? "Trending" : "New"}
+      {label}
     </div>
   );
 }
@@ -856,37 +869,59 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
             {/* Posters only. Sponsored products used to be injected into this
                 grid every 12 tiles; they now live in the shop section of the
                 footer, so browsing stays purely editorial. */}
-            {gridItems.map((s) => (
+            {gridItems.map((s) => {
+              // A coming-soon title has key art and no video. It builds no page,
+              // so it must not be a <Link> — tapping one would 404. It renders as
+              // an inert tile carrying the art and a COMING SOON badge, the same
+              // treatment the Reality tab gives its unshot titles.
+              const soon = s.status === "coming_soon";
+              const art = (
+                <>
+                  <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
+                    <Poster src={s.posterUrl} alt={s.title} sizes={twoUp ? "(max-width: 440px) 50vw, 220px" : "(max-width: 440px) 33vw, 146px"} />
+                    {!soon && s.popularRank && s.popularRank <= 5 && <Badge type="trending" large={twoUp} />}
+                    {!soon && (FEATURED_NEW_SET.has(s.slug) || badgeAsNew || (activeTab !== "drama" && !s.popularRank && s.categories.includes("new"))) && <Badge type="new" large={twoUp} />}
+                    {soon && <Badge type="soon" large={twoUp} />}
+                    {/* The play affordance is the promise that a tap starts a
+                        video. Coming-soon tiles make no such promise. */}
+                    {!soon && (
+                      <div
+                        className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
+                        style={{ background: "rgba(0,0,0,0.3)" }}
+                      >
+                        <div
+                          className="w-10 h-10 rounded-full flex items-center justify-center scale-75 group-hover:scale-100 transition-transform duration-300"
+                          style={{ background: "rgba(224, 17, 95, 0.85)", backdropFilter: "blur(4px)", transitionTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)" }}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff" stroke="none">
+                            <polygon points="8 5 20 12 8 19" />
+                          </svg>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ height: 36 }}>
+                    <p className="mt-1.5 text-[11px] font-semibold leading-tight line-clamp-2" style={{ color: soon ? "#B9B5C4" : "#F5F4F8" }}>{s.title}</p>
+                    <p className="text-[10px] mt-0.5 line-clamp-1" style={{ color: "#6B6B7B" }}>{s.genre}</p>
+                  </div>
+                </>
+              );
+
+              return soon ? (
+                <div key={s.slug} className="block min-w-0" aria-label={`${s.title} — coming soon`}>
+                  {art}
+                </div>
+              ) : (
                 <Link
                   key={s.slug}
                   href={`/series/${s.slug}/1`}
                   className="group block no-underline min-w-0 transition-transform active:scale-[0.97]"
                   onClick={(e) => posterClick(e, s.slug)}
                 >
-                  <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
-                    <Poster src={s.posterUrl} alt={s.title} sizes={twoUp ? "(max-width: 440px) 50vw, 220px" : "(max-width: 440px) 33vw, 146px"} />
-                    {s.popularRank && s.popularRank <= 5 && <Badge type="trending" large={twoUp} />}
-                    {(FEATURED_NEW_SET.has(s.slug) || badgeAsNew || (activeTab !== "drama" && !s.popularRank && s.categories.includes("new"))) && <Badge type="new" large={twoUp} />}
-                    <div
-                      className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
-                      style={{ background: "rgba(0,0,0,0.3)" }}
-                    >
-                      <div
-                        className="w-10 h-10 rounded-full flex items-center justify-center scale-75 group-hover:scale-100 transition-transform duration-300"
-                        style={{ background: "rgba(224, 17, 95, 0.85)", backdropFilter: "blur(4px)", transitionTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)" }}
-                      >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff" stroke="none">
-                          <polygon points="8 5 20 12 8 19" />
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-                  <div style={{ height: 36 }}>
-                    <p className="mt-1.5 text-[11px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>{s.title}</p>
-                    <p className="text-[10px] mt-0.5 line-clamp-1" style={{ color: "#6B6B7B" }}>{s.genre}</p>
-                  </div>
+                  {art}
                 </Link>
-            ))}
+              );
+            })}
           </div>
           {/* Paging sentinel — the observer above watches this and appends the
               next page while it is still a screen below the fold, so the grid
