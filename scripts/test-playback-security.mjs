@@ -156,9 +156,9 @@ requireText("playback route must use complete-map server gateway", route,
 requireText("public map must be generated", publicMap,
   "Auto-generated public Mux catalog map — do not hand-edit");
 requireText("public map release count must be explicit", publicMap,
-  "Public playback IDs: 484");
+  "Public playback IDs: 494");
 requireText("protected map release count must be explicit", publicMap,
-  "Protected playback IDs withheld: 4015");
+  "Protected playback IDs withheld: 4122");
 requireText("public map must permit withheld capabilities", publicMap,
   "playbackId?: string;");
 
@@ -174,8 +174,8 @@ if (publicMapAudit.status !== 0) {
     }`,
   );
 } else if (
-  !publicMapAudit.stdout.includes("intentionally public IDs: 484") ||
-  !publicMapAudit.stdout.includes("protected IDs withheld: 4015")
+  !publicMapAudit.stdout.includes("intentionally public IDs: 494") ||
+  !publicMapAudit.stdout.includes("protected IDs withheld: 4122")
 ) {
   failures.push("generated public-map audit returned unexpected release counts");
 }

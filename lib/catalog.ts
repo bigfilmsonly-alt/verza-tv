@@ -1059,6 +1059,34 @@ export const catalog: Series[] = [
     posterUrl: "/posters/the-goat-mistress-es.png",
     freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(60), status: "live",
   },
+  /* ================================================================ */
+  /*  BOLLYWOOD TAB — Hindi language originals                        */
+  /*  Only titles whose streams AND key art both exist ship here.      */
+  /*  Salt and Pepper (60 eps) and Love for Sale (60 eps) are verified */
+  /*  complete in Mux and stay out until their posters land.           */
+  /* ================================================================ */
+  {
+    slug: "falling-for-flatmate",
+    title: "Falling for Flatmate",
+    logline: "She took the room because rent was due, not because of the man already living in it. Sharing a wall turns out to be the fastest way to lose an argument with your own heart.",
+    genre: "Romance \u00b7 Comedy",
+    channel: "VERZA Originals",
+    categories: ["bollywood"],
+    episodeCount: 60,
+    posterUrl: "/posters/falling-for-flatmate.png",
+    freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(60), status: "live",
+  },
+  {
+    slug: "dil-dosa-dosti",
+    title: "Dil Dosa Dosti",
+    logline: "A tiny dosa cart, three friends who swore it would always stay simple, and one confession nobody was ready for. Some recipes change everything.",
+    genre: "Romance \u00b7 Friendship",
+    channel: "VERZA Originals",
+    categories: ["bollywood"],
+    episodeCount: 57,
+    posterUrl: "/posters/dil-dosa-dosti.png",
+    freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(57), status: "live",
+  },
 ];
 
 /* ------------------------------------------------------------------ */

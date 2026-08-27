@@ -46,10 +46,10 @@ playback, legal copy, catalog data, or release configuration. `CLAUDE.md` and
    production/sandbox URLs are exact,
    but no real signed notification or Sandbox purchase has completed yet.
    Never describe local code or a successful build as deployed.
-2. **The product sold now is a full-series unlock.** The catalog has 84
-   rows: all 84 live, of which 79 are paid and five are wholly free. No
-   coming-soon rows remain. (2026-08-27, post App Store approval: four Espanol
-   titles added and "I'm Obsessed with My Boss Part II" released from
+2. **The product sold now is a full-series unlock.** The catalog has 86
+   rows: all 86 live, of which 81 are paid and five are wholly free. No
+   coming-soon rows remain. (2026-08-27, post App Store approval: four Espanol titles,
+   two Bollywood titles, and "I'm Obsessed with My Boss Part II" released from
    coming-soon. Two Bollywood titles are still held pending key art.) Web/eligible Android use a canonical $1.99 USD Stripe
    Checkout; iOS uses one Apple non-consumable per paid-live series with a
    $1.99 US base price and StoreKit-localized storefront pricing. Coins,
@@ -79,10 +79,10 @@ playback, legal copy, catalog data, or release configuration. `CLAUDE.md` and
    Authority to sell nationwide is not evidence of registration. Do not enable
    `STRIPE_AUTOMATIC_TAX_ENABLED` until tax/legal owners record nexus,
    registrations, classification, display, and filing decisions.
-8. **Paid playback is server-authorized and signed mode is live.** The complete map has 4,499 rows:
-   all live, 484 intentionally public/free rows and 4,015 paid-live rows with
-   signed counterparts. Runtime clients receive only the 484-row public
-   capability projection; 4,015 capabilities are withheld. Production readback shows unentitled paid access 402 with no
+8. **Paid playback is server-authorized and signed mode is live.** The complete map has 4,616 rows:
+   all live, 494 intentionally public/free rows and 4,122 paid-live rows with
+   signed counterparts. Runtime clients receive only the 494-row public
+   capability projection; 4,122 capabilities are withheld. Production readback shows unentitled paid access 402 with no
    capability and entitled access `policy=signed`, no `playbackId`, 1,800-second
    tokenized stream/poster, and a 200 manifest. The old 1.2 app still needs legacy public paid IDs, so do not
    retire them before a separately approved post-2.0 forced-update/drain gate.
@@ -106,7 +106,7 @@ playback, legal copy, catalog data, or release configuration. `CLAUDE.md` and
 13. **All Next request APIs are async.** Await `cookies()`, `headers()`, and
     `params`. Prefer Server Components; use client components only for genuine
     interactivity. Preview deployments remain `noindex`.
-14. **Apple product identity is append-only.** The 79 exact slug/product pairs
+14. **Apple product identity is append-only.** The 81 exact slug/product pairs
     live in `lib/apple-iap-product-manifest.ts`; never derive an arbitrary ID,
     recycle one, or delete a retired mapping. New-purchase preflight is gated
     separately from durable transaction/refund/revocation/restore/notification

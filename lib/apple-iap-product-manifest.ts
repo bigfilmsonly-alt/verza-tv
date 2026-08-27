@@ -91,6 +91,10 @@ export const APPLE_SERIES_PRODUCT_IDS = {
   "i-cheated-on-my-wedding-night-es": "com.verzatv.app.series.i_cheated_on_my_wedding_night_es",
   "i-fell-in-love-with-my-presidential-brother-in-law-es": "com.verzatv.app.series.i_fell_in_love_with_my_presidential_brother_in_law_es",
   "the-goat-mistress-es": "com.verzatv.app.series.the_goat_mistress_es",
+
+  /* Appended 2026-08-27 (Bollywood, restored after branch reset). */
+  "falling-for-flatmate": "com.verzatv.app.series.falling_for_flatmate",
+  "dil-dosa-dosti": "com.verzatv.app.series.dil_dosa_dosti",
 } as const;
 
 export type AppleSeriesProductSlug = keyof typeof APPLE_SERIES_PRODUCT_IDS;

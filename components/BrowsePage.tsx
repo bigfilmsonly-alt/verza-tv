@@ -718,7 +718,11 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
       )}
 
       {/* Hero Slideshow — shows on Drama/New/Hot (not Reality/Red Carpet/Music) */}
-      {current && activeTab !== "reality" && activeTab !== "red-carpet" && activeTab !== "music" && (
+      {/* Espanol and Bollywood show ONLY their title grid: no hero, no
+         slideshow above it. The homepage hero is untouched and still
+         rotates the pinned FEATURED_NEW six on Drama. */}
+      {current && activeTab !== "reality" && activeTab !== "red-carpet" && activeTab !== "music"
+        && activeTab !== "espanol" && activeTab !== "bollywood" && (
         <div
           onMouseEnter={() => setHeroPaused(true)}
           onMouseLeave={() => setHeroPaused(false)}
