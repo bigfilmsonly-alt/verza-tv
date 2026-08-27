@@ -101,7 +101,7 @@ export function clipMuxThumbnail(clip: Clip, playbackId: string): string {
 export function buildTrackingUrl(clip: Clip, platform: ClipPlatform): string {
   const base = typeof window !== "undefined"
     ? window.location.origin
-    : process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
+    : process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verzatv.com";
   const url = new URL(`/c/${clip.slug}`, base);
   url.searchParams.set("utm_source", platform);
   url.searchParams.set("utm_medium", "clip");

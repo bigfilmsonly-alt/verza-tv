@@ -8,7 +8,7 @@ import { getSeriesBySlug } from "@/lib/catalog";
 // image becomes the OG card for any series page that sets:
 //   openGraph.images = [{ url: `/api/og/${slug}` }]
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verzatv.com";
 const FALLBACK_OG = "/og-image.png";
 
 export async function GET(

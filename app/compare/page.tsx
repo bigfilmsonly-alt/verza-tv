@@ -6,7 +6,7 @@ import { T } from "@/lib/theme";
 import { BRAND } from "@/lib/config";
 import { COMPARISONS } from "@/lib/data/compare";
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verzatv.com";
 
 const PAGE_TITLE = `${BRAND.name} Comparisons & Microdrama Explainers`;
 const PAGE_DESC =

@@ -61,8 +61,11 @@ function HorizontalCard({ video, index }: { video: HorizontalVideo; index: numbe
     if (hlsRef.current || vid.currentSrc) return;
 
     // Prefer hls.js (MSE) whenever supported; native HLS only where hls.js
-    // can't run (iOS Safari). Some Chrome versions answer "maybe" to
+    // can't run. Some Chrome versions answer "maybe" to
     // canPlayType(HLS) but then stall forever without playing.
+    // NOTE: that is NOT iOS. hls.js resolves ManagedMediaSource first and
+    // iPhone Safari has shipped it since iOS 17.1, so Hls.isSupported() is
+    // true there and iPhones take the MSE branch, worker and all.
     const Hls = await getHls();
     // Re-read after the await — the card may have unmounted meanwhile.
     if (!videoRef.current) return;

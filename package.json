@@ -23,7 +23,10 @@
     "test:payments:runtime:required-consent": "node scripts/verify-payment-runtime.mjs --require-auth --expect-series-checkout=required",
     "test:payments:runtime:public": "node scripts/verify-payment-runtime.mjs",
     "stripe:portal:check": "node --env-file=.env.local scripts/configure-stripe-billing-portal.mjs",
-    "stripe:portal:configure": "node --env-file=.env.local scripts/configure-stripe-billing-portal.mjs --apply --confirm-live"
+    "stripe:portal:configure": "node --env-file=.env.local scripts/configure-stripe-billing-portal.mjs --apply --confirm-live",
+    "audit": "npx tsx scripts/audit-content.ts",
+    "audit:perf": "npx tsx scripts/audit-perf.ts",
+    "audit:all": "npm run audit && npm run audit:perf"
   },
   "dependencies": {
     "@apple/app-store-server-library": "3.1.0",

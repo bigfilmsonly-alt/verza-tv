@@ -4,9 +4,13 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import process from "node:process";
+import { fileURLToPath } from "node:url";
 import ts from "typescript";
 
-const ROOT = resolve(dirname(new URL(import.meta.url).pathname), "..");
+// fileURLToPath, not .pathname: a file:// pathname percent-encodes spaces, so
+// any checkout under a directory with a space (e.g. "E! CREATOR ECONOMY")
+// resolved to "E!%20CREATOR%20ECONOMY" and every readFileSync ENOENT'd.
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
 function loadTypeScriptModule(relativePath, requireMap = {}) {
   const filename = join(ROOT, relativePath);
@@ -667,9 +671,9 @@ function runCodeAndCatalogSuite() {
 
   const catalog = catalogModule.catalog;
   const purchasable = catalog.filter(seriesPurchase.isSeriesPurchasable);
-  assert.equal(catalog.length, 80, "catalog size changed; review payment SKU policy");
-  assert.equal(purchasable.length, 74, "unlock SKU count changed; review checkout coverage");
-  assert.equal(new Set(purchasable.map((series) => series.slug)).size, 74);
+  assert.equal(catalog.length, 86, "catalog size changed; review payment SKU policy");
+  assert.equal(purchasable.length, 81, "unlock SKU count changed; review checkout coverage");
+  assert.equal(new Set(purchasable.map((series) => series.slug)).size, 81);
   for (const series of purchasable) {
     assert.equal(series.status, "live", `${series.slug} is not live`);
     assert.ok(series.episodeCount > series.freeEpisodes, `${series.slug} has no paid episodes`);

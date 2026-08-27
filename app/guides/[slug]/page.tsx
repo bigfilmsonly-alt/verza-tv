@@ -9,7 +9,7 @@ import { BRAND } from "@/lib/config";
 import { GUIDES, getGuide } from "@/lib/data/guides";
 import { getLiveSeries } from "@/lib/catalog";
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verzatv.com";
 
 export async function generateStaticParams() {
   return GUIDES.map((g) => ({ slug: g.slug }));

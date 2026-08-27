@@ -34,7 +34,7 @@ export default async function LearnPage({ params }: Props) {
   const page = getLearnPage(slug);
   if (!page || !page.editorialApproved) notFound();
 
-  const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
+  const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verzatv.com";
   const paragraphs = page.body.split("\n\n").filter(Boolean);
 
   return (

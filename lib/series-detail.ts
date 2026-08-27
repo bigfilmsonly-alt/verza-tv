@@ -474,4 +474,28 @@ export const SERIES_DETAIL: Record<string, SeriesDetail> = {
     tags: ["office-romance", "sequel", "obsession"],
     rating: 8.6, year: 2025, posterMood: "noir",
   },
+  "sentence-of-passion-es": {
+    description: "Un juicio que parecía perdido se convierte en el punto de partida de una obsesión. Entre audiencias, pruebas manipuladas y silencios que pesan más que cualquier declaración, ella descubre que el hombre sentado al otro lado de la sala guarda un secreto que puede salvarla o hundirla para siempre. Cada sesión los acerca. Cada verdad los condena un poco más.",
+    cast: [],
+    tags: ["drama", "juicio", "pasion", "obsesion"],
+    rating: 8.8, year: 2026, posterMood: "blood",
+  },
+  "i-cheated-on-my-wedding-night-es": {
+    description: "La fiesta terminó, los invitados se fueron y quedó una decisión imposible de deshacer. Mientras el matrimonio recién firmado empieza a agrietarse, ella carga con un motivo que nadie imagina y que explica todo lo que hizo esa noche. Entre familias que exigen apariencias y un esposo que busca respuestas, la verdad avanza hacia la superficie sin que nadie pueda detenerla.",
+    cast: [],
+    tags: ["drama", "traicion", "matrimonio", "secretos"],
+    rating: 9.0, year: 2026, posterMood: "noir",
+  },
+  "i-fell-in-love-with-my-presidential-brother-in-law-es": {
+    description: "Casada dentro de una familia que vive bajo los reflectores, ella aprende a sonreír en cada fotografía y a callar en cada cena. Todo cambia cuando el hermano de su esposo, el hombre que dirige el país, empieza a mirarla como nadie lo había hecho. Lo que nace como una complicidad silenciosa se convierte en un riesgo que puede costarles la reputación, la familia y el poder que tanto costó construir.",
+    cast: [],
+    tags: ["romance", "poder", "prohibido", "politica"],
+    rating: 8.9, year: 2026, posterMood: "rose",
+  },
+  "the-goat-mistress-es": {
+    description: "En un pueblo donde los rumores viajan más rápido que la verdad, una mujer sola levanta su rebaño y soporta el apodo que le pusieron para hundirla. Cuando un forastero llega buscando tierras y encuentra a la única persona que no le teme, el pueblo entero se divide entre los que quieren verla caer y los que empiezan a entender de qué está hecha.",
+    cast: [],
+    tags: ["drama", "romance", "pueblo", "superacion"],
+    rating: 8.6, year: 2026, posterMood: "emerald",
+  },
 };

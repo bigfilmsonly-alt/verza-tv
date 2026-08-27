@@ -2,7 +2,7 @@ import { DISCOVER_CATEGORY_SLUGS } from "@/lib/discover-categories";
 
 export function GET() {
   const baseUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verzatv.com";
   const now = new Date().toISOString().split("T")[0];
 
   /* Genre slugs matching /genre/[genre] and /discover/[genre] routes */

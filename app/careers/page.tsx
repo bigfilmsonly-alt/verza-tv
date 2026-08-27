@@ -11,7 +11,7 @@ import {
   CAREERS_EMAIL,
 } from "@/lib/data/company";
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verzatv.com";
 
 export const metadata: Metadata = {
   title: "Careers",

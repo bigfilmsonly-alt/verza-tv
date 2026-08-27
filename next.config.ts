@@ -3,6 +3,15 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactStrictMode: false,
   images: {
+    // Poster grids are the app's single biggest memory cost on a phone: a
+    // decoded bitmap costs width*height*4 bytes in RAM no matter how small the
+    // file is. Next's DEFAULT breakpoints jump 384 -> 640, and a 33vw tile on a
+    // DPR-3 iPhone needs ~390-436 device px, so every tile rounded UP to the
+    // 640w candidate. The 448/512 entries land just above that requirement so
+    // tiles pick a correctly-sized candidate instead. 2048/3840 are dropped:
+    // poster sources are <=1080px wide and the optimizer never enlarges.
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384, 448, 512],
     dangerouslyAllowSVG: true,
     contentDispositionType: "attachment",
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",

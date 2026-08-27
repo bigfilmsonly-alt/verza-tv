@@ -2,48 +2,14 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-
-/* ------------------------------------------------------------------ */
-/*  Theme                                                              */
-/* ------------------------------------------------------------------ */
-const T = {
-  bg: "#07070E",
-  surface: "#12121C",
-  raised: "#1A1A26",
-  line: "rgba(255,255,255,.1)",
-  text: "#F5F4F8",
-  textDim: "rgba(255,255,255,0.5)",
-  textMute: "rgba(255,255,255,0.35)",
-  accent: "#E0115F",
-  purple: "#8B5CF6",
-  success: "#2ECC71",
-  warn: "#F6C800",
-};
-
-const input = {
-  background: "rgba(255,255,255,0.06)",
-  border: `1px solid ${T.line}`,
-  color: T.text,
-};
+import type { CreatorMe } from "@/lib/creator-client";
+import ApplicationWizard from "./creator/ApplicationWizard";
+import { Badge, Centered, Field, Notice, T, WizardSkeleton, input } from "./creator/ui";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
 /* ------------------------------------------------------------------ */
-interface CreatorProfile {
-  handle: string;
-  displayName: string;
-  bio: string;
-  status: "pending" | "approved" | "rejected";
-  rejectionReason: string | null;
-  payoutSplit: number;
-}
-
-interface Me {
-  authenticated: boolean;
-  email?: string;
-  muxReady?: boolean;
-  creator: CreatorProfile | null;
-}
+type Me = CreatorMe;
 
 interface ContentItem {
   id: string;
@@ -96,6 +62,9 @@ export default function CreatorDashboard() {
   }, []);
 
   useEffect(() => {
+    // Deferred + cancellable (from main): firing the fetch during the commit
+    // phase raced hydration, and an unmount mid-flight set state on a dead
+    // component. Keep both guards.
     let cancelled = false;
     queueMicrotask(() => {
       if (!cancelled) void loadMe();
@@ -105,7 +74,7 @@ export default function CreatorDashboard() {
     };
   }, [loadMe]);
 
-  if (loading) return <Centered>Loading studio…</Centered>;
+  if (loading) return <WizardSkeleton />;
 
   if (!me?.authenticated) {
     return (
@@ -129,209 +98,63 @@ export default function CreatorDashboard() {
     );
   }
 
-  // No profile yet, or still pending/rejected → application / status screen.
-  if (!me.creator || me.creator.status !== "approved") {
-    return <ApplyScreen me={me} onSaved={loadMe} />;
-  }
-
-  return <ApprovedDashboard me={me} />;
+  // Reconciled to the migration-010 lifecycle. Status is always visible on
+  // login, so a creator never has to email a human to learn where they stand.
+  const status = me.creator?.status ?? null;
+  if (status === "approved") return <ApprovedDashboard me={me} />;
+  if (status === "submitted" || status === "in_review") return <UnderReview me={me} />;
+  if (status === "declined") return <Declined me={me} />;
+  // null | 'draft' | 'changes_requested' -> the multi-step wizard (resume / reopen).
+  return <ApplicationWizard me={me} onSubmitted={loadMe} />;
 }
 
 /* ================================================================== */
-/*  Apply / status screen                                              */
+/*  Status screens (submitted / in_review / declined)                 */
 /* ================================================================== */
-function ApplyScreen({ me, onSaved }: { me: Me; onSaved: () => void }) {
+function UnderReview({ me }: { me: Me }) {
   const c = me.creator;
-  const [form, setForm] = useState({
-    displayName: c?.displayName ?? "",
-    handle: c?.handle ?? "",
-    phone: "",
-    contactEmail: me.email ?? "",
-    social: "",
-    website: "",
-    bio: c?.bio ?? "",
-    projectPitch: "",
-    filmLink: "",
-  });
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-
-  // Pending: locked status screen, no resubmit needed.
-  if (c?.status === "pending") {
-    return (
-      <Centered>
-        <div className="text-center max-w-sm">
-          <Badge color={T.warn}>Application under review</Badge>
-          <h1 className="text-xl font-bold mt-4 mb-2" style={{ color: T.text }}>
-            You&apos;re in the queue, @{c.handle}
-          </h1>
-          <p className="text-sm" style={{ color: T.textDim }}>
-            Our team will review your application and email {me.email} if its
-            status changes. Upload access and terms are provided separately to
-            approved creators.
-          </p>
-        </div>
-      </Centered>
-    );
-  }
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    setBusy(true);
-    setErr(null);
-    try {
-      const res = await fetch("/api/creator/apply", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-      const body = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setErr(body.error || `Error ${res.status}`);
-      } else {
-        onSaved();
-      }
-    } catch {
-      setErr("Network error");
-    } finally {
-      setBusy(false);
-    }
-  }
-
   return (
-    <section className="px-4 pt-8 pb-16 max-w-md mx-auto">
-      <div className="text-center mb-6">
-        <Badge color={T.accent}>Creator Program</Badge>
-        <h1 className="text-2xl font-bold mt-3 mb-2" style={{ color: T.text }}>
-          {c?.status === "rejected" ? "Update your application" : "Apply to create"}
+    <Centered>
+      <div className="text-center max-w-sm">
+        <Badge color={T.warn}>Application under review</Badge>
+        <h1 className="text-xl font-bold mt-4 mb-2" style={{ color: T.text }}>
+          You&apos;re in the queue{c?.handle ? `, @${c.handle}` : ""}
         </h1>
         <p className="text-sm" style={{ color: T.textDim }}>
-          Submit your project and channel details for review. Upload access,
-          pricing options, and commercial terms are provided separately if your
-          application is approved.
+          Our team will review your application and email {me.email} if its
+          status changes. No further action is needed right now.
         </p>
+        {c?.status === "in_review" && (
+          <p className="text-xs mt-3" style={{ color: T.textMute }}>
+            A reviewer is watching your titles now.
+          </p>
+        )}
       </div>
+    </Centered>
+  );
+}
 
-      {c?.status === "rejected" && c.rejectionReason && (
-        <Notice color={T.accent}>
-          Your last application needs changes: {c.rejectionReason}
-        </Notice>
-      )}
-
-      <form onSubmit={submit} className="flex flex-col gap-4">
-        <Field label="Display name *">
-          <input
-            required
-            value={form.displayName}
-            onChange={(e) => setForm((f) => ({ ...f, displayName: e.target.value }))}
-            placeholder="Your channel name"
-            className="w-full px-4 py-3 rounded-xl text-sm outline-none"
-            style={input}
-          />
-        </Field>
-        <Field label="Handle *" hint="Used in your content links: verzatv.com/watch/handle/…">
-          <input
-            required
-            value={form.handle}
-            onChange={(e) => setForm((f) => ({ ...f, handle: e.target.value }))}
-            placeholder="@yourhandle"
-            className="w-full px-4 py-3 rounded-xl text-sm outline-none"
-            style={input}
-          />
-        </Field>
-        <Field label="Phone number *" hint="So our team can reach you about your enrollment.">
-          <input
-            required
-            type="tel"
-            inputMode="tel"
-            autoComplete="tel"
-            value={form.phone}
-            onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
-            placeholder="(555) 123-4567"
-            className="w-full px-4 py-3 rounded-xl text-sm outline-none"
-            style={input}
-          />
-        </Field>
-        <Field label="Contact email *">
-          <input
-            required
-            type="email"
-            inputMode="email"
-            autoComplete="email"
-            value={form.contactEmail}
-            onChange={(e) => setForm((f) => ({ ...f, contactEmail: e.target.value }))}
-            placeholder="you@example.com"
-            className="w-full px-4 py-3 rounded-xl text-sm outline-none"
-            style={input}
-          />
-        </Field>
-        <Field label="Social media">
-          <input
-            value={form.social}
-            onChange={(e) => setForm((f) => ({ ...f, social: e.target.value }))}
-            placeholder="@handle (TikTok, Instagram, YouTube)"
-            className="w-full px-4 py-3 rounded-xl text-sm outline-none"
-            style={input}
-          />
-        </Field>
-        <Field label="Website">
-          <input
-            value={form.website}
-            onChange={(e) => setForm((f) => ({ ...f, website: e.target.value }))}
-            placeholder="https://…"
-            className="w-full px-4 py-3 rounded-xl text-sm outline-none"
-            style={input}
-          />
-        </Field>
-        <Field label="About you" hint="A short bio viewers will see on your channel.">
-          <textarea
-            value={form.bio}
-            onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))}
-            placeholder="Tell viewers about yourself and your channel"
-            rows={3}
-            className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none"
-            style={input}
-          />
-        </Field>
-        <Field label="Your idea, film, or films *" hint="Describe what you want to make or the films you already have.">
-          <textarea
-            required
-            value={form.projectPitch}
-            onChange={(e) => setForm((f) => ({ ...f, projectPitch: e.target.value }))}
-            placeholder="Pitch your show, film, or series idea. What's it about? Do you have footage ready? What makes it binge-worthy?"
-            rows={5}
-            className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none"
-            style={input}
-          />
-        </Field>
-        <Field label="Link to your film" hint="Share your movie via Google Drive, Dropbox, or any link so our team can watch it.">
-          <input
-            type="url"
-            inputMode="url"
-            value={form.filmLink}
-            onChange={(e) => setForm((f) => ({ ...f, filmLink: e.target.value }))}
-            placeholder="https://drive.google.com/…  ·  https://dropbox.com/…"
-            className="w-full px-4 py-3 rounded-xl text-sm outline-none"
-            style={input}
-          />
-        </Field>
-
-        {err && <Notice color={T.accent}>{err}</Notice>}
-
-        <button
-          type="submit"
-          disabled={busy}
-          className="w-full py-4 rounded-xl text-base font-bold border-0 cursor-pointer mt-1"
-          style={{
-            background: `linear-gradient(135deg, ${T.accent}, ${T.purple})`,
-            color: "#fff",
-            opacity: busy ? 0.7 : 1,
-          }}
-        >
-          {busy ? "Submitting…" : "Submit application"}
-        </button>
-      </form>
-    </section>
+function Declined({ me }: { me: Me }) {
+  const c = me.creator;
+  return (
+    <Centered>
+      <div className="text-center max-w-sm">
+        <Badge color={T.textMute}>Application closed</Badge>
+        <h1 className="text-xl font-bold mt-4 mb-2" style={{ color: T.text }}>
+          We can&apos;t move forward right now
+        </h1>
+        <p className="text-sm" style={{ color: T.textDim }}>
+          Thanks for applying to the VERZA Creator Program. We&apos;re not able to bring your
+          channel on board at this time. You keep your full viewer account, and you&apos;re welcome
+          to apply again in the future.
+        </p>
+        {c?.reviewerNotes && (
+          <p className="text-xs mt-4" style={{ color: T.textMute }}>
+            {c.reviewerNotes}
+          </p>
+        )}
+      </div>
+    </Centered>
   );
 }
 
@@ -383,13 +206,15 @@ function ApprovedDashboard({ me }: { me: Me }) {
             {c.displayName || `@${c.handle}`}
           </h1>
           <p className="text-xs" style={{ color: T.textMute }}>
-            @{c.handle} · {Math.round(c.payoutSplit * 100)}% revenue share
+            @{c.handle}
           </p>
         </div>
         <Badge color={T.success}>Approved</Badge>
       </header>
 
       <EarningsPanel />
+
+      <ChannelEditor />
 
       <Uploader muxReady={!!me.muxReady} onCreated={loadContent} />
 
@@ -429,9 +254,183 @@ function ApprovedDashboard({ me }: { me: Me }) {
 /* ------------------------------------------------------------------ */
 /*  Earnings panel                                                     */
 /* ------------------------------------------------------------------ */
+/* ================================================================== */
+/*  Channel editor (stage 5)                                           */
+/*  The creator's only write path to their public /@handle page.       */
+/*  Collapsed by default so it never competes with the upload flow.    */
+/* ================================================================== */
+interface ChannelState {
+  handle: string;
+  displayName: string;
+  bio: string;
+  avatarUrl: string;
+  bannerUrl: string;
+  website: string;
+  social: Record<string, string>;
+  published: boolean;
+}
+
+function ChannelEditor() {
+  const [open, setOpen] = useState(false);
+  const [ch, setCh] = useState<ChannelState | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/creator/channel", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (!cancelled && d?.channel) setCh(d.channel); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  const set = (patch: Partial<ChannelState>) =>
+    setCh((prev) => (prev ? { ...prev, ...patch } : prev));
+
+  async function save(extra: Partial<ChannelState> = {}) {
+    if (!ch) return;
+    setBusy(true);
+    setMsg(null);
+    try {
+      const res = await fetch("/api/creator/channel", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...ch, ...extra }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setMsg({ kind: "err", text: body?.error ?? "Could not save" });
+      } else {
+        if (extra.published !== undefined) set({ published: extra.published });
+        setMsg({ kind: "ok", text: extra.published === true ? "Channel is live" : "Saved" });
+      }
+    } catch {
+      setMsg({ kind: "err", text: "Could not save" });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (!ch) return null;
+
+  return (
+    <div className="mt-4 rounded-2xl overflow-hidden" style={{ border: `1px solid ${T.line}` }}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left"
+        style={{ background: T.raised }}
+      >
+        <span>
+          <span className="text-sm font-bold block" style={{ color: T.text }}>Your channel</span>
+          <span className="text-[11px]" style={{ color: ch.published ? T.success : T.textMute }}>
+            {ch.published ? `Live at verzatv.com/@${ch.handle}` : "Not published yet"}
+          </span>
+        </span>
+        <span className="text-lg leading-none" style={{ color: T.textMute, transform: open ? "rotate(45deg)" : "none", transition: "transform .18s" }}>+</span>
+      </button>
+
+      {open && (
+        <div className="px-4 py-4 flex flex-col gap-3" style={{ background: T.surface }}>
+          <Field label="Handle">
+            <input
+              value={ch.handle}
+              onChange={(e) => set({ handle: e.target.value })}
+              placeholder="yourname"
+              style={input}
+            />
+            <p className="text-[11px] mt-1" style={{ color: T.textMute }}>
+              verzatv.com/@{ch.handle || "yourname"}
+            </p>
+          </Field>
+
+          <Field label="Channel name">
+            <input value={ch.displayName} onChange={(e) => set({ displayName: e.target.value })} style={input} />
+          </Field>
+
+          <Field label="Bio">
+            <textarea
+              value={ch.bio}
+              onChange={(e) => set({ bio: e.target.value.slice(0, 400) })}
+              rows={3}
+              style={{ ...input, resize: "vertical" }}
+            />
+            <p className="text-[11px] mt-1" style={{ color: T.textMute }}>{ch.bio.length}/400</p>
+          </Field>
+
+          <Field label="Avatar image URL">
+            <input value={ch.avatarUrl} onChange={(e) => set({ avatarUrl: e.target.value })} placeholder="https://" style={input} />
+          </Field>
+
+          <Field label="Banner image URL">
+            <input value={ch.bannerUrl} onChange={(e) => set({ bannerUrl: e.target.value })} placeholder="https://" style={input} />
+          </Field>
+
+          <Field label="Website">
+            <input value={ch.website} onChange={(e) => set({ website: e.target.value })} placeholder="https://" style={input} />
+          </Field>
+
+          {(["instagram", "tiktok", "youtube", "imdb"] as const).map((k) => (
+            <Field key={k} label={k[0].toUpperCase() + k.slice(1)}>
+              <input
+                value={ch.social?.[k] ?? ""}
+                onChange={(e) => set({ social: { ...ch.social, [k]: e.target.value } })}
+                placeholder="https://"
+                style={input}
+              />
+            </Field>
+          ))}
+
+          {msg && <Notice color={msg.kind === "ok" ? T.success : T.accent}>{msg.text}</Notice>}
+
+          <div className="flex items-center gap-2 mt-1">
+            <button
+              onClick={() => save()}
+              disabled={busy}
+              className="flex-1 py-3 rounded-xl text-sm font-bold"
+              style={{ background: T.raised, color: T.text, opacity: busy ? 0.6 : 1 }}
+            >
+              {busy ? "Saving…" : "Save"}
+            </button>
+            <button
+              onClick={() => save({ published: !ch.published })}
+              disabled={busy}
+              className="flex-1 py-3 rounded-xl text-sm font-bold"
+              style={{
+                background: ch.published ? T.raised : `linear-gradient(135deg, ${T.accent}, ${T.purple})`,
+                color: "#fff",
+                opacity: busy ? 0.6 : 1,
+              }}
+            >
+              {ch.published ? "Unpublish" : "Publish channel"}
+            </button>
+          </div>
+
+          {ch.published && (
+            <a
+              href={`/@${ch.handle}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[12px] font-semibold text-center no-underline"
+              style={{ color: T.accent }}
+            >
+              View your public channel
+            </a>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function EarningsPanel() {
   const [data, setData] = useState<{
     totals: { titles: number; published: number; sales: number; grossCents: number; creatorCents: number };
+    // /api/creator/analytics already computes per-title views; the panel just
+    // never surfaced them.
+    items?: { views: number }[];
+    payoutEmail?: string | null;
   } | null>(null);
 
   useEffect(() => {
@@ -442,14 +441,24 @@ function EarningsPanel() {
   }, []);
 
   const t = data?.totals;
+  const totalViews = (data?.items ?? []).reduce((sum, i) => sum + (i.views ?? 0), 0);
   return (
     <div
-      className="rounded-2xl p-4 grid grid-cols-3 gap-2"
+      className="rounded-2xl p-4 grid grid-cols-4 gap-2"
       style={{ background: "rgba(139,92,246,0.08)", border: `1px solid rgba(139,92,246,0.2)` }}
     >
-      <Stat label="Earnings" value={t ? money(t.creatorCents) : "—"} accent />
-      <Stat label="Sales" value={t ? String(t.sales) : "—"} />
-      <Stat label="Live" value={t ? String(t.published) : "—"} />
+      <Stat label="Earnings" value={t ? money(t.creatorCents) : "-"} accent />
+      <Stat label="Views" value={t ? String(totalViews) : "-"} />
+      <Stat label="Sales" value={t ? String(t.sales) : "-"} />
+      <Stat label="Live" value={t ? String(t.published) : "-"} />
+      {/* Payout status. Deliberately states readiness only, never an amount
+          owed or a payment date: raw banking detail never enters the app and
+          commercial terms go to approved creators separately. */}
+      <p className="col-span-4 text-[11px] text-center mt-1" style={{ color: T.textMute }}>
+        {data?.payoutEmail
+          ? `Payouts set up for ${data.payoutEmail}`
+          : "Payout details are collected separately after approval"}
+      </p>
     </div>
   );
 }
@@ -824,7 +833,7 @@ function EditModal({ item, onClose, onSaved }: { item: ContentItem; onClose: () 
           </Field>
 
           {form.pricing_type !== "free" && (
-            <Field label="Price (USD)" hint="$0.99 – $500">
+            <Field label="Price (USD)" hint="$0.99 to $500">
               <input
                 inputMode="decimal"
                 value={form.price}
@@ -853,57 +862,10 @@ function EditModal({ item, onClose, onSaved }: { item: ContentItem; onClose: () 
 }
 
 /* ------------------------------------------------------------------ */
-/*  Small shared UI                                                    */
+/*  Small shared UI (Centered / Field / Badge / Notice / T / input are  */
+/*  imported from ./creator/ui so the wizard and dashboard share one    */
+/*  source of truth).                                                   */
 /* ------------------------------------------------------------------ */
-function Centered({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex items-center justify-center px-4" style={{ minHeight: "70vh" }}>
-      {typeof children === "string" ? (
-        <span className="text-sm" style={{ color: T.textDim }}>
-          {children}
-        </span>
-      ) : (
-        children
-      )}
-    </div>
-  );
-}
-
-function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <label className="text-xs font-semibold uppercase tracking-wider mb-1.5 block" style={{ color: T.textMute }}>
-        {label}
-      </label>
-      {children}
-      {hint && (
-        <p className="text-[11px] mt-1" style={{ color: T.textMute }}>
-          {hint}
-        </p>
-      )}
-    </div>
-  );
-}
-
-function Badge({ color, children }: { color: string; children: React.ReactNode }) {
-  return (
-    <span
-      className="inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider"
-      style={{ background: `${color}22`, color, border: `1px solid ${color}44` }}
-    >
-      {children}
-    </span>
-  );
-}
-
-function Notice({ color, children }: { color: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-xl p-3 text-xs" style={{ background: `${color}14`, border: `1px solid ${color}33`, color }}>
-      {children}
-    </div>
-  );
-}
-
 function money(cents: number): string {
   return `$${(cents / 100).toFixed(2)}`;
 }

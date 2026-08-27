@@ -7,7 +7,7 @@ import CategoryTabs from "@/components/CategoryTabs";
 import { BROWSE_TABS, getEpisode, type Series, type BrowseCategory } from "@/lib/catalog";
 import { buildResumeUrl } from "@/lib/resume";
 import TubiHeroCarousel from "@/components/TubiHeroCarousel";
-import CreatorBetaForm from "@/components/CreatorBetaForm";
+import CreatorsLanding from "@/components/CreatorsLanding";
 import { MUX_MAP } from "@/lib/mux-public-map";
 import { startInstantPlayer } from "@/lib/instant-player";
 
@@ -35,10 +35,40 @@ function shuffleWithSeed<T>(arr: T[], seed: number): T[] {
   return out;
 }
 
-function Badge({ type }: { type: "trending" | "new" }) {
+/* Categories whose titles live in their OWN tab and nowhere else. The Drama
+   grid is the catch-all, so anything listed here is subtracted from it.
+   - espanol / bollywood: language-exclusive. A Spanish or Hindi title in the
+     English Drama grid is a content mismatch, not a bonus.
+   - reality / red-carpet: those tabs render their own custom sections, so a
+     title appearing in Drama as well would be a duplicate.
+   Add a category here the moment it gets its own tab. scripts/audit-perf.ts
+   asserts every tab-exclusive category is present. */
+const TAB_EXCLUSIVE: BrowseCategory[] = ["espanol", "bollywood", "reality", "red-carpet"];
+
+/* The six titles pinned to the top of the Drama grid, in this order, and the
+   exact set the hero carousel rotates through. They are PINNED, not shuffled:
+   the rest of Drama reshuffles every load, so without this the promoted drop
+   sank into the grid and the hero showed whatever landed first.
+   Order here IS display order — reorder this array to reorder the shelf.
+   Every entry must be live, Drama-visible and carry categories ["new"]; they
+   render the NEW badge in both placements. Kept out: the-crown, which has
+   popularRank 4 and is already promoted through Hot as Trending. */
+const FEATURED_NEW = [
+  "lost-and-found",
+  "help-im-falling-in-love-with-my-rude-ceo",
+  "tied-by-fate",
+  "twist-of-time",
+  "the-inheritance-game",
+  "billionaire-daughters-love-triangle",
+] as const;
+const FEATURED_NEW_SET = new Set<string>(FEATURED_NEW);
+
+function Badge({ type, large = false }: { type: "trending" | "new"; large?: boolean }) {
   return (
     <div
-      className="absolute top-1.5 left-1.5 z-10 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider"
+      className={`absolute z-10 rounded font-bold uppercase tracking-wider ${
+        large ? "top-2 left-2 px-2 py-1 text-[10px]" : "top-1.5 left-1.5 px-1.5 py-0.5 text-[8px]"
+      }`}
       style={{
         background: type === "trending" ? "#E0115F" : "#8B5CF6",
         color: "#fff",
@@ -49,7 +79,7 @@ function Badge({ type }: { type: "trending" | "new" }) {
   );
 }
 
-function Poster({ src, alt }: { src: string; alt: string }) {
+function Poster({ src, alt, sizes = "(max-width: 440px) 33vw, 146px" }: { src: string; alt: string; sizes?: string }) {
   const [loaded, setLoaded] = useState(false);
   if (!src) {
     return (
@@ -69,7 +99,7 @@ function Poster({ src, alt }: { src: string; alt: string }) {
         src={src}
         alt={alt}
         fill
-        sizes="(max-width: 440px) 33vw, 146px"
+        sizes={sizes}
         className="object-cover"
         onLoad={() => setLoaded(true)}
         style={{ opacity: loaded ? 1 : 0, transition: "opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1)" }}
@@ -154,18 +184,32 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
       activeTab === "drama"
         ? liveSeries.filter(
             (s) =>
-              s.slug !== "too-much-junk" &&
-              !s.categories.includes("red-carpet") &&
-              !s.categories.includes("reality"),
+              s.slug !== "too-much-junk" && // Music tab only
+              !TAB_EXCLUSIVE.some((c) => s.categories.includes(c)),
           )
         : tabData[activeTab] ?? [];
     if (shuffleSeed === 0 || activeTab === "popular") return base;
-    return shuffleWithSeed(base, shuffleSeed + activeTab.length);
+    const shuffled = shuffleWithSeed(base, shuffleSeed + activeTab.length);
+    if (activeTab !== "drama") return shuffled;
+    // Pin the featured six to the top in FEATURED_NEW order; everything else
+    // keeps its freshly shuffled order behind them.
+    const pinned = FEATURED_NEW.map((slug) => shuffled.find((x) => x.slug === slug)).filter(
+      (x): x is Series => Boolean(x),
+    );
+    return [...pinned, ...shuffled.filter((x) => !FEATURED_NEW_SET.has(x.slug))];
   }, [activeTab, tabData, liveSeries, shuffleSeed]);
-  // The Mistress Trap flyer isn't full-bleed like the other posters, so keep it out of the hero slideshow
-  const heroSlides = filtered
-    .filter((s) => s.slug !== "the-mistress-trap")
-    .slice(0, 4);
+  // The hero rotates the SAME six that are pinned at the top of Drama, so the
+  // carousel and the top shelf always show the same titles and the same flyers.
+  // On other tabs it falls back to that tab's first four. The Mistress Trap
+  // flyer isn't full-bleed like the other posters, so it stays out either way.
+  const heroSlides = useMemo(() => {
+    const pool = filtered.filter((s) => s.slug !== "the-mistress-trap");
+    if (activeTab !== "drama") return pool.slice(0, 4);
+    const six = FEATURED_NEW.map((slug) => pool.find((x) => x.slug === slug)).filter(
+      (x): x is Series => Boolean(x),
+    );
+    return six.length ? six : pool.slice(0, 6);
+  }, [filtered, activeTab]);
   const current = heroSlides[heroIdx % Math.max(heroSlides.length, 1)];
 
   // Every time the active section changes, reset the hero AND scroll back to
@@ -174,10 +218,15 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
   useEffect(() => {
     queueMicrotask(() => setHeroIdx(0));
     if (typeof window !== "undefined") {
-      window.scrollTo(0, 0);
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
-      (document.querySelector(".device-screen") as HTMLElement | null)?.scrollTo?.(0, 0);
+      // Every one of these MUST pass behavior:"instant". globals.css sets
+      // `* { scroll-behavior: smooth }`, which applies to these scrolling
+      // elements too, so a bare scrollTo(0,0) ANIMATES the reset — switching
+      // tabs visibly scrolled the page up instead of opening at the top.
+      const instant = { top: 0, left: 0, behavior: "instant" as ScrollBehavior };
+      window.scrollTo(instant);
+      document.documentElement.scrollTo(instant);
+      document.body.scrollTo?.(instant);
+      (document.querySelector(".device-screen") as HTMLElement | null)?.scrollTo?.(instant);
     }
   }, [activeTab]);
 
@@ -283,7 +332,41 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
   );
 
   // Show ALL filtered series in the grid (not just the ones after the hero)
-  const gridItems = filtered;
+  // Espanol and Bollywood render as a 2-across grid of larger flyers rather
+  // than the shared 3-column grid. Their key art is full-bleed 9:16 and reads
+  // poorly at 33vw.
+  const twoUp = activeTab === "espanol" || activeTab === "bollywood";
+  // These are the newest drops, so every tile carries NEW. Render-time on
+  // purpose: tagging the series categories:["new"] would also pull them into
+  // the Hot tab and the English-only best-of lists, which are surfaces these
+  // language titles are deliberately kept out of.
+  const badgeAsNew = twoUp;
+
+  // The grid grows in pages instead of mounting the whole catalogue at once.
+  // A decoded bitmap costs width*height*4 in RAM regardless of file size, and
+  // the Drama tab is ~78 tiles; that standing cost left a phone with no
+  // headroom before the video pipelines allocated. The sentinel loads the next
+  // page before the user reaches it, so scrolling still feels continuous.
+  // Crawlers are unaffected: app/page.tsx renders every title in <noscript>.
+  const PAGE_SIZE = 24;
+  const [page, setPage] = useState(1);
+  const gridItems = filtered.slice(0, page * PAGE_SIZE);
+  const hasMore = gridItems.length < filtered.length;
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  // queueMicrotask, matching the shuffleSeed/loadMe pattern elsewhere in this
+  // file: a synchronous setState inside an effect cascades renders.
+  useEffect(() => { queueMicrotask(() => setPage(1)); }, [activeTab]);
+  useEffect(() => {
+    if (!hasMore) return;
+    const el = sentinelRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => { if (entries.some((e) => e.isIntersecting)) setPage((prev) => prev + 1); },
+      { rootMargin: "800px 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [hasMore, gridItems.length]);
 
   return (
     <div onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
@@ -491,233 +574,12 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </section>
       )}
 
-      {activeTab === "creators" && (
-        <section
-          className="mx-auto w-full text-center"
-          style={{
-            maxWidth: "440px",
-            padding: "clamp(20px, 4vw, 28px) 20px",
-            paddingBottom: "calc(88px + env(safe-area-inset-bottom, 0px))",
-          }}
-        >
-          {/* ── (A) EDITORIAL HERO ─────────────────────────────────────────
-              Aspirational only. No fabricated creators, no invented stats.
-              The three chips below state true program facts only. */}
-          <div className="relative overflow-hidden">
-            {/* Soft brand glow, decorative */}
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute"
-              style={{
-                top: "-40px",
-                left: "-10%",
-                width: "120%",
-                height: "240px",
-                background: "radial-gradient(60% 100% at 50% 0%, rgba(224,17,95,0.18), transparent 70%)",
-              }}
-            />
-
-            <p
-              className="relative text-[11px] font-bold uppercase"
-              style={{ color: "#E0115F", letterSpacing: "0.18em" }}
-            >
-              Verza for Creators
-            </p>
-
-            <h2
-              className="relative mt-3 font-black"
-              style={{
-                color: "#F5F4F8",
-                fontSize: "clamp(28px, 8.5vw, 38px)",
-                lineHeight: 1.05,
-                letterSpacing: "-0.02em",
-              }}
-            >
-              Become one of{" "}
-              <span
-                style={{
-                  background: "linear-gradient(135deg, #E0115F, #8B5CF6)",
-                  WebkitBackgroundClip: "text",
-                  backgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  color: "transparent",
-                }}
-              >
-                Verza&apos;s top creators
-              </span>
-            </h2>
-
-            <p
-              className="relative mt-4 mx-auto text-[15px] leading-relaxed"
-              style={{ color: "#A0A0B0", maxWidth: "34ch" }}
-            >
-              Bring your own show to Verza. Upload it, build an audience, and earn from every viewer who unlocks your work.
-            </p>
-
-            {/* Three compact benefit chips — honest program facts only. */}
-            <div className="relative mt-6 flex flex-col gap-2.5">
-              {[
-                {
-                  label: "Keep up to 80% of every sale",
-                  icon: (
-                    <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                  ),
-                },
-                {
-                  label: "Upload vertical or horizontal shows",
-                  icon: (
-                    <>
-                      <rect x="3" y="5" width="8" height="14" rx="1.5" />
-                      <rect x="13" y="8" width="8" height="8" rx="1.5" />
-                    </>
-                  ),
-                },
-                {
-                  label: "Earn directly from your viewers",
-                  icon: (
-                    <>
-                      <circle cx="9" cy="8" r="3.5" />
-                      <path d="M3 20a6 6 0 0 1 12 0M17 5a3.5 3.5 0 0 1 0 6.5M21 20a6 6 0 0 0-4-5.66" />
-                    </>
-                  ),
-                },
-              ].map((chip) => (
-                <div
-                  key={chip.label}
-                  className="flex items-center justify-center gap-3 rounded-xl px-3.5 py-3"
-                  style={{
-                    background: "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))",
-                    border: "1px solid rgba(224,17,95,0.16)",
-                  }}
-                >
-                  <span
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
-                    style={{ background: "rgba(224,17,95,0.14)" }}
-                  >
-                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#E0115F" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                      {chip.icon}
-                    </svg>
-                  </span>
-                  <span className="text-[14px] font-semibold" style={{ color: "#F5F4F8" }}>
-                    {chip.label}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* ── (B) APPLY CARD — Profit-Sharing Beta ───────────────────────── */}
-          <div
-            className="relative mt-9 overflow-hidden rounded-3xl"
-            style={{
-              padding: "1px",
-              background: "linear-gradient(160deg, rgba(224,17,95,0.5), rgba(139,92,246,0.28) 45%, rgba(224,17,95,0.1))",
-            }}
-          >
-            <div
-              className="rounded-3xl px-5 py-6"
-              style={{
-                background: "linear-gradient(180deg, #12121C, #0A0A14)",
-              }}
-            >
-              <div className="flex flex-col items-center gap-3">
-                <span
-                  className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full"
-                  style={{
-                    background: "linear-gradient(135deg, #E0115F, #8B5CF6)",
-                    boxShadow: "0 6px 22px rgba(224,17,95,0.35)",
-                  }}
-                >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <path d="M12 15V4" />
-                    <path d="m7.5 8.5 4.5-4.5 4.5 4.5" />
-                    <path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
-                  </svg>
-                </span>
-                <div className="w-full" style={{ containerType: "inline-size" }}>
-                  <h3 className="font-black leading-tight" style={{ color: "#F5F4F8", whiteSpace: "nowrap", fontSize: "clamp(15px, 6cqi, 22px)" }}>
-                    Make your own show on Verza
-                  </h3>
-                  <p
-                    className="mt-1 text-[11px] font-bold uppercase"
-                    style={{ color: "#E0115F", letterSpacing: "0.16em" }}
-                  >
-                    Profit-Sharing Beta
-                  </p>
-                </div>
-              </div>
-
-              <p className="mt-4 text-[14px] leading-relaxed" style={{ color: "#A0A0B0" }}>
-                We split revenue with creators. Make your own channel, upload vertical or horizontal shows, and earn directly from viewers. We review every application and reach out to the collaborators we want to work with.
-              </p>
-
-              <div className="mt-5">
-                <CreatorBetaForm />
-              </div>
-
-              <div
-                className="mt-5 flex items-center justify-center border-t pt-4"
-                style={{ borderColor: "rgba(255,255,255,0.06)" }}
-              >
-                <Link
-                  href="/studio"
-                  className="text-[13px] font-semibold no-underline transition-opacity active:opacity-70"
-                  style={{ color: "#A0A0B0" }}
-                >
-                  Ready to build now? Open Creator Studio →
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {filtered.length === 0 && activeTab !== "reality" && activeTab !== "music" && activeTab !== "red-carpet" && activeTab !== "tubi" && activeTab !== "creators" && (() => {
-        // Per-category Coming Soon copy. Anything not listed here uses the
-        // generic fallback text below.
-        const COMING_SOON: Partial<Record<BrowseCategory, { name: string; subtext: string }>> = {
-          anime: { name: "Anime", subtext: "Premium anime, coming soon to Verza." },
-          espanol: { name: "Español", subtext: "Premium Spanish-language microdramas. Coming soon to Verza." },
-          bollywood: { name: "Bollywood", subtext: "Premium Bollywood microdramas. Coming soon to Verza." },
-          creators: { name: "Creators", subtext: "Original series from independent creators. Coming soon to Verza." },
-        };
-        const cs = COMING_SOON[activeTab];
-        return (
-        <section className="px-4 py-8">
-          <div
-            className="rounded-2xl py-16 flex flex-col items-center justify-center gap-4 text-center"
-            style={{ background: "linear-gradient(135deg, #12121C, #0A0A14)", border: "1px solid rgba(224,17,95,0.15)" }}
-          >
-            <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ background: "rgba(224,17,95,0.12)" }}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#E0115F" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10" />
-                <polyline points="12 6 12 12 16 14" />
-              </svg>
-            </div>
-            {/* Category name above the status, per spec (Anime / Español). */}
-            {cs && (
-              <h2 className="text-2xl font-black uppercase tracking-wide" style={{ color: "#F5F4F8" }}>{cs.name}</h2>
-            )}
-            <h3 className="text-lg font-bold" style={{ color: "#F5F4F8" }}>Coming Soon</h3>
-            <p className="text-sm max-w-[280px] leading-relaxed" style={{ color: "#6B6B7B" }}>
-              {cs ? cs.subtext : "New content for this category is being produced. Check back soon for exclusive releases."}
-            </p>
-          </div>
-
-          {/* ── POSTER GRID DROP-IN ─────────────────────────────────────────────
-              Anime & Español have no shows yet (~6 Español posters land later,
-              titles TBD). To go live: add each show as a live Series in
-              lib/catalog.ts with categories: ["espanol"] (or ["anime"]).
-              getSeriesByCategory() then fills tabData[activeTab], this whole
-              Coming Soon block disappears (it is gated on filtered.length === 0),
-              and the shows render in the standard 3-column poster grid further
-              down — the SAME card component every other category uses. No markup
-              change is needed here; the grid is already wired for these tabs. */}
-        </section>
-        );
-      })()}
-
-      {/* Reality tab — full-width hero slideshow */}
+      {/* Creators tab — the public recruitment surface. Extracted to
+          components/CreatorsLanding.tsx: it is a nine-section conversion page
+          now, too large to keep inline, and it has a hard copy constraint
+          (no earnings promises, no turnaround SLAs) that is easier to police
+          in one file. The old inline hero and apply card live inside it. */}
+      {activeTab === "creators" && <CreatorsLanding />}
       {activeTab === "reality" && (() => {
         const realityIdx = heroIdx % realityShows.length;
         const currentShow = realityShows[realityIdx];
@@ -856,7 +718,11 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
       )}
 
       {/* Hero Slideshow — shows on Drama/New/Hot (not Reality/Red Carpet/Music) */}
-      {current && activeTab !== "reality" && activeTab !== "red-carpet" && activeTab !== "music" && (
+      {/* Espanol and Bollywood show ONLY their title grid: no hero, no
+         slideshow above it. The homepage hero is untouched and still
+         rotates the pinned FEATURED_NEW six on Drama. */}
+      {current && activeTab !== "reality" && activeTab !== "red-carpet" && activeTab !== "music"
+        && activeTab !== "espanol" && activeTab !== "bollywood" && (
         <div
           onMouseEnter={() => setHeroPaused(true)}
           onMouseLeave={() => setHeroPaused(false)}
@@ -884,10 +750,19 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                 }}
               >
                 {current.posterUrl ? (
-                  /* All hero posters stay mounted and CROSSFADE — swapping a
-                     single img src hard-cut between slides. */
-                  heroSlides.map((s, i) =>
-                    s.posterUrl ? (
+                  /* Hero posters CROSSFADE, so two layers must be mounted at
+                     once — swapping a single img src hard-cut between slides.
+                     But only TWO: the outgoing slide and the one coming next.
+                     Mounting all of them kept ~30MB of decoded bitmap pinned in
+                     the viewport, where WebKit never reclaims it because every
+                     layer is technically visible, and this subtree remounts on
+                     every tab switch. The incoming layer is mounted a full
+                     rotation early, so it is decoded before it fades in. */
+                  heroSlides.map((s, i) => {
+                    const activeIdx = heroIdx % heroSlides.length;
+                    const nextIdx = (activeIdx + 1) % heroSlides.length;
+                    if (i !== activeIdx && i !== nextIdx) return null;
+                    return s.posterUrl ? (
                       <Image
                         key={s.slug}
                         src={s.posterUrl}
@@ -896,10 +771,10 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                         priority={i === 0}
                         sizes="(max-width: 440px) 80vw, 320px"
                         className="object-contain hero-crossfade"
-                        style={{ opacity: i === heroIdx % heroSlides.length ? 1 : 0 }}
+                        style={{ opacity: i === activeIdx ? 1 : 0 }}
                       />
-                    ) : null,
-                  )
+                    ) : null;
+                  })
                 ) : (
                   <div
                     className="absolute inset-0 flex items-center justify-center text-lg font-bold"
@@ -968,8 +843,10 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
 
       {/* Tab Row — 3-column grid (not on Music/Reality/Red Carpet — they have custom sections) */}
       {gridItems.length > 0 && activeTab !== "music" && activeTab !== "reality" && activeTab !== "red-carpet" && (
-        <section className="mt-4 pb-4 px-3">
-          <div className="poster-grid stagger-children grid grid-cols-3 gap-1.5">
+        <section className={twoUp ? "pt-4 pb-10 px-3" : "mt-4 pb-4 px-3"}>
+          {/* .poster-grid in globals.css pins grid-template-columns to 3 with
+              !important, so the 2-up grid simply opts out of that class. */}
+          <div className={`stagger-children grid ${twoUp ? "grid-cols-2 gap-2.5" : "poster-grid grid-cols-3 gap-1.5"}`}>
             {/* Posters only. Sponsored products used to be injected into this
                 grid every 12 tiles; they now live in the shop section of the
                 footer, so browsing stays purely editorial. */}
@@ -981,9 +858,9 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                   onClick={(e) => posterClick(e, s.slug)}
                 >
                   <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
-                    <Poster src={s.posterUrl} alt={s.title} />
-                    {s.popularRank && s.popularRank <= 5 && <Badge type="trending" />}
-                    {!s.popularRank && s.categories.includes("new") && <Badge type="new" />}
+                    <Poster src={s.posterUrl} alt={s.title} sizes={twoUp ? "(max-width: 440px) 50vw, 220px" : "(max-width: 440px) 33vw, 146px"} />
+                    {s.popularRank && s.popularRank <= 5 && <Badge type="trending" large={twoUp} />}
+                    {(FEATURED_NEW_SET.has(s.slug) || badgeAsNew || (!s.popularRank && s.categories.includes("new"))) && <Badge type="new" large={twoUp} />}
                     <div
                       className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
                       style={{ background: "rgba(0,0,0,0.3)" }}
@@ -1005,6 +882,10 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                 </Link>
             ))}
           </div>
+          {/* Paging sentinel — the observer above watches this and appends the
+              next page while it is still a screen below the fold, so the grid
+              reads as one continuous list. Rendered only while pages remain. */}
+          {hasMore && <div ref={sentinelRef} aria-hidden="true" style={{ height: 1 }} />}
         </section>
       )}
         </div>

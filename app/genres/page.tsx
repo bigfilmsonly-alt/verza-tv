@@ -6,7 +6,7 @@ import { T } from "@/lib/theme";
 import { getLiveSeries } from "@/lib/catalog";
 import { GENRE_HUBS } from "@/lib/content/genres";
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verzatv.com";
 
 const approvedHubs = GENRE_HUBS.filter((g) => g.editorialApproved);
 

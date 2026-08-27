@@ -143,7 +143,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!data) return { title: "Not Found" };
 
   const BASE_URL =
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verzatv.com";
 
   return {
     title: data.title,
@@ -175,7 +175,7 @@ export default async function GenreLandingPage({ params }: Props) {
   if (!data) notFound();
 
   const BASE_URL =
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verzatv.com";
 
   const matches = getSeriesByGenre(genre).filter((s) => s.status === "live");
 

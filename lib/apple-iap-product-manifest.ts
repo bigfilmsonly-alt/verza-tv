@@ -82,6 +82,19 @@ export const APPLE_SERIES_PRODUCT_IDS = {
   "tangled-in-desire": "com.verzatv.app.series.tangled_in_desire",
   "the-escaping-mistress": "com.verzatv.app.series.the_escaping_mistress",
   "trial-marriage-to-a-billionaire-s2": "com.verzatv.app.series.trial_marriage_to_a_billionaire_s2",
+
+  /* Appended 2026-08-27 after App Store approval. Convention matches the
+     preceding 74 exactly: com.verzatv.app.series.<slug with underscores>.
+     APPEND ONLY — never reorder, edit, or reuse an id above. */
+  "im-obsessed-with-my-boss-2": "com.verzatv.app.series.im_obsessed_with_my_boss_2",
+  "sentence-of-passion-es": "com.verzatv.app.series.sentence_of_passion_es",
+  "i-cheated-on-my-wedding-night-es": "com.verzatv.app.series.i_cheated_on_my_wedding_night_es",
+  "i-fell-in-love-with-my-presidential-brother-in-law-es": "com.verzatv.app.series.i_fell_in_love_with_my_presidential_brother_in_law_es",
+  "the-goat-mistress-es": "com.verzatv.app.series.the_goat_mistress_es",
+
+  /* Appended 2026-08-27 (Bollywood, restored after branch reset). */
+  "falling-for-flatmate": "com.verzatv.app.series.falling_for_flatmate",
+  "dil-dosa-dosti": "com.verzatv.app.series.dil_dosa_dosti",
 } as const;
 
 export type AppleSeriesProductSlug = keyof typeof APPLE_SERIES_PRODUCT_IDS;

@@ -12,7 +12,7 @@ function esc(s: string) {
 
 export function GET() {
   const baseUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://verzatv.com";
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verzatv.com";
   const now = new Date().toISOString().split("T")[0];
 
   const liveSeries = getLiveSeries();

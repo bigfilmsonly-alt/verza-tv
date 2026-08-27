@@ -31,8 +31,10 @@ export const BROWSE_TABS: { key: BrowseCategory; label: string }[] = [
   { key: "anime", label: "Anime" },
   { key: "espanol", label: "Español" },
   { key: "bollywood", label: "Bollywood" },
-  { key: "creators", label: "Creators" },
+  // Reality before Creators — owner-specified tab order. scripts/audit-perf.ts
+  // asserts this exact sequence so it cannot silently drift again.
   { key: "reality", label: "Reality" },
+  { key: "creators", label: "Creators" },
   { key: "red-carpet", label: "Red Carpet" },
   { key: "music", label: "Music" },
 ];
@@ -310,6 +312,21 @@ export const catalog: Series[] = [
     popularRank: 9,
     episodeCount: 50,
     posterUrl: "/posters/im-obsessed-with-my-boss.png",
+    freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(50), status: "live",
+  },
+  {
+    /* Part II sits directly after Part I so the pair reads together in the
+       Drama grid. Its 50 streams were already mapped but the row sat
+       status "coming_soon" with episodeCount 0, which 404'd the series page
+       and hid every one of them. */
+    slug: "im-obsessed-with-my-boss-2",
+    title: "I'm Obsessed with My Boss Part II",
+    logline: "She thought leaving the company would end it. He followed her to the new one.",
+    genre: "Office romance",
+    channel: "VERZA Originals",
+    categories: ["drama"],
+    episodeCount: 50,
+    posterUrl: "/posters/im-obsessed-with-my-boss-2.png",
     freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(50), status: "live",
   },
   {
@@ -897,20 +914,6 @@ export const catalog: Series[] = [
     freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(56), status: "live",
   },
 
-  /* ================================================================ */
-  /*  COMING SOON                                                      */
-  /* ================================================================ */
-  {
-    slug: "im-obsessed-with-my-boss-2",
-    title: "I'm Obsessed with My Boss Part II",
-    logline: "She thought leaving the company would end it. He followed her to the new one.",
-    genre: "Office romance",
-    channel: "VERZA Originals",
-    categories: ["drama"],
-    episodeCount: 0,
-    posterUrl: "/posters/im-obsessed-with-my-boss-2.png",
-    freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: 0, status: "coming_soon",
-  },
   {
     slug: "too-much-junk",
     title: "Too Much Junk",
@@ -1003,6 +1006,86 @@ export const catalog: Series[] = [
     episodeCount: 60,
     posterUrl: "/posters/trial-marriage-to-a-billionaire-s2.png",
     freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(60), status: "live",
+  },
+  /* ================================================================ */
+  /*  ESPANOL TAB — Spanish language originals (LATAM)                 */
+  /*  Episode counts come from Mux meta.external_id, not from a guess.  */
+  /*  i-cheated is 58 and i-fell-in-love is 59: one asset carried the   */
+  /*  wrong external_id in Mux (i-cheated's E28 was labelled as         */
+  /*  i-fell-in-love's), which read as a gap in one show and a          */
+  /*  duplicate in the other. Corrected at source in Mux on 2026-08-27. */
+  /* ================================================================ */
+  {
+    slug: "sentence-of-passion-es",
+    title: "Sentencia de pasion",
+    logline: "Ella entra a la sala como acusada y sale marcada por el hombre que debia juzgarla. La condena que ninguno de los dos esperaba no la dicta el tribunal.",
+    genre: "Drama \u00b7 Pasion",
+    channel: "VERZA Originals",
+    categories: ["espanol"],
+    episodeCount: 60,
+    posterUrl: "/posters/sentence-of-passion-es.png",
+    freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(60), status: "live",
+  },
+  {
+    slug: "i-cheated-on-my-wedding-night-es",
+    title: "Enga\u00f1\u00e9 a mi pareja en mi noche de bodas",
+    logline: "Una sola noche destruye el matrimonio perfecto que todos vinieron a celebrar. Lo que nadie sabe es por que ella lo hizo.",
+    genre: "Drama \u00b7 Traici\u00f3n",
+    channel: "VERZA Originals",
+    categories: ["espanol"],
+    episodeCount: 58,
+    posterUrl: "/posters/i-cheated-on-my-wedding-night-es.png",
+    freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(58), status: "live",
+  },
+  {
+    slug: "i-fell-in-love-with-my-presidential-brother-in-law-es",
+    title: "Me enamor\u00e9 de mi cu\u00f1ado presidencial",
+    logline: "El hombre mas poderoso del pais es su cunado. Tambien es la unica persona que la ve de verdad.",
+    genre: "Romance \u00b7 Poder",
+    channel: "VERZA Originals",
+    categories: ["espanol"],
+    episodeCount: 59,
+    posterUrl: "/posters/i-fell-in-love-with-my-presidential-brother-in-law-es.png",
+    freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(59), status: "live",
+  },
+  {
+    slug: "the-goat-mistress-es",
+    title: "La amante de las cabras",
+    logline: "La llaman asi en todo el pueblo para humillarla. Ella decide convertir el insulto en su nombre.",
+    genre: "Drama \u00b7 Romance rural",
+    channel: "VERZA Originals",
+    categories: ["espanol"],
+    episodeCount: 60,
+    posterUrl: "/posters/the-goat-mistress-es.png",
+    freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(60), status: "live",
+  },
+  /* ================================================================ */
+  /*  BOLLYWOOD TAB — Hindi language originals                        */
+  /*  Only titles whose streams AND key art both exist ship here.      */
+  /*  Salt and Pepper (60 eps) and Love for Sale (60 eps) are verified */
+  /*  complete in Mux and stay out until their posters land.           */
+  /* ================================================================ */
+  {
+    slug: "falling-for-flatmate",
+    title: "Falling for Flatmate",
+    logline: "She took the room because rent was due, not because of the man already living in it. Sharing a wall turns out to be the fastest way to lose an argument with your own heart.",
+    genre: "Romance \u00b7 Comedy",
+    channel: "VERZA Originals",
+    categories: ["bollywood"],
+    episodeCount: 60,
+    posterUrl: "/posters/falling-for-flatmate.png",
+    freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(60), status: "live",
+  },
+  {
+    slug: "dil-dosa-dosti",
+    title: "Dil Dosa Dosti",
+    logline: "A tiny dosa cart, three friends who swore it would always stay simple, and one confession nobody was ready for. Some recipes change everything.",
+    genre: "Romance \u00b7 Friendship",
+    channel: "VERZA Originals",
+    categories: ["bollywood"],
+    episodeCount: 57,
+    posterUrl: "/posters/dil-dosa-dosti.png",
+    freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(57), status: "live",
   },
 ];
 
