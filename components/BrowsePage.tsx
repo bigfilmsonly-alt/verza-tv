@@ -63,10 +63,12 @@ const FEATURED_NEW = [
 ] as const;
 const FEATURED_NEW_SET = new Set<string>(FEATURED_NEW);
 
-function Badge({ type }: { type: "trending" | "new" }) {
+function Badge({ type, large = false }: { type: "trending" | "new"; large?: boolean }) {
   return (
     <div
-      className="absolute top-1.5 left-1.5 z-10 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider"
+      className={`absolute z-10 rounded font-bold uppercase tracking-wider ${
+        large ? "top-2 left-2 px-2 py-1 text-[10px]" : "top-1.5 left-1.5 px-1.5 py-0.5 text-[8px]"
+      }`}
       style={{
         background: type === "trending" ? "#E0115F" : "#8B5CF6",
         color: "#fff",
@@ -77,7 +79,7 @@ function Badge({ type }: { type: "trending" | "new" }) {
   );
 }
 
-function Poster({ src, alt }: { src: string; alt: string }) {
+function Poster({ src, alt, sizes = "(max-width: 440px) 33vw, 146px" }: { src: string; alt: string; sizes?: string }) {
   const [loaded, setLoaded] = useState(false);
   if (!src) {
     return (
@@ -97,7 +99,7 @@ function Poster({ src, alt }: { src: string; alt: string }) {
         src={src}
         alt={alt}
         fill
-        sizes="(max-width: 440px) 33vw, 146px"
+        sizes={sizes}
         className="object-cover"
         onLoad={() => setLoaded(true)}
         style={{ opacity: loaded ? 1 : 0, transition: "opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1)" }}
@@ -330,6 +332,16 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
   );
 
   // Show ALL filtered series in the grid (not just the ones after the hero)
+  // Espanol and Bollywood render as a 2-across grid of larger flyers rather
+  // than the shared 3-column grid. Their key art is full-bleed 9:16 and reads
+  // poorly at 33vw.
+  const twoUp = activeTab === "espanol" || activeTab === "bollywood";
+  // These are the newest drops, so every tile carries NEW. Render-time on
+  // purpose: tagging the series categories:["new"] would also pull them into
+  // the Hot tab and the English-only best-of lists, which are surfaces these
+  // language titles are deliberately kept out of.
+  const badgeAsNew = twoUp;
+
   // The grid grows in pages instead of mounting the whole catalogue at once.
   // A decoded bitmap costs width*height*4 in RAM regardless of file size, and
   // the Drama tab is ~78 tiles; that standing cost left a phone with no
@@ -1048,8 +1060,10 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
 
       {/* Tab Row — 3-column grid (not on Music/Reality/Red Carpet — they have custom sections) */}
       {gridItems.length > 0 && activeTab !== "music" && activeTab !== "reality" && activeTab !== "red-carpet" && (
-        <section className="mt-4 pb-4 px-3">
-          <div className="poster-grid stagger-children grid grid-cols-3 gap-1.5">
+        <section className={twoUp ? "pt-4 pb-10 px-3" : "mt-4 pb-4 px-3"}>
+          {/* .poster-grid in globals.css pins grid-template-columns to 3 with
+              !important, so the 2-up grid simply opts out of that class. */}
+          <div className={`stagger-children grid ${twoUp ? "grid-cols-2 gap-2.5" : "poster-grid grid-cols-3 gap-1.5"}`}>
             {/* Posters only. Sponsored products used to be injected into this
                 grid every 12 tiles; they now live in the shop section of the
                 footer, so browsing stays purely editorial. */}
@@ -1061,9 +1075,9 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                   onClick={(e) => posterClick(e, s.slug)}
                 >
                   <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
-                    <Poster src={s.posterUrl} alt={s.title} />
-                    {s.popularRank && s.popularRank <= 5 && <Badge type="trending" />}
-                    {(FEATURED_NEW_SET.has(s.slug) || (!s.popularRank && s.categories.includes("new"))) && <Badge type="new" />}
+                    <Poster src={s.posterUrl} alt={s.title} sizes={twoUp ? "(max-width: 440px) 50vw, 220px" : "(max-width: 440px) 33vw, 146px"} />
+                    {s.popularRank && s.popularRank <= 5 && <Badge type="trending" large={twoUp} />}
+                    {(FEATURED_NEW_SET.has(s.slug) || badgeAsNew || (!s.popularRank && s.categories.includes("new"))) && <Badge type="new" large={twoUp} />}
                     <div
                       className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
                       style={{ background: "rgba(0,0,0,0.3)" }}

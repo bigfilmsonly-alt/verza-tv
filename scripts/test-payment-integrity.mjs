@@ -671,9 +671,9 @@ function runCodeAndCatalogSuite() {
 
   const catalog = catalogModule.catalog;
   const purchasable = catalog.filter(seriesPurchase.isSeriesPurchasable);
-  assert.equal(catalog.length, 80, "catalog size changed; review payment SKU policy");
-  assert.equal(purchasable.length, 74, "unlock SKU count changed; review checkout coverage");
-  assert.equal(new Set(purchasable.map((series) => series.slug)).size, 74);
+  assert.equal(catalog.length, 84, "catalog size changed; review payment SKU policy");
+  assert.equal(purchasable.length, 79, "unlock SKU count changed; review checkout coverage");
+  assert.equal(new Set(purchasable.map((series) => series.slug)).size, 79);
   for (const series of purchasable) {
     assert.equal(series.status, "live", `${series.slug} is not live`);
     assert.ok(series.episodeCount > series.freeEpisodes, `${series.slug} has no paid episodes`);
