@@ -17,7 +17,7 @@ const GENRE_DATA: Record<
 > = {
   romance: {
     label: "Romance",
-    title: "Romance Microdramas on VERZA TV",
+    title: "Romance Microdramas",
     description:
       "Explore VERZA TV romance micro-dramas, from billionaire and forbidden love stories to friends-to-lovers twists, in a short-form vertical format. Free-preview availability is shown per title.",
     keywords: [
@@ -30,7 +30,7 @@ const GENRE_DATA: Record<
   },
   thriller: {
     label: "Thriller",
-    title: "Thriller Microdramas on VERZA TV",
+    title: "Thriller Microdramas",
     description:
       "Explore VERZA TV thriller micro-dramas with psychological suspense, crime twists, and escalating reveals in a short-form vertical format. Free-preview availability is shown per title.",
     keywords: [
@@ -43,7 +43,7 @@ const GENRE_DATA: Record<
   },
   drama: {
     label: "Drama",
-    title: "Drama Microdramas on VERZA TV",
+    title: "Drama Microdramas",
     description:
       "Explore VERZA TV drama micro-series with family secrets, dynasty battles, betrayal arcs, and emotional stories told in a cinematic vertical format.",
     keywords: [
@@ -56,7 +56,7 @@ const GENRE_DATA: Record<
   },
   comedy: {
     label: "Comedy",
-    title: "Comedy Microdramas on VERZA TV",
+    title: "Comedy Microdramas",
     description:
       "Explore VERZA TV comedy micro-dramas with romantic mishaps, workplace humor, and witty storylines in a short-form vertical format.",
     keywords: [
@@ -69,7 +69,7 @@ const GENRE_DATA: Record<
   },
   mystery: {
     label: "Mystery",
-    title: "Mystery Microdramas on VERZA TV",
+    title: "Mystery Microdramas",
     description:
       "Explore VERZA TV mystery micro-dramas with cold cases, hidden identities, and escalating reveals in a short-form vertical format.",
     keywords: [
@@ -82,7 +82,7 @@ const GENRE_DATA: Record<
   },
   billionaire: {
     label: "Billionaire",
-    title: "Billionaire Microdramas on VERZA TV",
+    title: "Billionaire Microdramas",
     description:
       "Luxury, power, and passion collide in VERZA TV's billionaire micro-dramas, with contract marriages, corporate empires, secret heirs, and high-stakes romance in a cinematic vertical format.",
     keywords: [
@@ -95,7 +95,7 @@ const GENRE_DATA: Record<
   },
   revenge: {
     label: "Revenge",
-    title: "Revenge Microdramas on VERZA TV",
+    title: "Revenge Microdramas",
     description:
       "She was wronged. Now she's back. VERZA TV's revenge micro-dramas deliver cunning comebacks, power plays, and payback in a short-form vertical format.",
     keywords: [
@@ -108,7 +108,7 @@ const GENRE_DATA: Record<
   },
   forbidden: {
     label: "Forbidden",
-    title: "Forbidden Love Microdramas on VERZA TV",
+    title: "Forbidden Love Microdramas",
     description:
       "Love knows no rules. VERZA TV's forbidden romance micro-dramas explore taboo attractions, secret affairs, and impossible love stories in a short-form vertical format.",
     keywords: [

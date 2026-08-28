@@ -982,7 +982,25 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                   heroSlides.map((s, i) => {
                     const activeIdx = heroIdx % heroSlides.length;
                     const nextIdx = (activeIdx + 1) % heroSlides.length;
-                    if (i !== activeIdx && i !== nextIdx) return null;
+                    /* PREVIOUS is mounted too, and that is what makes this a
+                       crossfade rather than a fade up from black.
+                       Only {active, next} used to be mounted. On each rotation
+                       the outgoing slide fell out of that set and React
+                       unmounted it in the same commit that started the incoming
+                       layer's 0 -> 1 ramp, so for the whole 500ms there was no
+                       layer at full opacity and the incoming poster faded in
+                       over the card's own #07070E. Measured on production with a
+                       MutationObserver: one commit removed the outgoing image,
+                       set the incoming to opacity 1, and added the next preload
+                       at 0. The first screen of the app pulsed dark every four
+                       seconds. Keeping the outgoing layer mounted for one more
+                       rotation lets it animate 1 -> 0 underneath the incoming
+                       layer, which is what the comment above always claimed
+                       happened. Three layers, not the whole carousel, so the
+                       decoded-bitmap ceiling this window exists to enforce only
+                       moves from two frames to three. */
+                    const prevIdx = (activeIdx - 1 + heroSlides.length) % heroSlides.length;
+                    if (i !== activeIdx && i !== nextIdx && i !== prevIdx) return null;
                     return s.posterUrl ? (
                       <Image
                         key={s.slug}

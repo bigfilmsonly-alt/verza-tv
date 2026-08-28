@@ -31,7 +31,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!collection) return { title: "Not Found" };
 
   return {
-    title: collection.title,
+    /* The same field is the page's H1, where "… on VERZA TV" reads correctly.
+       Here the root template appends " | VERZA TV" on top, so the brand landed
+       twice in the browser tab and in search results. Stripped for the document
+       title only; the H1 and the social titles below keep it. */
+    title: collection.title.replace(/\s+on VERZA TV$/, ""),
     description: collection.blurb,
     alternates: { canonical: `/collections/${slug}` },
     openGraph: {

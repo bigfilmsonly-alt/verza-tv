@@ -313,6 +313,39 @@ for (const s of live) {
   }
 }
 
+/* Every paid title must actually reach a paywall, at the house boundary.
+   A title that sells a full-series unlock but never locks an episode gives its
+   catalogue away; one whose free count drifts off 5 contradicts the advertised
+   "first 5 episodes free" everywhere else in the product. */
+const noPaywall = live.filter((s) => s.coinPerEpisode > 0 && s.episodeCount <= s.freeEpisodes);
+check(
+  noPaywall.length === 0,
+  "sweep: a paid title never reaches a paywall",
+  `Every episode is free on: ${noPaywall.map((s) => s.slug).join(", ")}`,
+);
+const offBoundary = live
+  .filter((s) => s.coinPerEpisode > 0 && s.episodeCount > s.freeEpisodes)
+  .filter((s) => s.freeEpisodes !== 5);
+check(
+  offBoundary.length === 0,
+  "sweep: a paid title does not gate at episode 5",
+  `House standard is 5 free episodes, then the paywall. Off-boundary: ${offBoundary
+    .map((s) => `${s.slug}=${s.freeEpisodes}`)
+    .join(", ")}`,
+);
+/* And the projection must agree: no public ID at or past the boundary. */
+const pastBoundaryExposed = [];
+for (const s of live.filter((x) => x.coinPerEpisode > 0)) {
+  for (const ep of publicMap.MUX_MAP[s.slug] ?? []) {
+    if (ep.episode === s.freeEpisodes + 1 && ep.playbackId) pastBoundaryExposed.push(`${s.slug} E${ep.episode}`);
+  }
+}
+check(
+  pastBoundaryExposed.length === 0,
+  "sweep: the first paid episode is still playable without paying",
+  pastBoundaryExposed.slice(0, 8).join(", "),
+);
+
 check(leaks.length === 0, "sweep: a paid episode carries a public playback ID", `Leaked: ${leaks.slice(0, 8).join(", ")}`);
 check(countMismatch.length === 0, "sweep: episode counts disagree", countMismatch.slice(0, 6).join("\n      "));
 check(gaps.length === 0, "sweep: episode numbering or duration is unusable", gaps.slice(0, 6).join("\n      "));

@@ -92,16 +92,35 @@ check("browse grid is not rendering the whole catalogue at once", () => {
 });
 
 /* ------------------------------------------------------------------ */
-check("hero mounts only the layers a crossfade needs", () => {
+check("hero mounts a bounded window, and enough of it to actually crossfade", () => {
   const src = read("components/BrowsePage.tsx");
-  const heroBlock = src.match(/heroSlides\.map\(\(s, i\)[\s\S]{0,900}/);
+  const heroBlock = src.match(/heroSlides\.map\(\(s, i\)[\s\S]{0,1800}/);
   if (!heroBlock) { console.log("  ⚠️  hero block not found — layout changed, re-check by hand"); return; }
-  if (/if \(i !== activeIdx && i !== nextIdx\) return null;/.test(heroBlock[0])) {
-    pass("hero mounts 2 layers, not all slides");
+  const block = heroBlock[0];
+  const guard = block.match(/if \(([^)]*?)\) return null;/);
+  if (!guard) {
+    fail("components/BrowsePage.tsx mounts every hero slide simultaneously. Unmounted slides pin " +
+      "decoded bitmaps in the viewport where WebKit never reclaims them, and this subtree remounts " +
+      "on every tab switch.");
+    return;
+  }
+  /* This check used to demand EXACTLY {activeIdx, nextIdx}, and that turned out
+     to be the bug it was guarding: with the outgoing slide unmounted in the same
+     commit that starts the incoming one's fade, no layer is ever at full opacity
+     during the transition, so the hero faded up from #07070E every four seconds.
+     A crossfade needs the layer that is leaving as well as the one arriving. The
+     real invariant is a BOUNDED window — small enough to cap decoded bitmaps,
+     large enough to hold prev, active and next. */
+  const indices = new Set((guard[1].match(/\b(prevIdx|activeIdx|nextIdx)\b/g) ?? []));
+  if (indices.size > 3) {
+    fail(`hero mount window references ${indices.size} indices; cap it at prev/active/next so the ` +
+      "decoded-bitmap cost stays bounded.");
+  } else if (!indices.has("prevIdx")) {
+    fail("hero unmounts the outgoing slide in the same commit that fades the incoming one in, so " +
+      "there is no layer at full opacity during the transition and the hero fades up from the card " +
+      "background instead of crossfading. Keep prevIdx mounted for one rotation.");
   } else {
-    fail("components/BrowsePage.tsx mounts every hero slide simultaneously. " +
-      "A crossfade needs exactly two layers; the rest pin decoded bitmaps in the viewport " +
-      "where WebKit will never reclaim them, and this subtree remounts on every tab switch.");
+    pass(`hero mounts ${indices.size} layers (prev/active/next), not all slides`);
   }
 });
 

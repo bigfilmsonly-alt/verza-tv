@@ -54,9 +54,17 @@ const GENRE_DESCRIPTIONS: Record<string, string> = {
 
 /* Display-label overrides where the URL slug can't carry the real label.
    The slug stays ASCII for clean URLs (/discover/espanol) while the page shows
-   the accented brand label ("Español") everywhere it appears. */
+   the accented brand label ("Español") everywhere it appears.
+   "popular" is the internal key for the tab the product calls HOT — everywhere,
+   and in every language, because it is a brand name and not a description.
+   Without this entry the generic title-case fallback opened the page with an H1
+   reading "Popular Micro-Dramas" under a tile labelled Hot, and shipped that
+   same word in the title, og:title and breadcrumb. "red-carpet" would likewise
+   have leaked its raw slug as "Red-carpet". */
 const CATEGORY_LABELS: Record<string, string> = {
   espanol: "Español",
+  popular: "Hot",
+  "red-carpet": "Red Carpet",
 };
 
 function labelFor(slug: string): string {
@@ -90,7 +98,7 @@ export async function generateMetadata({
     process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verzatv.com";
 
   return {
-    title: `${label} Micro-Dramas on VERZA TV`,
+    title: `${label} Micro-Dramas`,
     description: `${description} Episode length and free-preview availability vary by title.`,
     alternates: { canonical: `/discover/${genre}` },
     openGraph: {

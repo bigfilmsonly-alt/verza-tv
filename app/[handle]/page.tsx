@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!channel) return { title: "Not Found" };
   const clean = normalizeChannelHandle(handle);
   return {
-    title: `${channel.displayName} on VERZA TV`,
+    title: `${channel.displayName}`,
     description: channel.bio || `Watch ${channel.displayName} on VERZA TV.`,
     alternates: { canonical: `/@${clean}` },
     openGraph: {
