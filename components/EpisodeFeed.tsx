@@ -1136,20 +1136,35 @@ export default function EpisodeFeed({
     void maybeRequestResumePermission();
   }, []);
 
-  /* Back always returns straight to the home page.
-     Use window.location.href (not router.push) so the page fully reloads and
-     BrowsePage remounts with default state (drama tab). router.push does a
-     client-side navigation that keeps the component mounted, preserving
-     whatever tab was previously active (e.g. reality). */
+  /* Back returns to the tab this title belongs to.
+     A full document navigation on purpose. router.replace() was tried here and
+     silently did not navigate at all from the paywall — no RSC fetch, no URL
+     change, no console error — so the tap did nothing and the viewer tapped
+     again, which is exactly the reported symptom. location.replace fires on the
+     first tap, every time.
+     replace(), not an href assignment, so the episode's history entry is
+     swapped for the tab and the browser Back button does not bounce the viewer
+     straight back into the player they just left.
+     The blank-tiles glitch after this navigation was never the navigation — it
+     was the poster grid replaying its opacity-0 fade on a fresh document. That
+     is fixed in BrowsePage's Poster, which now paints cached images instantly. */
+  /* Mute and pause, then get out of the way and let the anchor navigate.
+     This handler deliberately does NOT preventDefault, and does not drive the
+     navigation itself. Both earlier versions did — router.replace() and then
+     window.location.replace() — and both were intermittent from the paywall:
+     the click cancelled the browser's own navigation and then sometimes failed
+     to start its own, so the tap did nothing and the viewer tapped again. That
+     is the reported symptom.
+     The anchor's href is the navigation now. It cannot fail, it does not depend
+     on React having hydrated, and it works on the first tap every time. The
+     cost is one extra history entry instead of a replace, which is ordinary web
+     behaviour and worth far less than a back button that works. */
   const handleBack = useCallback(() => {
-    // Pause any playing video first to avoid audio bleeding into the next view
-    const vids = document.querySelectorAll("video");
-    vids.forEach((v) => { v.muted = true; v.pause(); });
-    // replace() instead of href assignment: the episode's history entry is
-    // swapped for home, so the browser Back button from home doesn't bounce
-    // the user straight back into the player.
-    window.location.replace(backHref);
-  }, [backHref]);
+    document.querySelectorAll("video").forEach((v) => {
+      v.muted = true;
+      v.pause();
+    });
+  }, []);
 
   const activeEp = episodes[activeIndex];
 
@@ -1592,9 +1607,12 @@ export default function EpisodeFeed({
       <HeartBurst show={showHeart} />
 
       {/* Back button — top-left */}
-      <button
+      {/* Anchor for the same reason as the paywall's Go Back: it must work on
+          the first tap, before hydration. */}
+      <a
+        href={backHref}
         onClick={handleBack}
-        className="absolute top-4 left-4 z-50 w-10 h-10 rounded-full flex items-center justify-center border-0 cursor-pointer"
+        className="absolute top-4 left-4 z-50 w-10 h-10 rounded-full flex items-center justify-center border-0 cursor-pointer no-underline"
         style={{
           background: "rgba(0,0,0,0.35)", backdropFilter: "blur(20px)",
           opacity: showActionRail ? 1 : 0,
@@ -1606,7 +1624,7 @@ export default function EpisodeFeed({
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="15 18 9 12 15 6" />
         </svg>
-      </button>
+      </a>
 
       {/* VERZA logo — fades in exactly as the back arrow fades out (same spot) */}
       <VideoWatermark visible={!showActionRail} top={12} left={12} size={44} />
@@ -1991,20 +2009,31 @@ export default function EpisodeFeed({
               Secure checkout via Stripe
             </p>
             )}
-            <button
+            {/* A real link, not a button. As a <button onClick> this did
+                nothing until React finished hydrating, and the episode route
+                hydrates behind a video element and an HLS attach — so on a
+                phone the first taps landed on dead markup and the viewer tapped
+                again and again. An anchor navigates natively with no JS at all,
+                so the very first tap always leaves. The handler still runs when
+                hydrated, to mute the video and swap the history entry instead of
+                pushing one. */}
+            <a
+              href={backHref}
               onClick={handleBack}
-              className="mt-3.5 w-full py-3.5 rounded-2xl text-[15px] font-bold cursor-pointer transition-transform active:scale-[0.97]"
+              className="mt-3.5 block w-full py-3.5 rounded-2xl text-[15px] font-bold text-center no-underline cursor-pointer transition-transform active:scale-[0.97]"
               style={{
                 background: "rgba(255,255,255,0.1)",
                 border: "1.5px solid rgba(255,255,255,0.35)",
                 color: "#fff",
                 backdropFilter: "blur(8px)",
-                opacity: 0,
-                animation: "fadeIn 0.35s ease-out 0.25s forwards",
+                /* No inline opacity:0 here. It relied on a delayed fadeIn
+                   animation to become visible, so any interruption left the one
+                   exit from the paywall invisible. */
+                animation: "fadeIn 0.35s ease-out 0.25s both",
               }}
             >
               Go Back
-            </button>
+            </a>
           </div>
         </div>
       )}

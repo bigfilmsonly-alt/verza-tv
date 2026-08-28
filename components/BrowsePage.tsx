@@ -160,6 +160,34 @@ function Badge({ type, large = false }: { type: keyof typeof BADGE_STYLE; large?
 
 function Poster({ src, alt, sizes = "(max-width: 440px) 33vw, 146px" }: { src: string; alt: string; sizes?: string }) {
   const [loaded, setLoaded] = useState(false);
+  const imgRef = useRef<HTMLImageElement | null>(null);
+  /* Reveal the poster from the DOM, not from React's synthetic onLoad.
+     The tile starts at opacity 0 and was revealed only by onLoad. That event is
+     routinely missed: an image restored from cache finishes decoding before
+     React attaches the handler, so the event fires into nothing and the tile
+     stays invisible forever. Measured on the live grid, 8 of 8 posters were
+     .complete while only 1 had opacity 1 — seven fully-decoded images sitting
+     blank. Leaving the player reloads the document, so the viewer met a wall of
+     empty tiles and read it as the app breaking.
+     Reading .complete catches the cache hit, and a NATIVE load listener on the
+     element itself catches the first download, including a load that lands
+     between render and hydration. */
+  useEffect(() => {
+    const img = imgRef.current;
+    if (!img) return;
+    if (img.complete) {
+      setLoaded(true);
+      return;
+    }
+    const reveal = () => setLoaded(true);
+    img.addEventListener("load", reveal);
+    // A poster that 404s must not leave a permanent blank tile either.
+    img.addEventListener("error", reveal);
+    return () => {
+      img.removeEventListener("load", reveal);
+      img.removeEventListener("error", reveal);
+    };
+  }, [src]);
   if (!src) {
     return (
       <div
@@ -175,6 +203,7 @@ function Poster({ src, alt, sizes = "(max-width: 440px) 33vw, 146px" }: { src: s
       {/* Shimmer placeholder until the poster decodes, then a soft fade-in */}
       {!loaded && <div className="absolute inset-0 skeleton" />}
       <Image
+        ref={imgRef}
         src={src}
         alt={alt}
         fill
@@ -351,13 +380,29 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
     }
   }, [activeTab]);
 
-  // Honor a ?tab= query param on mount (e.g. returning from a red carpet event)
-  useEffect(() => {
-    const tab = new URLSearchParams(window.location.search).get("tab");
+  /* Honor ?tab= from the URL — on mount, on browser back/forward, and whenever
+     the query string changes.
+     This used to be mount-only, which is why leaving an episode had to trigger
+     a full document reload just to land on the right tab. A client-side return
+     can restore a cached home segment instead of remounting, and a mount-only
+     effect never fires in that case, so the viewer would arrive on Drama after
+     watching a Spanish title. Comparing against the last applied search string
+     covers all three cases and re-applies at most once per actual URL change. */
+  const appliedTabSearch = useRef<string | null>(null);
+  const syncTabFromUrl = useCallback(() => {
+    const search = window.location.search;
+    if (appliedTabSearch.current === search) return;
+    appliedTabSearch.current = search;
+    const tab = new URLSearchParams(search).get("tab");
     if (tab && BROWSE_TABS.some((t) => t.key === tab)) {
       queueMicrotask(() => setActiveTab(tab as BrowseCategory));
     }
   }, []);
+  useEffect(() => {
+    syncTabFromUrl();
+    window.addEventListener("popstate", syncTabFromUrl);
+    return () => window.removeEventListener("popstate", syncTabFromUrl);
+  });
 
   // Tab state is ephemeral — do NOT write ?tab= to the URL.  The old
   // replaceState approach left /?tab=reality in the history so the browser
