@@ -210,7 +210,15 @@ function Poster({ src, alt, sizes = "(max-width: 440px) 33vw, 146px" }: { src: s
         sizes={sizes}
         className="object-cover"
         onLoad={() => setLoaded(true)}
-        style={{ opacity: loaded ? 1 : 0, transition: "opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1)" }}
+        /* Never opacity-gated. The tile used to be hidden until a load event
+           marked it ready, which meant any missed event stranded a fully
+           decoded poster as a permanent blank square — and the events are
+           missed routinely, because an image restored from cache finishes
+           before React attaches a handler and Next swaps src on lazy tiles.
+           After fixing the obvious races 1 of 8 posters was still stranded, so
+           the gate itself is the bug: a decorative 0.35s fade is not worth a
+           class of defect that shows the viewer an empty grid. The image simply
+           paints when the browser has it, over the skeleton below. */
       />
     </>
   );
