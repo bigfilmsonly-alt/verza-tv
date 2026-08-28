@@ -103,6 +103,7 @@ function EpisodeSlide({
   transitionPoster,
   blocked = false,
   onAccessDenied,
+  backHref,
 }: {
   episode: FeedEpisode;
   seriesSlug: string;
@@ -132,6 +133,10 @@ function EpisodeSlide({
   blocked?: boolean;
   /** A cached token can outlive an entitlement. A 401/402 refresh re-locks UI. */
   onAccessDenied: () => void;
+  /** Where the failure state sends a viewer who gives up. The action rail can
+      be hidden when a slide never resolves, so the error must carry its own
+      exit rather than relying on the back arrow being visible. */
+  backHref: string;
 }) {
   const videoBoxRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -158,6 +163,9 @@ function EpisodeSlide({
   const [authorizedSource, setAuthorizedSource] =
     useState<AuthorizedPlaybackSource | null>(null);
   const [sourceRequestNonce, setSourceRequestNonce] = useState(0);
+  /* Non-null whenever the source could not be resolved for a reason that is
+     NOT an entitlement answer. Drives the visible failure state. */
+  const [sourceError, setSourceError] = useState<{ status: number; message: string } | null>(null);
   const forceSourceRefreshRef = useRef(false);
   const sourceRefreshInFlightRef = useRef(false);
   const protectedRefreshCountRef = useRef(0);
@@ -205,18 +213,32 @@ function EpisodeSlide({
       .then((source) => {
         if (cancelled) return;
         setAuthorizedSource(source);
+        setSourceError(null);
         sourceRefreshInFlightRef.current = false;
       })
       .catch((error: unknown) => {
         if (cancelled) return;
         sourceRefreshInFlightRef.current = false;
         setAuthorizedSource(null);
-        if (
-          error instanceof PlaybackAccessError &&
-          (error.status === 401 || error.status === 402)
-        ) {
+        /* 401 and 402 are answers, and the paywall handles them. EVERY other
+           failure used to land here and do nothing at all: no state, no
+           message, no retry. The slide simply kept its null source, the attach
+           effect returned on its first line, and the stall watchdog could not
+           fire because it requires a ready source. The viewer was left on a
+           black frame with no way out, which is exactly what a 503 from the
+           playback route produces when signing config is incomplete. */
+        if (error instanceof PlaybackAccessError && error.isEntitlement) {
+          setSourceError(null);
           onAccessDenied();
+          return;
         }
+        setSourceError({
+          status: error instanceof PlaybackAccessError ? error.status : 0,
+          message:
+            error instanceof PlaybackAccessError && error.status === 504
+              ? "This is taking longer than usual."
+              : "We could not load this episode.",
+        });
       });
     return () => {
       cancelled = true;
@@ -501,6 +523,30 @@ function EpisodeSlide({
     setStarted(false);
     setAttachNonce((n) => n + 1); // re-runs the attach effect
   }, []);
+
+  /* Retry the source. Clears the error so the UI leaves the failed state, then
+     bumps the nonce the resolution effect depends on, forcing a fresh request
+     that bypasses the cache. */
+  const retrySource = useCallback(() => {
+    setSourceError(null);
+    forceSourceRefreshRef.current = true;
+    setSourceRequestNonce((n) => n + 1);
+  }, []);
+
+  /* Source watchdog. The stall watchdog below cannot help here because it
+     requires sourceReady, and the whole failure being guarded is that a source
+     never arrives. If this slide is active and still has nothing to play after
+     a grace period, say so and offer a retry rather than holding a black frame
+     indefinitely. Covers the cases no catch can see: a request that resolves
+     to nothing, an effect that never ran, a state update lost to a race. */
+  useEffect(() => {
+    if (!isActive || blocked || hlsUrl || sourceError) return;
+    if (!episode.requiresAuthorization) return;
+    const t = setTimeout(() => {
+      setSourceError({ status: 0, message: "We could not load this episode." });
+    }, 12000);
+    return () => clearTimeout(t);
+  }, [isActive, blocked, hlsUrl, sourceError, episode.requiresAuthorization]);
 
   /* Stall watchdog: if this slide is ACTIVE and a source is attached but no
      frame has been composited after 10s, the pipeline is silently dead
@@ -825,7 +871,46 @@ function EpisodeSlide({
           poster fade-out so the swap is a true crossfade with no gap. */}
       <div ref={videoBoxRef} className="absolute inset-0" style={{ zIndex: 2 }} />
 
-      {/* No spinner — poster holds until video plays */}
+      {/* Failure state. The poster holds during normal loading, so there is no
+          spinner for the happy path, but a slide that cannot resolve a source
+          must SAY so and offer a way out. Before this, every failure other than
+          401/402 left a black frame with no message and nothing to tap. */}
+      {isActive && !blocked && sourceError && (
+        <div
+          className="absolute inset-0 z-20 flex flex-col items-center justify-center px-8 text-center"
+          style={{ background: "rgba(7,7,14,0.82)", backdropFilter: "blur(6px)" }}
+          role="alert"
+        >
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#F5F4F8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 14, opacity: 0.9 }}>
+            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+            <line x1="12" y1="9" x2="12" y2="13" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+          <p className="text-[15px] font-bold mb-1" style={{ color: "#F5F4F8" }}>
+            {sourceError.message}
+          </p>
+          <p className="text-[12px] mb-5" style={{ color: "rgba(255,255,255,0.55)" }}>
+            Your purchase is safe. This is a playback problem on our side.
+          </p>
+          <button
+            type="button"
+            onClick={retrySource}
+            className="px-6 py-3 rounded-full text-[14px] font-bold cursor-pointer transition-transform active:scale-95"
+            style={{ background: "linear-gradient(135deg, #E0115F, #8B5CF6)", color: "#fff", border: "none" }}
+          >
+            Try again
+          </button>
+          <a
+            href={backHref}
+            className="mt-3 text-[12px] no-underline"
+            style={{ color: "rgba(255,255,255,0.6)" }}
+          >
+            Back to browsing
+          </a>
+        </div>
+      )}
+
+      {/* No spinner for the normal path: the poster holds until video plays. */}
 
       {/* Pause/Play indicator (animated) */}
       {showPause && (
@@ -1665,6 +1750,7 @@ export default function EpisodeFeed({
                 transitionPoster={ep.number === startEpisode ? transitionPoster ?? undefined : undefined}
                 blocked={!ep.isFree && !authFree}
                 onAccessDenied={handlePlaybackAccessDenied}
+                backHref={backHref}
               />
             </div>
           );

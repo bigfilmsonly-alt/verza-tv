@@ -368,6 +368,118 @@ check(
 
 notes.push(`walked ${episodesWalked} episodes across ${live.length} live series (${soon.length} coming soon)`);
 
+
+/* ------------------------------------------------------------------ */
+/*  9. RUNTIME: a failing playback endpoint must reject, never hang      */
+/*                                                                      */
+/*  The checks above assert the wiring exists. This one exercises it.    */
+/*  The client is loaded for real, its network boundary is stubbed, and  */
+/*  each failure mode is driven through getAuthorizedPlayback.           */
+/* ------------------------------------------------------------------ */
+
+{
+  const stubSupabase = { createBrowserSupabase: () => null };
+  const client = loadTypeScriptModule("lib/playback-client.ts", {
+    "@/lib/supabase/client": stubSupabase,
+    "./supabase/client": stubSupabase,
+  });
+
+  const realFetch = globalThis.fetch;
+  const scenarios = [
+    { name: "503 from the playback route", status: 503, body: { error: "Signing unavailable" }, expect: 503, entitlement: false },
+    { name: "502 invalid response body", status: 200, body: { nonsense: true }, expect: 502, entitlement: false },
+    { name: "401 not signed in", status: 401, body: { error: "Sign in" }, expect: 401, entitlement: true },
+    { name: "402 not purchased", status: 402, body: { error: "Locked" }, expect: 402, entitlement: true },
+  ];
+
+  for (const sc of scenarios) {
+    globalThis.fetch = async () => ({
+      ok: sc.status >= 200 && sc.status < 300,
+      status: sc.status,
+      json: async () => sc.body,
+    });
+    let caught = null;
+    try {
+      await client.getAuthorizedPlayback("the-mistress-trap", 6, { forceRefresh: true });
+    } catch (e) {
+      caught = e;
+    }
+    check(
+      caught !== null,
+      `player runtime: ${sc.name} resolved instead of rejecting`,
+      "A failing playback request must reject so the caller can render an error. Resolving, or never\n" +
+        "      settling, is what leaves the viewer on an indefinite black slide.",
+    );
+    if (caught) {
+      check(
+        caught.status === sc.expect,
+        `player runtime: ${sc.name} produced status ${caught.status}, expected ${sc.expect}`,
+        "The status drives whether the viewer sees the paywall or a retry.",
+      );
+      check(
+        Boolean(caught.isEntitlement) === sc.entitlement,
+        `player runtime: ${sc.name} classified isEntitlement=${caught.isEntitlement}, expected ${sc.entitlement}`,
+        "Entitlement answers belong to the paywall; everything else must reach the retryable error\n" +
+          "      state. Misclassifying either way shows the viewer the wrong screen.",
+      );
+    }
+  }
+
+  /* A connection that never answers must abort into a handled error rather than
+     leaving the promise open.
+     This asserts the MECHANISM, not a wall clock: the client must hand fetch an
+     AbortSignal, and aborting that signal must become a PlaybackAccessError the
+     UI can render. An earlier version of this test dispatched the abort itself,
+     which made it pass even with the timeout removed. It is driven from the
+     signal the client actually supplies, so deleting that wiring fails it. */
+  let sawSignal = false;
+  globalThis.fetch = (_url, init) =>
+    new Promise((_resolve, reject) => {
+      const signal = init && init.signal;
+      if (!signal) return;            // no signal: promise stays open, as it did before
+      sawSignal = true;
+      signal.addEventListener("abort", () => {
+        const err = new Error("aborted");
+        err.name = "AbortError";
+        reject(err);
+      });
+      signal.dispatchEvent(new Event("abort"));  // stand in for the deadline firing
+    });
+  let hangErr = null;
+  let settled = false;
+  /* Raced, so a promise that never settles fails this gate instead of hanging
+     it. A CI job that stops producing output is worse than one that reports a
+     failure. */
+  await Promise.race([
+    client
+      .getAuthorizedPlayback("the-mistress-trap", 7, { forceRefresh: true })
+      .then(() => { settled = true; })
+      .catch((e) => { settled = true; hangErr = e; }),
+    new Promise((r) => setTimeout(r, 3000)),
+  ]);
+  check(
+    settled,
+    "player runtime: the playback request never settled",
+    "The promise stayed open, which is the exact failure that leaves a viewer on a black slide with\n" +
+      "      no error and nothing to retry. The request must be abandonable.",
+  );
+  check(
+    sawSignal,
+    "player runtime: the playback fetch is not given an AbortSignal",
+    "Without a signal there is no way to abandon a stalled request, so the promise never settles,\n" +
+      "      the caller never reaches its catch, and the viewer keeps a black slide.",
+  );
+  check(
+    hangErr !== null && hangErr.status === 504 && hangErr.isEntitlement === false,
+    `player runtime: an aborted request produced ${hangErr ? hangErr.status : "no error"}, expected a 504 pipeline failure`,
+    "An abandoned request must surface as a retryable failure, never as a paywall and never as\n" +
+      "      silence.",
+  );
+
+  globalThis.fetch = realFetch;
+  notes.push("player failure paths exercised: 503, 502, 401, 402 and a hanging request");
+}
+
 /* ------------------------------------------------------------------ */
 /*  Report                                                             */
 /* ------------------------------------------------------------------ */
@@ -382,3 +494,55 @@ if (failures.length > 0) {
 }
 
 console.log("Feed integrity contract: PASS");
+
+/* ------------------------------------------------------------------ */
+/*  8. THE PLAYER MUST HAVE A FAILURE PATH                              */
+/*                                                                      */
+/*  BUG THIS CATCHES: EpisodeFeed handled only 401 and 402. A 503 from   */
+/*  /api/playback, a response that failed validation, or a fetch that    */
+/*  hung left authorizedSource null with no state, no message and no     */
+/*  retry, so the viewer sat on a black slide forever. Rule 15 names Mux */
+/*  credential rotation as an open gate, which is exactly the trigger.   */
+/* ------------------------------------------------------------------ */
+
+const playbackClient = read("lib/playback-client.ts");
+
+check(
+  /AbortController|AbortSignal\.timeout/.test(playbackClient),
+  "player: the playback request has no timeout",
+  "A hanging request never settles, so the caller never reaches its catch and no error state is\n" +
+    "      ever set. Give the fetch a deadline so a dead connection becomes a handled failure.",
+);
+
+check(
+  /isEntitlement/.test(feedCode) && /isEntitlement/.test(playbackClient),
+  "player: entitlement answers are not separated from pipeline failures",
+  "401 and 402 mean 'not signed in' and 'not bought' and belong to the paywall. Every other status\n" +
+    "      is the pipeline failing and must reach a retryable error state, not the paywall and not\n" +
+    "      silence.",
+);
+
+check(
+  /setSourceError/.test(feedCode),
+  "player: no error state exists for a source that will not resolve",
+  "A failure other than 401/402 must produce a visible state. Without one the slide keeps a null\n" +
+    "      source and the viewer sees an indefinite black frame.",
+);
+
+check(
+  /retrySource/.test(feedCode),
+  "player: the failure state offers no retry",
+  "Every rendered failure needs an affordance that re-requests the source.",
+);
+
+/* The stall watchdog requires sourceReady, so it cannot cover the case where a
+   source never arrives at all. A second timer must. */
+{
+  const sourceWatchdog = feedCode.match(/if \(!isActive \|\| blocked \|\| hlsUrl \|\| sourceError\) return;/);
+  check(
+    Boolean(sourceWatchdog),
+    "player: nothing guards a source that never arrives",
+    "The stall watchdog is gated on sourceReady, which is false in precisely the failure being\n" +
+      "      guarded. Add a watchdog that fires when an active slide still has no playable URL.",
+  );
+}

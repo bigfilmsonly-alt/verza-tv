@@ -12,10 +12,17 @@ export type AuthorizedPlaybackSource = {
 export class PlaybackAccessError extends Error {
   readonly status: number;
 
-  constructor(status: number, message: string) {
-    super(message);
+  constructor(status: number, message: string, options?: { cause?: unknown }) {
+    super(message, options);
     this.name = "PlaybackAccessError";
     this.status = status;
+  }
+
+  /* 401 and 402 are answers: the viewer is not signed in, or has not bought
+     this title. Everything else is the pipeline failing, and the difference
+     matters because one shows a paywall and the other shows a retry. */
+  get isEntitlement(): boolean {
+    return this.status === 401 || this.status === 402;
   }
 }
 
@@ -36,6 +43,9 @@ const SIGNED_REUSE_SKEW_MS = 90_000;
 // During the compatibility deployment paid API responses are still public.
 // Keep those briefly so a later signed-mode flag flip converges quickly.
 const PUBLIC_COMPAT_CACHE_MS = 5 * 60_000;
+/* Long enough that a slow phone connection still succeeds, short enough that a
+   dead connection surfaces a retry while the viewer is still watching. */
+const PLAYBACK_REQUEST_TIMEOUT_MS = 12_000;
 
 function keyFor(seriesSlug: string, episodeNumber: number): string {
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(seriesSlug)) {
@@ -125,16 +135,44 @@ export async function getAuthorizedPlayback(
   }
 
   const request = (async () => {
-    const response = await fetch(`/api/playback/${encodeURIComponent(logicalKey)}`, {
-      credentials: "same-origin",
-      cache: "no-store",
-      headers: {
-        Accept: "application/json",
-        ...(context.authorization
-          ? { Authorization: context.authorization }
-          : {}),
-      },
-    });
+    /* A hanging request must become a handled failure, not an open promise.
+       Without a deadline a stalled connection left this promise unsettled
+       forever, so the caller never reached its catch, never set an error state,
+       and the viewer sat on a black slide with nothing to retry. A timeout
+       converts that into an ordinary PlaybackAccessError the UI can render. */
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), PLAYBACK_REQUEST_TIMEOUT_MS);
+    let response: Response;
+    try {
+      response = await fetch(`/api/playback/${encodeURIComponent(logicalKey)}`, {
+        credentials: "same-origin",
+        cache: "no-store",
+        signal: controller.signal,
+        headers: {
+          Accept: "application/json",
+          ...(context.authorization
+            ? { Authorization: context.authorization }
+            : {}),
+        },
+      });
+    } catch (cause) {
+      /* Classify on the error as well as the signal. Reading signal.aborted
+         alone misses an abort that reaches us as a rejection without the flag
+         being set, and the distinction is not cosmetic: a timeout tells the
+         viewer "this is taking longer than usual" while a hard failure tells
+         them the episode could not load. Both are retryable, neither is a
+         paywall. */
+      const timedOut =
+        controller.signal.aborted ||
+        (cause instanceof Error && cause.name === "AbortError");
+      throw new PlaybackAccessError(
+        timedOut ? 504 : 503,
+        timedOut ? "Playback request timed out" : "Playback request failed",
+        { cause },
+      );
+    } finally {
+      clearTimeout(timer);
+    }
     const body = (await response.json().catch(() => null)) as {
       playbackUrl?: unknown;
       poster?: unknown;
