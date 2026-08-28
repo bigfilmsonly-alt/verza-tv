@@ -79,6 +79,11 @@ interface EpisodeFeedProps {
 /*  Single Episode Slide                                               */
 /* ================================================================== */
 
+/* Minimum gap between two auto-advances. Covers a smooth scroll settling, and
+   is far below the shortest episode in the catalogue (about 29 seconds), so a
+   viewer never meets it during normal playback. */
+const ADVANCE_COOLDOWN_MS = 700;
+
 function EpisodeSlide({
   episode,
   seriesSlug,
@@ -695,6 +700,21 @@ function EpisodeSlide({
       }
     }
     function onEnd() {
+      if (!vid) return;
+      /* Only treat this as a finished episode if the element actually played
+         one. A media element with no resolved source — which is every paid
+         slide until its authorized source arrives, and any slide whose HLS
+         attach failed — can fire "ended" immediately, with duration 0 or NaN
+         and currentTime 0. Advancing on that is what turned one blank slide
+         into a runaway: the next slide was equally unresolved, fired "ended"
+         just as fast, and the feed raced to the paywall with nothing visible.
+         A real completion has a finite duration and a playhead at the end of
+         it. Anything else is the element telling us it has nothing to play. */
+      const duration = vid.duration;
+      const playedToEnd =
+        Number.isFinite(duration) && duration > 0 && vid.currentTime >= duration - 1.5;
+      if (!playedToEnd) return;
+
       trackEpisodeComplete(seriesSlug, episode.number);
       onProgress(1);
       fetch("/api/watch-progress", {
@@ -1123,6 +1143,13 @@ export default function EpisodeFeed({
     };
   }, [activeIndex, revealActionRail]);
   const activeIndexRef = useRef(activeIndex);
+  /* Long enough to cover a smooth scroll settling, short enough that a viewer
+     watching very short episodes back to back never notices it. */
+  const lastAdvanceAt = useRef(0);
+  /* False until the observer has accepted one index. The first settle may be
+     any distance (a deep link to episode 20); every one after it must be
+     adjacent. */
+  const hasSettledRef = useRef(false);
   activeIndexRef.current = activeIndex;
 
   /* Re-engagement / Continue Watching: track the active video's live position
@@ -1193,14 +1220,34 @@ export default function EpisodeFeed({
   }, []);
   // The window always covers activeIndex ± 1 even before the idle recenter,
   // so a fast consecutive swipe never lands where its snap target is missing.
-  const windowStart = Math.min(
+  const rawStart = Math.min(
     Math.max(0, windowCenter - WINDOW),
     Math.max(0, activeIndex - 1),
   );
-  const windowEnd = Math.max(
+  const rawEnd = Math.max(
     Math.min(episodes.length - 1, windowCenter + WINDOW),
     Math.min(episodes.length - 1, activeIndex + 1),
   );
+  /* Bound the span so the window SLIDES instead of STRETCHING.
+     windowCenter only catches up 160ms after the last scroll event, so while
+     the index is moving it lags behind activeIndex. Because the start was
+     pinned by the lagging centre while the end tracked the live index, a fast
+     run forward widened the window instead of moving it: an index that
+     travelled k slides mounted up to k new ones in a single commit. Every
+     mounted slide within ±1 synchronously creates a <video> and attaches an
+     hls.js instance — a transmux worker, a SourceBuffer and a decoder each —
+     so a wide commit blocks the main thread for as long as it takes to build
+     all of them. That is a real hazard on a phone whatever triggers it.
+     Clamping to the same span the window is supposed to have keeps the cost of
+     any single commit constant, and activeIndex ± 1 stays covered because the
+     clamp anchors on activeIndex. */
+  const MAX_SPAN = WINDOW * 2 + 1;
+  let windowStart = rawStart;
+  let windowEnd = rawEnd;
+  if (windowEnd - windowStart + 1 > MAX_SPAN) {
+    windowStart = Math.max(0, Math.min(activeIndex - 1, episodes.length - MAX_SPAN));
+    windowEnd = Math.min(episodes.length - 1, windowStart + MAX_SPAN - 1);
+  }
 
   /* Scroll to start episode on mount. Look the slide up by data-index — the
      container's children include window spacers, so positional indexing is
@@ -1221,6 +1268,14 @@ export default function EpisodeFeed({
   const handleEpisodeEnded = useCallback(() => {
     const container = containerRef.current;
     if (!container) return;
+    /* One advance at a time. Even with the playback guard on "ended", two
+       events landing in the same frame — a real completion racing a stray
+       event from the adopted player, say — would issue two scrollIntoView
+       calls and step the feed two slides. A short lock makes the advance
+       idempotent within the window a smooth scroll takes to settle. */
+    const now = Date.now();
+    if (now - lastAdvanceAt.current < ADVANCE_COOLDOWN_MS) return;
+    lastAdvanceAt.current = now;
     // Pause the current video immediately to prevent audio overlap. The
     // adopted instant-player video lives in <body>, not in the slide.
     const currentSlide = container.querySelector(`[data-index="${activeIndexRef.current}"]`);
@@ -1237,7 +1292,21 @@ export default function EpisodeFeed({
 
   /* IntersectionObserver for snap detection */
   const observerCallback = useCallback(
-    (entries: IntersectionObserverEntry[]) => {
+    (allEntries: IntersectionObserverEntry[]) => {
+      /* One decision per batch, made on the single most-visible slide.
+         The loop used to act on every qualifying record and update the index
+         ref as it went, so a batch of consecutive records walked the index
+         forward one accepted step at a time — the adjacency guard passed on
+         each hop and did not actually bound the total travel. Reducing the
+         batch to its best entry first means a batch can move the feed by at
+         most one slide, whatever the browser delivered. */
+      let best: IntersectionObserverEntry | null = null;
+      for (const entry of allEntries) {
+        if (entry.intersectionRatio >= 0.55 && (!best || entry.intersectionRatio > best.intersectionRatio)) {
+          best = entry;
+        }
+      }
+      const entries = best ? [best] : [];
       for (const entry of entries) {
         // Gate on the RATIO, not isIntersecting: when the observer re-subscribes
         // after a window shift (first happens at the 4th video), the initial
@@ -1246,19 +1315,34 @@ export default function EpisodeFeed({
         if (entry.intersectionRatio >= 0.55) {
           const idx = Number(entry.target.getAttribute("data-index"));
           if (!Number.isNaN(idx)) {
-            setActiveIndex((prev) => {
-              if (prev !== idx) {
-                // Episode changed
-                haptic();
-                setEpProgress(0);
+            /* Adjacency guard. The feed moves one episode at a time — by a
+               swipe, or by an advance that scrolls exactly one slide. Nothing
+               legitimate jumps two.
+               On re-observe the browser delivers an initial callback for EVERY
+               observed target, and the observer re-subscribes whenever the
+               virtual window shifts, which first happens at the fourth video.
+               Several of those callbacks can clear the ratio test in one batch,
+               and each one used to be free to set a new index — so the episode
+               number marched upward, faster as it went, which is precisely the
+               reported symptom. Refusing any non-adjacent step makes the
+               runaway impossible no matter what produced the batch.
+               The very first settle is exempt: arriving deep-linked on episode
+               20 legitimately reports an index far from wherever the container
+               started, and rejecting that would strand the feed. */
+            const prev = activeIndexRef.current;
+            const firstSettle = !hasSettledRef.current;
+            if (!firstSettle && prev !== idx && Math.abs(idx - prev) > 1) continue;
+            hasSettledRef.current = true;
 
-                // Show toast
-                setShowToast(true);
-                if (toastTimer.current) clearTimeout(toastTimer.current);
-                toastTimer.current = setTimeout(() => setShowToast(false), 1200);
-              }
-              return idx;
-            });
+            if (prev !== idx) {
+              activeIndexRef.current = idx;
+              setActiveIndex(idx);
+              haptic();
+              setEpProgress(0);
+              setShowToast(true);
+              if (toastTimer.current) clearTimeout(toastTimer.current);
+              toastTimer.current = setTimeout(() => setShowToast(false), 1200);
+            }
 
             const ep = episodes[idx];
             // Preserve query params on the starting episode, but drop the

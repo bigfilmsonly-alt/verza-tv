@@ -127,6 +127,7 @@ playback, legal copy, catalog data, or release configuration. `CLAUDE.md` and
 
 ```bash
 npm run test:playback-security
+npm run test:feed-integrity
 npm run test:mux-webhook-security
 npm run test:payments
 npm run test:payments:db
@@ -142,6 +143,19 @@ documented in:
 - [`docs/reports/PAYMENT-CUTOVER-EVIDENCE-2026-08-03.md`](docs/reports/PAYMENT-CUTOVER-EVIDENCE-2026-08-03.md)
 - [`docs/guides/MUX.md`](docs/guides/MUX.md)
 - [`docs/guides/DEPLOYMENT.md`](docs/guides/DEPLOYMENT.md)
+
+## Feed integrity
+
+`npm run test:feed-integrity` is a regression barrier, not a style check. Every
+assertion in `scripts/test-feed-integrity.mjs` exists because a real defect
+reached production past the other gates, and each one names the bug it would
+have caught. It also walks all 4,913 episodes of all 91 live series offline, so
+nobody has to open the app and swipe through a title to discover that the
+free/paid boundary, an episode count, a duration or a poster has drifted.
+
+Add a check when you fix a class of bug, not an instance. The rule is that a
+check must name the defect it prevents; if you cannot name one, it does not
+belong there.
 
 ## Working agreements
 

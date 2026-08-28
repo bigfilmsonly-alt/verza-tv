@@ -13,6 +13,7 @@
     "mux:public:generate": "node scripts/generate-public-mux-map.mjs --write",
     "test:mux-webhook-security": "node scripts/test-mux-webhook-security.mjs",
     "test:playback-security": "node scripts/test-playback-security.mjs",
+    "test:feed-integrity": "node scripts/test-feed-integrity.mjs",
     "test:seo": "node scripts/test-seo-contract.mjs",
     "test:payments": "node scripts/test-payment-integrity.mjs",
     "test:payments:db": "node --env-file=.env.local scripts/test-payment-integrity.mjs --database",
