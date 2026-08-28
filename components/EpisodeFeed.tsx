@@ -2026,10 +2026,17 @@ export default function EpisodeFeed({
                 border: "1.5px solid rgba(255,255,255,0.35)",
                 color: "#fff",
                 backdropFilter: "blur(8px)",
-                /* No inline opacity:0 here. It relied on a delayed fadeIn
-                   animation to become visible, so any interruption left the one
-                   exit from the paywall invisible. */
-                animation: "fadeIn 0.35s ease-out 0.25s both",
+                /* Visible unconditionally. This carried opacity:0 plus a
+                   delayed fadeIn animation, and measured on production the
+                   computed opacity was still 0 nine seconds after load — the
+                   animation had not run, and with a fill mode holding the
+                   from-state the only exit from the paywall stayed invisible.
+                   An opacity-0 element still takes clicks, so the viewer was
+                   tapping at where they guessed the button was and mostly
+                   missing: exactly the "takes a few taps" report.
+                   The one control that lets someone leave a paywall does not
+                   get to depend on an animation finishing. */
+                opacity: 1,
               }}
             >
               Go Back
