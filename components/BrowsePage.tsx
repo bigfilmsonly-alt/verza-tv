@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import CategoryTabs from "@/components/CategoryTabs";
 import { BROWSE_TABS, getEpisode, type Series, type BrowseCategory } from "@/lib/catalog";
-import { seriesHref } from "@/lib/series-href";
+import { posterHref } from "@/lib/series-href";
 import AudioLanguageBadge from "@/components/AudioLanguageBadge";
 import { audioLanguageOf } from "@/lib/audio-language";
 import { buildResumeUrl } from "@/lib/resume";
@@ -665,8 +665,9 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         <div>
           <div className="relative pt-4">
             <Link
-              href={seriesHref("too-much-junk")}
+              href={posterHref("too-much-junk")}
               prefetch={true}
+              onClick={(e) => posterClick(e, "too-much-junk")}
               className="block transition-transform active:scale-[0.97]"
             >
               <div className="relative mx-auto overflow-hidden rounded-xl" style={{ aspectRatio: "2 / 3", width: "100%", maxWidth: "min(320px, 80vw)", background: "#000" }}>
@@ -892,9 +893,10 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                   return playable ? (
                     <Link
                       key={show.title}
-                      href={seriesHref(show.slug)}
+                      href={posterHref(show.slug)}
                       className="block no-underline min-w-0 transition-transform active:scale-[0.97]"
                       prefetch={true}
+                      onClick={(e) => posterClick(e, show.slug)}
                     >
                       {card}
                     </Link>
@@ -945,9 +947,10 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
             ].map((event) => (
               <Link
                 key={event.title}
-                href={seriesHref(event.slug)}
+                href={posterHref(event.slug)}
                 className="block no-underline min-w-0 transition-transform active:scale-[0.97]"
                 prefetch={true}
+                onClick={(e) => posterClick(e, event.slug)}
               >
                 <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
                   <Image src={event.poster} alt={event.title} fill sizes="(max-width: 440px) 50vw, 220px" className="object-cover" />
@@ -981,8 +984,9 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               card without cropping. */}
           <div className="relative">
             <Link
-              href={seriesHref(current)}
+              href={posterHref(current)}
               className="block transition-transform duration-200 ease-out active:scale-[0.98]"
+              onClick={(e) => posterClick(e, current.slug)}
             >
               <div
                 className="relative mx-auto overflow-hidden rounded-xl"
@@ -1185,8 +1189,16 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               return (
                 <Link
                   key={s.slug}
-                  href={seriesHref(s)}
+                  href={posterHref(s)}
                   className={`${soon ? "" : "group "}block no-underline min-w-0 transition-transform active:scale-[0.97]`}
+                  /* Prewarm only when the destination really is the player. A
+                     coming-soon tile routes to its show page, and nothing there
+                     adopts a running <video>: the prewarm would download a
+                     stream nobody watches for its full 12s TTL, and the
+                     sessionStorage poster seed it writes would be consumed by
+                     whichever EpisodeFeed mounts next, flashing the wrong
+                     title's artwork. */
+                  onClick={soon ? undefined : (e) => posterClick(e, s.slug)}
                 >
                   {art}
                 </Link>

@@ -1613,6 +1613,24 @@ export default function EpisodeFeed({
 
   const activeEp = episodes[activeIndex];
 
+  /* Whether to show the free-run chip. Deliberately conservative: it is a
+     promise about what the viewer still gets for nothing, so it must never
+     appear to someone it does not apply to.
+       - authResolved gates it, so an owner never sees "free episode 2 of 5"
+         flash before their entitlement lands;
+       - authFree hides it, because an owner has no free run, they have the lot;
+       - a wholly free title hides it (freeEpisodes >= totalEpisodes): there is
+         no boundary to warn about;
+       - the locked slide hides it, because the paywall there is already saying
+         something more specific and more useful. */
+  const showFreeRunChip =
+    authResolved &&
+    !authFree &&
+    !!activeEp &&
+    activeEp.isFree &&
+    freeEpisodes > 0 &&
+    freeEpisodes < totalEpisodes;
+
   // Virtual window: only render 5 slides max (windowCenter ± 2).
   // The window recenters ONLY when scrolling is idle — mounting/unmounting
   // slides and resizing spacers ABOVE the scrollport mid-swipe retargeted the
@@ -2400,6 +2418,49 @@ export default function EpisodeFeed({
                 <span className="text-[10px] font-medium" style={{ color: "#F5F4F8" }}>Copy link</span>
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Free-run indicator — top-left.
+
+          Five testers described the paywall at episode six as an ambush. The
+          ambush was never autoplay; it was that nothing in the player ever said
+          how long the free run is. A viewer who knows they are on free episode
+          two of five is not ambushed at six, they are prepared for it, and the
+          paywall reads as earned rather than sprung.
+
+          Every value here is read, never assumed. freeRunLength is the title's
+          own freeEpisodes, which is per-title data clamped to real Mux
+          inventory, so this is correct for the five wholly free titles and for
+          the two whose allowance is clamped below their catalogue literal. A
+          hard-coded 5 would be wrong for seven of the ninety-one.
+
+          It renders only while the viewer is actually inside a free run they do
+          not own: hidden once entitlement resolves true, hidden on a title with
+          nothing to unlock, and hidden on the locked slide, where the paywall
+          is already saying something far more specific. */}
+      {showFreeRunChip && (
+        <div
+          className="absolute left-4 z-50 pointer-events-none"
+          style={{
+            top: "calc(env(safe-area-inset-top, 0px) + 60px)",
+            opacity: showActionRail ? 1 : 0,
+            transition: showActionRail ? "opacity 0.2s cubic-bezier(0.22, 1, 0.36, 1)" : "opacity 0.6s ease",
+          }}
+        >
+          <div
+            className="text-[11px] font-semibold"
+            style={{
+              background: "rgba(0,0,0,0.4)",
+              backdropFilter: "blur(12px)",
+              borderRadius: 999,
+              padding: "4px 10px",
+              color: "rgba(255,255,255,0.82)",
+              border: "1px solid rgba(255,255,255,0.14)",
+            }}
+          >
+            {t("content.freeEpisodeOf", { n: String(activeEp?.number ?? 1), total: String(freeEpisodes) })}
           </div>
         </div>
       )}

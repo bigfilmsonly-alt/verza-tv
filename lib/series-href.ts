@@ -45,11 +45,11 @@ import { getSeriesBySlug, type Series } from "./catalog";
 /* ------------------------------------------------------------------ */
 
 /**
- * The front door for a title: its show page.
+ * A title's show page. Its synopsis, cast and Series Unlock card.
  *
- * Live or coming soon, the answer is the same URL — which is precisely why a
- * tile can no longer route by playability. Playback begins from an explicit
- * action on the show page, never from a poster tap.
+ * This is NOT where a poster tap goes — see posterHref. It is the landing page
+ * for search traffic, the target of a deliberate "more info" tap, and the
+ * fallback for a title with nothing to play.
  *
  * The five coming-soon rows genuinely have a page here. `dynamicParams` is set
  * nowhere in this repo, so Next's default `true` applies: /series/<slug> is not
@@ -84,4 +84,32 @@ export function episodeHref(series: Series | string, episode: number): string {
     return `/series/${slug}`;
   }
   return `/series/${slug}/${Math.floor(episode)}`;
+}
+
+/**
+ * Where a tap on a title's ARTWORK goes. This is the product's central
+ * interaction and the rule is one line: playable plays, unplayable explains.
+ *
+ * Verza is a shorts app. A poster tap starts the video, immediately, with no
+ * interstitial and no second tap. Five episodes run uninterrupted and the
+ * paywall arrives at the sixth. Routing a poster through the show page first
+ * was tried and rejected by the founder: it turns a shorts app into a website
+ * that plays video, and the read-first page is a toll booth on the one gesture
+ * the whole product is built around.
+ *
+ * The five coming-soon rows still land on their show page, because they have
+ * nothing to play. That is not the old inversion returning. The old bug was
+ * that the show page was reachable ONLY from unplayable titles, so it existed
+ * for everything except the titles it was meant to sell. Now it is a real
+ * destination in its own right, reachable from search, from the player's title
+ * and from the episode picker, and the coming-soon rows route to it because it
+ * is the only thing they can honestly offer.
+ *
+ * This is episodeHref(series, 1) under a name that says what the caller means,
+ * so the intent survives at the call site and the gate can assert on it. It
+ * inherits that helper's 404 guard: a zero-episode row resolves to the show
+ * page rather than to /series/<slug>/1, which notFound()s.
+ */
+export function posterHref(series: Series | string): string {
+  return episodeHref(series, 1);
 }

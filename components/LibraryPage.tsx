@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { T } from "@/lib/theme";
 import { getChannels, getSeriesByChannel, type Series } from "@/lib/catalog";
-import { seriesHref } from "@/lib/series-href";
+import { posterHref } from "@/lib/series-href";
 import { useTranslation } from "@/components/LangProvider";
 import { SavedShowsList } from "@/components/AccountLists";
 import EmptyState from "@/components/EmptyState";
@@ -19,7 +19,7 @@ function PosterThumb({ series }: { series: Series }) {
        the show page carries the synopsis, the "First N Episodes FREE" badge and
        the unlock card, and it is the only URL that resolves for a coming-soon
        row. See lib/series-href.ts and B's handoff note. */
-    <Link href={seriesHref(series)} className="flex-shrink-0 no-underline group transition-transform active:scale-[0.97]">
+    <Link href={posterHref(series)} className="flex-shrink-0 no-underline group transition-transform active:scale-[0.97]">
       <div className="w-[100px] h-[150px] rounded-lg overflow-hidden relative" style={{ background: T.raised }}>
         {series.posterUrl ? (
           <Image src={series.posterUrl} alt={series.title} fill sizes="100px" className="object-cover transition-transform group-hover:scale-105" />

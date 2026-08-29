@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import type { Series } from "@/lib/catalog";
-import { seriesHref } from "@/lib/series-href";
+import { posterHref } from "@/lib/series-href";
 import { seriesMatchesQuery } from "@/lib/search-index";
 
 interface SearchBarProps {
@@ -64,7 +64,7 @@ export default function SearchBar({ series }: SearchBarProps) {
           {filtered.map((s) => (
             <Link
               key={s.slug}
-              href={seriesHref(s)}
+              href={posterHref(s)}
               className="flex items-center gap-3 px-4 py-3 no-underline transition-colors"
               style={{ color: "#F5F4F8" }}
               onClick={() => setQuery("")}

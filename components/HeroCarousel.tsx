@@ -4,7 +4,7 @@ import { useState, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { Series } from "@/lib/catalog";
-import { seriesHref } from "@/lib/series-href";
+import { posterHref } from "@/lib/series-href";
 
 interface HeroCarouselProps {
   series: Series[];
@@ -23,7 +23,7 @@ export default function HeroCarousel({ series }: HeroCarouselProps) {
   return (
     <div className="relative">
       {/* Hero image — full width, tall */}
-      <Link href={seriesHref(current)} className="block">
+      <Link href={posterHref(current)} className="block">
         <div className="relative w-full" style={{ height: "65dvh", minHeight: 420 }}>
           {current.posterUrl ? (
             <Image
@@ -56,7 +56,7 @@ export default function HeroCarousel({ series }: HeroCarouselProps) {
       {/* Title below image */}
       <div className="px-4 -mt-16 relative z-10">
         <Link
-          href={seriesHref(current)}
+          href={posterHref(current)}
           className="no-underline"
         >
           <h2

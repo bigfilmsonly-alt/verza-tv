@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { T } from "@/lib/theme";
 import { getSeriesBySlug, getEpisode } from "@/lib/catalog";
-import { seriesHref } from "@/lib/series-href";
+import { posterHref } from "@/lib/series-href";
 import { buildResumeUrl } from "@/lib/resume";
 import { readSavedSlugs, writeSavedSlugs, setSavedSlug } from "@/lib/guest-storage";
 import { mergeContinueWatching, type ContinueWatchingItem } from "@/lib/continue-watching";
@@ -160,7 +160,7 @@ export function SavedShowsList() {
               synopsis, the free-preview badge and the unlock card live, and it
               is the one URL that also resolves for a coming-soon row a viewer
               may have saved. See lib/series-href.ts. */}
-          <Link href={seriesHref(item.seriesSlug)} className="flex-shrink-0 no-underline transition-transform active:scale-[0.97]">
+          <Link href={posterHref(item.seriesSlug)} className="flex-shrink-0 no-underline transition-transform active:scale-[0.97]">
             <div className="w-[72px] h-[108px] relative">
               {item.posterUrl ? (
                 <Image src={item.posterUrl} alt={item.seriesTitle} fill sizes="72px" className="object-cover" />
@@ -173,7 +173,7 @@ export function SavedShowsList() {
           </Link>
           <div className="flex-1 py-3 pr-2 flex flex-col justify-between min-w-0">
             <div>
-              <Link href={seriesHref(item.seriesSlug)} className="no-underline">
+              <Link href={posterHref(item.seriesSlug)} className="no-underline">
                 <h4 className="text-sm font-semibold truncate" style={{ color: T.text }}>{item.seriesTitle}</h4>
               </Link>
               <p className="text-xs mt-0.5" style={{ color: T.textMute }}>

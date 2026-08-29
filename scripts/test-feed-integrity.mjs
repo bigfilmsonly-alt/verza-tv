@@ -903,10 +903,12 @@ if (hasHelpers) {
   const offenders = scanned.filter((f) => !EXEMPT.has(f) && EPISODE_ONE_LITERAL.test(read(f)));
   check(
     offenders.length === 0,
-    "routing: a surface hard-codes the player as its destination",
-    `Build tile links with seriesHref() and genuine episode links with episodeHref(). A literal\n` +
-      `      cannot know that /series/<slug>/1 is a 404 for the five coming-soon rows, and a literal is\n` +
-      `      how the show pages became unreachable in the first place. Offenders:\n` +
+    "routing: a surface hard-codes its destination",
+    `Build artwork links with posterHref() and genuine episode links with episodeHref(). The literal\n` +
+      `      is banned even though it is now the right destination for most titles, because a literal\n` +
+      `      cannot know that /series/<slug>/1 is a live 404 for the five rows with no video, and because\n` +
+      `      thirteen copies of one string with no shared decision is what made the policy impossible to\n` +
+      `      change the first time. Offenders:\n` +
       `      ${offenders.join(", ")}`,
   );
 
@@ -937,12 +939,13 @@ if (hasHelpers) {
     ["app/search/page.tsx", "the /search results grid"],
     ["app/genres/[slug]/page.tsx", "the plural genre hub (its singular twin app/genre/[genre] was already correct)"],
   ];
-  const missing = SURFACES.filter(([f]) => !/seriesHref\(/.test(read(f)));
+  const missing = SURFACES.filter(([f]) => !/posterHref\(/.test(read(f)));
   check(
     missing.length === 0,
-    "routing: a merchandising surface stopped routing through the helper",
-    `Five separate testers reached the player without ever seeing a synopsis, a cast list or the\n` +
-      `      price. Each of these surfaces must send a title tap to its show page:\n` +
+    "routing: an artwork surface stopped routing through the helper",
+    `Verza is a shorts app: a tap on artwork starts the video, with no interstitial and no second\n` +
+      `      tap. Each of these surfaces must call posterHref(), which plays a playable title and falls\n` +
+      `      back to the show page for a title with no video:\n` +
       `      ${missing.map(([f, why]) => `${f} (${why})`).join("; ")}`,
   );
 }
@@ -951,10 +954,11 @@ if (hasHelpers) {
        BrowsePage's coming-soon ternary must stay — deleting it is what would
        ship five 404s — but both arms must now agree on where the tile goes. */
 check(
-  !/href=\{`\/series\/\$\{s\.slug\}`\}/.test(browseCode) && /href=\{seriesHref\(s\)\}/.test(browseCode),
+  !/href=\{`\/series\/\$\{s\.slug\}`\}/.test(browseCode) && /href=\{posterHref\(s\)\}/.test(browseCode),
   "routing: the browse tile still builds its own href",
-  "The grid tile had two arms with two destinations, chosen by `status === \"coming_soon\"`. One\n" +
-    "      href for every tile is what makes the inversion unrepresentable rather than merely fixed.",
+  "The grid tile once had two arms with two destinations, chosen by `status === \"coming_soon\"`.\n" +
+    "      One href for every tile is what makes the old inversion unrepresentable: posterHref decides\n" +
+    "      playable-plays / unplayable-explains in one place, so a tile cannot disagree with the policy.",
 );
 
 /* 9f. dynamicParams must not be switched off on the show route.
@@ -1014,14 +1018,21 @@ check(
   );
 }
 
-/* 9h. THE PREWARM MOVED WITH THE NAVIGATION — verify the effect, not the edit.
+/* 9h. THE PREWARM FOLLOWS THE NAVIGATION — verify the effect, not the edit.
        posterClick() starts a hidden <video>, attaches hls.js and downloads a
-       stream on the assumption the very next page is EpisodeFeed, which ADOPTS
-       the running element. Now that tiles land on the show page, nothing adopts
-       it: every tap would burn the viewer's bandwidth for the full 12s TTL in
-       lib/instant-player.ts and leave a stale transition poster in
-       sessionStorage for the next EpisodeFeed to paint. So the prewarm may only
-       hang off a link whose destination really is the player. */
+       stream on the assumption that the very next page is EpisodeFeed, which
+       ADOPTS the running element. That assumption is the whole mechanism: it is
+       why a poster tap reaches a first frame in network time rather than in
+       network time plus a page load.
+
+       So the rule is symmetric, and both halves have been live at different
+       times in this repo. A link to the PLAYER must prewarm, or the tap is
+       merely fast instead of instant. A link to the SHOW PAGE must not, because
+       nothing there adopts the hidden element: the stream would be downloaded
+       and thrown away after the 12s TTL in lib/instant-player.ts, on cellular,
+       on every tap, and the transition poster it seeds into sessionStorage
+       would be painted by whichever EpisodeFeed mounts next — the wrong title's
+       artwork flashing over the right title's video. */
 {
   /* Depth-aware, because a naive /<Link[\s\S]*?>/ stops at the `>` inside an
      arrow function: `onClick={(e) => posterClick(...)}` would be cut in half and
@@ -1057,22 +1068,23 @@ check(
       "      and thrown away, on cellular, on every tap.",
   );
 
-  const prewarmTags = tags.filter((t) => /posterClick\(/.test(t));
+  const playerTags = tags.filter((t) => /href=\{posterHref\(/.test(t));
+  const coldPlayerTags = playerTags.filter((t) => !/posterClick\(/.test(t));
   check(
-    prewarmTags.length > 0 && prewarmTags.every((t) => /buildResumeUrl\(/.test(t)),
-    "routing: the prewarm is attached to something other than a resume tile",
-    "Continue Watching is the one link left on the browse page whose destination is the player, so\n" +
-      "      it is the one link allowed to prewarm. Everything else prewarms from the show page's own\n" +
-      "      play button instead.",
+    playerTags.length > 0 && coldPlayerTags.length === 0,
+    "routing: an artwork link opens the player without prewarming it",
+    `${coldPlayerTags.length} of ${playerTags.length} <Link> element(s) route into the player and do\n` +
+      "      not call posterClick. Without the prewarm the tap still works, but the viewer waits for a\n" +
+      "      page load before the download even starts. Instant playback on a poster tap is the product;\n" +
+      "      speed is the thing testers named as already working, and this is where it comes from.",
   );
 
   check(
     /startInstantPlayer/.test(read("components/PlayNowLink.tsx")) &&
       /<PlayNowLink/.test(read("app/series/[slug]/page.tsx")),
     "routing: the show page's play button lost its prewarm",
-    "Routing every poster through the show page adds a step. The play CTA must carry the prewarm the\n" +
-      "      poster tap used to carry, or click-to-first-frame gets slower for every viewer — and speed\n" +
-      "      is the thing testers named as already working.",
+    "The show page is the landing page for search traffic, so its Play CTA is a real entry into the\n" +
+      "      player and must prewarm exactly as a poster tap does.",
   );
 
   /* BUG THIS CATCHES: the prewarm needs a playback id, and the obvious way to
@@ -1115,11 +1127,11 @@ check(
 {
   const card = read("components/SeriesCard.tsx");
   check(
-    /seriesHref\(/.test(card) && /Soon/.test(card),
+    /posterHref\(/.test(card) && /Soon/.test(card),
     "routing: SeriesCard can badge a title Soon and link it to a 404",
-    "A tile that can render a Soon badge must route through seriesHref(). If the Soon badge is what\n" +
-      "      was removed rather than the literal, update this check to match — but do not leave a tile\n" +
-      "      that advertises an unplayable title and links to its episode route.",
+    "A tile that can render a Soon badge must route through posterHref(), which plays a playable title\n" +
+      "      and falls back to the show page for one with no video. A raw episode literal on a tile that\n" +
+      "      advertises an unplayable title is a 404 with a badge on it.",
   );
 }
 
@@ -2235,6 +2247,122 @@ check(
     "components/ContentTranslator.tsx loads translate.google.com/translate_a/element.js, which pulls\n" +
       "      its engine from translate.googleapis.com. That host is absent from script-src in\n" +
       "      next.config.ts, so the engine cannot load and the injection is pure cost.",
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  12. PLAYABLE PLAYS, UNPLAYABLE EXPLAINS                             */
+/* ------------------------------------------------------------------ */
+
+/* The product rule, in one place. Verza is a shorts app: a tap on artwork
+   starts the video, with no interstitial and no second tap. Routing artwork
+   through the show page first was built, shipped to this branch, and rejected
+   by the founder — it turns a shorts app into a website that plays video.
+
+   This is NOT the old Bollywood inversion returning. That bug was that the show
+   page was reachable ONLY from titles with nothing to play, so the one surface
+   carrying the synopsis, the cast and the price existed for every title except
+   the ones you could sell. The show page is now a real destination in its own
+   right: the landing page for search traffic, reachable from the player, and
+   the honest answer for a row with no video. What changed is that it is no
+   longer a toll booth on the way to playback.
+
+   These checks assert the rule holds for real catalogue rows, not that a
+   particular string appears somewhere. */
+{
+  const hrefMod = loadTypeScriptModule("lib/series-href.ts", { "./catalog": catalog });
+  const rows = catalog.catalog;
+  const live = rows.filter((r) => r.status === "live");
+  const soon = rows.filter((r) => r.status === "coming_soon");
+
+  const wrongLive = live.filter((r) => hrefMod.posterHref(r) !== `/series/${r.slug}/1`);
+  check(
+    live.length > 80 && wrongLive.length === 0,
+    "routing: a playable title does not play on a poster tap",
+    `Every live row must resolve to its player at episode 1. ${wrongLive.length} of ${live.length} did\n` +
+      `      not: ${wrongLive.slice(0, 5).map((r) => r.slug).join(", ")}`,
+  );
+
+  const wrongSoon = soon.filter((r) => hrefMod.posterHref(r) !== `/series/${r.slug}`);
+  check(
+    soon.length > 0 && wrongSoon.length === 0,
+    "routing: a title with no video routes into a 404",
+    `A coming-soon row has episodeCount 0, so getEpisodesForSeries() returns [], getEpisode() is\n` +
+      `      undefined and the episode route calls notFound(). posterHref must fall back to the show page.\n` +
+      `      ${wrongSoon.length} of ${soon.length} did not: ${wrongSoon.map((r) => r.slug).join(", ")}`,
+  );
+
+  /* The guard has to live in the helper, not in each caller's head. A caller
+     that reasons "this one is fine" is how thirteen copies of a string got
+     written the first time. */
+  check(
+    hrefMod.posterHref("a-slug-that-does-not-exist") === "/series/a-slug-that-does-not-exist",
+    "routing: an unknown slug is routed into the player",
+    "posterHref() must fall back to the show page for a row it cannot find, not build an episode URL\n" +
+      "      it cannot vouch for. Stale saved progress and old deep links both arrive this way.",
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  13. THE FREE RUN IS STATED BEFORE IT ENDS                           */
+/* ------------------------------------------------------------------ */
+
+/* BUG THIS CATCHES: five testers called the paywall at episode six an ambush.
+   The ambush was never autoplay — it was that nothing in the player ever said
+   how long the free run is. A viewer who can see "Free episode 2 of 5" is not
+   ambushed at six. Removing the chip restores the complaint that produced the
+   whole sprint, and it would go unnoticed because nothing else fails. */
+check(
+  /content\.freeEpisodeOf/.test(feedCode),
+  "player: the free run is never stated to the viewer",
+  "The player must say how many free episodes there are, while the viewer is still inside them. Every\n" +
+    "      tester who met the paywall cold described it as an ambush.",
+);
+
+check(
+  /freeEpisodes > 0 &&\s*freeEpisodes < totalEpisodes/.test(feedCode),
+  "player: the free-run chip is shown on a title with no paid run",
+  "Five live titles are wholly free. Telling their viewers they are on 'free episode 2 of 50' implies\n" +
+    "      a boundary that does not exist and invites them to expect a paywall that never comes.",
+);
+
+check(
+  /showFreeRunChip =\s*\n?\s*authResolved &&/.test(feedCode) && /!authFree &&/.test(feedCode),
+  "player: the free-run chip can appear to someone who owns the series",
+  "It is a statement about what is still free. An owner has no free run, and showing it before\n" +
+    "      entitlement resolves flashes it at every returning customer on every launch.",
+);
+
+/* The count must be the title's own, not the number 5. freeEpisodes is
+   per-title data clamped to real Mux inventory: five titles are wholly free and
+   two ship clamped below their catalogue literal, so a hard-coded 5 is wrong
+   for seven of the ninety-one and wrong in the direction that overpromises. */
+check(
+  /total: String\(freeEpisodes\)/.test(feedCode),
+  "player: the free-episode count is not read from the title",
+  "Use the series' own freeEpisodes. A literal 5 misstates the offer on seven live titles.",
+);
+
+{
+  const i18nMod = loadTypeScriptModule("lib/i18n.ts");
+  const dicts = i18nMod.dictionaries;
+  const codes = Object.keys(dicts || {});
+  const missing = codes.filter((c) => !dicts[c]["content.freeEpisodeOf"]);
+  const untokenised = codes.filter(
+    (c) =>
+      dicts[c]["content.freeEpisodeOf"] &&
+      !(/\{n\}/.test(dicts[c]["content.freeEpisodeOf"]) && /\{total\}/.test(dicts[c]["content.freeEpisodeOf"])),
+  );
+  check(
+    codes.length >= 20 && missing.length === 0,
+    "i18n: the free-run chip is missing a translation",
+    `A missing key renders the raw key id over the video. Missing in: ${missing.join(", ")}`,
+  );
+  check(
+    untokenised.length === 0,
+    "i18n: a free-run translation dropped an interpolation token",
+    `Both {n} and {total} must survive translation or the chip states a number it was not given.\n` +
+      `      Broken in: ${untokenised.join(", ")}`,
   );
 }
 

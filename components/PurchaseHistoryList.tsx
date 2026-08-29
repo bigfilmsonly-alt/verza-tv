@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { T } from "@/lib/theme";
 import { getSeriesBySlug } from "@/lib/catalog";
-import { seriesHref } from "@/lib/series-href";
+import { posterHref } from "@/lib/series-href";
 import EmptyState from "@/components/EmptyState";
 
 /* ------------------------------------------------------------------ */
@@ -145,7 +145,7 @@ export default function PurchaseHistoryList() {
         return (
           <Link
             key={e.id}
-            href={seriesHref(e.series_slug)}
+            href={posterHref(e.series_slug)}
             className="flex gap-3 rounded-xl overflow-hidden no-underline transition-transform active:scale-[0.99]"
             style={{ background: T.surface, border: `1px solid ${T.line}` }}
           >
