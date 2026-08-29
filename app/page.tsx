@@ -42,8 +42,15 @@ export default function HomePage() {
               <ul>
                 {(tabData[tab.key] ?? []).map((s) => (
                   <li key={s.slug}>
-                    {/* Coming-soon rows build no page, so they get plain text.
-                        Linking them would hand crawlers a guaranteed 404. */}
+                    {/* Plain text for coming-soon rows. NOT because the page
+                        404s — /series/<coming-soon-slug> renders 200 (dynamicParams
+                        defaults to true) and BrowsePage links its tiles to it. It
+                        is because this block is the crawler-facing index and that
+                        page is deliberately `noindex, follow`, so listing it here
+                        asks Googlebot to fetch something it has been told not to
+                        index. The earlier "guaranteed 404" claim was false when
+                        written and would, if acted on in the app, remove five
+                        working pages. */}
                     {s.status === "live" ? (
                       <a href={`/series/${s.slug}`} style={{ color: "#A0A0B0" }}>
                         {s.title} — {s.genre} ({s.episodeCount} episodes)

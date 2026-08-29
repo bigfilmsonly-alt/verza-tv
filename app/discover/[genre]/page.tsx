@@ -191,10 +191,10 @@ export default async function GenrePage({
           {liveMatches.length} live series
         </p>
 
-        {/* liveMatches, not matches: every row below is a <Link> into
-            /series/<slug>, and coming-soon titles build no such page. Using the
-            unfiltered list here would render a guaranteed 404 for any
-            coming-soon title whose genre string happens to match. */}
+        {/* liveMatches, not matches: a coming-soon title has nothing to watch,
+            so it is not a genre-hub row. Its /series/<slug> page does exist and
+            returns 200 — the previous claim of a "guaranteed 404" was false, and
+            a future edit acting on it would break five live pages. */}
         {liveMatches.length === 0 ? (
           <div
             className="rounded-xl p-8 text-center"

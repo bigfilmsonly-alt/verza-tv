@@ -38,6 +38,19 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
  * Creates a Stripe Checkout session to unlock a full series for $1.99 plus
  * applicable tax when explicitly enabled by server configuration.
  * Body: { seriesSlug: string }
+ *
+ * Every failure carries a stable machine `code` next to the human `error`.
+ * The English `error` string is unchanged and is still what non-browser
+ * clients and logs see; `code` exists so the in-feed paywall can render the
+ * failure in the viewer's own language instead of dropping an English
+ * sentence into an otherwise Spanish or Hindi payment screen. The codes are
+ * a closed set — components/EpisodeFeed.tsx maps each one to a translation
+ * key and falls back to `error` for anything it does not recognise, and
+ * scripts/test-feed-integrity.mjs fails if a code here has no key in all 20
+ * locale dictionaries. Adding a new failure means adding its code to both.
+ *
+ * Codes never affect authorization. Status codes, ordering and every
+ * fail-closed branch below are byte-for-byte what they were.
  */
 export async function POST(req: NextRequest) {
   try {
@@ -45,21 +58,21 @@ export async function POST(req: NextRequest) {
     try {
       body = await req.json();
     } catch {
-      return privateJson({ error: "Invalid JSON body" }, { status: 400 });
+      return privateJson({ error: "Invalid JSON body", code: "invalid_request" }, { status: 400 });
     }
     if (typeof body !== "object" || body === null || Array.isArray(body)) {
       return privateJson(
-        { error: "Request body must be a JSON object" },
+        { error: "Request body must be a JSON object", code: "invalid_request" },
         { status: 400 },
       );
     }
     const { seriesSlug, client } = body as Record<string, unknown>;
 
     if (typeof seriesSlug !== "string" || !seriesSlug) {
-      return privateJson({ error: "seriesSlug is required" }, { status: 400 });
+      return privateJson({ error: "seriesSlug is required", code: "invalid_request" }, { status: 400 });
     }
     if (client !== undefined && client !== "native_android") {
-      return privateJson({ error: "Unsupported checkout client" }, { status: 400 });
+      return privateJson({ error: "Unsupported checkout client", code: "invalid_request" }, { status: 400 });
     }
     const nativeAndroid = client === "native_android";
     const hasBearerToken = /^Bearer [^\s]+$/.test(
@@ -67,23 +80,23 @@ export async function POST(req: NextRequest) {
     );
     if (nativeAndroid && !hasBearerToken) {
       return privateJson(
-        { error: "Native checkout requires Bearer authentication" },
+        { error: "Native checkout requires Bearer authentication", code: "auth_required" },
         { status: 401 },
       );
     }
 
     const series = getSeriesBySlug(seriesSlug);
     if (!series) {
-      return privateJson({ error: "Series not found" }, { status: 404 });
+      return privateJson({ error: "Series not found", code: "series_not_found" }, { status: 404 });
     }
 
     const user = await getUser();
     if (!user) {
-      return privateJson({ error: "Authentication required" }, { status: 401 });
+      return privateJson({ error: "Authentication required", code: "auth_required" }, { status: 401 });
     }
 
     if (!isSeriesPurchasable(series)) {
-      return privateJson({ error: "Series is not available for purchase" }, { status: 409 });
+      return privateJson({ error: "Series is not available for purchase", code: "not_purchasable" }, { status: 409 });
     }
 
     // Refuse a second checkout for content the verified account already owns.
@@ -99,11 +112,11 @@ export async function POST(req: NextRequest) {
 
     if (entitlementError) {
       console.error("[unlock] Entitlement lookup failed:", entitlementError.message);
-      return privateJson({ error: "Could not verify purchase eligibility" }, { status: 500 });
+      return privateJson({ error: "Could not verify purchase eligibility", code: "eligibility_unknown" }, { status: 500 });
     }
     if (existing) {
       return privateJson(
-        { error: "You already own this series", alreadyOwned: true },
+        { error: "You already own this series", code: "already_owned", alreadyOwned: true },
         { status: 409 },
       );
     }
@@ -123,7 +136,7 @@ export async function POST(req: NextRequest) {
       );
     }
     if (profile.data.deletion_requested_at) {
-      return privateJson({ error: "Account deletion is in progress" }, { status: 409 });
+      return privateJson({ error: "Account deletion is in progress", code: "account_deletion" }, { status: 409 });
     }
     const customerId = await ensureStripeCustomer(
       supabase,
@@ -165,6 +178,7 @@ export async function POST(req: NextRequest) {
       return privateJson(
         {
           error: "An earlier checkout is still being resolved. Contact support before trying another payment.",
+          code: "payment_review",
           paymentReviewRequired: true,
         },
         { status: 409 },
@@ -254,7 +268,7 @@ export async function POST(req: NextRequest) {
       !(await checkoutAccountStillActive(supabase, stripe, user.id, session))
     ) {
       return privateJson(
-        { error: "Account deletion is in progress" },
+        { error: "Account deletion is in progress", code: "account_deletion" },
         { status: 409 },
       );
     }
@@ -275,7 +289,7 @@ export async function POST(req: NextRequest) {
       !matchesSeries
     ) {
       return privateJson(
-        { error: "Existing checkout could not be safely used" },
+        { error: "Existing checkout could not be safely used", code: "checkout_unusable" },
         { status: 409 },
       );
     }
@@ -284,19 +298,19 @@ export async function POST(req: NextRequest) {
       const paid = session.payment_status === "paid";
       if (!paid) {
         return privateJson(
-          { error: "Existing checkout could not be safely recovered" },
+          { error: "Existing checkout could not be safely recovered", code: "checkout_unusable" },
           { status: 409 },
         );
       }
       if (!stripeCheckoutTermsConsentSatisfied(session)) {
         return privateJson(
-          { error: "Checkout Terms acceptance could not be verified" },
+          { error: "Checkout Terms acceptance could not be verified", code: "checkout_unusable" },
           { status: 409 },
         );
       }
       if (!(await hasUnrefundedSeriesPayment(stripe, session))) {
         return privateJson(
-          { error: "This payment is refunded or disputed" },
+          { error: "This payment is refunded or disputed", code: "payment_refunded" },
           { status: 409 },
         );
       }
@@ -343,6 +357,6 @@ export async function POST(req: NextRequest) {
     return privateJson({ url: session.url, sessionId: session.id });
   } catch (err) {
     console.error("[unlock] Error:", err);
-    return privateJson({ error: "Failed to create checkout session" }, { status: 500 });
+    return privateJson({ error: "Failed to create checkout session", code: "checkout_failed" }, { status: 500 });
   }
 }

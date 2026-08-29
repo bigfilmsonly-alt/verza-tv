@@ -4,6 +4,7 @@ import { T } from "@/lib/theme";
 import { BRAND } from "@/lib/config";
 import { signInAction } from "@/app/actions/auth";
 import OAuthButtons from "@/components/OAuthButtons";
+import AuthErrorNotice from "@/components/AuthErrorNotice";
 
 export const metadata: Metadata = {
   title: "Sign In",
@@ -47,7 +48,7 @@ type Props = {
 };
 
 export default async function SignInPage({ searchParams }: Props) {
-  const { next } = await searchParams;
+  const { next, error } = await searchParams;
   const redirectNext = next || "/";
 
   return (
@@ -86,6 +87,11 @@ export default async function SignInPage({ searchParams }: Props) {
         Stream micro-dramas, track your library, and more.
       </p>
 
+      {/* Why the last attempt failed. `error` was declared in this page's
+          searchParams type and never read, so every wrong password produced a
+          silent form reset. */}
+      <AuthErrorNotice error={error} />
+
       {/* Email + password form */}
       <form action={signInAction} className="flex flex-col gap-3 mb-6">
         <input type="hidden" name="next" value={redirectNext} />
@@ -112,6 +118,20 @@ export default async function SignInPage({ searchParams }: Props) {
           className="w-full rounded-xl px-4 py-3 text-sm outline-none placeholder:opacity-50"
           style={{ background: T.surface, border: `1px solid ${T.line}`, color: T.text }}
         />
+        {/* The reset flow (/forgot-password -> branded email -> /reset-password)
+            was fully built and DEPLOYED with nothing in the product linking to
+            it. A customer who paid $1.99 and forgot their password was locked
+            out of their own purchases with no route back. This link is the
+            whole fix; the flow behind it already worked. */}
+        <div className="flex justify-end -mt-1">
+          <Link
+            href="/forgot-password"
+            className="text-xs no-underline"
+            style={{ color: T.textMute }}
+          >
+            Forgot password?
+          </Link>
+        </div>
         <button
           type="submit"
           className="w-full rounded-xl px-4 py-3 text-sm font-semibold transition-opacity hover:opacity-90"

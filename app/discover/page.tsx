@@ -24,8 +24,11 @@ export default function DiscoverPage() {
       </h1>
 
       <div className="mb-8">
-        {/* Live only. A coming-soon title builds no page, so surfacing one in
-            search would hand the viewer a result that cannot be opened. */}
+        {/* Live only — a deliberate merchandising choice, not a 404 guard.
+            /series/<coming-soon-slug> renders 200 and is a real page; what it
+            cannot offer is anything to watch or buy, so it does not belong in a
+            result list a viewer searched with intent to watch. (The earlier
+            comment here claimed the page did not exist. It does.) */}
         <SearchBar series={live} />
       </div>
 
@@ -61,9 +64,9 @@ export default function DiscoverPage() {
         All Series
       </h2>
       <div className="flex flex-col gap-3">
-        {/* Live only, for the same reason as the search box above: every row
-            here is a <Link> into /series/<slug>, and only live titles build
-            that page. */}
+        {/* Live only, same reason as the search box above: the coming-soon
+            page exists and 200s, it simply has nothing to watch or sell, so it
+            is not an "All Series" row. Not a 404 guard. */}
         {live.map((series) => (
           <Link
             key={series.slug}

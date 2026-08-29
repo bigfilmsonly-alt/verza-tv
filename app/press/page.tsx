@@ -4,6 +4,7 @@ import { BRAND } from "@/lib/config";
 import { getLiveSeries } from "@/lib/catalog";
 import { organizationSchema } from "@/lib/seo/schema";
 import JsonLd from "@/components/JsonLd";
+import StoreLinks from "@/components/StoreLinks";
 
 export const metadata: Metadata = {
   title: "Press",
@@ -99,6 +100,11 @@ export default function PressPage() {
           </div>
         ))}
       </div>
+
+      {/* The "Platforms: Web, iOS, Android" row above is the only place a
+          journalist is told the apps exist. Giving them the two store listings
+          here is the difference between a fact and something they can check. */}
+      <StoreLinks heading="Store listings" className="mb-8" />
 
       {/* Filmology Labs */}
       <h2

@@ -4,6 +4,7 @@ import { organizationSchema } from "@/lib/schemas";
 import { T } from "@/lib/theme";
 import { BRAND } from "@/lib/config";
 import { getLiveSeries } from "@/lib/catalog";
+import StoreLinks from "@/components/StoreLinks";
 
 export const metadata: Metadata = {
   title: "About",
@@ -195,6 +196,11 @@ export default function AboutPage() {
           >
             {BRAND.domain}
           </p>
+          {/* The sentence above has been on this page since before either store
+              listing was reachable from anywhere on the site. Both listings are
+              live; this is the link that makes the claim usable instead of
+              merely true. */}
+          <StoreLinks heading={null} className="mt-4" />
         </div>
       </section>
     </>

@@ -4,43 +4,80 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { T } from "@/lib/theme";
 import { signOutAction } from "@/app/actions/auth";
+import { readSavedSlugs, clearGuestState } from "@/lib/guest-storage";
+import { readGuestContinueWatching } from "@/lib/continue-watching";
 
 /* ---- Saved count badge ---- */
 export function SavedCount() {
-  const [count, setCount] = useState<number | null>(null);
+  const [count, setCount] = useState<number>(0);
 
   useEffect(() => {
-    // Check localStorage first
-    try {
-      const local = localStorage.getItem("verza-saved");
-      if (local) {
-        const localCount = JSON.parse(local).length;
-        queueMicrotask(() => setCount(localCount));
-      }
-    } catch {}
+    let cancelled = false;
+    // This device first, so the number is right on the first paint and stays
+    // right for a guest, whose /api/saved-list always answers {items: []}.
+    const local = readSavedSlugs().length;
+    queueMicrotask(() => { if (!cancelled) setCount(local); });
 
-    // Then API
     fetch("/api/saved-list")
-      .then((r) => r.json())
-      .then((d) => { if (d.items?.length > 0) setCount(d.items.length); })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { items?: unknown[] } | null) => {
+        if (cancelled || !d?.items || d.items.length === 0) return;
+        setCount(d.items.length);
+      })
       .catch(() => {});
+    return () => { cancelled = true; };
   }, []);
 
-  return <>{count !== null && count > 0 ? `${count} saved` : "0 saved"}</>;
+  return <>{count > 0 ? `${count} saved` : "0 saved"}</>;
 }
 
 /* ---- Continue watching count ---- */
+/*  BUG THIS FIXES: this read only the account, so it said "No history" to
+    every signed-out viewer no matter how much of the free preview they had
+    watched — and the free preview is the guest product. */
 export function WatchingCount() {
+  const [count, setCount] = useState<number>(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    const local = readGuestContinueWatching().length;
+    queueMicrotask(() => { if (!cancelled) setCount(local); });
+
+    fetch("/api/watch-progress")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { items?: unknown[] } | null) => {
+        if (cancelled || !d?.items || d.items.length === 0) return;
+        setCount(d.items.length);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  return <>{count > 0 ? `${count} in progress` : "No history"}</>;
+}
+
+/* ---- Purchase count ---- */
+/*  The Purchase History row shipped with the literal string "No purchases"
+    hard-coded into app/me/page.tsx, so it read "No purchases" to a customer
+    who had bought eighty-six of them. No price is rendered here — Apple
+    guideline 3.1.1 (AGENTS.md rule 11) — only how many titles are unlocked. */
+export function PurchaseCount() {
   const [count, setCount] = useState<number | null>(null);
 
   useEffect(() => {
-    fetch("/api/watch-progress")
-      .then((r) => r.json())
-      .then((d) => { if (d.items) setCount(d.items.length); })
-      .catch(() => {});
+    let cancelled = false;
+    fetch("/api/entitlements")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { entitlements?: unknown[] } | null) => {
+        if (cancelled) return;
+        setCount(d?.entitlements?.length ?? 0);
+      })
+      .catch(() => { if (!cancelled) setCount(null); });
+    return () => { cancelled = true; };
   }, []);
 
-  return <>{count !== null && count > 0 ? `${count} in progress` : "No history"}</>;
+  if (count === null) return <>&nbsp;</>;
+  return <>{count > 0 ? `${count} unlocked` : "No purchases"}</>;
 }
 
 /* ---- Dark mode toggle ---- */
@@ -101,7 +138,11 @@ export function DeleteAccountButton({
       }
       try { await signOutAction(); } catch {}
       try {
-        localStorage.removeItem("verza-saved");
+        // Saved list, guest watch history and the migration digest.
+        // The button's own copy promises to remove "your account, watch
+        // history, saved list, and purchases access" — leaving a full local
+        // watch history on the device would have made that sentence false.
+        clearGuestState();
         localStorage.removeItem("verza-lang");
         // Guest-purchase unlock tokens die with the account too.
         for (const key of Object.keys(localStorage)) {

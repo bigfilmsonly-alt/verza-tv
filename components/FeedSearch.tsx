@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import type { Series } from "@/lib/catalog";
+import { seriesMatchesQuery } from "@/lib/search-index";
+import { seriesHref } from "@/lib/series-href";
 
 interface FeedSearchProps {
   series: Series[];
@@ -14,15 +16,11 @@ export default function FeedSearch({ series }: FeedSearchProps) {
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const filtered =
-    query.length >= 2
-      ? series.filter(
-          (s) =>
-            s.title.toLowerCase().includes(query.toLowerCase()) ||
-            s.logline.toLowerCase().includes(query.toLowerCase()) ||
-            s.genre.toLowerCase().includes(query.toLowerCase()),
-        )
-      : [];
+  /* Shared matcher, not a fourth private one. This component has no importer
+     today, but it is one import away from shipping the accent bug again:
+     toLowerCase() alone is case folding, so "pasion" never matched
+     "Sentencia de pasión" and "español" never matched the ASCII category key. */
+  const filtered = series.filter((s) => seriesMatchesQuery(s, query));
 
   useEffect(() => {
     if (open) {
@@ -110,7 +108,7 @@ export default function FeedSearch({ series }: FeedSearchProps) {
                 {filtered.slice(0, 12).map((s) => (
                   <Link
                     key={s.slug}
-                    href={`/series/${s.slug}/1`}
+                    href={seriesHref(s)}
                     className="flex items-center gap-3 px-4 py-3 no-underline"
                     style={{ color: "#F5F4F8", borderBottom: "1px solid rgba(255,255,255,0.05)" }}
                     onClick={() => setOpen(false)}

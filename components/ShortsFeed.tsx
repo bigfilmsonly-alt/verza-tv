@@ -9,7 +9,9 @@ import type { Series } from "@/lib/catalog";
 import { T } from "@/lib/theme";
 import { getPlayback } from "@/lib/mux-public-map";
 import { createTtffTracker } from "@/lib/perf/ttff";
+import { readSavedSlugs, writeSavedSlugs, setSavedSlug } from "@/lib/guest-storage";
 import VideoWatermark from "@/components/VideoWatermark";
+import { useTranslation } from "@/components/LangProvider";
 
 /* ---- Load hls.js once ---- */
 let hlsPromise: Promise<typeof HlsType | null> | null = null;
@@ -62,6 +64,10 @@ function ShortCard({ series, visible, muted, setMuted, saved, onToggleSave }: {
 }) {
   const [liked, setLiked] = useState(false);
   const [showCopied, setShowCopied] = useState(false);
+  /* These six labels have existed in all 20 locale dictionaries since the
+     dictionaries were written, and not one of them was ever rendered — the
+     rail read English regardless of the language the viewer had chosen. */
+  const { t } = useTranslation();
   const shareUrl = typeof window !== "undefined"
     ? `${window.location.origin}/series/${series.slug}`
     : `/series/${series.slug}`;
@@ -113,26 +119,26 @@ function ShortCard({ series, visible, muted, setMuted, saved, onToggleSave }: {
           </div>
         </Link>
 
-        <RailButton label={liked ? "Liked" : "Like"} onClick={() => setLiked((l) => !l)}>
+        <RailButton label={t(liked ? "shorts.liked" : "shorts.like")} onClick={() => setLiked((l) => !l)}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill={liked ? T.accent : "none"} stroke={liked ? T.accent : "#fff"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
           </svg>
         </RailButton>
 
-        <RailButton label={saved ? "Saved" : "List"} onClick={() => onToggleSave(series.slug)}>
+        <RailButton label={t(saved ? "shorts.saved" : "shorts.list")} onClick={() => onToggleSave(series.slug)}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill={saved ? T.accent : "none"} stroke={saved ? T.accent : "#fff"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
           </svg>
         </RailButton>
 
-        <RailButton label={showCopied ? "Copied!" : "Share"} onClick={handleShare}>
+        <RailButton label={t(showCopied ? "shorts.copied" : "shorts.share")} onClick={handleShare}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={showCopied ? T.accent : "#fff"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
             <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
           </svg>
         </RailButton>
 
-        <RailButton label={muted ? "Off" : "On"} onClick={() => { const next = !muted; setMuted(next); localStorage.setItem("verza-muted", String(next)); }}>
+        <RailButton label={t(muted ? "shorts.soundOff" : "shorts.soundOn")} onClick={() => { const next = !muted; setMuted(next); localStorage.setItem("verza-muted", String(next)); }}>
           {muted ? (
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" /><line x1="23" y1="9" x2="17" y2="15" /><line x1="17" y1="9" x2="23" y2="15" />
@@ -180,37 +186,45 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
   // Manifests/posters we've already warmed (so we can flag preload hits).
   const warmedRef = useRef<Set<string>>(new Set());
 
-  /* Fetch saved list */
+  /* Fetch saved list.
+     Reads and writes go through lib/guest-storage so this feed, EpisodeFeed,
+     the account counters and both list pages agree on one key with one shape.
+     Four hand-rolled copies of the same JSON.parse is how a bookmark set here
+     could disagree with the list that was supposed to display it. */
   useEffect(() => {
-    try {
-      const local = localStorage.getItem("verza-saved");
-      if (local) {
-        const saved = new Set<string>(JSON.parse(local));
-        queueMicrotask(() => setSavedSlugs(saved));
-      }
-    } catch {}
-    fetch("/api/saved-list").then((r) => r.json()).then((data) => {
-      if (data.items?.length > 0) {
-        const slugs = data.items.map((i: { seriesSlug: string }) => i.seriesSlug);
+    let cancelled = false;
+    const local = new Set(readSavedSlugs());
+    queueMicrotask(() => { if (!cancelled) setSavedSlugs(local); });
+    fetch("/api/saved-list")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { items?: { seriesSlug: string }[] } | null) => {
+        if (cancelled || !data?.items || data.items.length === 0) return;
+        const slugs = data.items.map((i) => i.seriesSlug);
         setSavedSlugs(new Set(slugs));
-        localStorage.setItem("verza-saved", JSON.stringify(slugs));
-      }
-    }).catch(() => {});
+        writeSavedSlugs(slugs);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
   }, []);
 
   const handleToggleSave = useCallback((slug: string) => {
+    /* The intent is derived ONCE, from the device, before anything moves. It
+       used to be read from `prev` inside the state updater for the UI and from
+       the captured `savedSlugs` for the HTTP method — two sources that agreed
+       only by luck, and disagreed under a rapid double tap. */
+    const shouldSave = !readSavedSlugs().includes(slug);
+    setSavedSlug(slug, shouldSave);
     setSavedSlugs((prev) => {
-      const next = new Set(prev);
-      if (prev.has(slug)) next.delete(slug); else next.add(slug);
-      localStorage.setItem("verza-saved", JSON.stringify([...next]));
-      return next;
+      const updated = new Set(prev);
+      if (shouldSave) updated.add(slug); else updated.delete(slug);
+      return updated;
     });
     fetch("/api/saved-list", {
-      method: savedSlugs.has(slug) ? "DELETE" : "POST",
+      method: shouldSave ? "POST" : "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ seriesSlug: slug }),
     }).catch(() => {});
-  }, [savedSlugs]);
+  }, []);
 
   useEffect(() => {
     /* Shorts are a public discovery surface: episode 1 must be explicitly

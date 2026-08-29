@@ -19,6 +19,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { T } from "@/lib/theme";
 import CreatorBetaForm from "@/components/CreatorBetaForm";
+import { foldText } from "@/lib/text-fold";
 
 export interface CreatorChannel {
   handle: string;
@@ -142,13 +143,17 @@ export default function CreatorsLanding({
     return () => { cancelled = true; };
   }, []);
 
+  /* Folded on BOTH sides. toLowerCase() alone is case folding: a creator
+     named "Jose Ramirez" was unreachable by typing "José", and "Muñoz" was
+     unreachable by typing "Munoz" — the same defect that made "pasion" miss
+     "Sentencia de pasión" on the catalogue search. */
   const visible = query.trim()
     ? liveChannels.filter((c) => {
-        const q = query.trim().toLowerCase();
+        const q = foldText(query).trim();
         return (
-          c.displayName.toLowerCase().includes(q) ||
-          c.handle.toLowerCase().includes(q) ||
-          c.titles.some((t) => t.title.toLowerCase().includes(q))
+          foldText(c.displayName).includes(q) ||
+          foldText(c.handle).includes(q) ||
+          c.titles.some((t) => foldText(t.title).includes(q))
         );
       })
     : liveChannels;

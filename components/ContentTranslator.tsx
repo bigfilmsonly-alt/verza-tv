@@ -2,100 +2,62 @@
 
 import { useEffect } from "react";
 import { useTranslation } from "@/components/LangProvider";
-import type { Locale } from "@/lib/i18n";
-
-/* Maps our locale codes to Google Translate language codes */
-const GOOGLE_LANG: Record<Locale, string> = {
-  en: "en", es: "es", fr: "fr", pt: "pt", de: "de", it: "it",
-  ja: "ja", ko: "ko", zh: "zh-CN", hi: "hi", ar: "ar", ru: "ru",
-  tr: "tr", pl: "pl", nl: "nl", th: "th", vi: "vi", id: "id",
-  tl: "tl", sw: "sw",
-};
 
 /**
- * ContentTranslator — auto-translates all page content using
- * the browser's built-in translation API or Google Translate.
+ * Keeps the document's declared language in step with the selected UI locale.
  *
- * When the user changes language, this component sets the page's
- * lang attribute and triggers translation of content text.
+ * WHAT THIS USED TO DO, AND WHY IT IS GONE
+ * ----------------------------------------
+ * This component injected Google Translate: it wrote `googtrans` cookies on
+ * two domains and appended
+ * `https://translate.google.com/translate_a/element.js?cb=googleTranslateInit`
+ * to the body, intending to machine-translate every surface the in-house
+ * dictionary does not cover.
+ *
+ * It has never once run. Measured on 2026-08-29: that URL returns 200, but it
+ * is a ~3KB bootstrap whose body references `translate.googleapis.com` — the
+ * host the ~277KB engine actually loads from. `next.config.ts` allows
+ * `https://translate.google.com` in `script-src` and nowhere allows
+ * `translate.googleapis.com`; there is no wildcard and no `strict-dynamic`, so
+ * the engine is CSP-blocked. `git log -S` shows that host has never been in
+ * the policy. Every language change therefore paid for a blocked request, two
+ * cookie writes, and — in the "script already loaded" branch — a
+ * `window.location.reload()` triggered by a cross-origin iframe read that
+ * always throws. A page reload on a video app, to run a translator that
+ * cannot load.
+ *
+ * WHY THE FIX IS NOT "ADD THE HOST TO THE CSP"
+ * -------------------------------------------
+ * 1. The engine would then also run over the paywall, which is now genuinely
+ *    translated. Machine-retranslating already-correct Spanish payment copy is
+ *    how "one-time" becomes something else, and the paywall's honesty is the
+ *    thing testers named as already working.
+ * 2. It rewrites text nodes underneath React. That is a well-known source of
+ *    removeChild crashes, and it cannot be verified from here.
+ * 3. It is 277KB of third-party JavaScript on the critical path of an app
+ *    whose speed testers also named as working.
+ *
+ * The real fix for the surfaces that are still English is to move their copy
+ * into `lib/i18n.ts`, which is what the paywall, checkout, and audio-language
+ * labelling now do. Removing this leaves nothing worse than it found: the
+ * translation it promised was never delivered.
+ *
+ * WHAT REMAINS
+ * ------------
+ * `<html lang>`. LangProvider sets it on hydration and on every switch; this
+ * component keeps it correct if the locale is changed by anything else, and it
+ * is the mount point named in app/layout.tsx, which is not this lane's file to
+ * edit. The returned <style> still suppresses Google Translate's injected
+ * chrome, so a viewer who translates the page with the BROWSER's own
+ * translator does not get a banner shoving the layout down.
  */
 export default function ContentTranslator() {
   const { locale } = useTranslation();
 
   useEffect(() => {
-    const googleLang = GOOGLE_LANG[locale] || "en";
-
-    /* Update the HTML lang attribute */
-    document.documentElement.lang = googleLang;
-
-    /* If English, remove any translation cookies and reload translated content */
-    if (locale === "en") {
-      /* Remove Google Translate cookie to revert */
-      document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-      document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.verzatv.com";
-
-      /* Remove translation frame if exists */
-      const frame = document.querySelector(".goog-te-banner-frame");
-      if (frame) (frame as HTMLElement).style.display = "none";
-
-      /* Restore original text */
-      const translated = document.querySelector(".translated-ltr, .translated-rtl");
-      if (translated) {
-        translated.classList.remove("translated-ltr", "translated-rtl");
-      }
-      return;
-    }
-
-    /* Set Google Translate cookie for auto-translation */
-    document.cookie = `googtrans=/en/${googleLang}; path=/`;
-    document.cookie = `googtrans=/en/${googleLang}; path=/; domain=.verzatv.com`;
-
-    /* Load Google Translate script if not already loaded */
-    if (!document.getElementById("google-translate-script")) {
-      /* Hidden element required by Google Translate */
-      const el = document.createElement("div");
-      el.id = "google_translate_element";
-      el.style.display = "none";
-      document.body.appendChild(el);
-
-      const script = document.createElement("script");
-      script.id = "google-translate-script";
-      script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateInit";
-      script.async = true;
-      document.body.appendChild(script);
-
-      /* Callback for Google Translate initialization */
-      (window as unknown as Record<string, unknown>).googleTranslateInit = () => {
-        new ((window as unknown as Record<string, Record<string, Record<string, new (...args: unknown[]) => unknown>>>).google.translate.TranslateElement)(
-          {
-            pageLanguage: "en",
-            autoDisplay: false,
-            includedLanguages: Object.values(GOOGLE_LANG).join(","),
-          },
-          "google_translate_element"
-        );
-      };
-    } else {
-      /* Script already loaded — trigger re-translation by updating cookie + reloading frame */
-      const iframe = document.querySelector(".goog-te-menu-frame") as HTMLIFrameElement;
-      if (iframe) {
-        try {
-          const innerDoc = iframe.contentDocument || iframe.contentWindow?.document;
-          const links = innerDoc?.querySelectorAll("a");
-          links?.forEach((link) => {
-            if (link.textContent?.includes(googleLang) || link.getAttribute("href")?.includes(googleLang)) {
-              link.click();
-            }
-          });
-        } catch {
-          /* Cross-origin — reload the page to apply new language */
-          window.location.reload();
-        }
-      }
-    }
+    document.documentElement.lang = locale;
   }, [locale]);
 
-  /* Hide Google Translate toolbar with CSS */
   return (
     <style>{`
       .goog-te-banner-frame, .goog-te-balloon-frame,

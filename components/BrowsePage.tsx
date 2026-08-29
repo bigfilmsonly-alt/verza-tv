@@ -5,7 +5,11 @@ import Image from "next/image";
 import Link from "next/link";
 import CategoryTabs from "@/components/CategoryTabs";
 import { BROWSE_TABS, getEpisode, type Series, type BrowseCategory } from "@/lib/catalog";
+import { seriesHref } from "@/lib/series-href";
+import AudioLanguageBadge from "@/components/AudioLanguageBadge";
+import { audioLanguageOf } from "@/lib/audio-language";
 import { buildResumeUrl } from "@/lib/resume";
+import { mergeContinueWatching, type ContinueWatchingItem } from "@/lib/continue-watching";
 import TubiHeroCarousel from "@/components/TubiHeroCarousel";
 import CreatorsLanding from "@/components/CreatorsLanding";
 import { MUX_MAP } from "@/lib/mux-public-map";
@@ -243,6 +247,15 @@ interface ContinueItem {
 export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
   const activeTabs = BROWSE_TABS;
 
+  /* ONLY for links whose destination is the player.
+     Continue Watching is the last one on this page: every tile, hero, category
+     row and search result now opens the show page instead, and the show page's
+     own play CTA carries the prewarm from there (components/PlayNowLink.tsx).
+     Attaching this to a link that lands on the show page is not harmless — it
+     appends a hidden <video>, attaches hls.js and downloads a stream that
+     nothing will ever adopt, burning the viewer's bandwidth for the full
+     12s TTL in lib/instant-player.ts, and it seeds a transition poster that a
+     LATER, unrelated navigation into the player would then paint. */
   const posterClick = useCallback((e: React.MouseEvent<HTMLElement>, slug: string, epNum = 1, resumeS = 0) => {
     // Modified clicks (open in new tab, etc.) get default browser behavior —
     // don't spin up a hidden player for a tab the user isn't watching.
@@ -428,12 +441,26 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
     { title: "Storage Pirates", slug: "storage-pirates", poster: "/posters/storage-pirates.jpg" },
   ];
 
-  // Fetch continue watching data
+  /* Fetch continue watching data.
+     The account answers first; when it has nothing to say — which is EVERY
+     signed-out viewer, since GET /api/watch-progress returns {items: []} for a
+     guest (app/api/watch-progress/route.ts:77-80) — the rail falls back to what
+     this device remembers. The free preview is open to guests, so the people
+     most likely to have an unfinished episode were exactly the people this rail
+     could never show one to. mergeContinueWatching() owns that precedence and
+     reuses the server's own filters (live series only, incomplete only, 20). */
   useEffect(() => {
+    let cancelled = false;
     fetch("/api/watch-progress")
-      .then((r) => r.json())
-      .then((d) => setContinueWatching(d.items ?? []))
-      .catch(() => {});
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { items?: ContinueWatchingItem[] } | null) => {
+        if (cancelled) return;
+        setContinueWatching(mergeContinueWatching(d?.items));
+      })
+      .catch(() => {
+        if (!cancelled) setContinueWatching(mergeContinueWatching(null));
+      });
+    return () => { cancelled = true; };
   }, []);
 
   // Auto-rotate hero slideshow (works for Drama/New/Hot AND Reality)
@@ -638,10 +665,9 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         <div>
           <div className="relative pt-4">
             <Link
-              href="/series/too-much-junk/1"
+              href={seriesHref("too-much-junk")}
               prefetch={true}
               className="block transition-transform active:scale-[0.97]"
-              onClick={(e) => posterClick(e, "too-much-junk")}
             >
               <div className="relative mx-auto overflow-hidden rounded-xl" style={{ aspectRatio: "2 / 3", width: "100%", maxWidth: "min(320px, 80vw)", background: "#000" }}>
                 <Image
@@ -866,10 +892,9 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                   return playable ? (
                     <Link
                       key={show.title}
-                      href={`/series/${show.slug}/1`}
+                      href={seriesHref(show.slug)}
                       className="block no-underline min-w-0 transition-transform active:scale-[0.97]"
                       prefetch={true}
-                      onClick={(e) => posterClick(e, show.slug)}
                     >
                       {card}
                     </Link>
@@ -920,10 +945,9 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
             ].map((event) => (
               <Link
                 key={event.title}
-                href={`/series/${event.slug}/1`}
+                href={seriesHref(event.slug)}
                 className="block no-underline min-w-0 transition-transform active:scale-[0.97]"
                 prefetch={true}
-                onClick={(e) => posterClick(e, event.slug)}
               >
                 <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
                   <Image src={event.poster} alt={event.title} fill sizes="(max-width: 440px) 50vw, 220px" className="object-cover" />
@@ -957,9 +981,8 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               card without cropping. */}
           <div className="relative">
             <Link
-              href={`/series/${current.slug}/1`}
+              href={seriesHref(current)}
               className="block transition-transform duration-200 ease-out active:scale-[0.98]"
-              onClick={(e) => posterClick(e, current.slug)}
             >
               <div
                 className="relative mx-auto overflow-hidden rounded-xl"
@@ -1090,12 +1113,15 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                 grid every 12 tiles; they now live in the shop section of the
                 footer, so browsing stays purely editorial. */}
             {gridItems.map((s, i) => {
-              // A coming-soon title has key art and no video. It still gets a
-              // real detail page — art, logline, a Coming Soon pill, no player
-              // and no purchase card — so the tile opens /series/<slug> rather
-              // than /series/<slug>/1, which is the episode route and would have
-              // nothing to play. What it must never show is the play affordance
-              // or a NEW badge, both of which promise a video starts on tap.
+              // Coming-soon is now ONLY a presentation distinction: no play
+              // affordance, no NEW/Trending badge, dimmer title. It no longer
+              // decides the destination. Both arms of that ternary used to
+              // choose a different href, and because the predicate was
+              // `status === "coming_soon"` — 1:1 with "has no video" — the
+              // only tiles that reached their own description page were the
+              // four Bollywood and one Espanol titles nobody can buy. Every
+              // sellable title jumped past it into the player. One href for
+              // every tile is what makes that inversion unrepresentable.
               const soon = s.status === "coming_soon";
               // Position drives the badge, not the title's own fields. i is the
               // index into the rendered grid, so slot 0-2 is Trending and slot
@@ -1111,6 +1137,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                 (curated
                   ? i >= TRENDING_START && i < TRENDING_END
                   : activeTab === "popular" && i < HOT_TRENDING_SLOTS);
+              const tileLanguage = audioLanguageOf(s);
               const art = (
                 <>
                   <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
@@ -1118,6 +1145,18 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                     {trending && <Badge type="trending" large={twoUp} />}
                     {isNew && <Badge type="new" large={twoUp} />}
                     {soon && <Badge type="soon" large={twoUp} />}
+                    {/* Spoken language, for the titles where it is not what the
+                        rest of the grid is. The Bollywood tab is six Hindi
+                        titles behind English lockups and English loglines;
+                        nothing on the tile said so, and the Espanol tab only
+                        said it by accident, through the Spanish in the title.
+                        Only non-English audio is chipped: an "English" chip on
+                        the other 79 tiles would be 79 chips over poster art
+                        that testers named as working, to tell people what they
+                        already assumed. */}
+                    {tileLanguage.audio !== "en" && (
+                      <AudioLanguageBadge language={tileLanguage} compact />
+                    )}
                     {/* The play affordance is the promise that a tap starts a
                         video. Coming-soon tiles make no such promise. */}
                     {!soon && (
@@ -1143,20 +1182,11 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                 </>
               );
 
-              return soon ? (
+              return (
                 <Link
                   key={s.slug}
-                  href={`/series/${s.slug}`}
-                  className="block no-underline min-w-0 transition-transform active:scale-[0.97]"
-                >
-                  {art}
-                </Link>
-              ) : (
-                <Link
-                  key={s.slug}
-                  href={`/series/${s.slug}/1`}
-                  className="group block no-underline min-w-0 transition-transform active:scale-[0.97]"
-                  onClick={(e) => posterClick(e, s.slug)}
+                  href={seriesHref(s)}
+                  className={`${soon ? "" : "group "}block no-underline min-w-0 transition-transform active:scale-[0.97]`}
                 >
                   {art}
                 </Link>

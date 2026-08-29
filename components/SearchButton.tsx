@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { trackSearch } from "@/lib/track";
 import { getLiveSeries } from "@/lib/catalog";
+import { seriesHref } from "@/lib/series-href";
 import { seriesMatchesQuery } from "@/lib/search-index";
 
 export default function SearchButton() {
@@ -121,7 +122,7 @@ export default function SearchButton() {
                   {filtered.map((s) => (
                     <Link
                       key={s.slug}
-                      href={`/series/${s.slug}/1`}
+                      href={seriesHref(s)}
                       className="block no-underline min-w-0 transition-transform active:scale-[0.97]"
                       style={{ color: "#F5F4F8" }}
                       onClick={() => setOpen(false)}

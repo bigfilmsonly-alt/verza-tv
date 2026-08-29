@@ -4,6 +4,7 @@ import { useRef, useState, useEffect, useCallback } from "react";
 import type HlsType from "hls.js";
 import { HORIZONTAL_VIDEOS, type HorizontalVideo } from "@/lib/horizontal-map";
 import VideoWatermark from "@/components/VideoWatermark";
+import { useTranslation } from "@/components/LangProvider";
 
 /* ---- Load hls.js once ---- */
 let hlsPromise: Promise<typeof HlsType | null> | null = null;
@@ -35,6 +36,8 @@ function resolutionLabel(w: number): string {
 
 /* ---- Single horizontal video card ---- */
 function HorizontalCard({ video, index }: { video: HorizontalVideo; index: number }) {
+  /* The mute control's accessible name was English for every viewer. */
+  const { t } = useTranslation();
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<HlsType | null>(null);
   const pauseThisCard = useCallback(() => {
@@ -277,7 +280,7 @@ function HorizontalCard({ video, index }: { video: HorizontalVideo; index: numbe
           }}
           className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center"
           style={{ background: "rgba(255,255,255,0.08)", border: "none", cursor: "pointer" }}
-          aria-label={videoMuted ? "Sound Off" : "Sound On"}
+          aria-label={`${t("shorts.sound")} ${t(videoMuted ? "shorts.soundOff" : "shorts.soundOn")}`}
         >
           {videoMuted ? (
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -299,6 +302,9 @@ function HorizontalCard({ video, index }: { video: HorizontalVideo; index: numbe
 
 /* ---- Main feed ---- */
 export default function HorizontalFeed({ embedded = false }: { embedded?: boolean }) {
+  /* horizontal.episodes and shorts.sound* were translated into 20 languages
+     and rendered in none: this player read English for every viewer. */
+  const { t } = useTranslation();
   const season1 = HORIZONTAL_VIDEOS.filter((v) => v.season === 1);
   const season2 = HORIZONTAL_VIDEOS.filter((v) => v.season === 2);
   const bonus = HORIZONTAL_VIDEOS.filter((v) => v.season === 0);
@@ -341,7 +347,7 @@ export default function HorizontalFeed({ embedded = false }: { embedded?: boolea
           <span className="px-2 py-0.5 rounded text-[10px] font-bold tracking-wider" style={{ background: "rgba(224,17,95,0.2)", color: "#E0115F" }}>
             SEASON 1
           </span>
-          <span style={{ color: "rgba(245,244,248,0.4)" }}>{season1.length} episodes</span>
+          <span style={{ color: "rgba(245,244,248,0.4)" }}>{season1.length} {t("horizontal.episodes")}</span>
         </h2>
         <div className="flex flex-col gap-4">
           {season1.map((v, i) => (
@@ -356,7 +362,7 @@ export default function HorizontalFeed({ embedded = false }: { embedded?: boolea
           <span className="px-2 py-0.5 rounded text-[10px] font-bold tracking-wider" style={{ background: "rgba(139,92,246,0.2)", color: "#8B5CF6" }}>
             SEASON 2
           </span>
-          <span style={{ color: "rgba(245,244,248,0.4)" }}>{season2.length} episodes</span>
+          <span style={{ color: "rgba(245,244,248,0.4)" }}>{season2.length} {t("horizontal.episodes")}</span>
         </h2>
         <div className="flex flex-col gap-4">
           {season2.map((v, i) => (

@@ -13,6 +13,7 @@ import { LangProvider } from "@/components/LangProvider";
 import ServiceWorker from "@/components/ServiceWorker";
 import ContentTranslator from "@/components/ContentTranslator";
 import ScrollToTop from "@/components/ScrollToTop";
+import GuestStateSync from "@/components/GuestStateSync";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
@@ -128,6 +129,11 @@ export default function RootLayout({
           />
         </noscript>
         <ServiceWorker />
+        {/* Carries a signed-out viewer's watch progress and saved list into their
+            account the first time they sign in. Renders nothing, and makes no
+            network request at all unless this device holds guest state no
+            account has absorbed yet. */}
+        <GuestStateSync />
         <CartProvider>
         <AmazonBagProvider>
         <LangProvider>

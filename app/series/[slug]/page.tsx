@@ -8,6 +8,8 @@ import {
   getSeriesWithDetail,
   getEpisodesForSeries,
 } from "@/lib/catalog";
+import { episodeHref } from "@/lib/series-href";
+import { MUX_MAP } from "@/lib/mux-public-map";
 // Coin pricing is no longer used; Series Unlock has one canonical cash price.
 import { seriesSchema, breadcrumbSchema } from "@/lib/schemas";
 import { T } from "@/lib/theme";
@@ -15,6 +17,9 @@ import { FREE_EPISODES } from "@/lib/config";
 import { isSeriesPurchasable } from "@/lib/series-purchase";
 import EpisodeDropdown from "@/components/EpisodeDropdown";
 import HideInIOSApp from "@/components/HideInIOSApp";
+import PlayNowLink from "@/components/PlayNowLink";
+import AudioLanguageBadge from "@/components/AudioLanguageBadge";
+import { audioLanguageOf } from "@/lib/audio-language";
 
 /* ------------------------------------------------------------------ */
 /*  Static params                                                      */
@@ -79,6 +84,18 @@ export default async function SeriesPage({ params }: Props) {
 
   const episodes = getEpisodesForSeries(slug);
   const isPurchasable = isSeriesPurchasable(series);
+  /* Public playback id for the episode the play CTA opens, so the click can
+     start the stream while the route navigation is still in flight — the same
+     head start the poster tap used to give before every poster started landing
+     here instead. Resolved HERE, on the server, for two reasons: it keeps the
+     4,900-row public Mux map out of this page's client bundle, and it puts the
+     free-episode guard somewhere it is obvious. A paid episode has no entry in
+     the public projection at all (AGENTS.md rule 8); EpisodeFeed obtains an
+     authorized, expiring source after navigation instead. */
+  const prewarmPlaybackId =
+    series.status === "live" && series.freeEpisodes >= 1
+      ? MUX_MAP[series.slug]?.find((e) => e.episode === 1)?.playbackId
+      : undefined;
   const BASE_URL =
     process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verzatv.com";
 
@@ -163,6 +180,19 @@ export default async function SeriesPage({ params }: Props) {
                 episodes" reads as a broken page rather than an unreleased one. */}
             {series.status === "coming_soon" ? "Episodes announced soon" : `${series.episodeCount} episodes`}
           </span>
+        </div>
+
+        {/* What language is this SPOKEN in.
+            The Bollywood tab ships six Hindi titles behind English title
+            lockups and English loglines — "Falling for Flatmate", "Reset",
+            "Salt & Pepper" — and until now no surface in the product said the
+            dialogue is in Hindi. A buyer found out after paying. Rendered on
+            every title, English ones included: "English audio" is information
+            too, and a rule that only labels the exceptions is a rule that
+            forgets to label the next exception. Client component because the
+            label is translated and this page is a Server Component. */}
+        <div className="mb-3">
+          <AudioLanguageBadge language={audioLanguageOf(series)} />
         </div>
 
         {/* Logline */}
@@ -255,9 +285,15 @@ export default async function SeriesPage({ params }: Props) {
             : `First ${series.freeEpisodes} Episodes FREE`}
         </div>}
 
+        {/* THE explicit action. Every poster, hero, category row and search
+            result in the app now lands on this page rather than mid-player, so
+            this button is where playback begins — and it carries the prewarm
+            that used to hang off the poster tap, so the wait from here into the
+            first frame is unchanged. */}
         {series.status === "live" && series.episodeCount > 0 ? (
-          <Link
-            href={`/series/${series.slug}/1`}
+          <PlayNowLink
+            href={episodeHref(series, 1)}
+            playbackId={prewarmPlaybackId}
             className="glow-pulse inline-flex items-center gap-2 px-6 py-3 rounded-full text-sm font-bold no-underline transition-transform active:scale-95 mb-6"
             style={{
               background: "linear-gradient(135deg, #E0115F, #8B5CF6)",
@@ -269,7 +305,7 @@ export default async function SeriesPage({ params }: Props) {
               <polygon points="6 3 20 12 6 21" />
             </svg>
             Watch Episode 1 Free
-          </Link>
+          </PlayNowLink>
         ) : (
           <div
             className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-sm font-bold mb-6"
@@ -327,14 +363,65 @@ export default async function SeriesPage({ params }: Props) {
         </div>
         </HideInIOSApp>}
 
-        {/* ---- Episode Dropdown ---- */}
-        <EpisodeDropdown
-          seriesSlug={series.slug}
-          episodes={episodes.map((e) => ({ number: e.number, title: e.title }))}
-          currentEpisode={1}
-          freeEpisodes={series.freeEpisodes ?? FREE_EPISODES}
-          totalEpisodes={series.episodeCount}
-        />
+        {/* ---- Episode Dropdown ----
+             Only where there are episodes. The five coming-soon rows have
+             episodeCount 0 and getEpisodesForSeries() returns [], and this
+             component was still rendering for them: a button reading
+             "EP 1 of 0" with a tappable "All Episodes" control that opened an
+             empty list — directly beneath the page's own "Coming Soon" pill and
+             the line "Episodes announced soon". Verified in production HTML for
+             /series/the-chairmans-revenge. The picker itself (FREE / padlock /
+             NOW) is correct and untouched on all 91 live pages; it simply has
+             nothing to pick from here. */}
+        {episodes.length > 0 ? (
+          <EpisodeDropdown
+            seriesSlug={series.slug}
+            episodes={episodes.map((e) => ({ number: e.number, title: e.title }))}
+            currentEpisode={1}
+            freeEpisodes={series.freeEpisodes ?? FREE_EPISODES}
+            totalEpisodes={series.episodeCount}
+          />
+        ) : (
+          /* Same empty state as the Anime tab (components/BrowsePage.tsx) —
+             same neutral slate, same clock glyph, same two-line shape, same
+             gradient escape hatch — so the app says "nothing here yet" in one
+             voice rather than two. E owns that pattern; this is a match, not a
+             second style. */
+          <div className="px-4 mt-4 mb-8">
+            <div
+              className="w-full rounded-2xl px-6 py-10 text-center"
+              style={{
+                background: "rgba(12,12,20,0.82)",
+                border: "1px solid rgba(255,255,255,0.28)",
+              }}
+            >
+              <div
+                className="mx-auto mb-4 flex items-center justify-center rounded-full"
+                style={{ width: 44, height: 44, background: "rgba(255,255,255,0.08)" }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={T.text} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+              </div>
+              <p className="text-base font-bold mb-1.5" style={{ color: T.text }}>
+                Episodes are on the way
+              </p>
+              <p className="text-xs leading-relaxed" style={{ color: "#8A8A9A" }}>
+                The footage for this title hasn&rsquo;t landed yet, so there is nothing to
+                play and nothing on sale. Everything else on VERZA is ready to watch
+                right now.
+              </p>
+              <Link
+                href="/"
+                className="mt-5 inline-flex items-center justify-center rounded-full px-5 py-2.5 text-xs font-bold no-underline transition-transform active:scale-95"
+                style={{ background: "linear-gradient(135deg, #E0115F, #8B5CF6)", color: "#fff" }}
+              >
+                Browse VERZA
+              </Link>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Bottom spacer for BottomNav */}

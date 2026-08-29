@@ -4,6 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import type { Series } from "@/lib/catalog";
+import { seriesHref } from "@/lib/series-href";
+import { seriesMatchesQuery } from "@/lib/search-index";
 
 interface SearchBarProps {
   series: Series[];
@@ -12,18 +14,13 @@ interface SearchBarProps {
 export default function SearchBar({ series }: SearchBarProps) {
   const [query, setQuery] = useState("");
 
-  const q = query.trim().toLowerCase();
-  const filtered =
-    q.length >= 2
-      ? series.filter(
-          (s) =>
-            s.title.toLowerCase().includes(q) ||
-            s.logline.toLowerCase().includes(q) ||
-            s.genre.toLowerCase().includes(q) ||
-            s.channel.toLowerCase().includes(q) ||
-            s.categories.some((c) => c.toLowerCase().includes(q))
-        )
-      : [];
+  /* One matcher for every search surface. This bar used to carry its own
+     inline predicate: byte-exact toLowerCase() with no Unicode folding (so
+     "pasion" missed "Sentencia de pasión"), no tags, no SEARCH_TAGS, and OR
+     across fields instead of per-token AND — so /discover returned a different
+     result set from the header popover and /search for the same typed string,
+     and all three were accent-blind. */
+  const filtered = series.filter((s) => seriesMatchesQuery(s, query));
 
   return (
     <div className="relative">
@@ -67,7 +64,7 @@ export default function SearchBar({ series }: SearchBarProps) {
           {filtered.map((s) => (
             <Link
               key={s.slug}
-              href={`/series/${s.slug}/1`}
+              href={seriesHref(s)}
               className="flex items-center gap-3 px-4 py-3 no-underline transition-colors"
               style={{ color: "#F5F4F8" }}
               onClick={() => setQuery("")}

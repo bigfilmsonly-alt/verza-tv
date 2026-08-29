@@ -18,6 +18,8 @@ import {
   maybeRequestResumePermission,
   type ResumeItem,
 } from "@/lib/resume";
+import { recordWatchProgress } from "@/lib/watch-progress-client";
+import { readGuestResume } from "@/lib/guest-storage";
 
 // Dynamic import — hls.js drives playback everywhere MSE is available;
 // native HLS is only used where hls.js can't run (iOS Safari).
@@ -214,16 +216,13 @@ export default function Player({
       const now = Date.now();
       if (now - lastSavedRef.current > 10000 && video.currentTime > 5) {
         lastSavedRef.current = now;
-        fetch("/api/watch-progress", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            seriesSlug,
-            episodeNumber,
-            progressSeconds: Math.floor(video.currentTime),
-            completed: false,
-          }),
-        }).catch(() => {});
+        /* Device first, account second — the POST 401s for a guest. */
+        recordWatchProgress({
+          seriesSlug,
+          episodeNumber,
+          progressSeconds: video.currentTime,
+          completed: false,
+        });
       }
     };
     const onDurationChange = () => {
@@ -252,11 +251,7 @@ export default function Player({
     const onEnded = () => {
       trackEpisodeComplete(seriesSlug, episodeNumber);
       // Save completed progress
-      fetch("/api/watch-progress", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ seriesSlug, episodeNumber, progressSeconds: 0, completed: true }),
-      }).catch(() => {});
+      recordWatchProgress({ seriesSlug, episodeNumber, progressSeconds: 0, completed: true });
       if (freeEpisodes < totalEpisodes && episodeNumber >= freeEpisodes) {
         /* Last free episode just ended — show unlock popup */
         trackUnlockPrompt(seriesSlug);
@@ -334,13 +329,24 @@ export default function Player({
       fetch("/api/watch-progress")
         .then((res) => (res.ok ? res.json() : null))
         .then((data: { items?: Array<{ seriesSlug: string; episodeNumber: number; progressSeconds: number }> } | null) => {
-          if (cancelled || !data?.items) return;
-          const match = data.items.find(
+          if (cancelled) return;
+          const match = data?.items?.find(
             (it) => it.seriesSlug === seriesSlug && it.episodeNumber === episodeNumber,
           );
           // GET already filters completed=false; still apply the >2 gate at seek.
           if (match && match.progressSeconds > 2) {
             resumeSeekRef.current = match.progressSeconds;
+            applySeek();
+            return;
+          }
+          /* The account had nothing to say — either the viewer is signed out
+             (GET returns {items: []} for a guest) or they watched this on this
+             device before the account existed. Resume from what the device
+             remembers. Without this the guest half of the free preview always
+             restarted at zero. */
+          const local = readGuestResume(seriesSlug);
+          if (local && local.episodeNumber === episodeNumber && local.progressSeconds > 2) {
+            resumeSeekRef.current = local.progressSeconds;
             applySeek();
           }
         })
@@ -384,17 +390,12 @@ export default function Player({
       notifyResume(item);
 
       // Flush a final progress write that survives the page being backgrounded.
-      fetch("/api/watch-progress", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          seriesSlug,
-          episodeNumber,
-          progressSeconds: Math.floor(video.currentTime),
-          completed: false,
-        }),
-        keepalive: true,
-      }).catch(() => {});
+      // The device half of this is synchronous, so it lands even if the tab
+      // dies before the keepalive request leaves.
+      recordWatchProgress(
+        { seriesSlug, episodeNumber, progressSeconds: video.currentTime, completed: false },
+        { keepalive: true },
+      );
     };
 
     const onVisibilityChange = () => {

@@ -6,6 +6,7 @@ import JsonLd from "@/components/JsonLd";
 import { itemListSchema, breadcrumbSchema } from "@/lib/schemas";
 import { T } from "@/lib/theme";
 import { getLiveSeries } from "@/lib/catalog";
+import { seriesHref } from "@/lib/series-href";
 import { GENRE_HUBS, getGenreHub } from "@/lib/content/genres";
 
 export async function generateStaticParams() {
@@ -111,7 +112,7 @@ export default async function GenreHubPage({ params }: Props) {
           {matching.map((s) => (
             <Link
               key={s.slug}
-              href={`/series/${s.slug}/1`}
+              href={seriesHref(s)}
               className="block no-underline"
             >
               <div

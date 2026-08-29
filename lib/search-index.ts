@@ -9,6 +9,7 @@
  */
 
 import type { Series } from "@/lib/catalog";
+import { foldForSearch, foldText } from "@/lib/text-fold";
 
 export const SEARCH_TAGS: Record<string, string[]> = {
   "the-mistress-trap": ["drama", "betrayal", "affair", "cheating", "marriage", "secret", "revenge", "mistress", "honeytrap", "best friend", "love"],
@@ -94,28 +95,49 @@ export const SEARCH_TAGS: Record<string, string[]> = {
 };
 
 /**
+ * The folded haystack for one series.
+ *
+ * Both this and the query go through foldText(), which is the whole point:
+ * folding one side only fixes one direction of the accent failure and leaves
+ * the other broken. See lib/text-fold.ts for the measured evidence.
+ *
+ * s.slug is in here deliberately. A viewer who lands on /series/the-goat-mistress-es
+ * and types "goat mistress" was previously matched only through the English
+ * curated tags, which the five Espanol and six Bollywood rows do not have —
+ * all eleven ship with no SEARCH_TAGS entry at all, so title/genre/logline were
+ * their entire index.
+ */
+export function seriesSearchHaystack(s: Series): string {
+  return foldForSearch(
+    [
+      s.title,
+      s.slug.replace(/-/g, " "),
+      s.genre,
+      s.logline,
+      s.channel,
+      ...(s.categories ?? []),
+      ...(s.tags ?? []),
+      ...(SEARCH_TAGS[s.slug] ?? []),
+    ].join(" "),
+  );
+}
+
+/**
  * Single source of truth for matching a series against a search query.
- * - Case-insensitive.
+ * - Case-insensitive AND accent-insensitive: the query and the index are both
+ *   Unicode-folded, so "pasion" and "pasión" are the same search and so are
+ *   "espanol" and "español". Latin combining marks only — Hindi, Arabic and
+ *   Thai pass through untouched (lib/text-fold.ts).
  * - Multi-word: every whitespace-separated token must match somewhere (AND),
  *   so "billionaire revenge" narrows instead of returning everything.
- * - Searches title, genre, logline, channel, categories, catalog tags, and the
- *   curated SEARCH_TAGS above.
+ * - Searches title, slug, genre, logline, channel, categories, catalog tags,
+ *   and the curated SEARCH_TAGS above.
  */
 export function seriesMatchesQuery(s: Series, rawQuery: string): boolean {
-  const q = rawQuery.trim().toLowerCase();
+  const q = foldText(rawQuery).trim();
   if (q.length < 2) return false;
 
-  const haystack = [
-    s.title,
-    s.genre,
-    s.logline,
-    s.channel,
-    ...(s.categories ?? []),
-    ...(s.tags ?? []),
-    ...(SEARCH_TAGS[s.slug] ?? []),
-  ]
-    .join(" ")
-    .toLowerCase();
+  const haystack = seriesSearchHaystack(s);
 
   return q.split(/\s+/).filter(Boolean).every((token) => haystack.includes(token));
 }

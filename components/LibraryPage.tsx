@@ -1,18 +1,25 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { T } from "@/lib/theme";
-import { getChannels, getSeriesByChannel, getSeriesBySlug, type Series } from "@/lib/catalog";
+import { getChannels, getSeriesByChannel, type Series } from "@/lib/catalog";
+import { seriesHref } from "@/lib/series-href";
 import { useTranslation } from "@/components/LangProvider";
+import { SavedShowsList } from "@/components/AccountLists";
+import EmptyState from "@/components/EmptyState";
 
 type LibraryTab = "channels" | "my-list";
 
 /* ---- Poster thumbnail ---- */
 function PosterThumb({ series }: { series: Series }) {
   return (
-    <Link href={`/series/${series.slug}/1`} className="flex-shrink-0 no-underline group transition-transform active:scale-[0.97]">
+    /* seriesHref, not the /series/<slug>/1 literal B removed everywhere else:
+       the show page carries the synopsis, the "First N Episodes FREE" badge and
+       the unlock card, and it is the only URL that resolves for a coming-soon
+       row. See lib/series-href.ts and B's handoff note. */
+    <Link href={seriesHref(series)} className="flex-shrink-0 no-underline group transition-transform active:scale-[0.97]">
       <div className="w-[100px] h-[150px] rounded-lg overflow-hidden relative" style={{ background: T.raised }}>
         {series.posterUrl ? (
           <Image src={series.posterUrl} alt={series.title} fill sizes="100px" className="object-cover transition-transform group-hover:scale-105" />
@@ -29,12 +36,31 @@ function PosterThumb({ series }: { series: Series }) {
   );
 }
 
-/* ---- Channel meta ---- */
+/* ---- Channel meta ----
+   VERIFIED against the catalogue on 2026-08-29, not assumed. getChannels()
+   returns exactly two names — "VERZA Originals" (89 live titles) and
+   "The Carpet" (2: exes-premiere, love-awards). Two of the three entries this
+   table used to hold, StorageBlue and The Vertical Tea, are not channel values
+   on any catalogue row, so they rendered as permanently empty cards reading
+   "Coming Soon" with no posters and no explanation. "The Carpet", the one real
+   second channel, was MISSING from the table, so it rendered with an empty
+   <svg> (no path element) and no description at all.
+
+   So the report that "the channel directory is always empty" is half right and
+   worth stating precisely: the directory is not empty — VERZA Originals fills
+   it — but half the cards in it were, and the one that had content had no
+   identity. Both halves are fixed below: The Carpet gets its metadata, and a
+   channel with nothing in it gets a real empty state instead of a blank card. */
 const CHANNEL_META: Record<string, { description: string; icon: string; posterLimit: number }> = {
   "VERZA Originals": {
     description: "The flagship channel for romance, thriller, mystery, revenge, and other vertical micro-dramas.",
     icon: "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z",
     posterLimit: 12,
+  },
+  "The Carpet": {
+    description: "Red carpet arrivals, premieres and award nights, shot vertical and cut for your phone.",
+    icon: "M12 2l2.4 6.5H21l-5.3 4 2 6.5-5.7-4.2L6.3 19l2-6.5-5.3-4h6.6z",
+    posterLimit: 20,
   },
   StorageBlue: {
     description: "Reality meets comedy. Abandoned storage units, auctions, and hidden fortunes.",
@@ -84,10 +110,22 @@ function ChannelsContent() {
               </div>
               {meta && <p className="text-xs leading-relaxed" style={{ color: T.textDim }}>{meta.description}</p>}
             </div>
-            {displaySeries.length > 0 && (
+            {displaySeries.length > 0 ? (
               <div className="px-4 pb-4 flex gap-3 overflow-x-auto no-scrollbar" style={{ WebkitOverflowScrolling: "touch" }}>
                 {displaySeries.map((s) => <PosterThumb key={s.slug} series={s} />)}
               </div>
+            ) : (
+              /* A channel with no titles used to be a blank card under a
+                 "Coming Soon" label: no posters, no explanation, no way out.
+                 E's EmptyState — the Anime tab's card — so the app says
+                 "nothing here yet" in one voice rather than three. */
+              <EmptyState
+                title={`${channelName} is coming soon`}
+                body="No titles on this channel yet. Everything else on VERZA is ready to watch right now."
+                action={{ label: "Browse VERZA", href: "/" }}
+                className="px-4 pb-5"
+                constrain={false}
+              />
             )}
           </div>
         );
@@ -140,161 +178,13 @@ function ChannelsContent() {
   );
 }
 
-/* ---- Saved list item type ---- */
-interface SavedItem {
-  seriesSlug: string;
-  seriesTitle: string;
-  posterUrl: string;
-  episodeCount: number;
-  genre: string;
-  savedAt: string;
-}
-
-/* ---- My List content ---- */
-function MyListContent() {
-  const { t } = useTranslation();
-  const [items, setItems] = useState<SavedItem[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Try API first (signed-in users)
-    fetch("/api/saved-list")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.items && data.items.length > 0) {
-          setItems(data.items);
-          setLoading(false);
-          return;
-        }
-        // Fallback: read from localStorage (guests)
-        loadFromLocalStorage();
-      })
-      .catch(() => {
-        loadFromLocalStorage();
-      });
-
-    function loadFromLocalStorage() {
-      try {
-        const local = localStorage.getItem("verza-saved");
-        if (local) {
-          const slugs: string[] = JSON.parse(local);
-          const localItems: SavedItem[] = slugs.map((slug) => {
-            const series = getSeriesBySlug(slug);
-            return {
-              seriesSlug: slug,
-              seriesTitle: series?.title ?? slug,
-              posterUrl: series?.posterUrl ?? "",
-              episodeCount: series?.episodeCount ?? 0,
-              genre: series?.genre ?? "",
-              savedAt: new Date().toISOString(),
-            };
-          }).filter((i) => i.seriesTitle !== i.seriesSlug);
-          setItems(localItems);
-        }
-      } catch {}
-      setLoading(false);
-    }
-  }, []);
-
-  const handleRemove = useCallback((slug: string) => {
-    setItems((prev) => prev.filter((i) => i.seriesSlug !== slug));
-
-    // Remove from localStorage
-    try {
-      const local = localStorage.getItem("verza-saved");
-      if (local) {
-        const slugs: string[] = JSON.parse(local);
-        localStorage.setItem("verza-saved", JSON.stringify(slugs.filter((s) => s !== slug)));
-      }
-    } catch {}
-
-    // Also remove from API
-    fetch("/api/saved-list", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ seriesSlug: slug }),
-    }).catch(() => {});
-  }, []);
-
-  /* Loading skeleton */
-  if (loading) {
-    return (
-      <div className="flex flex-col gap-3">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="flex gap-3 p-3 rounded-xl animate-pulse" style={{ background: T.surface }}>
-            <div className="w-[72px] h-[108px] rounded-lg flex-shrink-0" style={{ background: T.raised }} />
-            <div className="flex-1 py-2">
-              <div className="h-4 w-3/4 rounded mb-2" style={{ background: T.raised }} />
-              <div className="h-3 w-1/2 rounded" style={{ background: T.raised }} />
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  /* Empty state */
-  if (items.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-16 px-4">
-        <div className="w-20 h-20 rounded-full flex items-center justify-center mb-5" style={{ background: `${T.accent}12` }}>
-          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke={T.accent} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
-          </svg>
-        </div>
-        <p className="text-base font-semibold mb-1.5" style={{ color: T.text }}>{t("library.noSavedShows")}</p>
-        <p className="text-sm text-center max-w-[260px] mb-6 leading-relaxed" style={{ color: T.textMute }}>
-          Tap the bookmark icon on any show to add it here for easy access.
-        </p>
-        <Link href="/" className="px-6 py-2.5 rounded-lg text-sm font-semibold no-underline transition-opacity hover:opacity-90" style={{ background: T.accent, color: "#fff" }}>
-          {t("library.browseShows")}
-        </Link>
-      </div>
-    );
-  }
-
-  /* Saved series list */
-  return (
-    <div className="flex flex-col gap-3">
-      {items.map((item) => (
-        <div key={item.seriesSlug} className="flex gap-3 rounded-xl overflow-hidden" style={{ background: T.surface, border: `1px solid ${T.line}` }}>
-          <Link href={`/series/${item.seriesSlug}/1`} className="flex-shrink-0 no-underline transition-transform active:scale-[0.97]">
-            <div className="w-[72px] h-[108px] relative">
-              {item.posterUrl ? (
-                <Image src={item.posterUrl} alt={item.seriesTitle} fill sizes="72px" className="object-cover" />
-              ) : (
-                <div className="absolute inset-0 flex items-center justify-center" style={{ background: T.raised, color: T.textMute }}>
-                  <span className="text-[8px] font-medium text-center px-1">{item.seriesTitle}</span>
-                </div>
-              )}
-            </div>
-          </Link>
-          <div className="flex-1 py-3 pr-2 flex flex-col justify-between min-w-0">
-            <div>
-              <Link href={`/series/${item.seriesSlug}/1`} className="no-underline">
-                <h4 className="text-sm font-semibold truncate" style={{ color: T.text }}>{item.seriesTitle}</h4>
-              </Link>
-              <p className="text-xs mt-0.5" style={{ color: T.textMute }}>
-                {item.genre}{item.episodeCount > 0 ? ` \u00b7 ${item.episodeCount} episodes` : ""}
-              </p>
-            </div>
-            <button
-              onClick={() => handleRemove(item.seriesSlug)}
-              className="self-start flex items-center gap-1.5 text-xs font-medium border-none cursor-pointer mt-2 px-0"
-              style={{ background: "none", color: T.accent }}
-              aria-label={`Remove ${item.seriesTitle} from saved list`}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill={T.accent} stroke={T.accent} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
-              </svg>
-              {t("shorts.saved")}
-            </button>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
+/* ---- My List ----
+   BUG THIS FIXES: this component was a second, independent implementation of
+   the saved list — its own fetch, its own localStorage parsing, its own remove
+   handler, its own empty state — while app/me/list/page.tsx rendered a THIRD,
+   hard-coded empty one. Three surfaces, one of which worked. The single
+   implementation now lives in components/AccountLists.tsx and both pages
+   render it, so "tap the bookmark icon" is true wherever it is printed. */
 
 /* ---- Main Library page ---- */
 export default function LibraryPage() {
@@ -322,7 +212,7 @@ export default function LibraryPage() {
         ))}
       </div>
 
-      {tab === "channels" ? <ChannelsContent /> : <MyListContent />}
+      {tab === "channels" ? <ChannelsContent /> : <SavedShowsList />}
     </section>
   );
 }

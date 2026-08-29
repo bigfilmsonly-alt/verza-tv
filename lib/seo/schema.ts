@@ -1,4 +1,5 @@
 import { getLiveSeries } from "@/lib/catalog";
+import { inLanguageForSlug } from "@/lib/audio-language";
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verzatv.com";
@@ -143,6 +144,14 @@ export function tvSeriesSchema(show: TVSeriesInput) {
     description,
     genre: show.genre,
     numberOfEpisodes: show.episodeCount,
+    /* The spoken language of the title, not the language of this page. Every
+       one of the 91 show pages shipped without it, so a Hindi drama behind an
+       English title lockup ("Falling for Flatmate", "Reset") was indexed,
+       shared and recommended with nothing anywhere saying the dialogue is in
+       Hindi. Derived from lib/audio-language.ts, the same declaration the
+       visible badge renders — one source, so the page and the markup cannot
+       disagree. */
+    inLanguage: inLanguageForSlug(show.slug),
     url: `${BASE_URL}/series/${show.slug}`,
     // new URL() is idempotent: it resolves a relative path against BASE_URL and
     // returns an already-absolute one untouched. Two call sites used to prefix
@@ -205,6 +214,12 @@ export function tvEpisodeSchema(
     "@type": "TVEpisode",
     name: episode.title,
     episodeNumber: episode.number,
+    /* Same claim on the 2,214 prerendered episode pages. The stream itself
+       still declares LANGUAGE="und" in its HLS manifest — that lives in the
+       Mux asset and needs a re-ingest to correct — so this markup is currently
+       the only machine-readable statement of the audio language anywhere in
+       the delivery chain. */
+    inLanguage: inLanguageForSlug(show.slug),
     partOfSeries: {
       "@type": "TVSeries",
       name: show.title,
@@ -216,6 +231,7 @@ export function tvEpisodeSchema(
       description,
       ...(thumbnailUrl ? { thumbnailUrl } : {}),
       duration: toIsoDuration(duration),
+      inLanguage: inLanguageForSlug(show.slug),
     },
   };
 }

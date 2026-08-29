@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { T } from "@/lib/theme";
 import FooterSitemap from "@/components/FooterSitemap";
+import StoreLinks from "@/components/StoreLinks";
 
 const socialLinks = [
   {
@@ -99,10 +100,19 @@ export default function Footer() {
             already points at, and on /amazon. A wall of product tiles under
             every page made the whole site feel like an ad. */}
 
-        {/* Section 2 — Sitemap dropdown */}
+        {/* Section 2 — The apps.
+            /about, /press and the platform sentences in the legal copy all
+            state that VERZA runs on iPhone, iPad and Android. Until now the
+            site carried no route to either store, on any page — a live iOS
+            listing and a live Play listing that a visitor could only reach by
+            searching for them. The footer is on every page, so this is the one
+            placement that makes the claim actionable everywhere. */}
+        <StoreLinks className="mb-6" />
+
+        {/* Section 3 — Sitemap dropdown */}
         <FooterSitemap />
 
-        {/* Section 3 — Legal Links */}
+        {/* Section 4 — Legal Links */}
         <div className="flex flex-wrap justify-center gap-x-4 gap-y-1.5 mb-5">
           {legalLinks.map((link) => (
             <Link
@@ -116,7 +126,7 @@ export default function Footer() {
           ))}
         </div>
 
-        {/* Section 4 — Copyright */}
+        {/* Section 5 — Copyright */}
         <p
           className="text-center m-0"
           style={{ color: T.textMute, fontSize: 11 }}

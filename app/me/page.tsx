@@ -11,7 +11,7 @@ import {
   vipSubscriptionCheckoutEnabled,
   vipYearlyCheckoutEnabled,
 } from "@/lib/vip-release-policy";
-import { SavedCount, WatchingCount, DarkModeToggle, SignOutButton, DeleteAccountButton } from "@/components/ProfileDynamic";
+import { SavedCount, WatchingCount, PurchaseCount, DarkModeToggle, SignOutButton, DeleteAccountButton } from "@/components/ProfileDynamic";
 
 export const metadata: Metadata = {
   title: "My Account",
@@ -297,26 +297,35 @@ export default async function MePage({
         yearlyCheckoutEnabled={yearlyCheckoutEnabled}
       />
 
-      {/* ---- Library ---- */}
+      {/* ---- Library ----
+           All three rows were shells. "My List" pointed at /library, which
+           opens on its Channels tab, so the saved list was one more tap away
+           and invisible from here. "Continue Watching" pointed at "/" — the
+           home page — and its rail was server-only, so a signed-out viewer was
+           sent to a page that could not show them anything. "Purchase History"
+           pointed at /me, its own URL, with the string "No purchases" hard-coded
+           beside it, so a paying customer was told they had bought nothing and
+           tapping it reloaded the same page. Each now goes somewhere that
+           actually renders the thing it names. */}
       <SectionLabel>Library</SectionLabel>
       <SectionCard>
         <MenuRow
           icon={Icons.bookmark}
           label="My List"
           detail={<SavedCount />}
-          href="/library"
+          href="/me/list"
         />
         <MenuRow
           icon={Icons.play}
           label="Continue Watching"
           detail={<WatchingCount />}
-          href="/"
+          href="/me/list?tab=recent"
         />
         <MenuRow
           icon={Icons.receipt}
           label="Purchase History"
-          detail="No purchases"
-          href="/me"
+          detail={<PurchaseCount />}
+          href="/me/purchases"
           last
         />
       </SectionCard>
@@ -378,6 +387,14 @@ export default async function MePage({
           label="Report a Problem"
           href="mailto:support@verzatv.com"
           external
+        />
+        {/* The reset flow was deployed with no link to it anywhere in the
+            product. This is the second of the two entry points; the other is
+            on /sign-in, for the customer who cannot get this far. */}
+        <MenuRow
+          icon={Icons.shield}
+          label="Reset Password"
+          href="/forgot-password"
           last
         />
       </SectionCard>

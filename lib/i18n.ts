@@ -55,6 +55,8 @@ export interface Translations {
   "tab.reality": string;
   "tab.redCarpet": string;
   /* Shorts rail */
+  "shorts.like": string;
+  "shorts.liked": string;
   "shorts.list": string;
   "shorts.saved": string;
   "shorts.share": string;
@@ -129,6 +131,32 @@ export interface Translations {
   "content.episodeLocked": string;
   "content.unlockPrompt": string;
   "content.tryAgain": string;
+  /* Paywall + checkout — the payment screen, in the viewer's language */
+  "paywall.unlockAll": string;
+  "paywall.unavailableTitle": string;
+  "paywall.unavailableBody": string;
+  "paywall.previewOver": string;
+  "paywall.benefitEpisodes": string;
+  "paywall.benefitAccess": string;
+  "paywall.oneTimeUnlock": string;
+  "paywall.cta": string;
+  "paywall.ctaLoading": string;
+  "paywall.secure": string;
+  "paywall.goBack": string;
+  "checkout.errorStart": string;
+  "checkout.errorNotOpened": string;
+  "checkout.errorNetwork": string;
+  "checkout.errorAuth": string;
+  "checkout.errorNotPurchasable": string;
+  "checkout.errorEligibility": string;
+  "checkout.errorAccountDeletion": string;
+  "checkout.errorPaymentReview": string;
+  "checkout.errorCheckoutUnusable": string;
+  "checkout.errorRefunded": string;
+  "checkout.errorNotFound": string;
+  /* Audio-language labelling */
+  "language.audio": string;
+  "language.audioSubs": string;
   /* Misc */
   "misc.free": string;
   "misc.comingSoon": string;
@@ -160,6 +188,31 @@ const en: Translations = {
   "legal.terms": "Terms of Service", "legal.privacy": "Privacy Policy", "legal.refund": "Refund Policy",
   "misc.free": "Free", "misc.comingSoon": "Coming Soon", "misc.close": "Close",
   "content.synopsis": "Synopsis", "content.episodes": "Episodes", "content.cast": "Cast", "content.moreLikeThis": "More Like This", "content.views": "views", "content.now": "NOW", "content.info": "Info", "content.allEpisodes": "All Episodes", "content.previous": "Previous", "content.next": "Next", "content.episodeOf": "Episode {n} of {total}", "content.trending": "Trending", "content.watchFree": "Watch Episode 1 Free", "content.unlockSeries": "Unlock Full Series", "content.oneTimePayment": "One-time payment", "content.allEpisodesIncluded": "All episodes included", "content.episodeLocked": "Episode {n} is locked", "content.unlockPrompt": "Free-preview availability varies by title. Unlock the full series to keep watching.", "content.tryAgain": "Try Again",
+  "paywall.unlockAll": "Unlock All Episodes",
+  "paywall.unavailableTitle": "Episode Unavailable",
+  "paywall.unavailableBody": "This episode isn\u2019t available in this app.",
+  "paywall.previewOver": "You just watched the free preview of {title}. Don\u2019t stop now \u2014 the story is just getting good.",
+  "paywall.benefitEpisodes": "All {count} episodes, instantly",
+  "paywall.benefitAccess": "Access on your Verza account while this title remains available",
+  "paywall.oneTimeUnlock": "one-time Series Unlock",
+  "paywall.cta": "Series Unlock \u2014 {price} one-time",
+  "paywall.ctaLoading": "Opening secure checkout\u2026",
+  "paywall.secure": "Secure checkout via Stripe",
+  "paywall.goBack": "Go Back",
+  "checkout.errorStart": "Couldn\u2019t start checkout. Please try again.",
+  "checkout.errorNotOpened": "Checkout did not open. Please try again.",
+  "checkout.errorNetwork": "Network error. Check your connection and try again.",
+  "checkout.errorAuth": "Please sign in to finish this purchase.",
+  "checkout.errorNotPurchasable": "This series is not available for purchase.",
+  "checkout.errorEligibility": "We could not check your purchase eligibility. Please try again.",
+  "checkout.errorAccountDeletion": "Account deletion is in progress.",
+  "checkout.errorPaymentReview": "An earlier payment is still being reviewed. Contact support before trying again.",
+  "checkout.errorCheckoutUnusable": "An earlier checkout could not be safely reused. Contact support.",
+  "checkout.errorRefunded": "This payment was refunded or disputed.",
+  "checkout.errorNotFound": "This series could not be found.",
+  "language.audio": "{language} audio",
+  "language.audioSubs": "{language} audio \u00b7 {subtitles} subtitles",
+  "shorts.like": "Like", "shorts.liked": "Liked",
 };
 
 const es: Translations = {
@@ -185,6 +238,31 @@ const es: Translations = {
   "legal.terms": "T\u00e9rminos de Servicio", "legal.privacy": "Pol\u00edtica de Privacidad", "legal.refund": "Pol\u00edtica de Reembolso",
   "misc.free": "Gratis", "misc.comingSoon": "Pr\u00f3ximamente", "misc.close": "Cerrar",
   "content.synopsis": "Sinopsis", "content.episodes": "Episodios", "content.cast": "Reparto", "content.moreLikeThis": "M\u00e1s Como Esto", "content.views": "vistas", "content.now": "AHORA", "content.info": "Info", "content.allEpisodes": "Todos los Episodios", "content.previous": "Anterior", "content.next": "Siguiente", "content.episodeOf": "Episodio {n} de {total}", "content.trending": "Tendencia", "content.watchFree": "Ver Episodio 1 Gratis", "content.unlockSeries": "Desbloquear Serie Completa", "content.oneTimePayment": "Pago \u00fanico", "content.allEpisodesIncluded": "Todos los episodios incluidos", "content.episodeLocked": "El episodio {n} est\u00e1 bloqueado", "content.unlockPrompt": "La cantidad de episodios gratuitos varía según el título. Desbloquea la serie completa.", "content.tryAgain": "Intentar de Nuevo",
+  "paywall.unlockAll": "Desbloquea todos los episodios",
+  "paywall.unavailableTitle": "Episodio no disponible",
+  "paywall.unavailableBody": "Este episodio no est\u00e1 disponible en esta app.",
+  "paywall.previewOver": "Acabas de ver la vista previa gratuita de {title}. No pares ahora: la historia reci\u00e9n se pone buena.",
+  "paywall.benefitEpisodes": "Los {count} episodios, al instante",
+  "paywall.benefitAccess": "Acceso desde tu cuenta Verza mientras este t\u00edtulo siga disponible",
+  "paywall.oneTimeUnlock": "desbloqueo de la serie, pago \u00fanico",
+  "paywall.cta": "Desbloquear la serie \u2014 {price}, pago \u00fanico",
+  "paywall.ctaLoading": "Abriendo el pago seguro\u2026",
+  "paywall.secure": "Pago seguro con Stripe",
+  "paywall.goBack": "Volver",
+  "checkout.errorStart": "No se pudo iniciar el pago. Int\u00e9ntalo de nuevo.",
+  "checkout.errorNotOpened": "El pago no se abri\u00f3. Int\u00e9ntalo de nuevo.",
+  "checkout.errorNetwork": "Error de red. Revisa tu conexi\u00f3n e int\u00e9ntalo de nuevo.",
+  "checkout.errorAuth": "Inicia sesi\u00f3n para completar esta compra.",
+  "checkout.errorNotPurchasable": "Esta serie no est\u00e1 a la venta.",
+  "checkout.errorEligibility": "No pudimos verificar tu elegibilidad de compra. Int\u00e9ntalo de nuevo.",
+  "checkout.errorAccountDeletion": "La eliminaci\u00f3n de la cuenta est\u00e1 en curso.",
+  "checkout.errorPaymentReview": "Un pago anterior sigue en revisi\u00f3n. Contacta con soporte antes de volver a intentarlo.",
+  "checkout.errorCheckoutUnusable": "No se pudo reutilizar un pago anterior de forma segura. Contacta con soporte.",
+  "checkout.errorRefunded": "Este pago fue reembolsado o disputado.",
+  "checkout.errorNotFound": "No se encontr\u00f3 esta serie.",
+  "language.audio": "Audio en {language}",
+  "language.audioSubs": "Audio en {language} \u00b7 subt\u00edtulos en {subtitles}",
+  "shorts.like": "Me gusta", "shorts.liked": "Te gusta",
 };
 
 const fr: Translations = {
@@ -210,6 +288,31 @@ const fr: Translations = {
   "legal.terms": "Conditions d\u2019Utilisation", "legal.privacy": "Politique de Confidentialit\u00e9", "legal.refund": "Politique de Remboursement",
   "misc.free": "Gratuit", "misc.comingSoon": "Bient\u00f4t", "misc.close": "Fermer",
   "content.synopsis": "Synopsis", "content.episodes": "\u00c9pisodes", "content.cast": "Distribution", "content.moreLikeThis": "Dans le M\u00eame Genre", "content.views": "vues", "content.now": "EN COURS", "content.info": "Info", "content.allEpisodes": "Tous les \u00c9pisodes", "content.previous": "Pr\u00e9c\u00e9dent", "content.next": "Suivant", "content.episodeOf": "\u00c9pisode {n} sur {total}", "content.trending": "Tendances", "content.watchFree": "Regarder l\u2019\u00c9pisode 1 Gratuitement", "content.unlockSeries": "D\u00e9bloquer la S\u00e9rie", "content.oneTimePayment": "Paiement unique", "content.allEpisodesIncluded": "Tous les \u00e9pisodes inclus", "content.episodeLocked": "L\u2019\u00e9pisode {n} est verrouill\u00e9", "content.unlockPrompt": "Le nombre d’épisodes gratuits varie selon le titre. Débloquez la série complète.", "content.tryAgain": "R\u00e9essayer",
+  "paywall.unlockAll": "D\u00e9bloquer tous les \u00e9pisodes",
+  "paywall.unavailableTitle": "\u00c9pisode indisponible",
+  "paywall.unavailableBody": "Cet \u00e9pisode n\u2019est pas disponible dans cette application.",
+  "paywall.previewOver": "Vous venez de voir l\u2019aper\u00e7u gratuit de {title}. Ne vous arr\u00eatez pas \u2014 l\u2019histoire commence \u00e0 peine.",
+  "paywall.benefitEpisodes": "Les {count} \u00e9pisodes, imm\u00e9diatement",
+  "paywall.benefitAccess": "Acc\u00e8s depuis votre compte Verza tant que ce titre reste disponible",
+  "paywall.oneTimeUnlock": "achat unique de la s\u00e9rie",
+  "paywall.cta": "D\u00e9bloquer la s\u00e9rie \u2014 {price}, achat unique",
+  "paywall.ctaLoading": "Ouverture du paiement s\u00e9curis\u00e9\u2026",
+  "paywall.secure": "Paiement s\u00e9curis\u00e9 via Stripe",
+  "paywall.goBack": "Retour",
+  "checkout.errorStart": "Impossible de d\u00e9marrer le paiement. Veuillez r\u00e9essayer.",
+  "checkout.errorNotOpened": "Le paiement ne s\u2019est pas ouvert. Veuillez r\u00e9essayer.",
+  "checkout.errorNetwork": "Erreur r\u00e9seau. V\u00e9rifiez votre connexion et r\u00e9essayez.",
+  "checkout.errorAuth": "Connectez-vous pour finaliser cet achat.",
+  "checkout.errorNotPurchasable": "Cette s\u00e9rie n\u2019est pas en vente.",
+  "checkout.errorEligibility": "Impossible de v\u00e9rifier votre \u00e9ligibilit\u00e9 \u00e0 l\u2019achat. Veuillez r\u00e9essayer.",
+  "checkout.errorAccountDeletion": "La suppression du compte est en cours.",
+  "checkout.errorPaymentReview": "Un paiement pr\u00e9c\u00e9dent est encore en cours d\u2019examen. Contactez le support avant de r\u00e9essayer.",
+  "checkout.errorCheckoutUnusable": "Un paiement pr\u00e9c\u00e9dent n\u2019a pas pu \u00eatre r\u00e9utilis\u00e9 en toute s\u00e9curit\u00e9. Contactez le support.",
+  "checkout.errorRefunded": "Ce paiement a \u00e9t\u00e9 rembours\u00e9 ou contest\u00e9.",
+  "checkout.errorNotFound": "Cette s\u00e9rie est introuvable.",
+  "language.audio": "Audio en {language}",
+  "language.audioSubs": "Audio en {language} \u00b7 sous-titres en {subtitles}",
+  "shorts.like": "J\u2019aime", "shorts.liked": "Aim\u00e9",
 };
 
 const pt: Translations = {
@@ -235,6 +338,31 @@ const pt: Translations = {
   "legal.terms": "Termos de Servi\u00e7o", "legal.privacy": "Pol\u00edtica de Privacidade", "legal.refund": "Pol\u00edtica de Reembolso",
   "misc.free": "Gr\u00e1tis", "misc.comingSoon": "Em Breve", "misc.close": "Fechar",
   "content.synopsis": "Sinopse", "content.episodes": "Epis\u00f3dios", "content.cast": "Elenco", "content.moreLikeThis": "Mais Como Isto", "content.views": "visualiza\u00e7\u00f5es", "content.now": "AGORA", "content.info": "Info", "content.allEpisodes": "Todos os Epis\u00f3dios", "content.previous": "Anterior", "content.next": "Pr\u00f3ximo", "content.episodeOf": "Epis\u00f3dio {n} de {total}", "content.trending": "Em Alta", "content.watchFree": "Assistir Epis\u00f3dio 1 Gr\u00e1tis", "content.unlockSeries": "Desbloquear S\u00e9rie", "content.oneTimePayment": "Pagamento \u00fanico", "content.allEpisodesIncluded": "Todos os epis\u00f3dios inclu\u00eddos", "content.episodeLocked": "O epis\u00f3dio {n} est\u00e1 bloqueado", "content.unlockPrompt": "A quantidade de episódios grátis varia por título. Desbloqueie a série completa.", "content.tryAgain": "Tentar Novamente",
+  "paywall.unlockAll": "Desbloquear todos os epis\u00f3dios",
+  "paywall.unavailableTitle": "Epis\u00f3dio indispon\u00edvel",
+  "paywall.unavailableBody": "Este epis\u00f3dio n\u00e3o est\u00e1 dispon\u00edvel neste app.",
+  "paywall.previewOver": "Voc\u00ea acabou de ver a pr\u00e9via gratuita de {title}. N\u00e3o pare agora \u2014 a hist\u00f3ria est\u00e1 s\u00f3 come\u00e7ando.",
+  "paywall.benefitEpisodes": "Todos os {count} epis\u00f3dios, na hora",
+  "paywall.benefitAccess": "Acesso pela sua conta Verza enquanto este t\u00edtulo estiver dispon\u00edvel",
+  "paywall.oneTimeUnlock": "desbloqueio da s\u00e9rie, pagamento \u00fanico",
+  "paywall.cta": "Desbloquear a s\u00e9rie \u2014 {price}, pagamento \u00fanico",
+  "paywall.ctaLoading": "Abrindo o pagamento seguro\u2026",
+  "paywall.secure": "Pagamento seguro via Stripe",
+  "paywall.goBack": "Voltar",
+  "checkout.errorStart": "N\u00e3o foi poss\u00edvel iniciar o pagamento. Tente novamente.",
+  "checkout.errorNotOpened": "O pagamento n\u00e3o abriu. Tente novamente.",
+  "checkout.errorNetwork": "Erro de rede. Verifique sua conex\u00e3o e tente novamente.",
+  "checkout.errorAuth": "Entre na sua conta para concluir esta compra.",
+  "checkout.errorNotPurchasable": "Esta s\u00e9rie n\u00e3o est\u00e1 \u00e0 venda.",
+  "checkout.errorEligibility": "N\u00e3o foi poss\u00edvel verificar sua elegibilidade de compra. Tente novamente.",
+  "checkout.errorAccountDeletion": "A exclus\u00e3o da conta est\u00e1 em andamento.",
+  "checkout.errorPaymentReview": "Um pagamento anterior ainda est\u00e1 em an\u00e1lise. Fale com o suporte antes de tentar de novo.",
+  "checkout.errorCheckoutUnusable": "Um pagamento anterior n\u00e3o p\u00f4de ser reaproveitado com seguran\u00e7a. Fale com o suporte.",
+  "checkout.errorRefunded": "Este pagamento foi reembolsado ou contestado.",
+  "checkout.errorNotFound": "Esta s\u00e9rie n\u00e3o foi encontrada.",
+  "language.audio": "\u00c1udio em {language}",
+  "language.audioSubs": "\u00c1udio em {language} \u00b7 legendas em {subtitles}",
+  "shorts.like": "Curtir", "shorts.liked": "Curtido",
 };
 
 const de: Translations = {
@@ -260,6 +388,31 @@ const de: Translations = {
   "legal.terms": "Nutzungsbedingungen", "legal.privacy": "Datenschutzrichtlinie", "legal.refund": "R\u00fcckerstattungsrichtlinie",
   "misc.free": "Kostenlos", "misc.comingSoon": "Demn\u00e4chst", "misc.close": "Schlie\u00dfen",
   "content.synopsis": "Zusammenfassung", "content.episodes": "Episoden", "content.cast": "Besetzung", "content.moreLikeThis": "\u00c4hnliches", "content.views": "Aufrufe", "content.now": "JETZT", "content.info": "Info", "content.allEpisodes": "Alle Episoden", "content.previous": "Zur\u00fcck", "content.next": "Weiter", "content.episodeOf": "Episode {n} von {total}", "content.trending": "Im Trend", "content.watchFree": "Episode 1 Kostenlos Ansehen", "content.unlockSeries": "Serie Freischalten", "content.oneTimePayment": "Einmalzahlung", "content.allEpisodesIncluded": "Alle Episoden enthalten", "content.episodeLocked": "Episode {n} ist gesperrt", "content.unlockPrompt": "Die Anzahl kostenloser Episoden variiert je nach Titel. Schalte die ganze Serie frei.", "content.tryAgain": "Erneut Versuchen",
+  "paywall.unlockAll": "Alle Folgen freischalten",
+  "paywall.unavailableTitle": "Folge nicht verf\u00fcgbar",
+  "paywall.unavailableBody": "Diese Folge ist in dieser App nicht verf\u00fcgbar.",
+  "paywall.previewOver": "Du hast gerade die kostenlose Vorschau von {title} gesehen. H\u00f6r jetzt nicht auf \u2014 die Geschichte wird gerade erst gut.",
+  "paywall.benefitEpisodes": "Alle {count} Folgen, sofort",
+  "paywall.benefitAccess": "Zugriff \u00fcber dein Verza-Konto, solange dieser Titel verf\u00fcgbar bleibt",
+  "paywall.oneTimeUnlock": "einmaliger Serien-Kauf",
+  "paywall.cta": "Serie freischalten \u2014 {price}, einmalig",
+  "paywall.ctaLoading": "Sichere Kasse wird ge\u00f6ffnet\u2026",
+  "paywall.secure": "Sichere Zahlung \u00fcber Stripe",
+  "paywall.goBack": "Zur\u00fcck",
+  "checkout.errorStart": "Zahlung konnte nicht gestartet werden. Bitte versuche es erneut.",
+  "checkout.errorNotOpened": "Die Kasse wurde nicht ge\u00f6ffnet. Bitte versuche es erneut.",
+  "checkout.errorNetwork": "Netzwerkfehler. Pr\u00fcfe deine Verbindung und versuche es erneut.",
+  "checkout.errorAuth": "Melde dich an, um diesen Kauf abzuschlie\u00dfen.",
+  "checkout.errorNotPurchasable": "Diese Serie steht nicht zum Verkauf.",
+  "checkout.errorEligibility": "Wir konnten deine Kaufberechtigung nicht pr\u00fcfen. Bitte versuche es erneut.",
+  "checkout.errorAccountDeletion": "Die Kontol\u00f6schung l\u00e4uft.",
+  "checkout.errorPaymentReview": "Eine fr\u00fchere Zahlung wird noch gepr\u00fcft. Wende dich an den Support, bevor du es erneut versuchst.",
+  "checkout.errorCheckoutUnusable": "Eine fr\u00fchere Zahlung konnte nicht sicher wiederverwendet werden. Wende dich an den Support.",
+  "checkout.errorRefunded": "Diese Zahlung wurde erstattet oder angefochten.",
+  "checkout.errorNotFound": "Diese Serie wurde nicht gefunden.",
+  "language.audio": "Ton auf {language}",
+  "language.audioSubs": "Ton auf {language} \u00b7 Untertitel auf {subtitles}",
+  "shorts.like": "Gef\u00e4llt mir", "shorts.liked": "Gef\u00e4llt dir",
 };
 
 const it: Translations = {
@@ -285,6 +438,31 @@ const it: Translations = {
   "legal.terms": "Termini di Servizio", "legal.privacy": "Informativa sulla Privacy", "legal.refund": "Politica di Rimborso",
   "misc.free": "Gratuito", "misc.comingSoon": "In Arrivo", "misc.close": "Chiudi",
   "content.synopsis": "Trama", "content.episodes": "Episodi", "content.cast": "Cast", "content.moreLikeThis": "Simili", "content.views": "visualizzazioni", "content.now": "ORA", "content.info": "Info", "content.allEpisodes": "Tutti gli Episodi", "content.previous": "Precedente", "content.next": "Successivo", "content.episodeOf": "Episodio {n} di {total}", "content.trending": "Di Tendenza", "content.watchFree": "Guarda Episodio 1 Gratis", "content.unlockSeries": "Sblocca la Serie", "content.oneTimePayment": "Pagamento unico", "content.allEpisodesIncluded": "Tutti gli episodi inclusi", "content.episodeLocked": "L\u2019episodio {n} \u00e8 bloccato", "content.unlockPrompt": "Il numero di episodi gratuiti varia in base al titolo. Sblocca la serie completa.", "content.tryAgain": "Riprova",
+  "paywall.unlockAll": "Sblocca tutti gli episodi",
+  "paywall.unavailableTitle": "Episodio non disponibile",
+  "paywall.unavailableBody": "Questo episodio non \u00e8 disponibile in questa app.",
+  "paywall.previewOver": "Hai appena visto l\u2019anteprima gratuita di {title}. Non fermarti ora: la storia sta appena diventando interessante.",
+  "paywall.benefitEpisodes": "Tutti i {count} episodi, subito",
+  "paywall.benefitAccess": "Accesso dal tuo account Verza finch\u00e9 questo titolo resta disponibile",
+  "paywall.oneTimeUnlock": "sblocco della serie, pagamento unico",
+  "paywall.cta": "Sblocca la serie \u2014 {price}, pagamento unico",
+  "paywall.ctaLoading": "Apertura del pagamento sicuro\u2026",
+  "paywall.secure": "Pagamento sicuro tramite Stripe",
+  "paywall.goBack": "Indietro",
+  "checkout.errorStart": "Impossibile avviare il pagamento. Riprova.",
+  "checkout.errorNotOpened": "Il pagamento non si \u00e8 aperto. Riprova.",
+  "checkout.errorNetwork": "Errore di rete. Controlla la connessione e riprova.",
+  "checkout.errorAuth": "Accedi per completare questo acquisto.",
+  "checkout.errorNotPurchasable": "Questa serie non \u00e8 in vendita.",
+  "checkout.errorEligibility": "Non siamo riusciti a verificare la tua idoneit\u00e0 all\u2019acquisto. Riprova.",
+  "checkout.errorAccountDeletion": "L\u2019eliminazione dell\u2019account \u00e8 in corso.",
+  "checkout.errorPaymentReview": "Un pagamento precedente \u00e8 ancora in revisione. Contatta l\u2019assistenza prima di riprovare.",
+  "checkout.errorCheckoutUnusable": "Non \u00e8 stato possibile riutilizzare in sicurezza un pagamento precedente. Contatta l\u2019assistenza.",
+  "checkout.errorRefunded": "Questo pagamento \u00e8 stato rimborsato o contestato.",
+  "checkout.errorNotFound": "Serie non trovata.",
+  "language.audio": "Audio in {language}",
+  "language.audioSubs": "Audio in {language} \u00b7 sottotitoli in {subtitles}",
+  "shorts.like": "Mi piace", "shorts.liked": "Piaciuto",
 };
 
 const ja: Translations = {
@@ -310,6 +488,31 @@ const ja: Translations = {
   "legal.terms": "\u5229\u7528\u898f\u7d04", "legal.privacy": "\u30d7\u30e9\u30a4\u30d0\u30b7\u30fc\u30dd\u30ea\u30b7\u30fc", "legal.refund": "\u8fd4\u91d1\u30dd\u30ea\u30b7\u30fc",
   "misc.free": "\u7121\u6599", "misc.comingSoon": "\u8fd1\u65e5\u516c\u958b", "misc.close": "\u9589\u3058\u308b",
   "content.synopsis": "\u3042\u3089\u3059\u3058", "content.episodes": "\u30a8\u30d4\u30bd\u30fc\u30c9", "content.cast": "\u30ad\u30e3\u30b9\u30c8", "content.moreLikeThis": "\u985e\u4f3c\u4f5c\u54c1", "content.views": "\u56de\u8996\u8074", "content.now": "\u518d\u751f\u4e2d", "content.info": "\u60c5\u5831", "content.allEpisodes": "\u5168\u30a8\u30d4\u30bd\u30fc\u30c9", "content.previous": "\u524d\u3078", "content.next": "\u6b21\u3078", "content.episodeOf": "\u30a8\u30d4\u30bd\u30fc\u30c9{n}/{total}", "content.trending": "\u30c8\u30ec\u30f3\u30c9", "content.watchFree": "\u30a8\u30d4\u30bd\u30fc\u30c91\u3092\u7121\u6599\u3067\u898b\u308b", "content.unlockSeries": "\u30b7\u30ea\u30fc\u30ba\u3092\u89e3\u9664", "content.oneTimePayment": "\u4e00\u56de\u6255\u3044", "content.allEpisodesIncluded": "\u5168\u30a8\u30d4\u30bd\u30fc\u30c9\u542b\u3080", "content.episodeLocked": "\u30a8\u30d4\u30bd\u30fc\u30c9{n}\u306f\u30ed\u30c3\u30af\u3055\u308c\u3066\u3044\u307e\u3059", "content.unlockPrompt": "\u7121\u6599\u30a8\u30d4\u30bd\u30fc\u30c9\u6570\u306f\u4f5c\u54c1\u306b\u3088\u3063\u3066\u7570\u306a\u308a\u307e\u3059\u3002\u30b7\u30ea\u30fc\u30ba\u5168\u4f53\u3092\u89e3\u9664\u3057\u3066\u304f\u3060\u3055\u3044\u3002", "content.tryAgain": "\u3082\u3046\u4e00\u5ea6",
+  "paywall.unlockAll": "\u5168\u30a8\u30d4\u30bd\u30fc\u30c9\u3092\u30a2\u30f3\u30ed\u30c3\u30af",
+  "paywall.unavailableTitle": "\u3053\u306e\u30a8\u30d4\u30bd\u30fc\u30c9\u306f\u5229\u7528\u3067\u304d\u307e\u305b\u3093",
+  "paywall.unavailableBody": "\u3053\u306e\u30a2\u30d7\u30ea\u3067\u306f\u3053\u306e\u30a8\u30d4\u30bd\u30fc\u30c9\u3092\u3054\u89a7\u3044\u305f\u3060\u3051\u307e\u305b\u3093\u3002",
+  "paywall.previewOver": "{title} \u306e\u7121\u6599\u30d7\u30ec\u30d3\u30e5\u30fc\u306f\u3053\u3053\u307e\u3067\u3067\u3059\u3002\u7269\u8a9e\u306f\u3053\u308c\u304b\u3089\u3067\u3059\u3002",
+  "paywall.benefitEpisodes": "\u5168 {count} \u8a71\u3092\u3059\u3050\u306b",
+  "paywall.benefitAccess": "\u3053\u306e\u4f5c\u54c1\u306e\u914d\u4fe1\u304c\u7d9a\u304f\u9650\u308a\u3001Verza \u30a2\u30ab\u30a6\u30f3\u30c8\u3067\u8996\u8074\u3067\u304d\u307e\u3059",
+  "paywall.oneTimeUnlock": "\u30b7\u30ea\u30fc\u30ba\u4e00\u62ec\u8cfc\u5165\uff08\u4e00\u56de\u9650\u308a\uff09",
+  "paywall.cta": "\u30b7\u30ea\u30fc\u30ba\u3092\u30a2\u30f3\u30ed\u30c3\u30af \u2014 {price}\uff08\u4e00\u56de\u9650\u308a\uff09",
+  "paywall.ctaLoading": "\u5b89\u5168\u306a\u6c7a\u6e08\u753b\u9762\u3092\u958b\u3044\u3066\u3044\u307e\u3059\u2026",
+  "paywall.secure": "Stripe \u306b\u3088\u308b\u5b89\u5168\u306a\u6c7a\u6e08",
+  "paywall.goBack": "\u623b\u308b",
+  "checkout.errorStart": "\u6c7a\u6e08\u3092\u958b\u59cb\u3067\u304d\u307e\u305b\u3093\u3067\u3057\u305f\u3002\u3082\u3046\u4e00\u5ea6\u304a\u8a66\u3057\u304f\u3060\u3055\u3044\u3002",
+  "checkout.errorNotOpened": "\u6c7a\u6e08\u753b\u9762\u304c\u958b\u304d\u307e\u305b\u3093\u3067\u3057\u305f\u3002\u3082\u3046\u4e00\u5ea6\u304a\u8a66\u3057\u304f\u3060\u3055\u3044\u3002",
+  "checkout.errorNetwork": "\u30cd\u30c3\u30c8\u30ef\u30fc\u30af\u30a8\u30e9\u30fc\u3067\u3059\u3002\u63a5\u7d9a\u3092\u78ba\u8a8d\u3057\u3066\u3082\u3046\u4e00\u5ea6\u304a\u8a66\u3057\u304f\u3060\u3055\u3044\u3002",
+  "checkout.errorAuth": "\u3053\u306e\u8cfc\u5165\u3092\u5b8c\u4e86\u3059\u308b\u306b\u306f\u30b5\u30a4\u30f3\u30a4\u30f3\u3057\u3066\u304f\u3060\u3055\u3044\u3002",
+  "checkout.errorNotPurchasable": "\u3053\u306e\u30b7\u30ea\u30fc\u30ba\u306f\u8ca9\u58f2\u3055\u308c\u3066\u3044\u307e\u305b\u3093\u3002",
+  "checkout.errorEligibility": "\u8cfc\u5165\u8cc7\u683c\u3092\u78ba\u8a8d\u3067\u304d\u307e\u305b\u3093\u3067\u3057\u305f\u3002\u3082\u3046\u4e00\u5ea6\u304a\u8a66\u3057\u304f\u3060\u3055\u3044\u3002",
+  "checkout.errorAccountDeletion": "\u30a2\u30ab\u30a6\u30f3\u30c8\u306e\u524a\u9664\u51e6\u7406\u4e2d\u3067\u3059\u3002",
+  "checkout.errorPaymentReview": "\u4ee5\u524d\u306e\u304a\u652f\u6255\u3044\u3092\u78ba\u8a8d\u4e2d\u3067\u3059\u3002\u518d\u5ea6\u304a\u8a66\u3057\u306e\u524d\u306b\u30b5\u30dd\u30fc\u30c8\u3078\u3054\u9023\u7d61\u304f\u3060\u3055\u3044\u3002",
+  "checkout.errorCheckoutUnusable": "\u4ee5\u524d\u306e\u6c7a\u6e08\u3092\u5b89\u5168\u306b\u518d\u5229\u7528\u3067\u304d\u307e\u305b\u3093\u3067\u3057\u305f\u3002\u30b5\u30dd\u30fc\u30c8\u3078\u3054\u9023\u7d61\u304f\u3060\u3055\u3044\u3002",
+  "checkout.errorRefunded": "\u3053\u306e\u304a\u652f\u6255\u3044\u306f\u8fd4\u91d1\u307e\u305f\u306f\u7570\u8b70\u7533\u3057\u7acb\u3066\u6e08\u307f\u3067\u3059\u3002",
+  "checkout.errorNotFound": "\u3053\u306e\u30b7\u30ea\u30fc\u30ba\u304c\u898b\u3064\u304b\u308a\u307e\u305b\u3093\u3002",
+  "language.audio": "{language}\u97f3\u58f0",
+  "language.audioSubs": "{language}\u97f3\u58f0 \u00b7 {subtitles}\u5b57\u5e55",
+  "shorts.like": "\u3044\u3044\u306d", "shorts.liked": "\u3044\u3044\u306d\u6e08\u307f",
 };
 
 const ko: Translations = {
@@ -335,6 +538,31 @@ const ko: Translations = {
   "legal.terms": "\uc774\uc6a9\uc57d\uad00", "legal.privacy": "\uac1c\uc778\uc815\ubcf4\ucc98\ub9ac\ubc29\uce68", "legal.refund": "\ud658\ubd88 \uc815\ucc45",
   "misc.free": "\ubb34\ub8cc", "misc.comingSoon": "\uacf5\uac1c \uc608\uc815", "misc.close": "\ub2eb\uae30",
   "content.synopsis": "\uc904\uac70\ub9ac", "content.episodes": "\uc5d0\ud53c\uc18c\ub4dc", "content.cast": "\ucd9c\uc5f0\uc9c4", "content.moreLikeThis": "\ube44\uc2b7\ud55c \uc791\ud488", "content.views": "\uc870\ud68c", "content.now": "\uc7ac\uc0dd\uc911", "content.info": "\uc815\ubcf4", "content.allEpisodes": "\uc804\uccb4 \uc5d0\ud53c\uc18c\ub4dc", "content.previous": "\uc774\uc804", "content.next": "\ub2e4\uc74c", "content.episodeOf": "\uc5d0\ud53c\uc18c\ub4dc {n}/{total}", "content.trending": "\ud2b8\ub80c\ub4dc", "content.watchFree": "\uc5d0\ud53c\uc18c\ub4dc 1 \ubb34\ub8cc \uc2dc\uccad", "content.unlockSeries": "\uc2dc\ub9ac\uc988 \uc7a0\uae08 \ud574\uc81c", "content.oneTimePayment": "\uc77c\ud68c\uc131 \uacb0\uc81c", "content.allEpisodesIncluded": "\ubaa8\ub4e0 \uc5d0\ud53c\uc18c\ub4dc \ud3ec\ud568", "content.episodeLocked": "\uc5d0\ud53c\uc18c\ub4dc {n}\uc740 \uc7a0\uaca8 \uc788\uc2b5\ub2c8\ub2e4", "content.unlockPrompt": "\ubb34\ub8cc \uc5d0\ud53c\uc18c\ub4dc \uc218\ub294 \uc791\ud488\ub9c8\ub2e4 \ub2e4\ub985\ub2c8\ub2e4. \uc804\uccb4 \uc2dc\ub9ac\uc988\ub97c \uc7a0\uae08 \ud574\uc81c\ud558\uc138\uc694.", "content.tryAgain": "\ub2e4\uc2dc \uc2dc\ub3c4",
+  "paywall.unlockAll": "\uc804\uccb4 \uc5d0\ud53c\uc18c\ub4dc \uc7a0\uae08 \ud574\uc81c",
+  "paywall.unavailableTitle": "\uc5d0\ud53c\uc18c\ub4dc\ub97c \ubcfc \uc218 \uc5c6\uc74c",
+  "paywall.unavailableBody": "\uc774 \uc571\uc5d0\uc11c\ub294 \uc774 \uc5d0\ud53c\uc18c\ub4dc\ub97c \ubcfc \uc218 \uc5c6\uc2b5\ub2c8\ub2e4.",
+  "paywall.previewOver": "{title}\uc758 \ubb34\ub8cc \ubbf8\ub9ac\ubcf4\uae30\uac00 \ub05d\ub0ac\uc2b5\ub2c8\ub2e4. \uc774\uc57c\uae30\ub294 \uc9c0\uae08\ubd80\ud130\uc785\ub2c8\ub2e4.",
+  "paywall.benefitEpisodes": "\uc804\uccb4 {count}\ud654\ub97c \ubc14\ub85c",
+  "paywall.benefitAccess": "\uc774 \uc791\ud488\uc774 \uc11c\ube44\uc2a4\ub418\ub294 \ub3d9\uc548 Verza \uacc4\uc815\uc73c\ub85c \uc2dc\uccad",
+  "paywall.oneTimeUnlock": "\uc2dc\ub9ac\uc988 1\ud68c \uad6c\ub9e4",
+  "paywall.cta": "\uc2dc\ub9ac\uc988 \uc7a0\uae08 \ud574\uc81c \u2014 {price}, 1\ud68c \uacb0\uc81c",
+  "paywall.ctaLoading": "\uc548\uc804\uacb0\uc81c \ucc3d\uc744 \uc5ec\ub294 \uc911\u2026",
+  "paywall.secure": "Stripe\ub97c \ud1b5\ud55c \uc548\uc804\uacb0\uc81c",
+  "paywall.goBack": "\ub4a4\ub85c",
+  "checkout.errorStart": "\uacb0\uc81c\ub97c \uc2dc\uc791\ud558\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4. \ub2e4\uc2dc \uc2dc\ub3c4\ud574 \uc8fc\uc138\uc694.",
+  "checkout.errorNotOpened": "\uacb0\uc81c \ucc3d\uc774 \uc5f4\ub9ac\uc9c0 \uc54a\uc558\uc2b5\ub2c8\ub2e4. \ub2e4\uc2dc \uc2dc\ub3c4\ud574 \uc8fc\uc138\uc694.",
+  "checkout.errorNetwork": "\ub124\ud2b8\uc6cc\ud06c \uc624\ub958\uc785\ub2c8\ub2e4. \uc5f0\uacb0\uc744 \ud655\uc778\ud558\uace0 \ub2e4\uc2dc \uc2dc\ub3c4\ud574 \uc8fc\uc138\uc694.",
+  "checkout.errorAuth": "\uad6c\ub9e4\ub97c \ub9c8\uce58\ub824\uba74 \ub85c\uadf8\uc778\ud574 \uc8fc\uc138\uc694.",
+  "checkout.errorNotPurchasable": "\uc774 \uc2dc\ub9ac\uc988\ub294 \ud310\ub9e4\ud558\uc9c0 \uc54a\uc2b5\ub2c8\ub2e4.",
+  "checkout.errorEligibility": "\uad6c\ub9e4 \uc790\uaca9\uc744 \ud655\uc778\ud558\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4. \ub2e4\uc2dc \uc2dc\ub3c4\ud574 \uc8fc\uc138\uc694.",
+  "checkout.errorAccountDeletion": "\uacc4\uc815 \uc0ad\uc81c\uac00 \uc9c4\ud589 \uc911\uc785\ub2c8\ub2e4.",
+  "checkout.errorPaymentReview": "\uc774\uc804 \uacb0\uc81c\uac00 \uc544\uc9c1 \uac80\ud1a0 \uc911\uc785\ub2c8\ub2e4. \ub2e4\uc2dc \uc2dc\ub3c4\ud558\uae30 \uc804\uc5d0 \uace0\uac1d\uc13c\ud130\ub85c \ubb38\uc758\ud574 \uc8fc\uc138\uc694.",
+  "checkout.errorCheckoutUnusable": "\uc774\uc804 \uacb0\uc81c\ub97c \uc548\uc804\ud558\uac8c \uc7ac\uc0ac\uc6a9\ud560 \uc218 \uc5c6\uc5c8\uc2b5\ub2c8\ub2e4. \uace0\uac1d\uc13c\ud130\ub85c \ubb38\uc758\ud574 \uc8fc\uc138\uc694.",
+  "checkout.errorRefunded": "\uc774 \uacb0\uc81c\ub294 \ud658\ubd88\ub418\uc5c8\uac70\ub098 \uc774\uc758\uac00 \uc81c\uae30\ub418\uc5c8\uc2b5\ub2c8\ub2e4.",
+  "checkout.errorNotFound": "\uc774 \uc2dc\ub9ac\uc988\ub97c \ucc3e\uc744 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4.",
+  "language.audio": "{language} \uc74c\uc131",
+  "language.audioSubs": "{language} \uc74c\uc131 \u00b7 {subtitles} \uc790\ub9c9",
+  "shorts.like": "\uc88b\uc544\uc694", "shorts.liked": "\uc88b\uc544\uc694 \uc644\ub8cc",
 };
 
 const zh: Translations = {
@@ -360,6 +588,31 @@ const zh: Translations = {
   "legal.terms": "\u670d\u52a1\u6761\u6b3e", "legal.privacy": "\u9690\u79c1\u653f\u7b56", "legal.refund": "\u9000\u6b3e\u653f\u7b56",
   "misc.free": "\u514d\u8d39", "misc.comingSoon": "\u5373\u5c06\u4e0a\u7ebf", "misc.close": "\u5173\u95ed",
   "content.synopsis": "Synopsis", "content.episodes": "Episodes", "content.cast": "Cast", "content.moreLikeThis": "More Like This", "content.views": "views", "content.now": "NOW", "content.info": "Info", "content.allEpisodes": "All Episodes", "content.previous": "Previous", "content.next": "Next", "content.episodeOf": "Episode {n} of {total}", "content.trending": "Trending", "content.watchFree": "Watch Episode 1 Free", "content.unlockSeries": "Unlock Full Series", "content.oneTimePayment": "One-time payment", "content.allEpisodesIncluded": "All episodes included", "content.episodeLocked": "Episode {n} is locked", "content.unlockPrompt": "Free-preview availability varies by title. Unlock the full series to keep watching.", "content.tryAgain": "Try Again",
+  "paywall.unlockAll": "\u89e3\u9501\u5168\u90e8\u5267\u96c6",
+  "paywall.unavailableTitle": "\u672c\u96c6\u6682\u4e0d\u53ef\u770b",
+  "paywall.unavailableBody": "\u672c\u5e94\u7528\u5185\u65e0\u6cd5\u89c2\u770b\u8fd9\u4e00\u96c6\u3002",
+  "paywall.previewOver": "\u4f60\u521a\u770b\u5b8c\u300a{title}\u300b\u7684\u514d\u8d39\u8bd5\u770b\u3002\u522b\u505c\uff0c\u6545\u4e8b\u624d\u521a\u521a\u5f00\u59cb\u3002",
+  "paywall.benefitEpisodes": "\u5168\u90e8 {count} \u96c6\uff0c\u7acb\u5373\u89c2\u770b",
+  "paywall.benefitAccess": "\u53ea\u8981\u672c\u7247\u5728\u7ebf\uff0c\u5c31\u53ef\u4ee5\u7528 Verza \u8d26\u53f7\u89c2\u770b",
+  "paywall.oneTimeUnlock": "\u6574\u5267\u89e3\u9501\uff0c\u4e00\u6b21\u6027\u4ed8\u8d39",
+  "paywall.cta": "\u6574\u5267\u89e3\u9501 \u2014 {price}\uff0c\u4e00\u6b21\u6027\u4ed8\u8d39",
+  "paywall.ctaLoading": "\u6b63\u5728\u6253\u5f00\u5b89\u5168\u652f\u4ed8\u2026",
+  "paywall.secure": "\u7531 Stripe \u63d0\u4f9b\u5b89\u5168\u652f\u4ed8",
+  "paywall.goBack": "\u8fd4\u56de",
+  "checkout.errorStart": "\u65e0\u6cd5\u5f00\u59cb\u652f\u4ed8\uff0c\u8bf7\u91cd\u8bd5\u3002",
+  "checkout.errorNotOpened": "\u652f\u4ed8\u9875\u9762\u672a\u80fd\u6253\u5f00\uff0c\u8bf7\u91cd\u8bd5\u3002",
+  "checkout.errorNetwork": "\u7f51\u7edc\u9519\u8bef\u3002\u8bf7\u68c0\u67e5\u7f51\u7edc\u540e\u91cd\u8bd5\u3002",
+  "checkout.errorAuth": "\u8bf7\u5148\u767b\u5f55\u4ee5\u5b8c\u6210\u672c\u6b21\u8d2d\u4e70\u3002",
+  "checkout.errorNotPurchasable": "\u672c\u5267\u76ee\u524d\u4e0d\u5bf9\u5916\u9500\u552e\u3002",
+  "checkout.errorEligibility": "\u65e0\u6cd5\u6838\u5b9e\u4f60\u7684\u8d2d\u4e70\u8d44\u683c\uff0c\u8bf7\u91cd\u8bd5\u3002",
+  "checkout.errorAccountDeletion": "\u8d26\u53f7\u6b63\u5728\u5220\u9664\u4e2d\u3002",
+  "checkout.errorPaymentReview": "\u5148\u524d\u7684\u4e00\u7b14\u4ed8\u6b3e\u4ecd\u5728\u5ba1\u6838\u3002\u91cd\u8bd5\u524d\u8bf7\u8054\u7cfb\u5ba2\u670d\u3002",
+  "checkout.errorCheckoutUnusable": "\u65e0\u6cd5\u5b89\u5168\u5730\u590d\u7528\u5148\u524d\u7684\u652f\u4ed8\uff0c\u8bf7\u8054\u7cfb\u5ba2\u670d\u3002",
+  "checkout.errorRefunded": "\u8be5\u7b14\u4ed8\u6b3e\u5df2\u9000\u6b3e\u6216\u88ab\u4e89\u8bae\u3002",
+  "checkout.errorNotFound": "\u627e\u4e0d\u5230\u8fd9\u90e8\u5267\u3002",
+  "language.audio": "{language}\u914d\u97f3",
+  "language.audioSubs": "{language}\u914d\u97f3 \u00b7 {subtitles}\u5b57\u5e55",
+  "shorts.like": "\u70b9\u8d5e", "shorts.liked": "\u5df2\u70b9\u8d5e",
 };
 
 const hi: Translations = {
@@ -385,6 +638,31 @@ const hi: Translations = {
   "legal.terms": "\u0938\u0947\u0935\u093e \u0915\u0940 \u0936\u0930\u094d\u0924\u0947\u0902", "legal.privacy": "\u0917\u094b\u092a\u0928\u0940\u092f\u0924\u093e \u0928\u0940\u0924\u093f", "legal.refund": "\u0930\u093f\u095e\u0902\u0921 \u0928\u0940\u0924\u093f",
   "misc.free": "\u092e\u0941\u095e\u094d\u0924", "misc.comingSoon": "\u091c\u0932\u094d\u0926 \u0906 \u0930\u0939\u093e \u0939\u0948", "misc.close": "\u092c\u0902\u0926 \u0915\u0930\u0947\u0902",
   "content.synopsis": "Synopsis", "content.episodes": "Episodes", "content.cast": "Cast", "content.moreLikeThis": "More Like This", "content.views": "views", "content.now": "NOW", "content.info": "Info", "content.allEpisodes": "All Episodes", "content.previous": "Previous", "content.next": "Next", "content.episodeOf": "Episode {n} of {total}", "content.trending": "Trending", "content.watchFree": "Watch Episode 1 Free", "content.unlockSeries": "Unlock Full Series", "content.oneTimePayment": "One-time payment", "content.allEpisodesIncluded": "All episodes included", "content.episodeLocked": "Episode {n} is locked", "content.unlockPrompt": "Free-preview availability varies by title. Unlock the full series to keep watching.", "content.tryAgain": "Try Again",
+  "paywall.unlockAll": "\u0938\u092d\u0940 \u090f\u092a\u093f\u0938\u094b\u0921 \u0905\u0928\u0932\u0949\u0915 \u0915\u0930\u0947\u0902",
+  "paywall.unavailableTitle": "\u090f\u092a\u093f\u0938\u094b\u0921 \u0909\u092a\u0932\u092c\u094d\u0927 \u0928\u0939\u0940\u0902",
+  "paywall.unavailableBody": "\u092f\u0939 \u090f\u092a\u093f\u0938\u094b\u0921 \u0907\u0938 \u0910\u092a \u092e\u0947\u0902 \u0909\u092a\u0932\u092c\u094d\u0927 \u0928\u0939\u0940\u0902 \u0939\u0948\u0964",
+  "paywall.previewOver": "\u0906\u092a\u0928\u0947 \u0905\u092d\u0940 {title} \u0915\u093e \u092e\u0941\u092b\u094d\u0924 \u092a\u094d\u0930\u0940\u0935\u094d\u092f\u0942 \u0926\u0947\u0916\u093e\u0964 \u0905\u092c \u0930\u0941\u0915\u093f\u090f \u092e\u0924 \u2014 \u0915\u0939\u093e\u0928\u0940 \u0905\u092d\u0940 \u0936\u0941\u0930\u0942 \u0939\u0941\u0908 \u0939\u0948\u0964",
+  "paywall.benefitEpisodes": "\u0938\u092d\u0940 {count} \u090f\u092a\u093f\u0938\u094b\u0921, \u0924\u0941\u0930\u0902\u0924",
+  "paywall.benefitAccess": "\u091c\u092c \u0924\u0915 \u092f\u0939 \u091f\u093e\u0907\u091f\u0932 \u0909\u092a\u0932\u092c\u094d\u0927 \u0939\u0948, \u0905\u092a\u0928\u0947 Verza \u0916\u093e\u0924\u0947 \u0938\u0947 \u0926\u0947\u0916\u0947\u0902",
+  "paywall.oneTimeUnlock": "\u090f\u0915\u092c\u093e\u0930\u0917\u0940 \u0938\u0940\u0930\u0940\u091c\u093c \u0905\u0928\u0932\u0949\u0915",
+  "paywall.cta": "\u0938\u0940\u0930\u0940\u091c\u093c \u0905\u0928\u0932\u0949\u0915 \u2014 {price}, \u090f\u0915 \u092c\u093e\u0930",
+  "paywall.ctaLoading": "\u0938\u0941\u0930\u0915\u094d\u0937\u093f\u0924 \u091a\u0947\u0915\u0906\u0909\u091f \u0916\u094b\u0932 \u0930\u0939\u0947 \u0939\u0948\u0902\u2026",
+  "paywall.secure": "Stripe \u0915\u0947 \u091c\u093c\u0930\u093f\u090f \u0938\u0941\u0930\u0915\u094d\u0937\u093f\u0924 \u092d\u0941\u0917\u0924\u093e\u0928",
+  "paywall.goBack": "\u0935\u093e\u092a\u0938 \u091c\u093e\u090f\u0902",
+  "checkout.errorStart": "\u091a\u0947\u0915\u0906\u0909\u091f \u0936\u0941\u0930\u0942 \u0928\u0939\u0940\u0902 \u0939\u094b \u0938\u0915\u093e\u0964 \u0915\u0943\u092a\u092f\u093e \u092b\u093f\u0930 \u0915\u094b\u0936\u093f\u0936 \u0915\u0930\u0947\u0902\u0964",
+  "checkout.errorNotOpened": "\u091a\u0947\u0915\u0906\u0909\u091f \u0928\u0939\u0940\u0902 \u0916\u0941\u0932\u093e\u0964 \u0915\u0943\u092a\u092f\u093e \u092b\u093f\u0930 \u0915\u094b\u0936\u093f\u0936 \u0915\u0930\u0947\u0902\u0964",
+  "checkout.errorNetwork": "\u0928\u0947\u091f\u0935\u0930\u094d\u0915 \u0924\u094d\u0930\u0941\u091f\u093f\u0964 \u0905\u092a\u0928\u093e \u0915\u0928\u0947\u0915\u094d\u0936\u0928 \u091c\u093e\u0902\u091a\u0915\u0930 \u092b\u093f\u0930 \u0915\u094b\u0936\u093f\u0936 \u0915\u0930\u0947\u0902\u0964",
+  "checkout.errorAuth": "\u092f\u0939 \u0916\u0930\u0940\u0926 \u092a\u0942\u0930\u0940 \u0915\u0930\u0928\u0947 \u0915\u0947 \u0932\u093f\u090f \u0938\u093e\u0907\u0928 \u0907\u0928 \u0915\u0930\u0947\u0902\u0964",
+  "checkout.errorNotPurchasable": "\u092f\u0939 \u0938\u0940\u0930\u0940\u091c\u093c \u092c\u093f\u0915\u094d\u0930\u0940 \u0915\u0947 \u0932\u093f\u090f \u0909\u092a\u0932\u092c\u094d\u0927 \u0928\u0939\u0940\u0902 \u0939\u0948\u0964",
+  "checkout.errorEligibility": "\u0939\u092e \u0906\u092a\u0915\u0940 \u0916\u0930\u0940\u0926 \u092a\u093e\u0924\u094d\u0930\u0924\u093e \u0915\u0940 \u091c\u093e\u0902\u091a \u0928\u0939\u0940\u0902 \u0915\u0930 \u0938\u0915\u0947\u0964 \u0915\u0943\u092a\u092f\u093e \u092b\u093f\u0930 \u0915\u094b\u0936\u093f\u0936 \u0915\u0930\u0947\u0902\u0964",
+  "checkout.errorAccountDeletion": "\u0916\u093e\u0924\u093e \u0939\u091f\u093e\u0928\u0947 \u0915\u0940 \u092a\u094d\u0930\u0915\u094d\u0930\u093f\u092f\u093e \u091a\u0932 \u0930\u0939\u0940 \u0939\u0948\u0964",
+  "checkout.errorPaymentReview": "\u092a\u093f\u091b\u0932\u093e \u092d\u0941\u0917\u0924\u093e\u0928 \u0905\u092d\u0940 \u091c\u093e\u0902\u091a \u092e\u0947\u0902 \u0939\u0948\u0964 \u0926\u094b\u092c\u093e\u0930\u093e \u0915\u094b\u0936\u093f\u0936 \u0915\u0930\u0928\u0947 \u0938\u0947 \u092a\u0939\u0932\u0947 \u0938\u092a\u094b\u0930\u094d\u091f \u0938\u0947 \u0938\u0902\u092a\u0930\u094d\u0915 \u0915\u0930\u0947\u0902\u0964",
+  "checkout.errorCheckoutUnusable": "\u092a\u093f\u091b\u0932\u0947 \u091a\u0947\u0915\u0906\u0909\u091f \u0915\u094b \u0938\u0941\u0930\u0915\u094d\u0937\u093f\u0924 \u0922\u0902\u0917 \u0938\u0947 \u0926\u094b\u092c\u093e\u0930\u093e \u0907\u0938\u094d\u0924\u0947\u092e\u093e\u0932 \u0928\u0939\u0940\u0902 \u0915\u093f\u092f\u093e \u091c\u093e \u0938\u0915\u093e\u0964 \u0938\u092a\u094b\u0930\u094d\u091f \u0938\u0947 \u0938\u0902\u092a\u0930\u094d\u0915 \u0915\u0930\u0947\u0902\u0964",
+  "checkout.errorRefunded": "\u092f\u0939 \u092d\u0941\u0917\u0924\u093e\u0928 \u0935\u093e\u092a\u0938 \u0915\u093f\u092f\u093e \u0917\u092f\u093e \u092f\u093e \u0935\u093f\u0935\u093e\u0926\u093f\u0924 \u0939\u0948\u0964",
+  "checkout.errorNotFound": "\u092f\u0939 \u0938\u0940\u0930\u0940\u091c\u093c \u0928\u0939\u0940\u0902 \u092e\u093f\u0932\u0940\u0964",
+  "language.audio": "{language} \u0911\u0921\u093f\u092f\u094b",
+  "language.audioSubs": "{language} \u0911\u0921\u093f\u092f\u094b \u00b7 {subtitles} \u0938\u092c\u091f\u093e\u0907\u091f\u0932",
+  "shorts.like": "\u092a\u0938\u0902\u0926", "shorts.liked": "\u092a\u0938\u0902\u0926 \u0915\u093f\u092f\u093e",
 };
 
 const ar: Translations = {
@@ -410,6 +688,31 @@ const ar: Translations = {
   "legal.terms": "\u0634\u0631\u0648\u0637 \u0627\u0644\u062e\u062f\u0645\u0629", "legal.privacy": "\u0633\u064a\u0627\u0633\u0629 \u0627\u0644\u062e\u0635\u0648\u0635\u064a\u0629", "legal.refund": "\u0633\u064a\u0627\u0633\u0629 \u0627\u0644\u0627\u0633\u062a\u0631\u062f\u0627\u062f",
   "misc.free": "\u0645\u062c\u0627\u0646\u064a", "misc.comingSoon": "\u0642\u0631\u064a\u0628\u064b\u0627", "misc.close": "\u0625\u063a\u0644\u0627\u0642",
   "content.synopsis": "Synopsis", "content.episodes": "Episodes", "content.cast": "Cast", "content.moreLikeThis": "More Like This", "content.views": "views", "content.now": "NOW", "content.info": "Info", "content.allEpisodes": "All Episodes", "content.previous": "Previous", "content.next": "Next", "content.episodeOf": "Episode {n} of {total}", "content.trending": "Trending", "content.watchFree": "Watch Episode 1 Free", "content.unlockSeries": "Unlock Full Series", "content.oneTimePayment": "One-time payment", "content.allEpisodesIncluded": "All episodes included", "content.episodeLocked": "Episode {n} is locked", "content.unlockPrompt": "Free-preview availability varies by title. Unlock the full series to keep watching.", "content.tryAgain": "Try Again",
+  "paywall.unlockAll": "\u0641\u062a\u062d \u062c\u0645\u064a\u0639 \u0627\u0644\u062d\u0644\u0642\u0627\u062a",
+  "paywall.unavailableTitle": "\u0627\u0644\u062d\u0644\u0642\u0629 \u063a\u064a\u0631 \u0645\u062a\u0627\u062d\u0629",
+  "paywall.unavailableBody": "\u0647\u0630\u0647 \u0627\u0644\u062d\u0644\u0642\u0629 \u063a\u064a\u0631 \u0645\u062a\u0627\u062d\u0629 \u0641\u064a \u0647\u0630\u0627 \u0627\u0644\u062a\u0637\u0628\u064a\u0642.",
+  "paywall.previewOver": "\u0644\u0642\u062f \u0634\u0627\u0647\u062f\u062a \u0627\u0644\u0645\u0639\u0627\u064a\u0646\u0629 \u0627\u0644\u0645\u062c\u0627\u0646\u064a\u0629 \u0645\u0646 {title}. \u0644\u0627 \u062a\u062a\u0648\u0642\u0641 \u0627\u0644\u0622\u0646 \u2014 \u0627\u0644\u0642\u0635\u0629 \u062a\u0628\u062f\u0623 \u0644\u0644\u062a\u0648.",
+  "paywall.benefitEpisodes": "\u0643\u0644 \u0627\u0644\u062d\u0644\u0642\u0627\u062a \u0627\u0644\u0640 {count}\u060c \u0641\u0648\u0631\u064b\u0627",
+  "paywall.benefitAccess": "\u0627\u0644\u0645\u0634\u0627\u0647\u062f\u0629 \u0639\u0628\u0631 \u062d\u0633\u0627\u0628\u0643 \u0641\u064a Verza \u0645\u0627 \u062f\u0627\u0645 \u0647\u0630\u0627 \u0627\u0644\u0639\u0645\u0644 \u0645\u062a\u0627\u062d\u064b\u0627",
+  "paywall.oneTimeUnlock": "\u0634\u0631\u0627\u0621 \u0627\u0644\u0645\u0633\u0644\u0633\u0644 \u0645\u0631\u0629 \u0648\u0627\u062d\u062f\u0629",
+  "paywall.cta": "\u0641\u062a\u062d \u0627\u0644\u0645\u0633\u0644\u0633\u0644 \u2014 {price}\u060c \u062f\u0641\u0639\u0629 \u0648\u0627\u062d\u062f\u0629",
+  "paywall.ctaLoading": "\u062c\u0627\u0631\u064d \u0641\u062a\u062d \u0627\u0644\u062f\u0641\u0639 \u0627\u0644\u0622\u0645\u0646\u2026",
+  "paywall.secure": "\u062f\u0641\u0639 \u0622\u0645\u0646 \u0639\u0628\u0631 Stripe",
+  "paywall.goBack": "\u0631\u062c\u0648\u0639",
+  "checkout.errorStart": "\u062a\u0639\u0630\u0631 \u0628\u062f\u0621 \u0639\u0645\u0644\u064a\u0629 \u0627\u0644\u062f\u0641\u0639. \u064a\u0631\u062c\u0649 \u0627\u0644\u0645\u062d\u0627\u0648\u0644\u0629 \u0645\u062c\u062f\u062f\u064b\u0627.",
+  "checkout.errorNotOpened": "\u0644\u0645 \u062a\u064f\u0641\u062a\u062d \u0635\u0641\u062d\u0629 \u0627\u0644\u062f\u0641\u0639. \u064a\u0631\u062c\u0649 \u0627\u0644\u0645\u062d\u0627\u0648\u0644\u0629 \u0645\u062c\u062f\u062f\u064b\u0627.",
+  "checkout.errorNetwork": "\u062e\u0637\u0623 \u0641\u064a \u0627\u0644\u0634\u0628\u0643\u0629. \u062a\u062d\u0642\u0642 \u0645\u0646 \u0627\u062a\u0635\u0627\u0644\u0643 \u0648\u0623\u0639\u062f \u0627\u0644\u0645\u062d\u0627\u0648\u0644\u0629.",
+  "checkout.errorAuth": "\u0633\u062c\u0644 \u0627\u0644\u062f\u062e\u0648\u0644 \u0644\u0625\u062a\u0645\u0627\u0645 \u0639\u0645\u0644\u064a\u0629 \u0627\u0644\u0634\u0631\u0627\u0621.",
+  "checkout.errorNotPurchasable": "\u0647\u0630\u0627 \u0627\u0644\u0645\u0633\u0644\u0633\u0644 \u063a\u064a\u0631 \u0645\u0639\u0631\u0648\u0636 \u0644\u0644\u0628\u064a\u0639.",
+  "checkout.errorEligibility": "\u062a\u0639\u0630\u0631 \u0627\u0644\u062a\u062d\u0642\u0642 \u0645\u0646 \u0623\u0647\u0644\u064a\u062a\u0643 \u0644\u0644\u0634\u0631\u0627\u0621. \u064a\u0631\u062c\u0649 \u0627\u0644\u0645\u062d\u0627\u0648\u0644\u0629 \u0645\u062c\u062f\u062f\u064b\u0627.",
+  "checkout.errorAccountDeletion": "\u062c\u0627\u0631\u064d \u062d\u0630\u0641 \u0627\u0644\u062d\u0633\u0627\u0628.",
+  "checkout.errorPaymentReview": "\u0644\u0627 \u062a\u0632\u0627\u0644 \u062f\u0641\u0639\u0629 \u0633\u0627\u0628\u0642\u0629 \u0642\u064a\u062f \u0627\u0644\u0645\u0631\u0627\u062c\u0639\u0629. \u062a\u0648\u0627\u0635\u0644 \u0645\u0639 \u0627\u0644\u062f\u0639\u0645 \u0642\u0628\u0644 \u0625\u0639\u0627\u062f\u0629 \u0627\u0644\u0645\u062d\u0627\u0648\u0644\u0629.",
+  "checkout.errorCheckoutUnusable": "\u062a\u0639\u0630\u0631 \u0625\u0639\u0627\u062f\u0629 \u0627\u0633\u062a\u062e\u062f\u0627\u0645 \u0639\u0645\u0644\u064a\u0629 \u062f\u0641\u0639 \u0633\u0627\u0628\u0642\u0629 \u0628\u0623\u0645\u0627\u0646. \u062a\u0648\u0627\u0635\u0644 \u0645\u0639 \u0627\u0644\u062f\u0639\u0645.",
+  "checkout.errorRefunded": "\u062a\u0645 \u0627\u0633\u062a\u0631\u062f\u0627\u062f \u0647\u0630\u0647 \u0627\u0644\u062f\u0641\u0639\u0629 \u0623\u0648 \u0627\u0644\u0627\u0639\u062a\u0631\u0627\u0636 \u0639\u0644\u064a\u0647\u0627.",
+  "checkout.errorNotFound": "\u062a\u0639\u0630\u0631 \u0627\u0644\u0639\u062b\u0648\u0631 \u0639\u0644\u0649 \u0647\u0630\u0627 \u0627\u0644\u0645\u0633\u0644\u0633\u0644.",
+  "language.audio": "\u0627\u0644\u0635\u0648\u062a \u0628\u0627\u0644{language}",
+  "language.audioSubs": "\u0627\u0644\u0635\u0648\u062a \u0628\u0627\u0644{language} \u00b7 \u062a\u0631\u062c\u0645\u0629 \u0628\u0627\u0644{subtitles}",
+  "shorts.like": "\u0625\u0639\u062c\u0627\u0628", "shorts.liked": "\u0623\u0639\u062c\u0628\u0646\u064a",
 };
 
 const ru: Translations = {
@@ -435,6 +738,31 @@ const ru: Translations = {
   "legal.terms": "\u0423\u0441\u043b\u043e\u0432\u0438\u044f \u0438\u0441\u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u043d\u0438\u044f", "legal.privacy": "\u041f\u043e\u043b\u0438\u0442\u0438\u043a\u0430 \u043a\u043e\u043d\u0444\u0438\u0434\u0435\u043d\u0446\u0438\u0430\u043b\u044c\u043d\u043e\u0441\u0442\u0438", "legal.refund": "\u041f\u043e\u043b\u0438\u0442\u0438\u043a\u0430 \u0432\u043e\u0437\u0432\u0440\u0430\u0442\u0430",
   "misc.free": "\u0411\u0435\u0441\u043f\u043b\u0430\u0442\u043d\u043e", "misc.comingSoon": "\u0421\u043a\u043e\u0440\u043e", "misc.close": "\u0417\u0430\u043a\u0440\u044b\u0442\u044c",
   "content.synopsis": "Synopsis", "content.episodes": "Episodes", "content.cast": "Cast", "content.moreLikeThis": "More Like This", "content.views": "views", "content.now": "NOW", "content.info": "Info", "content.allEpisodes": "All Episodes", "content.previous": "Previous", "content.next": "Next", "content.episodeOf": "Episode {n} of {total}", "content.trending": "Trending", "content.watchFree": "Watch Episode 1 Free", "content.unlockSeries": "Unlock Full Series", "content.oneTimePayment": "One-time payment", "content.allEpisodesIncluded": "All episodes included", "content.episodeLocked": "Episode {n} is locked", "content.unlockPrompt": "Free-preview availability varies by title. Unlock the full series to keep watching.", "content.tryAgain": "Try Again",
+  "paywall.unlockAll": "\u041e\u0442\u043a\u0440\u044b\u0442\u044c \u0432\u0441\u0435 \u0441\u0435\u0440\u0438\u0438",
+  "paywall.unavailableTitle": "\u0421\u0435\u0440\u0438\u044f \u043d\u0435\u0434\u043e\u0441\u0442\u0443\u043f\u043d\u0430",
+  "paywall.unavailableBody": "\u042d\u0442\u0430 \u0441\u0435\u0440\u0438\u044f \u043d\u0435\u0434\u043e\u0441\u0442\u0443\u043f\u043d\u0430 \u0432 \u044d\u0442\u043e\u043c \u043f\u0440\u0438\u043b\u043e\u0436\u0435\u043d\u0438\u0438.",
+  "paywall.previewOver": "\u0412\u044b \u0442\u043e\u043b\u044c\u043a\u043e \u0447\u0442\u043e \u043f\u043e\u0441\u043c\u043e\u0442\u0440\u0435\u043b\u0438 \u0431\u0435\u0441\u043f\u043b\u0430\u0442\u043d\u044b\u0439 \u0444\u0440\u0430\u0433\u043c\u0435\u043d\u0442 \u00ab{title}\u00bb. \u041d\u0435 \u043e\u0441\u0442\u0430\u043d\u0430\u0432\u043b\u0438\u0432\u0430\u0439\u0442\u0435\u0441\u044c \u2014 \u0438\u0441\u0442\u043e\u0440\u0438\u044f \u0442\u043e\u043b\u044c\u043a\u043e \u043d\u0430\u0447\u0438\u043d\u0430\u0435\u0442\u0441\u044f.",
+  "paywall.benefitEpisodes": "\u0412\u0441\u0435 {count} \u0441\u0435\u0440\u0438\u0439 \u0441\u0440\u0430\u0437\u0443",
+  "paywall.benefitAccess": "\u0414\u043e\u0441\u0442\u0443\u043f \u0432 \u0430\u043a\u043a\u0430\u0443\u043d\u0442\u0435 Verza, \u043f\u043e\u043a\u0430 \u044d\u0442\u043e\u0442 \u0442\u0438\u0442\u0443\u043b \u043e\u0441\u0442\u0430\u0451\u0442\u0441\u044f \u0432 \u043a\u0430\u0442\u0430\u043b\u043e\u0433\u0435",
+  "paywall.oneTimeUnlock": "\u0440\u0430\u0437\u043e\u0432\u0430\u044f \u043f\u043e\u043a\u0443\u043f\u043a\u0430 \u0441\u0435\u0440\u0438\u0430\u043b\u0430",
+  "paywall.cta": "\u041e\u0442\u043a\u0440\u044b\u0442\u044c \u0441\u0435\u0440\u0438\u0430\u043b \u2014 {price}, \u0440\u0430\u0437\u043e\u0432\u044b\u0439 \u043f\u043b\u0430\u0442\u0451\u0436",
+  "paywall.ctaLoading": "\u041e\u0442\u043a\u0440\u044b\u0432\u0430\u0435\u043c \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u0443\u044e \u043e\u043f\u043b\u0430\u0442\u0443\u2026",
+  "paywall.secure": "\u0411\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u0430\u044f \u043e\u043f\u043b\u0430\u0442\u0430 \u0447\u0435\u0440\u0435\u0437 Stripe",
+  "paywall.goBack": "\u041d\u0430\u0437\u0430\u0434",
+  "checkout.errorStart": "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u043d\u0430\u0447\u0430\u0442\u044c \u043e\u043f\u043b\u0430\u0442\u0443. \u041f\u043e\u043f\u0440\u043e\u0431\u0443\u0439\u0442\u0435 \u0435\u0449\u0451 \u0440\u0430\u0437.",
+  "checkout.errorNotOpened": "\u0421\u0442\u0440\u0430\u043d\u0438\u0446\u0430 \u043e\u043f\u043b\u0430\u0442\u044b \u043d\u0435 \u043e\u0442\u043a\u0440\u044b\u043b\u0430\u0441\u044c. \u041f\u043e\u043f\u0440\u043e\u0431\u0443\u0439\u0442\u0435 \u0435\u0449\u0451 \u0440\u0430\u0437.",
+  "checkout.errorNetwork": "\u041e\u0448\u0438\u0431\u043a\u0430 \u0441\u0435\u0442\u0438. \u041f\u0440\u043e\u0432\u0435\u0440\u044c\u0442\u0435 \u0441\u043e\u0435\u0434\u0438\u043d\u0435\u043d\u0438\u0435 \u0438 \u043f\u043e\u0432\u0442\u043e\u0440\u0438\u0442\u0435.",
+  "checkout.errorAuth": "\u0412\u043e\u0439\u0434\u0438\u0442\u0435 \u0432 \u0430\u043a\u043a\u0430\u0443\u043d\u0442, \u0447\u0442\u043e\u0431\u044b \u0437\u0430\u0432\u0435\u0440\u0448\u0438\u0442\u044c \u043f\u043e\u043a\u0443\u043f\u043a\u0443.",
+  "checkout.errorNotPurchasable": "\u042d\u0442\u043e\u0442 \u0441\u0435\u0440\u0438\u0430\u043b \u043d\u0435 \u043f\u0440\u043e\u0434\u0430\u0451\u0442\u0441\u044f.",
+  "checkout.errorEligibility": "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u043f\u0440\u043e\u0432\u0435\u0440\u0438\u0442\u044c \u0432\u043e\u0437\u043c\u043e\u0436\u043d\u043e\u0441\u0442\u044c \u043f\u043e\u043a\u0443\u043f\u043a\u0438. \u041f\u043e\u043f\u0440\u043e\u0431\u0443\u0439\u0442\u0435 \u0435\u0449\u0451 \u0440\u0430\u0437.",
+  "checkout.errorAccountDeletion": "\u0418\u0434\u0451\u0442 \u0443\u0434\u0430\u043b\u0435\u043d\u0438\u0435 \u0430\u043a\u043a\u0430\u0443\u043d\u0442\u0430.",
+  "checkout.errorPaymentReview": "\u041f\u0440\u0435\u0434\u044b\u0434\u0443\u0449\u0438\u0439 \u043f\u043b\u0430\u0442\u0451\u0436 \u0435\u0449\u0451 \u043f\u0440\u043e\u0432\u0435\u0440\u044f\u0435\u0442\u0441\u044f. \u0421\u0432\u044f\u0436\u0438\u0442\u0435\u0441\u044c \u0441 \u043f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u043e\u0439 \u043f\u0435\u0440\u0435\u0434 \u043f\u043e\u0432\u0442\u043e\u0440\u043e\u043c.",
+  "checkout.errorCheckoutUnusable": "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e \u043f\u043e\u0432\u0442\u043e\u0440\u043d\u043e \u0438\u0441\u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u044c \u043f\u0440\u0435\u0434\u044b\u0434\u0443\u0449\u0443\u044e \u043e\u043f\u043b\u0430\u0442\u0443. \u0421\u0432\u044f\u0436\u0438\u0442\u0435\u0441\u044c \u0441 \u043f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u043e\u0439.",
+  "checkout.errorRefunded": "\u042d\u0442\u043e\u0442 \u043f\u043b\u0430\u0442\u0451\u0436 \u0432\u043e\u0437\u0432\u0440\u0430\u0449\u0451\u043d \u0438\u043b\u0438 \u043e\u0441\u043f\u043e\u0440\u0435\u043d.",
+  "checkout.errorNotFound": "\u042d\u0442\u043e\u0442 \u0441\u0435\u0440\u0438\u0430\u043b \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d.",
+  "language.audio": "\u0417\u0432\u0443\u043a: {language}",
+  "language.audioSubs": "\u0417\u0432\u0443\u043a: {language} \u00b7 \u0441\u0443\u0431\u0442\u0438\u0442\u0440\u044b: {subtitles}",
+  "shorts.like": "\u041d\u0440\u0430\u0432\u0438\u0442\u0441\u044f", "shorts.liked": "\u041f\u043e\u043d\u0440\u0430\u0432\u0438\u043b\u043e\u0441\u044c",
 };
 
 const tr: Translations = {
@@ -460,6 +788,31 @@ const tr: Translations = {
   "legal.terms": "Hizmet \u015eartlar\u0131", "legal.privacy": "Gizlilik Politikas\u0131", "legal.refund": "\u0130ade Politikas\u0131",
   "misc.free": "\u00dccretsiz", "misc.comingSoon": "\u00c7ok Yak\u0131nda", "misc.close": "Kapat",
   "content.synopsis": "Synopsis", "content.episodes": "Episodes", "content.cast": "Cast", "content.moreLikeThis": "More Like This", "content.views": "views", "content.now": "NOW", "content.info": "Info", "content.allEpisodes": "All Episodes", "content.previous": "Previous", "content.next": "Next", "content.episodeOf": "Episode {n} of {total}", "content.trending": "Trending", "content.watchFree": "Watch Episode 1 Free", "content.unlockSeries": "Unlock Full Series", "content.oneTimePayment": "One-time payment", "content.allEpisodesIncluded": "All episodes included", "content.episodeLocked": "Episode {n} is locked", "content.unlockPrompt": "Free-preview availability varies by title. Unlock the full series to keep watching.", "content.tryAgain": "Try Again",
+  "paywall.unlockAll": "T\u00fcm b\u00f6l\u00fcmlerin kilidini a\u00e7",
+  "paywall.unavailableTitle": "B\u00f6l\u00fcm kullan\u0131lam\u0131yor",
+  "paywall.unavailableBody": "Bu b\u00f6l\u00fcm bu uygulamada kullan\u0131lam\u0131yor.",
+  "paywall.previewOver": "{title} dizisinin \u00fccretsiz \u00f6nizlemesini izlediniz. \u015eimdi durmay\u0131n \u2014 hikaye daha yeni ba\u015fl\u0131yor.",
+  "paywall.benefitEpisodes": "{count} b\u00f6l\u00fcm\u00fcn hepsi, an\u0131nda",
+  "paywall.benefitAccess": "Bu yap\u0131m yay\u0131nda kald\u0131\u011f\u0131 s\u00fcrece Verza hesab\u0131n\u0131zdan eri\u015fim",
+  "paywall.oneTimeUnlock": "tek seferlik dizi sat\u0131n al\u0131m\u0131",
+  "paywall.cta": "Dizinin kilidini a\u00e7 \u2014 {price}, tek seferlik",
+  "paywall.ctaLoading": "G\u00fcvenli \u00f6deme a\u00e7\u0131l\u0131yor\u2026",
+  "paywall.secure": "Stripe ile g\u00fcvenli \u00f6deme",
+  "paywall.goBack": "Geri d\u00f6n",
+  "checkout.errorStart": "\u00d6deme ba\u015flat\u0131lamad\u0131. L\u00fctfen tekrar deneyin.",
+  "checkout.errorNotOpened": "\u00d6deme sayfas\u0131 a\u00e7\u0131lmad\u0131. L\u00fctfen tekrar deneyin.",
+  "checkout.errorNetwork": "A\u011f hatas\u0131. Ba\u011flant\u0131n\u0131z\u0131 kontrol edip tekrar deneyin.",
+  "checkout.errorAuth": "Bu sat\u0131n alma i\u015flemini tamamlamak i\u00e7in giri\u015f yap\u0131n.",
+  "checkout.errorNotPurchasable": "Bu dizi sat\u0131\u015fta de\u011fil.",
+  "checkout.errorEligibility": "Sat\u0131n alma uygunlu\u011funuzu do\u011frulayamad\u0131k. L\u00fctfen tekrar deneyin.",
+  "checkout.errorAccountDeletion": "Hesap silme i\u015flemi s\u00fcr\u00fcyor.",
+  "checkout.errorPaymentReview": "\u00d6nceki bir \u00f6deme h\u00e2l\u00e2 inceleniyor. Tekrar denemeden \u00f6nce destek ekibiyle ileti\u015fime ge\u00e7in.",
+  "checkout.errorCheckoutUnusable": "\u00d6nceki bir \u00f6deme g\u00fcvenle yeniden kullan\u0131lamad\u0131. Destek ekibiyle ileti\u015fime ge\u00e7in.",
+  "checkout.errorRefunded": "Bu \u00f6deme iade edildi veya itiraz edildi.",
+  "checkout.errorNotFound": "Bu dizi bulunamad\u0131.",
+  "language.audio": "{language} ses",
+  "language.audioSubs": "{language} ses \u00b7 {subtitles} altyaz\u0131",
+  "shorts.like": "Be\u011fen", "shorts.liked": "Be\u011fenildi",
 };
 
 const pl: Translations = {
@@ -485,6 +838,31 @@ const pl: Translations = {
   "legal.terms": "Regulamin", "legal.privacy": "Polityka Prywatno\u015bci", "legal.refund": "Polityka Zwrot\u00f3w",
   "misc.free": "Za Darmo", "misc.comingSoon": "Wkr\u00f3tce", "misc.close": "Zamknij",
   "content.synopsis": "Synopsis", "content.episodes": "Episodes", "content.cast": "Cast", "content.moreLikeThis": "More Like This", "content.views": "views", "content.now": "NOW", "content.info": "Info", "content.allEpisodes": "All Episodes", "content.previous": "Previous", "content.next": "Next", "content.episodeOf": "Episode {n} of {total}", "content.trending": "Trending", "content.watchFree": "Watch Episode 1 Free", "content.unlockSeries": "Unlock Full Series", "content.oneTimePayment": "One-time payment", "content.allEpisodesIncluded": "All episodes included", "content.episodeLocked": "Episode {n} is locked", "content.unlockPrompt": "Free-preview availability varies by title. Unlock the full series to keep watching.", "content.tryAgain": "Try Again",
+  "paywall.unlockAll": "Odblokuj wszystkie odcinki",
+  "paywall.unavailableTitle": "Odcinek niedost\u0119pny",
+  "paywall.unavailableBody": "Ten odcinek nie jest dost\u0119pny w tej aplikacji.",
+  "paywall.previewOver": "W\u0142a\u015bnie obejrza\u0142e\u015b darmowy fragment {title}. Nie przerywaj \u2014 historia dopiero si\u0119 rozkr\u0119ca.",
+  "paywall.benefitEpisodes": "Wszystkie {count} odcink\u00f3w, od razu",
+  "paywall.benefitAccess": "Dost\u0119p na koncie Verza, dop\u00f3ki ten tytu\u0142 pozostaje dost\u0119pny",
+  "paywall.oneTimeUnlock": "jednorazowy zakup serialu",
+  "paywall.cta": "Odblokuj serial \u2014 {price}, jednorazowo",
+  "paywall.ctaLoading": "Otwieram bezpieczn\u0105 p\u0142atno\u015b\u0107\u2026",
+  "paywall.secure": "Bezpieczna p\u0142atno\u015b\u0107 przez Stripe",
+  "paywall.goBack": "Wr\u00f3\u0107",
+  "checkout.errorStart": "Nie uda\u0142o si\u0119 rozpocz\u0105\u0107 p\u0142atno\u015bci. Spr\u00f3buj ponownie.",
+  "checkout.errorNotOpened": "P\u0142atno\u015b\u0107 si\u0119 nie otworzy\u0142a. Spr\u00f3buj ponownie.",
+  "checkout.errorNetwork": "B\u0142\u0105d sieci. Sprawd\u017a po\u0142\u0105czenie i spr\u00f3buj ponownie.",
+  "checkout.errorAuth": "Zaloguj si\u0119, aby doko\u0144czy\u0107 zakup.",
+  "checkout.errorNotPurchasable": "Ten serial nie jest w sprzeda\u017cy.",
+  "checkout.errorEligibility": "Nie mogli\u015bmy zweryfikowa\u0107 Twojego prawa do zakupu. Spr\u00f3buj ponownie.",
+  "checkout.errorAccountDeletion": "Trwa usuwanie konta.",
+  "checkout.errorPaymentReview": "Wcze\u015bniejsza p\u0142atno\u015b\u0107 jest wci\u0105\u017c weryfikowana. Skontaktuj si\u0119 z pomoc\u0105 przed kolejn\u0105 pr\u00f3b\u0105.",
+  "checkout.errorCheckoutUnusable": "Nie da\u0142o si\u0119 bezpiecznie ponowi\u0107 wcze\u015bniejszej p\u0142atno\u015bci. Skontaktuj si\u0119 z pomoc\u0105.",
+  "checkout.errorRefunded": "Ta p\u0142atno\u015b\u0107 zosta\u0142a zwr\u00f3cona lub zakwestionowana.",
+  "checkout.errorNotFound": "Nie znaleziono tego serialu.",
+  "language.audio": "D\u017awi\u0119k: {language}",
+  "language.audioSubs": "D\u017awi\u0119k: {language} \u00b7 napisy: {subtitles}",
+  "shorts.like": "Lubi\u0119 to", "shorts.liked": "Polubione",
 };
 
 const nl: Translations = {
@@ -510,6 +888,31 @@ const nl: Translations = {
   "legal.terms": "Servicevoorwaarden", "legal.privacy": "Privacybeleid", "legal.refund": "Restitutiebeleid",
   "misc.free": "Gratis", "misc.comingSoon": "Binnenkort", "misc.close": "Sluiten",
   "content.synopsis": "Synopsis", "content.episodes": "Episodes", "content.cast": "Cast", "content.moreLikeThis": "More Like This", "content.views": "views", "content.now": "NOW", "content.info": "Info", "content.allEpisodes": "All Episodes", "content.previous": "Previous", "content.next": "Next", "content.episodeOf": "Episode {n} of {total}", "content.trending": "Trending", "content.watchFree": "Watch Episode 1 Free", "content.unlockSeries": "Unlock Full Series", "content.oneTimePayment": "One-time payment", "content.allEpisodesIncluded": "All episodes included", "content.episodeLocked": "Episode {n} is locked", "content.unlockPrompt": "Free-preview availability varies by title. Unlock the full series to keep watching.", "content.tryAgain": "Try Again",
+  "paywall.unlockAll": "Ontgrendel alle afleveringen",
+  "paywall.unavailableTitle": "Aflevering niet beschikbaar",
+  "paywall.unavailableBody": "Deze aflevering is niet beschikbaar in deze app.",
+  "paywall.previewOver": "Je hebt net de gratis preview van {title} gezien. Stop nu niet \u2014 het verhaal begint pas.",
+  "paywall.benefitEpisodes": "Alle {count} afleveringen, direct",
+  "paywall.benefitAccess": "Toegang via je Verza-account zolang deze titel beschikbaar blijft",
+  "paywall.oneTimeUnlock": "eenmalige serie-aankoop",
+  "paywall.cta": "Serie ontgrendelen \u2014 {price}, eenmalig",
+  "paywall.ctaLoading": "Veilig afrekenen wordt geopend\u2026",
+  "paywall.secure": "Veilig betalen via Stripe",
+  "paywall.goBack": "Terug",
+  "checkout.errorStart": "Afrekenen kon niet worden gestart. Probeer het opnieuw.",
+  "checkout.errorNotOpened": "Het afrekenscherm ging niet open. Probeer het opnieuw.",
+  "checkout.errorNetwork": "Netwerkfout. Controleer je verbinding en probeer het opnieuw.",
+  "checkout.errorAuth": "Log in om deze aankoop af te ronden.",
+  "checkout.errorNotPurchasable": "Deze serie is niet te koop.",
+  "checkout.errorEligibility": "We konden je aankooprecht niet controleren. Probeer het opnieuw.",
+  "checkout.errorAccountDeletion": "Het account wordt verwijderd.",
+  "checkout.errorPaymentReview": "Een eerdere betaling wordt nog beoordeeld. Neem contact op met support voordat je het opnieuw probeert.",
+  "checkout.errorCheckoutUnusable": "Een eerdere betaling kon niet veilig worden hergebruikt. Neem contact op met support.",
+  "checkout.errorRefunded": "Deze betaling is terugbetaald of betwist.",
+  "checkout.errorNotFound": "Deze serie is niet gevonden.",
+  "language.audio": "Audio in {language}",
+  "language.audioSubs": "Audio in {language} \u00b7 ondertiteling in {subtitles}",
+  "shorts.like": "Vind ik leuk", "shorts.liked": "Leuk",
 };
 
 const th: Translations = {
@@ -535,6 +938,31 @@ const th: Translations = {
   "legal.terms": "\u0e02\u0e49\u0e2d\u0e01\u0e33\u0e2b\u0e19\u0e14\u0e01\u0e32\u0e23\u0e43\u0e2b\u0e49\u0e1a\u0e23\u0e34\u0e01\u0e32\u0e23", "legal.privacy": "\u0e19\u0e42\u0e22\u0e1a\u0e32\u0e22\u0e04\u0e27\u0e32\u0e21\u0e40\u0e1b\u0e47\u0e19\u0e2a\u0e48\u0e27\u0e19\u0e15\u0e31\u0e27", "legal.refund": "\u0e19\u0e42\u0e22\u0e1a\u0e32\u0e22\u0e01\u0e32\u0e23\u0e04\u0e37\u0e19\u0e40\u0e07\u0e34\u0e19",
   "misc.free": "\u0e1f\u0e23\u0e35", "misc.comingSoon": "\u0e40\u0e23\u0e47\u0e27\u0e46 \u0e19\u0e35\u0e49", "misc.close": "\u0e1b\u0e34\u0e14",
   "content.synopsis": "Synopsis", "content.episodes": "Episodes", "content.cast": "Cast", "content.moreLikeThis": "More Like This", "content.views": "views", "content.now": "NOW", "content.info": "Info", "content.allEpisodes": "All Episodes", "content.previous": "Previous", "content.next": "Next", "content.episodeOf": "Episode {n} of {total}", "content.trending": "Trending", "content.watchFree": "Watch Episode 1 Free", "content.unlockSeries": "Unlock Full Series", "content.oneTimePayment": "One-time payment", "content.allEpisodesIncluded": "All episodes included", "content.episodeLocked": "Episode {n} is locked", "content.unlockPrompt": "Free-preview availability varies by title. Unlock the full series to keep watching.", "content.tryAgain": "Try Again",
+  "paywall.unlockAll": "\u0e1b\u0e25\u0e14\u0e25\u0e47\u0e2d\u0e01\u0e17\u0e38\u0e01\u0e15\u0e2d\u0e19",
+  "paywall.unavailableTitle": "\u0e15\u0e2d\u0e19\u0e19\u0e35\u0e49\u0e44\u0e21\u0e48\u0e1e\u0e23\u0e49\u0e2d\u0e21\u0e43\u0e2b\u0e49\u0e0a\u0e21",
+  "paywall.unavailableBody": "\u0e15\u0e2d\u0e19\u0e19\u0e35\u0e49\u0e44\u0e21\u0e48\u0e21\u0e35\u0e43\u0e2b\u0e49\u0e0a\u0e21\u0e43\u0e19\u0e41\u0e2d\u0e1b\u0e19\u0e35\u0e49",
+  "paywall.previewOver": "\u0e04\u0e38\u0e13\u0e40\u0e1e\u0e34\u0e48\u0e07\u0e14\u0e39\u0e15\u0e31\u0e27\u0e2d\u0e22\u0e48\u0e32\u0e07\u0e1f\u0e23\u0e35\u0e02\u0e2d\u0e07 {title} \u0e2d\u0e22\u0e48\u0e32\u0e2b\u0e22\u0e38\u0e14\u0e15\u0e2d\u0e19\u0e19\u0e35\u0e49 \u2014 \u0e40\u0e23\u0e37\u0e48\u0e2d\u0e07\u0e01\u0e33\u0e25\u0e31\u0e07\u0e08\u0e30\u0e2a\u0e19\u0e38\u0e01",
+  "paywall.benefitEpisodes": "\u0e04\u0e23\u0e1a\u0e17\u0e31\u0e49\u0e07 {count} \u0e15\u0e2d\u0e19 \u0e17\u0e31\u0e19\u0e17\u0e35",
+  "paywall.benefitAccess": "\u0e14\u0e39\u0e44\u0e14\u0e49\u0e08\u0e32\u0e01\u0e1a\u0e31\u0e0d\u0e0a\u0e35 Verza \u0e15\u0e23\u0e32\u0e1a\u0e40\u0e17\u0e48\u0e32\u0e17\u0e35\u0e48\u0e40\u0e23\u0e37\u0e48\u0e2d\u0e07\u0e19\u0e35\u0e49\u0e22\u0e31\u0e07\u0e43\u0e2b\u0e49\u0e1a\u0e23\u0e34\u0e01\u0e32\u0e23",
+  "paywall.oneTimeUnlock": "\u0e0b\u0e37\u0e49\u0e2d\u0e0b\u0e35\u0e23\u0e35\u0e2a\u0e4c\u0e04\u0e23\u0e31\u0e49\u0e07\u0e40\u0e14\u0e35\u0e22\u0e27",
+  "paywall.cta": "\u0e1b\u0e25\u0e14\u0e25\u0e47\u0e2d\u0e01\u0e0b\u0e35\u0e23\u0e35\u0e2a\u0e4c \u2014 {price} \u0e08\u0e48\u0e32\u0e22\u0e04\u0e23\u0e31\u0e49\u0e07\u0e40\u0e14\u0e35\u0e22\u0e27",
+  "paywall.ctaLoading": "\u0e01\u0e33\u0e25\u0e31\u0e07\u0e40\u0e1b\u0e34\u0e14\u0e2b\u0e19\u0e49\u0e32\u0e0a\u0e33\u0e23\u0e30\u0e40\u0e07\u0e34\u0e19\u0e17\u0e35\u0e48\u0e1b\u0e25\u0e2d\u0e14\u0e20\u0e31\u0e22\u2026",
+  "paywall.secure": "\u0e0a\u0e33\u0e23\u0e30\u0e40\u0e07\u0e34\u0e19\u0e2d\u0e22\u0e48\u0e32\u0e07\u0e1b\u0e25\u0e2d\u0e14\u0e20\u0e31\u0e22\u0e1c\u0e48\u0e32\u0e19 Stripe",
+  "paywall.goBack": "\u0e01\u0e25\u0e31\u0e1a",
+  "checkout.errorStart": "\u0e40\u0e23\u0e34\u0e48\u0e21\u0e0a\u0e33\u0e23\u0e30\u0e40\u0e07\u0e34\u0e19\u0e44\u0e21\u0e48\u0e2a\u0e33\u0e40\u0e23\u0e47\u0e08 \u0e01\u0e23\u0e38\u0e13\u0e32\u0e25\u0e2d\u0e07\u0e2d\u0e35\u0e01\u0e04\u0e23\u0e31\u0e49\u0e07",
+  "checkout.errorNotOpened": "\u0e2b\u0e19\u0e49\u0e32\u0e0a\u0e33\u0e23\u0e30\u0e40\u0e07\u0e34\u0e19\u0e44\u0e21\u0e48\u0e40\u0e1b\u0e34\u0e14 \u0e01\u0e23\u0e38\u0e13\u0e32\u0e25\u0e2d\u0e07\u0e2d\u0e35\u0e01\u0e04\u0e23\u0e31\u0e49\u0e07",
+  "checkout.errorNetwork": "\u0e40\u0e04\u0e23\u0e37\u0e2d\u0e02\u0e48\u0e32\u0e22\u0e02\u0e31\u0e14\u0e02\u0e49\u0e2d\u0e07 \u0e15\u0e23\u0e27\u0e08\u0e2a\u0e2d\u0e1a\u0e01\u0e32\u0e23\u0e40\u0e0a\u0e37\u0e48\u0e2d\u0e21\u0e15\u0e48\u0e2d\u0e41\u0e25\u0e49\u0e27\u0e25\u0e2d\u0e07\u0e2d\u0e35\u0e01\u0e04\u0e23\u0e31\u0e49\u0e07",
+  "checkout.errorAuth": "\u0e01\u0e23\u0e38\u0e13\u0e32\u0e40\u0e02\u0e49\u0e32\u0e2a\u0e39\u0e48\u0e23\u0e30\u0e1a\u0e1a\u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e17\u0e33\u0e01\u0e32\u0e23\u0e0b\u0e37\u0e49\u0e2d\u0e43\u0e2b\u0e49\u0e40\u0e2a\u0e23\u0e47\u0e08",
+  "checkout.errorNotPurchasable": "\u0e0b\u0e35\u0e23\u0e35\u0e2a\u0e4c\u0e19\u0e35\u0e49\u0e44\u0e21\u0e48\u0e44\u0e14\u0e49\u0e27\u0e32\u0e07\u0e08\u0e33\u0e2b\u0e19\u0e48\u0e32\u0e22",
+  "checkout.errorEligibility": "\u0e40\u0e23\u0e32\u0e15\u0e23\u0e27\u0e08\u0e2a\u0e2d\u0e1a\u0e2a\u0e34\u0e17\u0e18\u0e34\u0e4c\u0e01\u0e32\u0e23\u0e0b\u0e37\u0e49\u0e2d\u0e02\u0e2d\u0e07\u0e04\u0e38\u0e13\u0e44\u0e21\u0e48\u0e44\u0e14\u0e49 \u0e01\u0e23\u0e38\u0e13\u0e32\u0e25\u0e2d\u0e07\u0e2d\u0e35\u0e01\u0e04\u0e23\u0e31\u0e49\u0e07",
+  "checkout.errorAccountDeletion": "\u0e01\u0e33\u0e25\u0e31\u0e07\u0e14\u0e33\u0e40\u0e19\u0e34\u0e19\u0e01\u0e32\u0e23\u0e25\u0e1a\u0e1a\u0e31\u0e0d\u0e0a\u0e35",
+  "checkout.errorPaymentReview": "\u0e01\u0e32\u0e23\u0e0a\u0e33\u0e23\u0e30\u0e40\u0e07\u0e34\u0e19\u0e01\u0e48\u0e2d\u0e19\u0e2b\u0e19\u0e49\u0e32\u0e22\u0e31\u0e07\u0e2d\u0e22\u0e39\u0e48\u0e23\u0e30\u0e2b\u0e27\u0e48\u0e32\u0e07\u0e15\u0e23\u0e27\u0e08\u0e2a\u0e2d\u0e1a \u0e01\u0e23\u0e38\u0e13\u0e32\u0e15\u0e34\u0e14\u0e15\u0e48\u0e2d\u0e1d\u0e48\u0e32\u0e22\u0e0a\u0e48\u0e27\u0e22\u0e40\u0e2b\u0e25\u0e37\u0e2d\u0e01\u0e48\u0e2d\u0e19\u0e25\u0e2d\u0e07\u0e2d\u0e35\u0e01\u0e04\u0e23\u0e31\u0e49\u0e07",
+  "checkout.errorCheckoutUnusable": "\u0e44\u0e21\u0e48\u0e2a\u0e32\u0e21\u0e32\u0e23\u0e16\u0e19\u0e33\u0e01\u0e32\u0e23\u0e0a\u0e33\u0e23\u0e30\u0e40\u0e07\u0e34\u0e19\u0e01\u0e48\u0e2d\u0e19\u0e2b\u0e19\u0e49\u0e32\u0e21\u0e32\u0e43\u0e0a\u0e49\u0e0b\u0e49\u0e33\u0e44\u0e14\u0e49\u0e2d\u0e22\u0e48\u0e32\u0e07\u0e1b\u0e25\u0e2d\u0e14\u0e20\u0e31\u0e22 \u0e01\u0e23\u0e38\u0e13\u0e32\u0e15\u0e34\u0e14\u0e15\u0e48\u0e2d\u0e1d\u0e48\u0e32\u0e22\u0e0a\u0e48\u0e27\u0e22\u0e40\u0e2b\u0e25\u0e37\u0e2d",
+  "checkout.errorRefunded": "\u0e01\u0e32\u0e23\u0e0a\u0e33\u0e23\u0e30\u0e40\u0e07\u0e34\u0e19\u0e19\u0e35\u0e49\u0e16\u0e39\u0e01\u0e04\u0e37\u0e19\u0e40\u0e07\u0e34\u0e19\u0e2b\u0e23\u0e37\u0e2d\u0e42\u0e15\u0e49\u0e41\u0e22\u0e49\u0e07",
+  "checkout.errorNotFound": "\u0e44\u0e21\u0e48\u0e1e\u0e1a\u0e0b\u0e35\u0e23\u0e35\u0e2a\u0e4c\u0e19\u0e35\u0e49",
+  "language.audio": "\u0e40\u0e2a\u0e35\u0e22\u0e07 {language}",
+  "language.audioSubs": "\u0e40\u0e2a\u0e35\u0e22\u0e07 {language} \u00b7 \u0e04\u0e33\u0e1a\u0e23\u0e23\u0e22\u0e32\u0e22 {subtitles}",
+  "shorts.like": "\u0e16\u0e39\u0e01\u0e43\u0e08", "shorts.liked": "\u0e16\u0e39\u0e01\u0e43\u0e08\u0e41\u0e25\u0e49\u0e27",
 };
 
 const vi: Translations = {
@@ -560,6 +988,31 @@ const vi: Translations = {
   "legal.terms": "\u0110i\u1ec1u kho\u1ea3n d\u1ecbch v\u1ee5", "legal.privacy": "Ch\u00ednh s\u00e1ch b\u1ea3o m\u1eadt", "legal.refund": "Ch\u00ednh s\u00e1ch ho\u00e0n ti\u1ec1n",
   "misc.free": "Mi\u1ec5n ph\u00ed", "misc.comingSoon": "S\u1eafp ra m\u1eaft", "misc.close": "\u0110\u00f3ng",
   "content.synopsis": "Synopsis", "content.episodes": "Episodes", "content.cast": "Cast", "content.moreLikeThis": "More Like This", "content.views": "views", "content.now": "NOW", "content.info": "Info", "content.allEpisodes": "All Episodes", "content.previous": "Previous", "content.next": "Next", "content.episodeOf": "Episode {n} of {total}", "content.trending": "Trending", "content.watchFree": "Watch Episode 1 Free", "content.unlockSeries": "Unlock Full Series", "content.oneTimePayment": "One-time payment", "content.allEpisodesIncluded": "All episodes included", "content.episodeLocked": "Episode {n} is locked", "content.unlockPrompt": "Free-preview availability varies by title. Unlock the full series to keep watching.", "content.tryAgain": "Try Again",
+  "paywall.unlockAll": "M\u1edf kh\u00f3a to\u00e0n b\u1ed9 t\u1eadp",
+  "paywall.unavailableTitle": "T\u1eadp n\u00e0y kh\u00f4ng kh\u1ea3 d\u1ee5ng",
+  "paywall.unavailableBody": "T\u1eadp n\u00e0y kh\u00f4ng c\u00f3 s\u1eb5n trong \u1ee9ng d\u1ee5ng n\u00e0y.",
+  "paywall.previewOver": "B\u1ea1n v\u1eeba xem xong ph\u1ea7n xem th\u1eed mi\u1ec5n ph\u00ed c\u1ee7a {title}. \u0110\u1eebng d\u1eebng l\u1ea1i \u2014 c\u00e2u chuy\u1ec7n m\u1edbi ch\u1ec9 b\u1eaft \u0111\u1ea7u.",
+  "paywall.benefitEpisodes": "To\u00e0n b\u1ed9 {count} t\u1eadp, ngay l\u1eadp t\u1ee9c",
+  "paywall.benefitAccess": "Xem b\u1eb1ng t\u00e0i kho\u1ea3n Verza c\u1ee7a b\u1ea1n khi phim c\u00f2n tr\u00ean h\u1ec7 th\u1ed1ng",
+  "paywall.oneTimeUnlock": "mua tr\u1ecdn b\u1ed9 m\u1ed9t l\u1ea7n",
+  "paywall.cta": "M\u1edf kh\u00f3a tr\u1ecdn b\u1ed9 \u2014 {price}, thanh to\u00e1n m\u1ed9t l\u1ea7n",
+  "paywall.ctaLoading": "\u0110ang m\u1edf trang thanh to\u00e1n an to\u00e0n\u2026",
+  "paywall.secure": "Thanh to\u00e1n an to\u00e0n qua Stripe",
+  "paywall.goBack": "Quay l\u1ea1i",
+  "checkout.errorStart": "Kh\u00f4ng th\u1ec3 b\u1eaft \u0111\u1ea7u thanh to\u00e1n. Vui l\u00f2ng th\u1eed l\u1ea1i.",
+  "checkout.errorNotOpened": "Trang thanh to\u00e1n kh\u00f4ng m\u1edf. Vui l\u00f2ng th\u1eed l\u1ea1i.",
+  "checkout.errorNetwork": "L\u1ed7i m\u1ea1ng. Ki\u1ec3m tra k\u1ebft n\u1ed1i v\u00e0 th\u1eed l\u1ea1i.",
+  "checkout.errorAuth": "Vui l\u00f2ng \u0111\u0103ng nh\u1eadp \u0111\u1ec3 ho\u00e0n t\u1ea5t giao d\u1ecbch.",
+  "checkout.errorNotPurchasable": "Phim n\u00e0y hi\u1ec7n kh\u00f4ng b\u00e1n.",
+  "checkout.errorEligibility": "Ch\u00fang t\u00f4i kh\u00f4ng x\u00e1c minh \u0111\u01b0\u1ee3c \u0111i\u1ec1u ki\u1ec7n mua c\u1ee7a b\u1ea1n. Vui l\u00f2ng th\u1eed l\u1ea1i.",
+  "checkout.errorAccountDeletion": "T\u00e0i kho\u1ea3n \u0111ang \u0111\u01b0\u1ee3c x\u00f3a.",
+  "checkout.errorPaymentReview": "M\u1ed9t giao d\u1ecbch tr\u01b0\u1edbc \u0111\u00f3 v\u1eabn \u0111ang \u0111\u01b0\u1ee3c xem x\u00e9t. Li\u00ean h\u1ec7 h\u1ed7 tr\u1ee3 tr\u01b0\u1edbc khi th\u1eed l\u1ea1i.",
+  "checkout.errorCheckoutUnusable": "Kh\u00f4ng th\u1ec3 t\u00e1i s\u1eed d\u1ee5ng an to\u00e0n giao d\u1ecbch tr\u01b0\u1edbc \u0111\u00f3. Li\u00ean h\u1ec7 h\u1ed7 tr\u1ee3.",
+  "checkout.errorRefunded": "Giao d\u1ecbch n\u00e0y \u0111\u00e3 \u0111\u01b0\u1ee3c ho\u00e0n ti\u1ec1n ho\u1eb7c b\u1ecb khi\u1ebfu n\u1ea1i.",
+  "checkout.errorNotFound": "Kh\u00f4ng t\u00ecm th\u1ea5y phim n\u00e0y.",
+  "language.audio": "Ti\u1ebfng {language}",
+  "language.audioSubs": "Ti\u1ebfng {language} \u00b7 ph\u1ee5 \u0111\u1ec1 {subtitles}",
+  "shorts.like": "Th\u00edch", "shorts.liked": "\u0110\u00e3 th\u00edch",
 };
 
 const id: Translations = {
@@ -585,6 +1038,31 @@ const id: Translations = {
   "legal.terms": "Ketentuan Layanan", "legal.privacy": "Kebijakan Privasi", "legal.refund": "Kebijakan Pengembalian",
   "misc.free": "Gratis", "misc.comingSoon": "Segera Hadir", "misc.close": "Tutup",
   "content.synopsis": "Synopsis", "content.episodes": "Episodes", "content.cast": "Cast", "content.moreLikeThis": "More Like This", "content.views": "views", "content.now": "NOW", "content.info": "Info", "content.allEpisodes": "All Episodes", "content.previous": "Previous", "content.next": "Next", "content.episodeOf": "Episode {n} of {total}", "content.trending": "Trending", "content.watchFree": "Watch Episode 1 Free", "content.unlockSeries": "Unlock Full Series", "content.oneTimePayment": "One-time payment", "content.allEpisodesIncluded": "All episodes included", "content.episodeLocked": "Episode {n} is locked", "content.unlockPrompt": "Free-preview availability varies by title. Unlock the full series to keep watching.", "content.tryAgain": "Try Again",
+  "paywall.unlockAll": "Buka semua episode",
+  "paywall.unavailableTitle": "Episode tidak tersedia",
+  "paywall.unavailableBody": "Episode ini tidak tersedia di aplikasi ini.",
+  "paywall.previewOver": "Kamu baru saja menonton pratinjau gratis {title}. Jangan berhenti sekarang \u2014 ceritanya baru saja seru.",
+  "paywall.benefitEpisodes": "Semua {count} episode, langsung",
+  "paywall.benefitAccess": "Akses lewat akun Verza-mu selama judul ini masih tersedia",
+  "paywall.oneTimeUnlock": "pembelian serial sekali bayar",
+  "paywall.cta": "Buka serial \u2014 {price}, sekali bayar",
+  "paywall.ctaLoading": "Membuka pembayaran aman\u2026",
+  "paywall.secure": "Pembayaran aman lewat Stripe",
+  "paywall.goBack": "Kembali",
+  "checkout.errorStart": "Pembayaran tidak dapat dimulai. Silakan coba lagi.",
+  "checkout.errorNotOpened": "Halaman pembayaran tidak terbuka. Silakan coba lagi.",
+  "checkout.errorNetwork": "Kesalahan jaringan. Periksa koneksimu lalu coba lagi.",
+  "checkout.errorAuth": "Masuk dulu untuk menyelesaikan pembelian ini.",
+  "checkout.errorNotPurchasable": "Serial ini tidak dijual.",
+  "checkout.errorEligibility": "Kami tidak dapat memverifikasi kelayakan pembelianmu. Silakan coba lagi.",
+  "checkout.errorAccountDeletion": "Penghapusan akun sedang berlangsung.",
+  "checkout.errorPaymentReview": "Pembayaran sebelumnya masih ditinjau. Hubungi dukungan sebelum mencoba lagi.",
+  "checkout.errorCheckoutUnusable": "Pembayaran sebelumnya tidak dapat dipakai ulang dengan aman. Hubungi dukungan.",
+  "checkout.errorRefunded": "Pembayaran ini telah dikembalikan atau disengketakan.",
+  "checkout.errorNotFound": "Serial ini tidak ditemukan.",
+  "language.audio": "Audio {language}",
+  "language.audioSubs": "Audio {language} \u00b7 subtitle {subtitles}",
+  "shorts.like": "Suka", "shorts.liked": "Disukai",
 };
 
 const tl: Translations = {
@@ -610,6 +1088,31 @@ const tl: Translations = {
   "legal.terms": "Mga Tuntunin ng Serbisyo", "legal.privacy": "Patakaran sa Privacy", "legal.refund": "Patakaran sa Refund",
   "misc.free": "Libre", "misc.comingSoon": "Malapit Na", "misc.close": "Isara",
   "content.synopsis": "Synopsis", "content.episodes": "Episodes", "content.cast": "Cast", "content.moreLikeThis": "More Like This", "content.views": "views", "content.now": "NOW", "content.info": "Info", "content.allEpisodes": "All Episodes", "content.previous": "Previous", "content.next": "Next", "content.episodeOf": "Episode {n} of {total}", "content.trending": "Trending", "content.watchFree": "Watch Episode 1 Free", "content.unlockSeries": "Unlock Full Series", "content.oneTimePayment": "One-time payment", "content.allEpisodesIncluded": "All episodes included", "content.episodeLocked": "Episode {n} is locked", "content.unlockPrompt": "Free-preview availability varies by title. Unlock the full series to keep watching.", "content.tryAgain": "Try Again",
+  "paywall.unlockAll": "I-unlock ang lahat ng episode",
+  "paywall.unavailableTitle": "Hindi available ang episode",
+  "paywall.unavailableBody": "Hindi available ang episode na ito sa app na ito.",
+  "paywall.previewOver": "Katatapos mo lang panoorin ang libreng preview ng {title}. Huwag tumigil \u2014 kasisimula pa lang ng kuwento.",
+  "paywall.benefitEpisodes": "Lahat ng {count} episode, agad",
+  "paywall.benefitAccess": "Access mula sa iyong Verza account habang available pa ang titulong ito",
+  "paywall.oneTimeUnlock": "isang beses na pagbili ng serye",
+  "paywall.cta": "I-unlock ang serye \u2014 {price}, isang bayad lang",
+  "paywall.ctaLoading": "Binubuksan ang secure na bayad\u2026",
+  "paywall.secure": "Secure na bayad sa pamamagitan ng Stripe",
+  "paywall.goBack": "Bumalik",
+  "checkout.errorStart": "Hindi masimulan ang bayad. Pakisubukan ulit.",
+  "checkout.errorNotOpened": "Hindi bumukas ang bayad. Pakisubukan ulit.",
+  "checkout.errorNetwork": "May problema sa network. Tingnan ang koneksyon at subukan ulit.",
+  "checkout.errorAuth": "Mag-sign in para tapusin ang pagbili.",
+  "checkout.errorNotPurchasable": "Hindi ibinebenta ang seryeng ito.",
+  "checkout.errorEligibility": "Hindi namin na-verify ang iyong pagiging kwalipikado sa pagbili. Pakisubukan ulit.",
+  "checkout.errorAccountDeletion": "Isinasagawa ang pagtanggal ng account.",
+  "checkout.errorPaymentReview": "May naunang bayad na sinusuri pa. Makipag-ugnayan sa support bago subukan ulit.",
+  "checkout.errorCheckoutUnusable": "Hindi ligtas na magamit muli ang naunang bayad. Makipag-ugnayan sa support.",
+  "checkout.errorRefunded": "Na-refund o kinuwestiyon ang bayad na ito.",
+  "checkout.errorNotFound": "Hindi mahanap ang seryeng ito.",
+  "language.audio": "Audio na {language}",
+  "language.audioSubs": "Audio na {language} \u00b7 subtitle na {subtitles}",
+  "shorts.like": "Gusto", "shorts.liked": "Nagustuhan",
 };
 
 const sw: Translations = {
@@ -635,6 +1138,31 @@ const sw: Translations = {
   "legal.terms": "Masharti ya Huduma", "legal.privacy": "Sera ya Faragha", "legal.refund": "Sera ya Kurejesha Pesa",
   "misc.free": "Bure", "misc.comingSoon": "Inakuja Hivi Karibuni", "misc.close": "Funga",
   "content.synopsis": "Synopsis", "content.episodes": "Episodes", "content.cast": "Cast", "content.moreLikeThis": "More Like This", "content.views": "views", "content.now": "NOW", "content.info": "Info", "content.allEpisodes": "All Episodes", "content.previous": "Previous", "content.next": "Next", "content.episodeOf": "Episode {n} of {total}", "content.trending": "Trending", "content.watchFree": "Watch Episode 1 Free", "content.unlockSeries": "Unlock Full Series", "content.oneTimePayment": "One-time payment", "content.allEpisodesIncluded": "All episodes included", "content.episodeLocked": "Episode {n} is locked", "content.unlockPrompt": "Free-preview availability varies by title. Unlock the full series to keep watching.", "content.tryAgain": "Try Again",
+  "paywall.unlockAll": "Fungua vipindi vyote",
+  "paywall.unavailableTitle": "Kipindi hakipatikani",
+  "paywall.unavailableBody": "Kipindi hiki hakipatikani katika programu hii.",
+  "paywall.previewOver": "Umemaliza kutazama onyesho la bure la {title}. Usisimame sasa \u2014 hadithi ndiyo kwanza inanoga.",
+  "paywall.benefitEpisodes": "Vipindi vyote {count}, papo hapo",
+  "paywall.benefitAccess": "Tazama kupitia akaunti yako ya Verza kwa muda ambao kichwa hiki kinapatikana",
+  "paywall.oneTimeUnlock": "ununuzi wa mfululizo wa mara moja",
+  "paywall.cta": "Fungua mfululizo \u2014 {price}, malipo ya mara moja",
+  "paywall.ctaLoading": "Inafungua malipo salama\u2026",
+  "paywall.secure": "Malipo salama kupitia Stripe",
+  "paywall.goBack": "Rudi nyuma",
+  "checkout.errorStart": "Malipo hayakuweza kuanza. Tafadhali jaribu tena.",
+  "checkout.errorNotOpened": "Ukurasa wa malipo haukufunguka. Tafadhali jaribu tena.",
+  "checkout.errorNetwork": "Hitilafu ya mtandao. Angalia muunganisho wako kisha ujaribu tena.",
+  "checkout.errorAuth": "Ingia ili kukamilisha ununuzi huu.",
+  "checkout.errorNotPurchasable": "Mfululizo huu hauuzwi.",
+  "checkout.errorEligibility": "Hatukuweza kuthibitisha ustahiki wako wa ununuzi. Tafadhali jaribu tena.",
+  "checkout.errorAccountDeletion": "Ufutaji wa akaunti unaendelea.",
+  "checkout.errorPaymentReview": "Malipo ya awali bado yanakaguliwa. Wasiliana na usaidizi kabla ya kujaribu tena.",
+  "checkout.errorCheckoutUnusable": "Malipo ya awali hayakuweza kutumika tena kwa usalama. Wasiliana na usaidizi.",
+  "checkout.errorRefunded": "Malipo haya yamerejeshwa au yamepingwa.",
+  "checkout.errorNotFound": "Mfululizo huu haukupatikana.",
+  "language.audio": "Sauti ya {language}",
+  "language.audioSubs": "Sauti ya {language} \u00b7 manukuu ya {subtitles}",
+  "shorts.like": "Penda", "shorts.liked": "Umependa",
 };
 
 /* All 20 languages fully translated */
@@ -645,3 +1173,81 @@ export const dictionaries: Record<Locale, Translations> = {
 
 export const DEFAULT_LOCALE: Locale = "en";
 export const STORAGE_KEY = "verza-lang";
+
+/* ================================================================== */
+/*  Interpolation                                                      */
+/* ================================================================== */
+
+/**
+ * Substitute {name} placeholders in a translated string.
+ *
+ * Every locale's copy is authored around the SAME placeholder names, so the
+ * word order can differ per language without the call site knowing. This is
+ * why the paywall's price, series title and episode count are placeholders
+ * rather than JSX concatenation: "Series Unlock — $1.99 one-time" built by
+ * gluing three JSX fragments together cannot be reordered by a translator, and
+ * German, Japanese and Arabic all need to reorder it.
+ *
+ * An unknown placeholder is left verbatim rather than replaced with
+ * "undefined" — a missing variable must read as a bug, not as a price.
+ */
+export function interpolate(
+  template: string,
+  vars: Record<string, string | number>,
+): string {
+  return template.replace(/\{(\w+)\}/g, (whole, name: string) =>
+    Object.hasOwn(vars, name) ? String(vars[name]) : whole,
+  );
+}
+
+/* ================================================================== */
+/*  Locale detection                                                   */
+/* ================================================================== */
+
+/**
+ * Resolve the first supported locale from a list of BCP-47 tags.
+ *
+ * LangProvider used to start at "en" and hydrate ONLY from localStorage, so a
+ * first-time visitor whose browser says `Accept-Language: es-ES` got English
+ * and had to find the language switcher — which is hidden entirely on the
+ * episode route (`app/globals.css` hides the header under `.episode-immersive`).
+ *
+ * Matching is on the primary subtag: "es-419", "es-MX" and "es-ES" all resolve
+ * to "es", because the dictionary is per-language, not per-region.
+ */
+export function resolveLocale(tags: readonly string[]): Locale | null {
+  for (const tag of tags) {
+    if (!tag) continue;
+    const primary = tag.toLowerCase().split(/[-_]/)[0];
+    const hit = LOCALES.find((l) => l.code === primary);
+    if (hit) return hit.code;
+  }
+  return null;
+}
+
+/* ================================================================== */
+/*  Language names                                                     */
+/* ================================================================== */
+
+/**
+ * The name of a language, written in the viewer's language.
+ *
+ * "Hindi" for an English viewer, "hindi" for a Spanish one, "हिन्दी" for a
+ * Hindi one. Intl.DisplayNames carries all 20 UI locales, so this needs no
+ * dictionary entries and cannot drift out of sync with the locale list.
+ *
+ * The fallback is the LOCALES table's English label and then the raw tag, so
+ * an engine without DisplayNames (or an unusual tag) still labels the audio
+ * track with a word rather than with nothing.
+ */
+export function languageName(uiLocale: string, languageTag: string): string {
+  try {
+    const name = new Intl.DisplayNames([uiLocale], { type: "language" }).of(
+      languageTag,
+    );
+    if (name && name !== languageTag) return name;
+  } catch {
+    /* fall through */
+  }
+  return LOCALES.find((l) => l.code === languageTag)?.label ?? languageTag;
+}

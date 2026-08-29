@@ -8,6 +8,9 @@ import { isIOSApp } from "@/lib/platform";
 import { trackEpisodeStart, trackEpisodeComplete, trackUnlockPrompt, trackUnlockClick } from "@/lib/track";
 import { emit } from "@/lib/analytics";
 import { requireCheckoutUser } from "@/lib/checkout-auth";
+import { useTranslation } from "@/components/LangProvider";
+import { SERIES_UNLOCK_PRICE_CENTS } from "@/lib/price";
+import type { TranslationKey } from "@/lib/i18n";
 import VideoWatermark from "@/components/VideoWatermark";
 import {
   PlaybackAccessError,
@@ -23,6 +26,34 @@ import {
   maybeRequestResumePermission,
   type ResumeItem,
 } from "@/lib/resume";
+import { recordWatchProgress } from "@/lib/watch-progress-client";
+import { readSavedSlugs, setSavedSlug } from "@/lib/guest-storage";
+
+/* The closed set of failures /api/unlock can return, mapped to copy the
+   viewer can read. The route sends a stable machine `code` alongside its
+   English `error`; without this map the paywall printed that English sentence
+   verbatim, so a Spanish speaker who got as far as tapping the button was
+   handed "Couldn't start checkout. Please try again." on a screen that was
+   Spanish everywhere else.
+
+   An unrecognised code falls back to the server's own text rather than to a
+   generic message: losing "An earlier payment is still being reviewed,
+   contact support" and replacing it with "please try again" would send a
+   customer round a loop that cannot succeed. Wrong language beats wrong
+   instruction. scripts/test-feed-integrity.mjs asserts the two sets match. */
+const CHECKOUT_ERROR_KEYS: Record<string, TranslationKey> = {
+  invalid_request: "checkout.errorStart",
+  auth_required: "checkout.errorAuth",
+  series_not_found: "checkout.errorNotFound",
+  not_purchasable: "checkout.errorNotPurchasable",
+  eligibility_unknown: "checkout.errorEligibility",
+  already_owned: "checkout.errorStart",
+  account_deletion: "checkout.errorAccountDeletion",
+  payment_review: "checkout.errorPaymentReview",
+  checkout_unusable: "checkout.errorCheckoutUnusable",
+  payment_refunded: "checkout.errorRefunded",
+  checkout_failed: "checkout.errorStart",
+};
 
 /* ---- Load hls.js once, EAGERLY ---- */
 let hlsPromise: Promise<typeof HlsType | null> | null = null;
@@ -919,16 +950,15 @@ function EpisodeSlide({
       const now = Date.now();
       if (now - lastSavedRef.current > 10000 && vid.currentTime > 5) {
         lastSavedRef.current = now;
-        fetch("/api/watch-progress", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            seriesSlug,
-            episodeNumber: episode.number,
-            progressSeconds: Math.floor(vid.currentTime),
-            completed: false,
-          }),
-        }).catch(() => {});
+        /* Device first, account second. The POST 401s for a signed-out viewer
+           (app/api/watch-progress/route.ts:12-15), which is why a guest used to
+           lose every second of a four-episode free preview. */
+        recordWatchProgress({
+          seriesSlug,
+          episodeNumber: episode.number,
+          progressSeconds: vid.currentTime,
+          completed: false,
+        });
       }
     }
     function onEnd() {
@@ -960,11 +990,7 @@ function EpisodeSlide({
 
       trackEpisodeComplete(seriesSlug, episode.number);
       onProgress(1);
-      fetch("/api/watch-progress", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ seriesSlug, episodeNumber: episode.number, progressSeconds: 0, completed: true }),
-      }).catch(() => {});
+      recordWatchProgress({ seriesSlug, episodeNumber: episode.number, progressSeconds: 0, completed: true });
       onEnded();
     }
 
@@ -1469,6 +1495,11 @@ export default function EpisodeFeed({
 
   const [unlockLoading, setUnlockLoading] = useState(false);
   const [unlockError, setUnlockError] = useState<string | null>(null);
+  /* The payment screen speaks the viewer's language. This is the only screen
+     in the app where the language switcher is unreachable — app/globals.css
+     hides the header under .episode-immersive — so the paywall cannot fall
+     back on "they can change it themselves". */
+  const { t, formatPrice, locale } = useTranslation();
   const handlePlaybackAccessDenied = useCallback(() => {
     // A refund/dispute/account change can invalidate access after a prior URL
     // was cached. Re-lock immediately when the authenticated refresh says no.
@@ -1807,22 +1838,19 @@ export default function EpisodeFeed({
       };
       saveLastWatching(item);
       void notifyResume(item);
-      // Final flush — keepalive lets it complete while backgrounding.
-      try {
-        fetch("/api/watch-progress", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          keepalive: true,
-          body: JSON.stringify({
-            seriesSlug,
-            episodeNumber: ep.number,
-            progressSeconds: Math.floor(positionS),
-            completed: false,
-          }),
-        }).catch(() => {});
-      } catch {
-        /* ignore */
-      }
+      /* Final flush. The device write inside recordWatchProgress is
+         synchronous, so it lands even when the tab is killed before the
+         keepalive request leaves — which is the case this whole handler
+         exists for. */
+      recordWatchProgress(
+        {
+          seriesSlug,
+          episodeNumber: ep.number,
+          progressSeconds: positionS,
+          completed: false,
+        },
+        { keepalive: true },
+      );
     }
 
     function onVisibility() {
@@ -1867,37 +1895,76 @@ export default function EpisodeFeed({
 
   const isLiked = activeEp ? liked.has(activeEp.number) : false;
 
-  /* ---- Saved / My List (persisted per series in localStorage + API) ---- */
+  /* ---- Saved / My List -------------------------------------------- */
+  /*  The bookmark could be tapped over and over with no confirmation that
+      anything had happened, and the list it feeds could stay empty while
+      politely telling you to tap the bookmark. Three separate faults:
+
+      1. Every side effect lived INSIDE the setIsSaved updater. React invokes
+         an updater more than once (StrictMode does it deliberately), so the
+         localStorage write and the network call were not guaranteed to run
+         once per tap.
+      2. The response was thrown away — `.catch(() => {})` on a promise whose
+         result was never read. A signed-in viewer whose POST failed saw
+         "Saved to My List" and then an empty list, which is the report.
+      3. Mount read localStorage only. Signing in on a second device showed an
+         empty bookmark for an already-saved title, so the next tap sent a
+         DELETE and un-saved it on the account.
+
+      Fixed by making the optimistic update real: state moves first, the toast
+      says so, and if the account disagrees the state moves back and says that
+      instead. A guest's 401 is NOT a failure — the device write is the whole
+      point of the guest path, and it succeeded. */
   const [isSaved, setIsSaved] = useState(false);
+  const saveSeqRef = useRef(0);
+
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem("verza-saved");
-      const slugs: string[] = raw ? JSON.parse(raw) : [];
-      const saved = slugs.includes(seriesSlug);
-      queueMicrotask(() => setIsSaved(saved));
-    } catch {}
+    let cancelled = false;
+    // Local first so the icon is right on the first paint.
+    const local = readSavedSlugs().includes(seriesSlug);
+    queueMicrotask(() => { if (!cancelled) setIsSaved(local); });
+    // Then the account, which outranks this device for a signed-in viewer.
+    fetch("/api/saved-list")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { items?: { seriesSlug: string }[] } | null) => {
+        if (cancelled || !data?.items || data.items.length === 0) return;
+        setIsSaved(data.items.some((i) => i.seriesSlug === seriesSlug));
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
   }, [seriesSlug]);
 
   function toggleSave() {
-    setIsSaved((prev) => {
-      const next = !prev;
-      try {
-        const raw = localStorage.getItem("verza-saved");
-        const slugs: string[] = raw ? JSON.parse(raw) : [];
-        const set = new Set(slugs);
-        if (next) set.add(seriesSlug);
-        else set.delete(seriesSlug);
-        localStorage.setItem("verza-saved", JSON.stringify([...set]));
-      } catch {}
-      fetch("/api/saved-list", {
-        method: next ? "POST" : "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ seriesSlug }),
-      }).catch(() => {});
-      popActionToast(next ? "Saved to My List" : "Removed from My List");
-      return next;
-    });
+    const next = !isSaved;
+    const seq = ++saveSeqRef.current;
+
+    // Optimistic, and durable on this device immediately.
+    setIsSaved(next);
+    setSavedSlug(seriesSlug, next);
+    popActionToast(next ? "Saved to My List" : "Removed from My List");
     haptic();
+
+    fetch("/api/saved-list", {
+      method: next ? "POST" : "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ seriesSlug }),
+    })
+      .then((r) => {
+        // A newer tap already superseded this one; its own response decides.
+        if (seq !== saveSeqRef.current) return;
+        // 401 = guest. The device write above IS the save for them, and
+        // components/GuestStateSync.tsx hands it to the account at sign-in.
+        if (r.ok || r.status === 401) return;
+        setIsSaved(!next);
+        setSavedSlug(seriesSlug, !next);
+        popActionToast(next ? "Couldn\u2019t save \u2014 tap to try again" : "Couldn\u2019t remove \u2014 tap to try again");
+      })
+      .catch(() => {
+        // Offline. The device kept it; do not lie about the account, but do
+        // not throw away what the viewer just did either.
+        if (seq !== saveSeqRef.current) return;
+        popActionToast(next ? "Saved on this device" : "Removed on this device");
+      });
   }
 
   function flashHeart() {
@@ -2373,6 +2440,14 @@ export default function EpisodeFeed({
       {showUnlock && (
         <div
           className="absolute inset-0 z-[60] flex items-center justify-center"
+          /* The whole payment screen declares its own language. <html lang> is
+             set by LangProvider, but this overlay is the surface guaranteed to
+             be translated even where the page around it is not, and a screen
+             reader announcing Spanish copy with English phonemes is the
+             audible version of the bug this fixes. dir follows for Arabic, the
+             one RTL locale in the list. */
+          lang={locale}
+          dir={locale === "ar" ? "rtl" : undefined}
           style={{ background: "rgba(0,0,0,0.8)", backdropFilter: "blur(12px)", animation: "fadeIn 0.35s ease-out both" }}
         >
           <div className="text-center px-8 max-w-xs" style={{ animation: "paywallIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both" }}>
@@ -2388,18 +2463,18 @@ export default function EpisodeFeed({
               </svg>
             </div>
             <h3 className="text-2xl font-black mb-1.5 tracking-tight" style={{ color: "#fff" }}>
-              {iosApp ? "Episode Unavailable" : "Unlock All Episodes"}
+              {t(iosApp ? "paywall.unavailableTitle" : "paywall.unlockAll")}
             </h3>
             <p className="text-sm mb-4" style={{ color: "rgba(255,255,255,0.55)" }}>
               {iosApp
-                ? "This episode isn't available in this app."
-                : <>You just watched the free preview of {seriesTitle}. Don&apos;t stop now — the story is just getting good.</>}
+                ? t("paywall.unavailableBody")
+                : t("paywall.previewOver", { title: seriesTitle })}
             </p>
             {!iosApp && (
               <div className="flex flex-col gap-1.5 mb-5 text-left mx-auto" style={{ width: "fit-content" }}>
                 {[
-                  `All ${totalEpisodes} episodes, instantly`,
-                  "Access on your Verza account while this title remains available",
+                  t("paywall.benefitEpisodes", { count: totalEpisodes }),
+                  t("paywall.benefitAccess"),
                 ].map((line) => (
                   <div key={line} className="flex items-center gap-2">
                     <span
@@ -2413,9 +2488,17 @@ export default function EpisodeFeed({
             )}
             {!iosApp && (
               <p className="mb-3">
-                <span className="text-3xl font-black align-middle" style={{ color: "#fff" }}>$1.99</span>
+                {/* Same size, same weight, same position — the big honest
+                    price testers named as working. Only the WRITING of it
+                    follows the language now: "$1.99" in English (byte-identical
+                    to the literal this replaces), "1,99 US$" in Spanish, which
+                    also stops a LATAM viewer reading a bare "$" as pesos. The
+                    currency charged is unchanged and is always USD. */}
+                <span className="text-3xl font-black align-middle" style={{ color: "#fff" }}>
+                  {formatPrice(SERIES_UNLOCK_PRICE_CENTS)}
+                </span>
                 <span className="ml-2 text-xs font-semibold align-middle" style={{ color: "rgba(255,255,255,0.65)" }}>
-                  one-time Series Unlock
+                  {t("paywall.oneTimeUnlock")}
                 </span>
               </p>
             )}
@@ -2437,6 +2520,7 @@ export default function EpisodeFeed({
                   const data = (await res.json().catch(() => ({}))) as {
                     url?: unknown;
                     error?: unknown;
+                    code?: unknown;
                     alreadyOwned?: unknown;
                   };
                   if (!res.ok) {
@@ -2444,21 +2528,27 @@ export default function EpisodeFeed({
                       setAuthFree(true);
                       return;
                     }
+                    const key =
+                      typeof data.code === "string"
+                        ? CHECKOUT_ERROR_KEYS[data.code]
+                        : undefined;
                     setUnlockError(
-                      typeof data.error === "string"
-                        ? data.error
-                        : "Couldn’t start checkout. Please try again.",
+                      key
+                        ? t(key)
+                        : typeof data.error === "string"
+                          ? data.error
+                          : t("checkout.errorStart"),
                     );
                     return;
                   }
                   if (typeof data.url !== "string" || !data.url) {
-                    setUnlockError("Checkout did not open. Please try again.");
+                    setUnlockError(t("checkout.errorNotOpened"));
                     return;
                   }
                   navigating = true;
                   window.location.assign(data.url);
                 } catch {
-                  setUnlockError("Network error. Check your connection and try again.");
+                  setUnlockError(t("checkout.errorNetwork"));
                 } finally {
                   if (!navigating) setUnlockLoading(false);
                 }
@@ -2472,7 +2562,9 @@ export default function EpisodeFeed({
                 boxShadow: "0 0 40px rgba(224,17,95,0.3)",
               }}
             >
-              {unlockLoading ? "Opening secure checkout…" : "Series Unlock — $1.99 one-time"}
+              {unlockLoading
+                ? t("paywall.ctaLoading")
+                : t("paywall.cta", { price: formatPrice(SERIES_UNLOCK_PRICE_CENTS) })}
             </button>
             )}
             {!iosApp && unlockError && (
@@ -2490,7 +2582,7 @@ export default function EpisodeFeed({
             )}
             {!iosApp && (
             <p className="mt-2.5 text-[11px]" style={{ color: "rgba(255,255,255,0.4)" }}>
-              Secure checkout via Stripe
+              {t("paywall.secure")}
             </p>
             )}
             {/* A real link, not a button. As a <button onClick> this did
@@ -2523,7 +2615,7 @@ export default function EpisodeFeed({
                 opacity: 1,
               }}
             >
-              Go Back
+              {t("paywall.goBack")}
             </a>
           </div>
         </div>

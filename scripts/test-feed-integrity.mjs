@@ -13,7 +13,7 @@
  *   npm run test:feed-integrity
  */
 
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, readdirSync } from "node:fs";
 import ts from "typescript";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
@@ -268,6 +268,17 @@ function loadTypeScriptModule(relativePath, requireMap = {}) {
 const publicMap = loadTypeScriptModule("lib/mux-public-map.ts");
 const fullMap = loadTypeScriptModule("lib/mux-map.ts");
 const catalog = loadTypeScriptModule("lib/catalog.ts", { "./mux-public-map": publicMap });
+/* The routing helpers live in their own module rather than in lib/catalog.ts:
+   scripts/generate-public-mux-map.mjs fingerprints the RAW SOURCE TEXT of
+   lib/catalog.ts, so appending anything there — a function, even a comment —
+   fails npm run test:playback-security until both generated Mux projections are
+   regenerated in lockstep. Verified both ways on 2026-08-29. */
+let seriesHrefMod = {};
+try {
+  seriesHrefMod = loadTypeScriptModule("lib/series-href.ts", { "./catalog": catalog });
+} catch {
+  /* leave empty: the "canonical link helpers are gone" check below reports it */
+}
 
 const live = catalog.catalog.filter((s) => s.status === "live");
 const soon = catalog.catalog.filter((s) => s.status === "coming_soon");
@@ -573,10 +584,15 @@ check(
    as six episodes on the one screen where the viewer is deciding whether to
    pay for it. */
 check(
-  /\/ \{totalEpisodes\}/.test(feedCode) && /All \$\{totalEpisodes\} episodes, instantly/.test(feedCode),
+  /\/ \{totalEpisodes\}/.test(feedCode) &&
+    /t\("paywall\.benefitEpisodes",\s*\{\s*count:\s*totalEpisodes\s*\}\)/.test(feedCode),
   "rail: series length is being read from the bounded rail",
   "The counter and the paywall's headline benefit must both come from totalEpisodes. Reading\n" +
-    "      episodes.length there would advertise the free preview as the whole series.",
+    "      episodes.length there would advertise the free preview as the whole series.\n" +
+    "      2026-08-29: that benefit line moved from the literal `All ${totalEpisodes} episodes,\n" +
+    "      instantly` to t(\"paywall.benefitEpisodes\", { count: totalEpisodes }) when the paywall was\n" +
+    "      translated into all 20 locales. The defect guarded is unchanged: the ARGUMENT must be\n" +
+    "      totalEpisodes, never episodes.length.",
 );
 
 /* ------------------------------------------------------------------ */
@@ -709,14 +725,15 @@ check(
     "      on whichever budget the literal happened to be. Choose it at construction.",
 );
 
-if (failures.length > 0) {
-  console.error("Feed integrity contract: FAIL");
-  for (const f of failures) console.error(`  - ${f}`);
-  console.error(`\n  ${failures.length} failing check(s).`);
-  process.exit(1);
-}
-
-console.log("Feed integrity contract: PASS");
+/* ------------------------------------------------------------------ */
+/*  MOVED, 2026-08-29. Section 8 below used to sit AFTER the reporter    */
+/*  block — after process.exit(1) and after the PASS line — so its five  */
+/*  checks could not fail the gate. Proven, not assumed: breaking the    */
+/*  AbortController regex while it lived down there still printed        */
+/*  "Feed integrity contract: PASS" and exited 0; the same mutation      */
+/*  applied to a check above the reporter printed FAIL and exited 1.     */
+/*  Every check must be above the reporter. Append new ones there.       */
+/* ------------------------------------------------------------------ */
 
 /* ------------------------------------------------------------------ */
 /*  8. THE PLAYER MUST HAVE A FAILURE PATH                              */
@@ -769,3 +786,1491 @@ check(
       "      guarded. Add a watchdog that fires when an active slide still has no playable URL.",
   );
 }
+
+/* ------------------------------------------------------------------ */
+/*  9. THE SHOW PAGE IS THE FRONT DOOR                                  */
+/*                                                                      */
+/*  BUG THIS CATCHES: for 70 days every poster, hero, category row and  */
+/*  search result in the app linked straight to `/series/<slug>/1` —    */
+/*  the player — as a hard-coded string literal repeated at a dozen     */
+/*  independent call sites with no shared helper. The 91 show pages,     */
+/*  the only surface carrying the synopsis, the cast, the "First N       */
+/*  Episodes FREE" badge and the $1.99 Series Unlock card, were          */
+/*  reachable by Googlebot and by nothing inside the product. Measured   */
+/*  on production 2026-08-29: the home page's real DOM held 25 links     */
+/*  ending in /1 and zero show-page links, while its <noscript> block    */
+/*  held 107 show-page links and zero player links. The crawler got the  */
+/*  merchandising; the paying customer did not.                          */
+/*                                                                      */
+/*  The single code path that ever chose /series/<slug> was BrowsePage's */
+/*  coming-soon arm, keyed on `status === "coming_soon"` — 1:1 with "has */
+/*  no video". So the sales page was reachable exactly when there was    */
+/*  nothing to sell, which is what made Bollywood read as inverted: its  */
+/*  four unsellable tiles opened their description page and its six      */
+/*  sellable ones skipped it.                                            */
+/* ------------------------------------------------------------------ */
+
+/* 9a. The decision exists in exactly one place, and it does not consult
+       playability. Executed against the real module, not matched as text. */
+
+const hasHelpers =
+  typeof seriesHrefMod.seriesHref === "function" && typeof seriesHrefMod.episodeHref === "function";
+
+check(
+  hasHelpers,
+  "routing: the canonical link helpers are gone",
+  "lib/series-href.ts must export seriesHref() and episodeHref(). Without one shared decision the\n" +
+    "      /1 literal returns, because that is exactly how it spread the first time: a product\n" +
+    "      policy frozen as a string at every call site, changeable at none.",
+);
+
+if (hasHelpers) {
+  /* All 96 rows — the 91 live and the 5 coming-soon — must land on the same
+     shape of URL. The front door is identical for a title you can sell and one
+     you cannot; the moment it differs by status, the inversion is representable
+     again. Checked by calling it, not by reading it. */
+  const wrong = catalog.catalog.filter(
+    (s) =>
+      seriesHrefMod.seriesHref(s) !== `/series/${s.slug}` ||
+      seriesHrefMod.seriesHref(s.slug) !== `/series/${s.slug}`,
+  );
+  check(
+    wrong.length === 0,
+    "routing: seriesHref does not resolve to the show page",
+    `Every tile, hero and search result routes through it, so a wrong answer here is a wrong answer\n` +
+      `      everywhere — and a status-dependent answer is the Bollywood inversion rebuilt. Offenders:\n` +
+      `      ${wrong.slice(0, 4).map((s) => `${s.slug} (${s.status}) -> ${seriesHrefMod.seriesHref(s)}`).join(", ") || "-"}`,
+  );
+}
+
+/* 9b. The five coming-soon rows: /series/<slug>/N is a live 404 for them, so
+       the helper must fall back to the show page rather than build it.
+       getEpisodesForSeries() returns [] at episodeCount 0, getEpisode() is then
+       undefined, and app/series/[slug]/[episode]/page.tsx calls notFound(). */
+if (hasHelpers) {
+  const bad = soon.filter(
+    (s) => seriesHrefMod.episodeHref(s, 1) !== `/series/${s.slug}` || seriesHrefMod.episodeHref(s.slug, 1) !== `/series/${s.slug}`,
+  );
+  check(
+    bad.length === 0,
+    "routing: a coming-soon row can still be handed an episode URL",
+    `/series/<slug>/1 returns 404 for a row with episodeCount 0 — verified on production for all\n` +
+      `      five. episodeHref() must fall back to the show page, which renders 200. Offenders:\n` +
+      `      ${bad.map((s) => `${s.slug} -> ${seriesHrefMod.episodeHref(s, 1)}`).join(", ") || "-"}`,
+  );
+
+  const liveBad = live.filter((s) => seriesHrefMod.episodeHref(s, 1) !== `/series/${s.slug}/1`);
+  check(
+    liveBad.length === 0,
+    "routing: a live title no longer resolves to its own episode URL",
+    `A genuine episode URL must still land in the player at that episode — that was shipped in\n` +
+      `      Severity 1 and is correct. A fallback that swallows live rows would break resume tiles,\n` +
+      `      clip deep links and the show page's own play button. Offenders:\n` +
+      `      ${liveBad.slice(0, 4).map((s) => s.slug).join(", ") || "-"}`,
+  );
+}
+
+/* 9c. No browse-side surface builds the episode-1 literal any more.
+       Scanned across every component and every page, because the defect was
+       never in one file — it was in thirteen copies of one string. */
+{
+  const EPISODE_ONE_LITERAL = /`\/series\/\$\{[^}]+\}\/1`|["']\/series\/[a-z0-9-]+\/1["']/;
+
+  /* Files where an episode-1 link is legitimate, each with the reason. This
+     list is self-cleaning: a file that no longer contains the pattern must be
+     removed from it, or the check below fails. An exemption is not allowed to
+     outlive the defect it excuses. */
+  /* Empty on purpose. The one entry this list ever held —
+     components/LibraryPage.tsx, with three literals at :15, :261 and :274 that
+     dropped a saved title straight into the player — was B's handoff request to
+     F and has been applied: the poster thumbnail now calls seriesHref() and the
+     saved rows moved into components/AccountLists.tsx, which does too. The
+     stale-exemption check below is what forced this entry to be deleted rather
+     than left behind as a permanent hole. */
+  const EXEMPT = new Map([]);
+
+  const scanned = [];
+  const walk = (dir) => {
+    for (const entry of readdirSync(resolve(ROOT, dir), { withFileTypes: true })) {
+      const rel = `${dir}/${entry.name}`;
+      if (entry.isDirectory()) walk(rel);
+      else if (entry.name.endsWith(".tsx")) scanned.push(rel);
+    }
+  };
+  walk("components");
+  walk("app");
+
+  const offenders = scanned.filter((f) => !EXEMPT.has(f) && EPISODE_ONE_LITERAL.test(read(f)));
+  check(
+    offenders.length === 0,
+    "routing: a surface hard-codes the player as its destination",
+    `Build tile links with seriesHref() and genuine episode links with episodeHref(). A literal\n` +
+      `      cannot know that /series/<slug>/1 is a 404 for the five coming-soon rows, and a literal is\n` +
+      `      how the show pages became unreachable in the first place. Offenders:\n` +
+      `      ${offenders.join(", ")}`,
+  );
+
+  check(
+    scanned.length > 60,
+    "routing: the surface scan found almost nothing to scan",
+    `The walk over components/ and app/ returned ${scanned.length} .tsx files. If the walk breaks, the\n` +
+      "      check above passes vacuously and the regression it guards ships unnoticed.",
+  );
+
+  const staleExemptions = [...EXEMPT.keys()].filter((f) => !EPISODE_ONE_LITERAL.test(read(f)));
+  check(
+    staleExemptions.length === 0,
+    "routing: an exemption outlived the defect it excused",
+    `These files no longer hard-code an episode-1 link, so their entry in EXEMPT is now a hole in\n` +
+      `      the check for anyone who edits them next. Delete the entry: ${staleExemptions.join(", ")}`,
+  );
+}
+
+/* 9d. Every merchandising surface actually calls the helper. 9c only proves the
+       old literal is gone; a surface that stopped linking at all, or that grew a
+       third spelling, would pass 9c and still strand the show pages. */
+{
+  const SURFACES = [
+    ["components/BrowsePage.tsx", "the home grid, hero, Reality, Red Carpet and Music tiles"],
+    ["components/SearchButton.tsx", "the global header search results"],
+    ["components/SearchBar.tsx", "the /discover search bar"],
+    ["app/search/page.tsx", "the /search results grid"],
+    ["app/genres/[slug]/page.tsx", "the plural genre hub (its singular twin app/genre/[genre] was already correct)"],
+  ];
+  const missing = SURFACES.filter(([f]) => !/seriesHref\(/.test(read(f)));
+  check(
+    missing.length === 0,
+    "routing: a merchandising surface stopped routing through the helper",
+    `Five separate testers reached the player without ever seeing a synopsis, a cast list or the\n` +
+      `      price. Each of these surfaces must send a title tap to its show page:\n` +
+      `      ${missing.map(([f, why]) => `${f} (${why})`).join("; ")}`,
+  );
+}
+
+/* 9e. The tile branch no longer decides the destination.
+       BrowsePage's coming-soon ternary must stay — deleting it is what would
+       ship five 404s — but both arms must now agree on where the tile goes. */
+check(
+  !/href=\{`\/series\/\$\{s\.slug\}`\}/.test(browseCode) && /href=\{seriesHref\(s\)\}/.test(browseCode),
+  "routing: the browse tile still builds its own href",
+  "The grid tile had two arms with two destinations, chosen by `status === \"coming_soon\"`. One\n" +
+    "      href for every tile is what makes the inversion unrepresentable rather than merely fixed.",
+);
+
+/* 9f. dynamicParams must not be switched off on the show route.
+       generateStaticParams deliberately excludes the five coming-soon rows, so
+       nothing is PREBUILT for them; they render on demand purely because Next's
+       default dynamicParams is true. Setting it false to "tighten SSG" turns all
+       five tiles — on two live revenue tabs — into 404s, silently. */
+{
+  const showPage = read("app/series/[slug]/page.tsx");
+  check(
+    !/export\s+const\s+dynamicParams\s*=\s*false/.test(showPage),
+    "routing: dynamicParams is disabled on /series/[slug]",
+    "The five coming-soon rows are excluded from generateStaticParams on purpose and reach their\n" +
+      "      page through the framework default. Disabling it 404s every one of them. If SSG really must\n" +
+      "      be tightened, add the coming-soon slugs to generateStaticParams in the same commit.",
+  );
+}
+
+/* 9g. THE SEO SURFACE IS THE ASSET. 91 show pages and 2,214 prerendered episode
+       pages are indexed. This sprint adds inbound internal links to pages that
+       already exist; it moves no URL. A change to either number is a change to
+       what Google has crawled. */
+{
+  const showPage = read("app/series/[slug]/page.tsx");
+  const epPage = read("app/series/[slug]/[episode]/page.tsx");
+  const showParams = live.length;
+  const epParams = live.reduce((a, s) => a + Math.min(s.episodeCount, 25), 0);
+
+  check(
+    showParams === 91,
+    "seo: the show-page count moved",
+    `generateStaticParams builds one page per live row. Expected 91, got ${showParams}. Every one of\n` +
+      "      them is indexed and carries the merchandising copy.",
+  );
+  check(
+    epParams === 2214,
+    "seo: the prerendered episode-page count moved",
+    `Sum of min(episodeCount, 25) over live rows. Expected 2214, got ${epParams}.`,
+  );
+  check(
+    /SERIES\.filter\(\(s\) => s\.status === "live"\)/.test(showPage) &&
+      /SERIES\.filter\(\(s\) => s\.status === "live"\)/.test(epPage),
+    "seo: generateStaticParams no longer filters on live status",
+    "Both routes must build from live rows only. Widening it publishes five pages for titles with\n" +
+      "      no video; narrowing it withdraws pages Google already has.",
+  );
+  check(
+    /Math\.min\(series\.episodeCount, 25\)/.test(epPage),
+    "seo: the 25-episode prerender cap changed",
+    "2,214 is Σ min(episodeCount, 25). Changing the cap silently changes which of the 4,913 episode\n" +
+      "      URLs are prerendered and which fall to blocking render.",
+  );
+  check(
+    /alternates: \{ canonical: `\/series\/\$\{slug\}` \}/.test(showPage),
+    "seo: the show page's canonical changed",
+    "The canonical is the URL Google has indexed for all 91. It must keep pointing at /series/<slug>.",
+  );
+}
+
+/* 9h. THE PREWARM MOVED WITH THE NAVIGATION — verify the effect, not the edit.
+       posterClick() starts a hidden <video>, attaches hls.js and downloads a
+       stream on the assumption the very next page is EpisodeFeed, which ADOPTS
+       the running element. Now that tiles land on the show page, nothing adopts
+       it: every tap would burn the viewer's bandwidth for the full 12s TTL in
+       lib/instant-player.ts and leave a stale transition poster in
+       sessionStorage for the next EpisodeFeed to paint. So the prewarm may only
+       hang off a link whose destination really is the player. */
+{
+  /* Depth-aware, because a naive /<Link[\s\S]*?>/ stops at the `>` inside an
+     arrow function: `onClick={(e) => posterClick(...)}` would be cut in half and
+     the check would read every tag as prewarm-free. That is a check that cannot
+     fail — the exact thing this file is not allowed to contain. */
+  const tags = [];
+  for (let i = browseCode.indexOf("<Link"); i !== -1; i = browseCode.indexOf("<Link", i + 5)) {
+    let depth = 0;
+    for (let j = i + 5; j < browseCode.length; j++) {
+      const ch = browseCode[j];
+      if (ch === "{") depth++;
+      else if (ch === "}") depth--;
+      else if (ch === ">" && depth === 0) {
+        tags.push(browseCode.slice(i, j + 1));
+        break;
+      }
+    }
+  }
+  check(
+    tags.length >= 5,
+    "routing: the <Link> scan of BrowsePage found almost no tags",
+    `Found ${tags.length}. If the tag scan breaks, both prewarm checks below pass vacuously.`,
+  );
+
+  const showPageTagsWithPrewarm = tags.filter(
+    (t) => /href=\{seriesHref\(/.test(t) && /posterClick\(/.test(t),
+  );
+  check(
+    showPageTagsWithPrewarm.length === 0,
+    "routing: a show-page link still fires the instant-player prewarm",
+    `${showPageTagsWithPrewarm.length} <Link> element(s) route to the show page and still call\n` +
+      "      posterClick. Nothing on the show page adopts the hidden player, so the stream is downloaded\n" +
+      "      and thrown away, on cellular, on every tap.",
+  );
+
+  const prewarmTags = tags.filter((t) => /posterClick\(/.test(t));
+  check(
+    prewarmTags.length > 0 && prewarmTags.every((t) => /buildResumeUrl\(/.test(t)),
+    "routing: the prewarm is attached to something other than a resume tile",
+    "Continue Watching is the one link left on the browse page whose destination is the player, so\n" +
+      "      it is the one link allowed to prewarm. Everything else prewarms from the show page's own\n" +
+      "      play button instead.",
+  );
+
+  check(
+    /startInstantPlayer/.test(read("components/PlayNowLink.tsx")) &&
+      /<PlayNowLink/.test(read("app/series/[slug]/page.tsx")),
+    "routing: the show page's play button lost its prewarm",
+    "Routing every poster through the show page adds a step. The play CTA must carry the prewarm the\n" +
+      "      poster tap used to carry, or click-to-first-frame gets slower for every viewer — and speed\n" +
+      "      is the thing testers named as already working.",
+  );
+
+  /* BUG THIS CATCHES: the prewarm needs a playback id, and the obvious way to
+     get one is to look it up in MUX_MAP unguarded. The public projection carries
+     ids for the 519 free rows only, but an unguarded lookup is one data change
+     away from requesting a paid capability from the client, which AGENTS.md
+     rule 8 forbids. The lookup must be gated on the title's own freeEpisodes. */
+  check(
+    /series\.freeEpisodes >= 1[\s\S]{0,160}?MUX_MAP\[series\.slug\]/.test(
+      read("app/series/[slug]/page.tsx"),
+    ),
+    "playback: the show page prewarms without checking the episode is free",
+    "Gate the MUX_MAP lookup on series.freeEpisodes. A paid episode's source must be obtained after\n" +
+      "      navigation through the server-authorized path, never resolved from a client-visible map.",
+  );
+}
+
+/* 9i. The coming-soon show page must not offer an episode picker.
+       BUG THIS CATCHES: /series/the-chairmans-revenge shipped a button reading
+       "EP 1 of 0" with a tappable "All Episodes" control that opened an empty
+       list — directly beneath the page's own "Coming Soon" pill and the line
+       "Episodes announced soon". Verified in production HTML. */
+{
+  const showPage = read("app/series/[slug]/page.tsx");
+  check(
+    /episodes\.length > 0 \? \(\s*<EpisodeDropdown/.test(showPage),
+    "merchandising: the episode picker renders on a page with no episodes",
+    "getEpisodesForSeries() returns [] for the five coming-soon rows, and EpisodeDropdown then\n" +
+      "      renders `EP 1 of 0` over an empty list. Gate it on episodes.length and fill the space with\n" +
+      "      the empty state instead. The picker itself is correct and stays untouched on all 91 live\n" +
+      "      pages.",
+  );
+}
+
+/* 9j. components/SeriesCard.tsx is dead today — its only importer,
+       components/ChannelRow.tsx, has no importers at all — but it renders a
+       "Soon" badge on a tile whose href was hard-coded to /series/<slug>/1.
+       That is precisely the 404 BrowsePage's branch exists to prevent, sitting
+       one import away from production. */
+{
+  const card = read("components/SeriesCard.tsx");
+  check(
+    /seriesHref\(/.test(card) && /Soon/.test(card),
+    "routing: SeriesCard can badge a title Soon and link it to a 404",
+    "A tile that can render a Soon badge must route through seriesHref(). If the Soon badge is what\n" +
+      "      was removed rather than the literal, update this check to match — but do not leave a tile\n" +
+      "      that advertises an unplayable title and links to its episode route.",
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  10. PERSISTENCE — the app must remember a signed-out viewer         */
+/*                                                                      */
+/*  These run the REAL modules against a fake Storage. Source-text       */
+/*  greps would pass on a module that stored nothing; a guest-memory     */
+/*  layer that is never exercised without a browser is a guest-memory    */
+/*  layer nobody ever runs.                                             */
+/* ------------------------------------------------------------------ */
+
+/* A minimal Storage. Also the only thing standing between these checks and
+   needing a browser. */
+function fakeStorage(seed = {}) {
+  const map = new Map(Object.entries(seed));
+  return {
+    getItem: (k) => (map.has(k) ? map.get(k) : null),
+    setItem: (k, v) => void map.set(k, String(v)),
+    removeItem: (k) => void map.delete(k),
+    _dump: () => Object.fromEntries(map),
+  };
+}
+
+function withStorage(seed, fn) {
+  const previous = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
+  const fake = fakeStorage(seed);
+  Object.defineProperty(globalThis, "localStorage", {
+    value: fake,
+    configurable: true,
+    writable: true,
+  });
+  try {
+    return fn(fake);
+  } finally {
+    if (previous) Object.defineProperty(globalThis, "localStorage", previous);
+    else delete globalThis.localStorage;
+  }
+}
+
+let guestStore = null;
+let continueMod = null;
+try {
+  guestStore = loadTypeScriptModule("lib/guest-storage.ts");
+  continueMod = loadTypeScriptModule("lib/continue-watching.ts", {
+    "./catalog": catalog,
+    "./guest-storage": guestStore,
+  });
+} catch (err) {
+  check(false, "persistence: the guest storage layer could not be loaded", String(err && err.message));
+}
+
+/* 10a. A signed-out viewer's playhead survives at all.
+
+       BUG THIS CATCHES: the headline persistence defect. POST /api/watch-progress
+       401s for a guest (app/api/watch-progress/route.ts:12-15), the localStorage
+       fallback that would have covered them was WRITE-ONLY — readLastWatching()
+       and clearLastWatching() in lib/resume.ts had zero callers repo-wide — and
+       the Continue Watching rail was server-backed. A guest who watched four free
+       episodes and closed the tab lost every second of it. Every piece of a
+       working guest-resume path existed; none of them were connected. */
+if (guestStore) {
+  const written = withStorage({}, () => {
+    guestStore.saveGuestProgress({
+      seriesSlug: "reset",
+      episodeNumber: 3,
+      progressSeconds: 41,
+      completed: false,
+    });
+    return guestStore.readGuestProgress();
+  });
+  check(
+    written.length === 1 &&
+      written[0].seriesSlug === "reset" &&
+      written[0].episodeNumber === 3 &&
+      written[0].progressSeconds === 41,
+    "persistence: a guest's watch progress is not remembered",
+    "saveGuestProgress() then readGuestProgress() must round-trip a playhead with no session. If this\n" +
+      "      fails, a signed-out viewer loses the whole free preview the moment the tab closes — which is\n" +
+      "      the state the free preview is designed to leave people in.\n" +
+      `      Got: ${JSON.stringify(written)}`,
+  );
+}
+
+/* 10b. The store is bounded and upserts rather than appending.
+
+       BUG THIS CATCHES: a heartbeat that fires every ten seconds for the length
+       of a binge, writing to a storage area with a ~5 MB quota shared with the
+       cart, the language, the unlock hints and the analytics id. An append-only
+       log of playheads fills it and then every write in the app starts throwing. */
+if (guestStore) {
+  /* Two separate measurements, deliberately. Taking the duplicate count AFTER
+     the eviction loop would let the cap hide a broken upsert: 60 later writes
+     push the duplicates off the end and the store looks fine while every
+     heartbeat is still appending. */
+  const afterHeartbeats = withStorage({}, () => {
+    for (let i = 0; i < 12; i++) {
+      guestStore.saveGuestProgress({
+        seriesSlug: "reset",
+        episodeNumber: 3,
+        progressSeconds: i * 10,
+        completed: false,
+      });
+    }
+    return guestStore.readGuestProgress();
+  });
+  const dupes = afterHeartbeats.filter((r) => r.seriesSlug === "reset" && r.episodeNumber === 3);
+  check(
+    dupes.length === 1 && dupes[0].progressSeconds === 110,
+    "persistence: the guest progress store appends instead of upserting",
+    `Twelve heartbeats for ONE episode produced ${dupes.length} row(s), newest position\n` +
+      `      ${dupes[0] ? dupes[0].progressSeconds : "-"}. The ten-second heartbeat runs for the length of a\n` +
+      `      binge; appending instead of upserting fills a ~5 MB quota shared with the cart, the language,\n` +
+      `      the unlock hints and the analytics id, after which every write in the app starts throwing.`,
+  );
+
+  const rows = withStorage({}, () => {
+    for (let n = 1; n <= 60; n++) {
+      guestStore.saveGuestProgress({
+        seriesSlug: "reset",
+        episodeNumber: n,
+        progressSeconds: 30,
+        completed: false,
+      });
+    }
+    return guestStore.readGuestProgress();
+  });
+  check(
+    rows.length <= guestStore.MAX_PROGRESS_ROWS,
+    "persistence: the guest progress store is unbounded",
+    `Sixty distinct episodes must cap at MAX_PROGRESS_ROWS (${guestStore.MAX_PROGRESS_ROWS}).\n` +
+      `      Got ${rows.length} rows.`,
+  );
+}
+
+/* 10c. localStorage is attacker-writable, so it is validated on the way OUT.
+
+       BUG THIS CATCHES: a hand-edited or corrupted blob putting a poisoned row
+       into the Continue Watching rail and then into a POST body at sign-in
+       migration time. The bounds are the same ones the two write routes enforce
+       (slug charset, episode 1-999, seconds 0-36000), applied on read as well. */
+if (guestStore) {
+  const poisoned = JSON.stringify([
+    { seriesSlug: "../../etc/passwd", episodeNumber: 1, progressSeconds: 5, completed: false, updatedAt: 1 },
+    { seriesSlug: "reset", episodeNumber: 0, progressSeconds: 5, completed: false, updatedAt: 1 },
+    { seriesSlug: "reset", episodeNumber: 2, progressSeconds: 999999, completed: false, updatedAt: 1 },
+    { seriesSlug: "reset", episodeNumber: 4, progressSeconds: 12, completed: false, updatedAt: 1 },
+  ]);
+  const survivors = withStorage({ [guestStore.PROGRESS_KEY]: poisoned }, () =>
+    guestStore.readGuestProgress(),
+  );
+  check(
+    survivors.length === 1 && survivors[0].episodeNumber === 4,
+    "persistence: invalid guest rows are not rejected on read",
+    "readGuestProgress() must drop rows that would fail the server's own validators. Anything that\n" +
+      "      survives here reaches the Continue Watching rail and then POST /api/account/sync.\n" +
+      `      Survivors: ${JSON.stringify(survivors)}`,
+  );
+  /* Wrapped, because the failure mode under test IS a throw: an unguarded
+     JSON.parse here would abort this script instead of reporting a defect. */
+  let degradesCleanly = false;
+  try {
+    degradesCleanly =
+      withStorage({ [guestStore.PROGRESS_KEY]: "{not json" }, () => guestStore.readGuestProgress())
+        .length === 0;
+  } catch {
+    degradesCleanly = false;
+  }
+  check(
+    degradesCleanly,
+    "persistence: a corrupt guest store throws instead of degrading",
+    "A JSON.parse failure must return an empty list, not propagate. This code runs inside the player's\n" +
+      "      timeupdate handler; a throw there stops playback.",
+  );
+}
+
+/* 10d. The guest rail is shaped exactly like the signed-in rail.
+
+       BUG THIS CATCHES: two implementations of Continue Watching drifting apart.
+       GET /api/watch-progress drops rows whose series is missing or no longer
+       live — added because they rendered poster-less ghost cards linking to 404s
+       (route.ts:98-110) — filters completed rows, and caps at 20. A guest rail
+       that skipped any of those brings the 404 tile back for the population that
+       has no account to fall back on. */
+if (continueMod) {
+  const now = Date.now();
+  const items = continueMod.continueWatchingFromRows([
+    { seriesSlug: "reset", episodeNumber: 2, progressSeconds: 30, completed: false, updatedAt: now },
+    { seriesSlug: "reset", episodeNumber: 1, progressSeconds: 10, completed: true, updatedAt: now + 5 },
+    { seriesSlug: "a-slug-that-is-not-in-the-catalogue", episodeNumber: 1, progressSeconds: 9, completed: false, updatedAt: now + 9 },
+  ]);
+  check(
+    items.length === 1 && items[0].seriesSlug === "reset" && items[0].episodeNumber === 2,
+    "persistence: the guest rail does not apply the server's own filters",
+    "continueWatchingFromRows() must drop completed rows and rows for series that are missing or not\n" +
+      "      live, exactly as app/api/watch-progress/route.ts does.\n" +
+      `      Got: ${JSON.stringify(items)}`,
+  );
+  if (items.length === 1) {
+    const shape = Object.keys(items[0]).sort().join(",");
+    check(
+      shape ===
+        "episodeNumber,posterUrl,progressSeconds,seriesSlug,seriesTitle,totalEpisodes,updatedAt",
+      "persistence: the guest rail row does not match the API row",
+      "BrowsePage renders whichever source answered into ONE component. A field the guest source omits\n" +
+        `      is a blank tile for every signed-out viewer. Got: ${shape}`,
+    );
+  }
+  /* A coming-soon row has episodeCount 0, so /series/<slug>/N is a real 404. It
+     must never reach the rail — the same class of bug B fixed on the browse
+     tiles, arriving instead through saved progress. */
+  const soonSlug = (catalog.catalog.find((s) => s.status === "coming_soon") ?? {}).slug;
+  if (soonSlug) {
+    const soonItems = continueMod.continueWatchingFromRows([
+      { seriesSlug: soonSlug, episodeNumber: 1, progressSeconds: 30, completed: false, updatedAt: now },
+    ]);
+    check(
+      soonItems.length === 0,
+      "persistence: a coming-soon row can reach the Continue Watching rail",
+      `A resume tile links to /series/<slug>/<n> with an offset. For a coming-soon row that URL 404s.\n` +
+        `      ${soonSlug} produced ${soonItems.length} rail row(s).`,
+    );
+  }
+}
+
+/* 10e. The account wins whenever it has anything to say.
+
+       BUG THIS CATCHES: a stale device shadowing an account. Someone who watched
+       on their phone and then signs in on a laptop must see the account's rail,
+       not the laptop's leftovers. The precedence lives in one function so no
+       surface can pick its own. */
+if (continueMod && guestStore) {
+  const server = [
+    {
+      seriesSlug: "reset",
+      seriesTitle: "Server row",
+      posterUrl: "/x.jpg",
+      episodeNumber: 9,
+      totalEpisodes: 20,
+      progressSeconds: 5,
+      updatedAt: new Date().toISOString(),
+    },
+  ];
+  const merged = withStorage({}, () => {
+    guestStore.saveGuestProgress({ seriesSlug: "reset", episodeNumber: 2, progressSeconds: 30 });
+    return continueMod.mergeContinueWatching(server);
+  });
+  check(
+    merged.length === 1 && merged[0].episodeNumber === 9,
+    "persistence: local rows override the account's Continue Watching",
+    "mergeContinueWatching() must return the server's rows untouched when it has any. Otherwise a\n" +
+      "      device that was signed out yesterday rewrites the rail for an account that has moved on.",
+  );
+  const fallback = withStorage({}, () => {
+    guestStore.saveGuestProgress({ seriesSlug: "reset", episodeNumber: 2, progressSeconds: 30 });
+    return continueMod.mergeContinueWatching([]);
+  });
+  check(
+    fallback.length === 1 && fallback[0].episodeNumber === 2,
+    "persistence: the rail stays empty for a guest",
+    "GET /api/watch-progress returns {items: []} for a signed-out caller, so an empty array is the\n" +
+      "      GUEST case, not an authoritative empty account. mergeContinueWatching([]) must fall back to\n" +
+      "      the device or the rail is invisible to every guest — the population the free preview serves.",
+  );
+}
+
+/* 10f. Sign-in migration re-arms, and does not fire forever.
+
+       BUG THIS CATCHES: both halves of getting this wrong. A digest that never
+       changes means a guest's history is offered to the account once and any
+       later viewing is stranded; a digest that always differs means every route
+       change in the app POSTs the whole snapshot again. */
+if (guestStore) {
+  const observed = withStorage({}, () => {
+    const before = guestStore.guestStateNeedsMigration();
+    guestStore.saveGuestProgress({ seriesSlug: "reset", episodeNumber: 1, progressSeconds: 30 });
+    const armed = guestStore.guestStateNeedsMigration();
+    guestStore.markGuestStateMigrated();
+    const settled = guestStore.guestStateNeedsMigration();
+    guestStore.setSavedSlug("reset", true);
+    const rearmed = guestStore.guestStateNeedsMigration();
+    return { before, armed, settled, rearmed };
+  });
+  check(
+    observed.before === false && observed.armed === true && observed.settled === false && observed.rearmed === true,
+    "persistence: guest-state migration does not arm and settle correctly",
+    "Empty device -> false. New progress -> true. After a successful merge -> false. New bookmark ->\n" +
+      "      true again. Anything else either strands a viewer's history at sign-in or re-POSTs the whole\n" +
+      `      snapshot on every navigation. Got: ${JSON.stringify(observed)}`,
+  );
+}
+
+/* 10g. Account deletion takes the device with it.
+
+       BUG THIS CATCHES: the Delete Account button promises to remove "your
+       account, watch history, saved list, and purchases access". It cleared
+       verza-saved, verza-lang and the verza-unlock: hints and left a full local
+       watch history on the device, which made that sentence false. */
+if (guestStore) {
+  const left = withStorage({}, (fake) => {
+    guestStore.saveGuestProgress({ seriesSlug: "reset", episodeNumber: 1, progressSeconds: 30 });
+    guestStore.setSavedSlug("reset", true);
+    guestStore.markGuestStateMigrated();
+    guestStore.clearGuestState();
+    return Object.keys(fake._dump());
+  });
+  check(
+    left.length === 0,
+    "persistence: account deletion leaves guest state on the device",
+    `clearGuestState() must remove the progress, the saved list and the migration digest. Left behind:\n` +
+      `      ${left.join(", ")}`,
+  );
+}
+
+/* 10h. Every player records progress through the one shared path.
+
+       BUG THIS CATCHES: five hand-rolled copies of the same POST — EpisodeFeed's
+       heartbeat, its completion write and its pagehide flush, plus Player's
+       heartbeat and flush — all sharing one fault, that the route 401s for a
+       guest. Five copies of a policy is why fixing it in one of them fixes
+       nothing. A new player, or a revert of one call site, silently reopens it. */
+{
+  const player = read("components/Player.tsx");
+  for (const [label, src] of [["EpisodeFeed", feed], ["Player", player]]) {
+    const body = stripComments(src);
+    check(
+      !/fetch\(\s*["'`]\/api\/watch-progress["'`]\s*,\s*\{[\s\S]{0,80}method:\s*["'`]POST/.test(body),
+      `persistence: ${label} writes watch progress with a raw POST`,
+      "Progress must go through recordWatchProgress() in lib/watch-progress-client.ts, which records on\n" +
+        "      the device FIRST and then tells the account. A direct POST is discarded for every signed-out\n" +
+        "      viewer, because app/api/watch-progress/route.ts:12-15 returns 401 with no local fallback.",
+    );
+    check(
+      /recordWatchProgress\(/.test(body),
+      `persistence: ${label} no longer records watch progress at all`,
+      "Both players must call recordWatchProgress(). Losing the call is indistinguishable, from the\n" +
+        "      viewer's side, from the original bug.",
+    );
+  }
+}
+
+/* 10h-bis. recordWatchProgress() actually lands a row — EXECUTED, not grepped.
+
+       BUG THIS CATCHES: the class of fix that looks right and does nothing. 10h
+       proves both players CALL the shared recorder; this proves the recorder
+       WRITES. A version that only POSTed, or that wrote after awaiting the
+       network, would pass every source-text check above and still lose a guest's
+       position on the one path that has no second chance — the pagehide flush,
+       where the tab is going away and the request may never be sent. */
+if (guestStore) {
+  let recorder = null;
+  try {
+    recorder = loadTypeScriptModule("lib/watch-progress-client.ts", { "./guest-storage": guestStore });
+  } catch (err) {
+    check(false, "persistence: lib/watch-progress-client.ts could not be loaded", String(err && err.message));
+  }
+  if (recorder) {
+    const previousFetch = globalThis.fetch;
+    const calls = [];
+    globalThis.fetch = (url, init) => {
+      calls.push({ url, init });
+      // Reject, the way a guest's 401 path and an offline tab both effectively
+      // do, to prove the device write does not depend on the network at all.
+      return Promise.reject(new Error("offline"));
+    };
+    let landed = [];
+    try {
+      landed = withStorage({}, () => {
+        recorder.recordWatchProgress(
+          { seriesSlug: "reset", episodeNumber: 4, progressSeconds: 87.6, completed: false },
+          { keepalive: true },
+        );
+        return guestStore.readGuestProgress();
+      });
+    } finally {
+      if (previousFetch) globalThis.fetch = previousFetch;
+      else delete globalThis.fetch;
+    }
+    check(
+      landed.length === 1 && landed[0].episodeNumber === 4 && landed[0].progressSeconds === 87,
+      "persistence: recordWatchProgress does not write to the device",
+      "With the network failing, the playhead must still be on the device synchronously. If this fails,\n" +
+        "      every source check above passes while a guest still loses the free preview.\n" +
+        `      Got: ${JSON.stringify(landed)}`,
+    );
+    check(
+      calls.length === 1 && calls[0].init && calls[0].init.keepalive === true,
+      "persistence: recordWatchProgress drops the account write or the keepalive flag",
+      "It must still POST, and the backgrounding flush must pass keepalive so the request can outlive\n" +
+        `      the page. Got ${calls.length} call(s), keepalive=${calls[0] && calls[0].init ? calls[0].init.keepalive : "-"}.`,
+    );
+  }
+}
+
+/* 10i. The bookmark confirms, and reverts when the account says no.
+
+       BUG THIS CATCHES: the reported one — the bookmark could be tapped over and
+       over with no confirmation while the list it feeds stayed empty. Three
+       faults in one handler: every side effect lived inside the setIsSaved
+       updater (React may invoke an updater more than once), the response was
+       discarded with .catch(() => {}) so a failed write still rendered "Saved to
+       My List", and mount read only localStorage so a second device showed an
+       empty bookmark for an already-saved title and the next tap DELETED it. */
+{
+  const toggle = feedCode.match(/function toggleSave\(\)[\s\S]{0,2200}?\n {2}}/);
+  check(Boolean(toggle), "persistence: toggleSave() could not be located", "Renamed? Update this check.");
+  if (toggle) {
+    const body = toggle[0];
+    check(
+      !/setIsSaved\(\s*\((?:prev|[a-z]+)\)\s*=>\s*\{[\s\S]*?fetch\(/.test(body),
+      "persistence: the bookmark's network write lives inside a state updater",
+      "React invokes a state updater more than once (StrictMode does it deliberately), so the POST and\n" +
+        "      the localStorage write were not guaranteed to happen once per tap. Compute the intent first,\n" +
+        "      then act on it.",
+    );
+    check(
+      /\.then\(/.test(body) && /r\.ok/.test(body),
+      "persistence: the bookmark ignores whether the save succeeded",
+      "The response must be read. A discarded promise is how a failed write still rendered\n" +
+        '      "Saved to My List" and then an empty list — which is the defect users reported.',
+    );
+    check(
+      /401/.test(body),
+      "persistence: the bookmark treats a guest's 401 as a failure",
+      "POST /api/saved-list 401s for a signed-out viewer, and that is EXPECTED: the device write is the\n" +
+        "      save for them, and GuestStateSync hands it to the account at sign-in. Reverting the icon on\n" +
+        "      401 un-bookmarks every guest.",
+    );
+    check(
+      /popActionToast\(/.test(body),
+      "persistence: the bookmark gives no confirmation",
+      "A tap with no visible response is the reported complaint. Keep the toast.",
+    );
+  }
+}
+
+/* 10j. The three account rows are not shells.
+
+       BUG THIS CATCHES: "My List" linked to /library, which opens on its Channels
+       tab; "Continue Watching" linked to "/"; and "Purchase History" linked to
+       /me — its own URL — with the literal string "No purchases" beside it, so a
+       customer who had bought a Series Unlock was told they had bought nothing
+       and tapping the row reloaded the same page. */
+{
+  const me = read("app/me/page.tsx");
+  const row = (label) => {
+    const m = me.match(new RegExp(`label="${label}"[\\s\\S]{0,200}?href="([^"]+)"`));
+    return m ? m[1] : null;
+  };
+  check(
+    row("Purchase History") !== "/me" && row("Purchase History") !== null,
+    "account: Purchase History links to the page it is already on",
+    `href was ${row("Purchase History")}. It must open a page that lists what the account owns.`,
+  );
+  check(
+    row("Continue Watching") !== "/",
+    "account: Continue Watching links to the home page",
+    "The home rail is one surface among many on / and was server-only. The row must open something\n" +
+      "      that renders the viewer's unfinished episodes, signed in or not.",
+  );
+  check(
+    !/detail="No purchases"/.test(me),
+    "account: the purchase count is a hard-coded string",
+    'app/me/page.tsx shipped detail="No purchases" as a literal, so it said that to a customer with\n' +
+      "      eighty-six unlocks. It must read /api/entitlements.",
+  );
+  const list = read("app/me/list/page.tsx");
+  check(
+    /<SavedShowsList\b/.test(list) && /<RecentlyWatchedList\b/.test(list),
+    "account: /me/list renders hard-coded empty states",
+    "Both tabs of that page were literal <EmptyState> calls — no fetch, no storage read — so it told\n" +
+      '      every viewer "No saved shows yet. Tap the bookmark icon on any show to add it here", forever,\n' +
+      "      including the viewer who had just done exactly that.",
+  );
+}
+
+/* 10l. The account surfaces say "nothing here yet" in ONE voice.
+
+       BUG THIS CATCHES: a second empty-state design. Testers named the Anime
+       tab's card as the model for the whole app, and every surface that grew
+       its own near-copy of it — a different disc, a different glyph size, a
+       different CTA shape — is a surface that will drift away from it. The three
+       account lists (saved shows, recently watched, purchases) and the Library's
+       empty channel cards all render components/EmptyState. */
+{
+  const SURFACES = [
+    ["components/AccountLists.tsx", "the saved-shows and recently-watched lists"],
+    ["components/PurchaseHistoryList.tsx", "purchase history: signed out, error and nothing-bought"],
+    ["components/LibraryPage.tsx", "a channel with no live titles"],
+  ];
+  const rogue = SURFACES.filter(([f]) => !/from "@\/components\/EmptyState"/.test(read(f)));
+  check(
+    rogue.length === 0,
+    "empty states: an account surface hand-rolls its own empty card",
+    "components/EmptyState is the Anime tab's card, lifted verbatim, and it is the one testers named as\n" +
+      "      working. A surface that rebuilds it locally drifts from it the first time either is touched.\n" +
+      `      Offenders: ${rogue.map(([f, why]) => `${f} (${why})`).join(", ") || "-"}`,
+  );
+}
+
+/* 10k. There is a way back in for a customer who forgot their password.
+
+       BUG THIS CATCHES: /forgot-password, /reset-password, the branded recovery
+       email and both server actions were all built and deployed, and NOTHING in
+       the product linked to them. A customer who paid $1.99 and forgot their
+       password was permanently locked out of their own purchases. Both auth
+       pages also declared `error?: string` in searchParams and never rendered
+       it, so a wrong password produced a silent form reset. */
+{
+  const signIn = read("app/sign-in/page.tsx");
+  check(
+    /href="\/forgot-password"/.test(signIn),
+    "auth: /sign-in has no forgot-password link",
+    "The reset flow exists and is deployed. Without a link to it, a customer who forgot their password\n" +
+      "      cannot reach their purchases from anywhere in the product.",
+  );
+  check(
+    existsSync(resolve(ROOT, "app/forgot-password/page.tsx")) &&
+      existsSync(resolve(ROOT, "app/reset-password/page.tsx")),
+    "auth: the password reset route is gone",
+    "app/forgot-password and app/reset-password back that link. Removing either strands the link.",
+  );
+  for (const page of ["app/sign-in/page.tsx", "app/sign-up/page.tsx"]) {
+    const src = read(page);
+    check(
+      /AuthErrorNotice/.test(src),
+      `auth: ${page} swallows its own error parameter`,
+      "app/actions/auth.ts redirects here with ?error= on every failure. Both pages declared the param\n" +
+        "      in their searchParams type and neither read it, so every failed attempt looked like nothing\n" +
+        "      had happened at all.",
+    );
+  }
+  const notice = read("components/AuthErrorNotice.tsx");
+  check(
+    !/\{\s*error\s*\}/.test(notice.replace(/\{\s*error\s*\}:/g, "")),
+    "auth: the raw error parameter is rendered to the page",
+    "`error` is a query parameter and therefore attacker-controlled. A crafted link could otherwise put\n" +
+      "      any sentence — a fake support phone number — on our own sign-in page in our own type. Map\n" +
+      "      known causes to our copy and fall back to a generic line.",
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  11. THE SHELL: the category strip, the empty states, the store links */
+/*                                                                      */
+/*  Appended ABOVE the reporter on purpose. Five checks once sat below   */
+/*  it, after process.exit(1), and could not fail the gate; breaking one */
+/*  there printed PASS and exited 0. Never append after the reporter.    */
+/* ------------------------------------------------------------------ */
+
+const tabsSrc = read("components/CategoryTabs.tsx");
+const tabsCode = stripComments(tabsSrc);
+
+/* 11a. The category rail says, on screen, that it scrolls — and stops saying
+       it at the end.
+
+       BUG THIS CATCHES: ten tabs render ~1,000px of track inside a 320-430px
+       rail. The rail ended in a hard vertical cut through whatever label landed
+       on the boundary, with no fade, no peek treatment and no other hint. Two
+       testers read "ESPAÑ" as a broken label rather than as a row that moves:
+       one left believing this was a romance-drama-only app, and one concluded
+       there was no Indian content while six Bollywood titles were on sale. The
+       affordance has to be DERIVED from scroll position, not painted always-on
+       — a fade that stays lit at the end of the rail promises content that is
+       not there. */
+check(
+  /scrollWidth\s*-\s*rail\.clientWidth/.test(tabsCode) && /rail\.scrollLeft/.test(tabsCode),
+  "shell: the category rail no longer measures its own overflow",
+  "components/CategoryTabs.tsx must compute the remaining track from scrollWidth - clientWidth and\n" +
+    "      scrollLeft. Without that measurement the edge treatment is decoration and cannot be honest.",
+);
+check(
+  /opacity:\s*overflow\.left\s*\?/.test(tabsCode) && /opacity:\s*overflow\.right\s*\?/.test(tabsCode),
+  "shell: the category rail's edge fades are no longer bound to scroll position",
+  "Both fades must read the measured overflow state. Hard-coding either one to 1 re-creates the\n" +
+    "      original defect in reverse: an edge that claims there is more to the right at the far right end.",
+);
+
+/* 11b. The rail's scroll listener is torn down BY IDENTITY.
+
+       BUG THIS CATCHES: the class of teardown that removes every listener for
+       an event instead of the one it added — the same defect that stripped
+       hls.js's own ERROR handlers off the adopted player instance. This rail is
+       not a private element: components/BrowsePage.tsx decides whether a touch
+       belongs to a horizontal scroller by walking up to it with
+       .closest(".overflow-x-auto"), and the component scrolls it programmatically
+       from two effects. A blanket removal here would silently disarm whatever
+       else is listening. */
+{
+  const added = tabsCode.match(/rail\.addEventListener\(\s*"scroll"\s*,\s*(\w+)/);
+  const removed = tabsCode.match(/rail\.removeEventListener\(\s*"scroll"\s*,\s*(\w+)/);
+  check(
+    Boolean(added) && Boolean(removed) && added[1] === removed[1],
+    "shell: the category rail's scroll listener is not removed by identity",
+    "addEventListener and removeEventListener must name the SAME handler variable. A mismatch either\n" +
+      "      leaks a listener per mount or, worse, invites the argument-less removal that takes out every\n" +
+      "      other subscriber on the element.",
+  );
+}
+check(
+  !/rail\.removeEventListener\(\s*"scroll"\s*\)/.test(tabsCode),
+  "shell: the category rail removes every scroll listener on the element",
+  "removeEventListener with no handler is a blanket removal. Scope it to the listener this component\n" +
+    "      added.",
+);
+
+/* 11c. Every category is reachable at 320px.
+
+       BUG THIS CATCHES: at 320px exactly three of the ten top-level categories
+       fit in the strip. Bollywood, Reality, Creators, Red Carpet and Music were
+       entirely off screen. A fade cannot fix that — it says the row moves, not
+       what is over there — so the strip carries a control that opens all of
+       them at once. Both the opener and the sheet must render from the SAME
+       `items` array the strip does, or the sheet becomes a second, drifting
+       copy of the tab list. */
+check(
+  /aria-haspopup="dialog"/.test(tabsCode) && /setSheetOpen\(true\)/.test(tabsCode),
+  "shell: the category strip has no way to see the categories that do not fit",
+  "components/CategoryTabs.tsx must render a control that opens the full category list. Nine of ten\n" +
+    "      categories are off screen on a 320px phone and the tester conclusion was that the content does\n" +
+    "      not exist.",
+);
+check(
+  (tabsCode.match(/items\.map\(/g) || []).length >= 2,
+  "shell: the all-categories sheet no longer renders the same tab list as the strip",
+  "The sheet must map the same `items` array as the rail. A second hard-coded list drifts the moment\n" +
+    "      a tab is added, and the sheet is the only place some categories are ever seen.",
+);
+check(
+  /role="dialog"/.test(tabsCode) && /createPortal\(/.test(tabsCode),
+  "shell: the all-categories sheet is no longer portalled out of the sticky bar",
+  "BrowsePage mounts the strip inside a sticky div carrying backdrop-filter: blur(16px), and a\n" +
+    "      backdrop-filter makes an element the containing block for its position:fixed descendants — an\n" +
+    "      in-place sheet pins itself to the 44px tab bar instead of the viewport.",
+);
+check(
+  /onTouchStart=\{swallowTouch\}/.test(tabsCode),
+  "shell: the all-categories sheet lets its swipes reach the tab switcher",
+  "components/BrowsePage.tsx switches tabs on a horizontal swipe from an ancestor <div onTouchStart>.\n" +
+    "      React portals still bubble synthetic events through the React tree, so a drag on the open sheet\n" +
+    "      would change the tab underneath it.",
+);
+
+/* 11d. The store links are the ones the backend actually verifies against.
+
+       BUG THIS CATCHES: /about ("Available on iOS, Android, and Web."),
+       /press ("Platforms: Web, iOS, Android") and the platform sentences in the
+       legal copy all told visitors the apps existed, and the site carried no
+       link to either store on any page — a live App Store listing and a live
+       Play listing reachable only by searching for them. The two identifiers
+       below are not decorative: APPLE_APP_ID is passed to Apple's
+       SignedDataVerifier as the production appAppleId and APPLE_BUNDLE_ID is
+       the verified bundle. Deriving the marketing URLs from anything else means
+       someone guessed. */
+{
+  /* Comments stripped: the provenance note in lib/app-store.ts quotes the
+     storefront-qualified URL Apple redirects TO, as evidence the id resolves.
+     Matching source against prose would fail the check on its own citation. */
+  const storeSrc = stripComments(read("lib/app-store.ts"));
+  const iapSrc = read("lib/apple-iap-verification.ts");
+  const appleId = iapSrc.match(/APPLE_APP_ID\s*=\s*(\d+)/);
+  const bundleId = iapSrc.match(/APPLE_BUNDLE_ID\s*=\s*"([^"]+)"/);
+  check(
+    Boolean(appleId) && new RegExp(`apps\\.apple\\.com/app/id${appleId[1]}`).test(storeSrc),
+    "shell: the App Store URL no longer matches the verified Apple app id",
+    "lib/app-store.ts must build the URL from the same numeric id lib/apple-iap-verification.ts passes\n" +
+      "      to Apple as the production appAppleId. Any other number is a guess pointed at a stranger's app.",
+  );
+  check(
+    Boolean(bundleId) && storeSrc.includes(`details?id=${bundleId[1]}`),
+    "shell: the Google Play URL no longer matches the verified bundle id",
+    "The Play listing is keyed by the same application id as APPLE_BUNDLE_ID. Editing one without the\n" +
+      "      other silently ships a link to whatever else owns that package name.",
+  );
+  check(
+    !/apps\.apple\.com\/[a-z]{2}\/app/.test(storeSrc),
+    "shell: the App Store URL hard-codes a storefront country",
+    "A bare /app/id<n> is redirected by Apple to the viewer's own storefront. Pinning /us/ sends every\n" +
+      "      non-US visitor to a store they cannot buy from.",
+  );
+  for (const page of ["components/Footer.tsx", "app/about/page.tsx", "app/press/page.tsx"]) {
+    check(
+      /<StoreLinks\b/.test(read(page)),
+      `shell: ${page} states the apps exist and does not link to them`,
+      "This surface makes the iPhone/iPad/Android claim. It has to carry the route to the two listings,\n" +
+        "      or the claim is true and unusable — which is how the site shipped with a live iOS app and no\n" +
+        "      store link anywhere on it.",
+    );
+  }
+}
+
+/* 11e. Nothing on the Tubi panel is tappable and inert.
+
+       BUG THIS CATCHES: the partner carousel renders Tubi's own title cards,
+       each with Tubi's yellow play button drawn INTO the artwork. There was no
+       anchor anywhere in the component, so six large, obvious play affordances
+       did nothing at all, and the panel's one working control opened Tubi's
+       home page rather than anything to do with the title on screen. The slides
+       are links now, and the corner chip says where they go — the honest
+       reading of a montage. The drag guard is load-bearing: without it every
+       swipe of the carousel ends in a click and navigates off the site. */
+{
+  const tubi = stripComments(read("components/TubiHeroCarousel.tsx"));
+  check(
+    /\{slides\.map\([\s\S]{0,400}?<a\b[\s\S]{0,300}?\shref=\{href\}/.test(tubi),
+    "shell: the Tubi carousel slides are decoration again",
+    "Each slide must be a real outbound link. The play buttons are part of the supplied artwork, so a\n" +
+      "      slide that is not a link is a play button that does nothing.",
+  );
+  check(
+    /draggedRef\.current\s*=\s*Math\.abs\(dx\)\s*>/.test(tubi) && /e\.preventDefault\(\)/.test(tubi),
+    "shell: the Tubi carousel navigates on every swipe",
+    "touchend fires before click. Without the drag guard, dragging to see the next banner opens Tubi\n" +
+      "      instead — the carousel becomes unswipeable the moment its slides become links.",
+  );
+  check(
+    /Opens Tubi/.test(tubi) && /pointerEvents:\s*"none"/.test(tubi),
+    "shell: the Tubi carousel no longer says where a tap goes",
+    "The artwork promises playback in place. The chip is the honest label, and it must stay\n" +
+      "      pointer-events:none so it never swallows the tap or the swipe it is describing.",
+  );
+}
+
+/* 11f. There is exactly ONE empty state in this app.
+
+       BUG THIS CATCHES: testers singled out the Anime tab's card — a clock, one
+       honest sentence, a button somewhere useful — and called it the model. The
+       risk when four more surfaces need the same message is that each gets its
+       own card. components/EmptyState.tsx is that pattern; the neutral slate
+       below is the deliberate part, chosen because brand pink and violet invite
+       a tap and this card explicitly does not. */
+{
+  /* Stripped: the file's own doc block prints the three constants so a reader
+     knows they are the pattern and not arbitrary. Matching prose would let the
+     card be re-styled while its documentation still described the old one. */
+  const emptySrc = stripComments(read("components/EmptyState.tsx"));
+  check(
+    /rgba\(12,12,20,0\.82\)/.test(emptySrc) && /<circle cx="12" cy="12" r="10"/.test(emptySrc),
+    "shell: the shared empty state has been re-tuned away from the Anime card",
+    "The slate background and the clock glyph ARE the pattern testers praised. Changing them here\n" +
+      "      changes every surface that says 'nothing here yet', which is the point of the component.",
+  );
+  check(
+    !/^"use client"/m.test(emptySrc),
+    "shell: the shared empty state became a client component",
+    "It is rendered both from BrowsePage (client, passes onClick) and from the coming-soon show page\n" +
+      "      (server, passes href). Marking it \"use client\" drags the show page's copy into the bundle for\n" +
+      "      no gain and breaks nothing loudly enough to notice.",
+  );
+  /* Either form counts: the surface renders <EmptyState> (the goal), or it
+     still inlines the same card by hand (where it stands today). What must
+     never happen is a surface that says "nothing here yet" in a palette of its
+     own — the check would otherwise fire on the very refactor it is asking
+     for. */
+  for (const page of ["components/BrowsePage.tsx", "app/series/[slug]/page.tsx"]) {
+    const src = read(page);
+    check(
+      src.includes("rgba(12,12,20,0.82)") || /<EmptyState\b/.test(src),
+      `shell: ${page} has grown a second empty-state style`,
+      "Every 'nothing here yet' surface uses the one card — components/EmptyState.tsx, or the same\n" +
+        "      slate inlined. A second palette here means the app says the same thing in two voices, which\n" +
+        "      is exactly what testers praised the Anime card for avoiding.",
+    );
+  }
+}
+
+/* ================================================================== */
+/*  10. LOCALIZATION (agent D)                                         */
+/*                                                                      */
+/*  A Spanish-only speaker set the app to Espanol, browsed a Spanish     */
+/*  show with Spanish artwork and a Spanish synopsis, hit the wall at    */
+/*  episode 6, and every word of the payment screen was English. In      */
+/*  their words: the app speaks Spanish right up until it wants a card.  */
+/*  Separately, "pasion" returned nothing while the result's own poster  */
+/*  reads SENTENCIA DE PASIÓN — a Spanish keyboard auto-accents, so the  */
+/*  CORRECT spelling was the one that failed.                            */
+/* ================================================================== */
+{
+  const fold = loadTypeScriptModule("lib/text-fold.ts");
+  const searchIndex = loadTypeScriptModule("lib/search-index.ts", {
+    "@/lib/text-fold": fold,
+  });
+  const i18n = loadTypeScriptModule("lib/i18n.ts");
+  const priceMod = loadTypeScriptModule("lib/price.ts");
+  const audioLang = loadTypeScriptModule("lib/audio-language.ts", {
+    "@/lib/catalog": catalog,
+  });
+
+  const matches = (q) =>
+    live
+      .filter((s) => searchIndex.seriesMatchesQuery(s, q))
+      .map((s) => s.slug)
+      .sort();
+
+  /* 10a. BUG THIS CATCHES: /search?q=pasion returned 0 results while
+     /search?q=pasión returned 1, and /search?q=espanol returned 5 while
+     /search?q=español returned 0 (measured on production 2026-08-29). The
+     matcher was haystack.toLowerCase().includes(query.toLowerCase()) with
+     .normalize() called on NEITHER side, so which spelling won was decided by
+     how the string happened to be typed into lib/catalog.ts — and it failed in
+     both directions. These pairs are real catalogue titles, not fixtures. */
+  const accentPairs = [
+    ["pasion", "pasión"],
+    ["espanol", "español"],
+    ["engane", "engañé"],
+    ["enamore", "enamoré"],
+    ["cunado", "cuñado"],
+    ["profesor", "PROFESÓR".toLowerCase()],
+    ["musica", "música"],
+  ];
+  const accentSplits = [];
+  for (const [plain, accented] of accentPairs) {
+    const a = matches(plain);
+    const b = matches(accented);
+    if (a.join("|") !== b.join("|")) {
+      accentSplits.push(`"${plain}" → ${a.length} vs "${accented}" → ${b.length}`);
+    }
+  }
+  check(
+    accentSplits.length === 0,
+    "search: an accented query and its unaccented spelling return different results",
+    "Fold BOTH the query and the index (lib/text-fold.ts). Folding one side fixes one direction and\n" +
+      "      leaves the other broken.\n      " +
+      accentSplits.join("\n      "),
+  );
+
+  /* The pairs above are only meaningful if they actually hit something. A
+     folding bug that made everything match nothing would pass the equality
+     test above with two empty sets. */
+  check(
+    matches("pasion").includes("sentence-of-passion-es") &&
+      matches("pasión").includes("sentence-of-passion-es") &&
+      matches("espanol").length === 5 &&
+      matches("español").length === 5 &&
+      matches("cunado").includes("i-fell-in-love-with-my-presidential-brother-in-law-es"),
+    "search: folded queries match nothing at all",
+    "Both spellings agreeing on an EMPTY result set is not a fix. 'pasion' and 'pasión' must both\n" +
+      "      return sentence-of-passion-es, and both spellings of espanol must return all five Spanish rows.",
+  );
+
+  /* 10b. BUG THIS CATCHES: the obvious fix for 10a —
+     .normalize("NFD").replace(/\p{Diacritic}/gu, "") — is the one written into
+     the Phase 0 diagnosis, and it is WRONG for this catalogue. \p{Diacritic}
+     matches the Devanagari virama U+094D, so it silently rewrites Hindi:
+     "हिन्दी" becomes "हिनदी" and "दोस्ती" becomes "दोसती". The Bollywood tab is
+     six live Hindi titles. Folding must stay inside the Latin combining range
+     U+0300-U+036F. */
+  const devanagari = "हिन्दी दोस्ती";
+  const arabic = "العربية";
+  const thai = "ไทย";
+  check(
+    fold.foldText(devanagari) === devanagari &&
+      fold.foldText(arabic) === arabic &&
+      fold.foldText(thai) === thai &&
+      fold.foldText("ñ") === "n" &&
+      fold.foldText("Ó") === "o",
+    "search: diacritic folding is mangling non-Latin scripts",
+    "Use the U+0300-U+036F combining-marks range, not \\p{Diacritic}. \\p{Diacritic} strips the\n" +
+      "      Devanagari virama and nukta, which changes Hindi words rather than normalising them.",
+  );
+
+  /* Hindi and transliterated titles must still be reachable. */
+  check(
+    matches("dil dosa").includes("dil-dosa-dosti") &&
+      matches("flatmate").includes("falling-for-flatmate") &&
+      matches("salt pepper").includes("salt-and-pepper"),
+    "search: Bollywood titles are unreachable",
+    "The six Hindi titles ship with English lockups and no curated SEARCH_TAGS, so title, slug,\n" +
+      "      genre and logline are their entire index. Folding must not disturb them.",
+  );
+
+  /* 10c. BUG THIS CATCHES: three separate search UIs each carried their own
+     inline predicate. /discover's bar had no tags, no SEARCH_TAGS and OR
+     across fields instead of per-token AND, so the same typed string returned
+     a different set on /discover than in the header popover — and all of them
+     were accent-blind independently, so fixing one left the others broken. */
+  const searchSurfaces = [
+    "components/SearchBar.tsx",
+    "components/SearchButton.tsx",
+    "components/FeedSearch.tsx",
+    "app/search/page.tsx",
+  ];
+  const privateMatchers = searchSurfaces.filter((f) => {
+    const src = stripComments(read(f));
+    return !/seriesMatchesQuery\(/.test(src) || /toLowerCase\(\)\.includes\(/.test(src);
+  });
+  check(
+    privateMatchers.length === 0,
+    "search: a surface is matching with its own predicate instead of seriesMatchesQuery",
+    "Every catalogue search must go through lib/search-index.ts. A private toLowerCase().includes()\n" +
+      "      is how three surfaces ended up with three different answers.\n      " +
+      privateMatchers.join(", "),
+  );
+
+  /* 10d. BUG THIS CATCHES: the in-feed paywall was hard-coded English —
+     "Unlock All Episodes", "one-time Series Unlock", "$1.99", "Secure checkout
+     via Stripe", "Go Back" — on the ONE screen where the language switcher is
+     unreachable, because app/globals.css hides the header under
+     .episode-immersive. A Spanish speaker could not translate it and could not
+     switch away from it. */
+  const paywallStart = feed.indexOf("{showUnlock && (");
+  /* Comments stripped first: the replacement code explains itself by quoting
+     the literals it removed, and a check for the ABSENCE of a string must not
+     be re-triggered by the comment documenting why it went. */
+  const paywallSrc = paywallStart > 0 ? stripComments(feed.slice(paywallStart)) : "";
+  const englishInPaywall = [
+    "Unlock All Episodes",
+    "Episode Unavailable",
+    "one-time Series Unlock",
+    "Secure checkout via Stripe",
+    "$1.99",
+    "Go Back",
+    "Opening secure checkout",
+    "Please try again",
+  ].filter((lit) => paywallSrc.includes(lit));
+  check(
+    paywallStart > 0 && englishInPaywall.length === 0,
+    "paywall: hard-coded English copy is back on the payment screen",
+    "Every string in the unlock overlay goes through t(). This is the one screen with no language\n" +
+      "      switcher (app/globals.css hides the header on .episode-immersive), so English here is final.\n      " +
+      `Found: ${englishInPaywall.join(" | ") || "(paywall block not located)"}`,
+  );
+
+  /* 10e. BUG THIS CATCHES: a key present in `en` but missing from `es` falls
+     back to English silently — which reproduces the exact defect being fixed,
+     one string at a time, with nothing failing. Placeholders are checked too:
+     a translator dropping {price} from the CTA ships a buy button with no
+     price on it, and dropping "Stripe" from the security line removes the
+     named processor testers called out as part of the paywall's honesty. */
+  const dicts = i18n.dictionaries;
+  const localeCodes = i18n.LOCALES.map((l) => l.code);
+  const enKeys = Object.keys(dicts.en);
+  const paywallKeys = enKeys.filter(
+    (k) => k.startsWith("paywall.") || k.startsWith("checkout.") || k.startsWith("language."),
+  );
+  const dictProblems = [];
+  const placeholders = {
+    "paywall.previewOver": ["{title}"],
+    "paywall.benefitEpisodes": ["{count}"],
+    "paywall.cta": ["{price}"],
+    "language.audio": ["{language}"],
+    "language.audioSubs": ["{language}", "{subtitles}"],
+  };
+  for (const code of localeCodes) {
+    const d = dicts[code];
+    if (!d) {
+      dictProblems.push(`${code}: no dictionary`);
+      continue;
+    }
+    for (const key of paywallKeys) {
+      const v = d[key];
+      if (typeof v !== "string" || v.trim() === "") {
+        dictProblems.push(`${code}.${key}: missing`);
+        continue;
+      }
+      for (const token of placeholders[key] ?? []) {
+        if (!v.includes(token)) dictProblems.push(`${code}.${key}: lost ${token}`);
+      }
+    }
+    if (d["paywall.secure"] && !d["paywall.secure"].includes("Stripe")) {
+      dictProblems.push(`${code}.paywall.secure: no longer names Stripe`);
+    }
+  }
+  check(
+    dictProblems.length === 0 && paywallKeys.length >= 20 && localeCodes.length === 20,
+    "i18n: a locale is missing paywall/checkout copy or lost a placeholder",
+    "Every one of the 20 locales must carry every paywall.*, checkout.* and language.* key with its\n" +
+      "      placeholders intact. A missing key falls back to English on the payment screen, which is the\n" +
+      "      defect this work exists to remove.\n      " +
+      dictProblems.slice(0, 8).join("\n      "),
+  );
+
+  /* 10f. BUG THIS CATCHES: /api/unlock returns English error sentences. The
+     paywall printed data.error verbatim, so a failed checkout dropped an
+     English sentence into an otherwise Spanish screen. The route now sends a
+     stable machine `code`; if a code is added there and not mapped here, the
+     English leaks back silently. */
+  const unlockRouteSrc = read("app/api/unlock/route.ts");
+  const routeCodes = [
+    ...new Set([...unlockRouteSrc.matchAll(/\bcode:\s*"([a-z_]+)"/g)].map((m) => m[1])),
+  ].sort();
+  const mapBlock = feed.match(/CHECKOUT_ERROR_KEYS[^{]*\{([\s\S]*?)\n\};/);
+  const mapped = mapBlock
+    ? Object.fromEntries(
+        [...mapBlock[1].matchAll(/(\w+):\s*"([\w.]+)"/g)].map((m) => [m[1], m[2]]),
+      )
+    : {};
+  const unmappedCodes = routeCodes.filter((c) => !mapped[c]);
+  const brokenKeys = Object.values(mapped).filter((k) => typeof dicts.en[k] !== "string");
+  check(
+    routeCodes.length > 0 && unmappedCodes.length === 0 && brokenKeys.length === 0,
+    "checkout: a server error code has no translated message",
+    "Every `code` returned by app/api/unlock/route.ts must appear in CHECKOUT_ERROR_KEYS in\n" +
+      "      components/EpisodeFeed.tsx and resolve to a real translation key, or a failed checkout prints\n" +
+      "      an English sentence onto a translated payment screen.\n      " +
+      `Unmapped: ${unmappedCodes.join(", ") || "none"}; bad keys: ${brokenKeys.join(", ") || "none"}`,
+  );
+
+  /* 10g. BUG THIS CATCHES: the price on the paywall was the string literal
+     "$1.99" with no connection to SERIES_UNLOCK_PRICE_CENTS, which lives in a
+     server-only module the client cannot import. Nothing would have failed if
+     the two diverged — the paywall would simply have advertised one price
+     while Stripe charged another. */
+  const serverPrice = read("lib/series-purchase.ts").match(
+    /SERIES_UNLOCK_PRICE_CENTS\s*=\s*(\d+)/,
+  );
+  check(
+    Boolean(serverPrice) &&
+      priceMod.SERIES_UNLOCK_PRICE_CENTS === Number(serverPrice[1]) &&
+      priceMod.SERIES_UNLOCK_CURRENCY === "USD" &&
+      /currency:\s*"usd"/.test(unlockRouteSrc),
+    "paywall: the displayed price no longer matches the price Stripe charges",
+    "lib/price.ts is the client-safe mirror of SERIES_UNLOCK_PRICE_CENTS in the server-only\n" +
+      "      lib/series-purchase.ts, and the Stripe line item is created in USD. Change one and you must\n" +
+      "      change the other, or the paywall advertises an amount the card is not debited.",
+  );
+
+  /* 10h. BUG THIS CATCHES: localising a price is one keystroke away from
+     localising the CURRENCY. Showing "1,99 €" to a Spanish viewer whose card
+     is debited $1.99 is a refund, not a translation. English must also stay
+     byte-identical to the literal it replaced — the big honest price is the
+     part of this screen testers named as already working. */
+  const enPrice = priceMod.formatSeriesUnlockPrice("en");
+  const esPrice = priceMod.formatSeriesUnlockPrice("es");
+  check(
+    enPrice === "$1.99" &&
+      /1[.,]99/.test(esPrice) &&
+      /\$/.test(esPrice) &&
+      priceMod.formatSeriesUnlockPrice("zz-nonsense") === "$1.99",
+    "paywall: locale-aware price formatting drifted",
+    "English must render exactly $1.99 (unchanged from the literal), every locale must render the\n" +
+      "      same 1.99 in USD, and an unusable locale tag must fall back rather than blank the price.\n      " +
+      `en=${JSON.stringify(enPrice)} es=${JSON.stringify(esPrice)}`,
+  );
+
+  /* 10i. BUG THIS CATCHES: LangProvider started at "en" and hydrated ONLY from
+     localStorage, so a first-time visitor sending Accept-Language: es-ES was
+     served English — and if they arrived on a shared episode link there was no
+     switcher to fix it, because the header is hidden on that route. */
+  check(
+    i18n.resolveLocale(["es-ES", "en"]) === "es" &&
+      i18n.resolveLocale(["es-419"]) === "es" &&
+      i18n.resolveLocale(["hi-IN"]) === "hi" &&
+      i18n.resolveLocale(["zz"]) === null &&
+      /navigator\.languages/.test(read("components/LangProvider.tsx")),
+    "i18n: the browser's own language is ignored on a first visit",
+    "LangProvider must fall back to navigator.languages when localStorage holds no explicit choice.\n" +
+      "      Region subtags resolve to their primary language: es-419 and es-MX are both 'es'.",
+  );
+
+  /* 10j. BUG THIS CATCHES: the Bollywood tab ships six live Hindi titles
+     behind English title lockups and English loglines, and nothing anywhere in
+     the product said the dialogue is in Hindi — not the tile, not the show
+     page, not the metadata, and not the stream, whose HLS manifest declares
+     LANGUAGE="und". A buyer found out after paying. */
+  const langProblems = [];
+  const byLang = { en: [], es: [], hi: [] };
+  for (const s of catalog.catalog) {
+    const l = audioLang.audioLanguageOf(s);
+    if (!byLang[l.audio]) {
+      langProblems.push(`${s.slug}: unknown audio language ${l.audio}`);
+      continue;
+    }
+    byLang[l.audio].push(s.slug);
+    const isBollywood = s.categories.includes("bollywood");
+    const isEspanol = s.categories.includes("espanol");
+    if (isBollywood && l.audio !== "hi") langProblems.push(`${s.slug}: bollywood but ${l.audio}`);
+    if (isEspanol && l.audio !== "es") langProblems.push(`${s.slug}: espanol but ${l.audio}`);
+    if (!isBollywood && !isEspanol && l.audio !== "en") {
+      langProblems.push(`${s.slug}: no language tab but ${l.audio}`);
+    }
+    /* Burned-in English subtitles are claimed for the Hindi titles. A
+       coming-soon row has zero Mux streams, so it must claim nothing. */
+    if (l.burnedInSubtitles && s.status === "coming_soon") {
+      langProblems.push(`${s.slug}: coming-soon row claims burned-in subtitles`);
+    }
+    if (l.audio === "hi" && s.status === "live" && l.burnedInSubtitles !== "en") {
+      langProblems.push(`${s.slug}: live Hindi title lost its English subtitle claim`);
+    }
+  }
+  check(
+    langProblems.length === 0 && byLang.hi.length === 10 && byLang.es.length === 6,
+    "language: a title's declared audio language is wrong or missing",
+    "lib/audio-language.ts derives audio from the tab, because lib/catalog.ts is source-fingerprinted\n" +
+      "      and cannot carry the field. Ten Bollywood rows are Hindi, six Espanol rows are Spanish, the\n" +
+      "      remaining 80 are English.\n      " +
+      langProblems.slice(0, 6).join("\n      "),
+  );
+
+  /* 10k. BUG THIS CATCHES: a language map nobody renders is not a label. This
+     is the check that the derivation actually reaches a viewer — on the show
+     page, on the browse tile, and in the JSON-LD that Google and every share
+     card read. */
+  const showPageSrc = read("app/series/[slug]/page.tsx");
+  const schemaSrc = read("lib/seo/schema.ts");
+  check(
+    /<AudioLanguageBadge/.test(showPageSrc) &&
+      /<AudioLanguageBadge/.test(browse) &&
+      /inLanguage:\s*inLanguageForSlug\(show\.slug\)/.test(schemaSrc) &&
+      (schemaSrc.match(/inLanguage:/g) ?? []).length >= 3,
+    "language: the audio language is declared but never shown",
+    "audioLanguageOf() must reach the show page, the browse tile, and inLanguage on both the TVSeries\n" +
+      "      and TVEpisode/VideoObject schemas. A constant that nothing renders fixes nothing.",
+  );
+
+  /* 10l. BUG THIS CATCHES: consolidating an English and a Spanish cut of the
+     same footage into one row with a language toggle is how a buyer ends up
+     owning the wrong language and asking for their money back. The two cuts
+     stay separate catalogue rows with separate slugs, separate key art and
+     separate Apple products; labelling the language must not quietly introduce
+     a bridge between them. */
+  const badgeSrc = read("components/AudioLanguageBadge.tsx");
+  check(
+    !/href=|<Link|useRouter|onClick/.test(badgeSrc) &&
+      catalog.catalog.some((s) => s.slug === "im-having-my-professors-baby-es") &&
+      !catalog.catalog.some((s) => s.slug === "im-having-my-professors-baby"),
+    "language: the audio label became a language switcher",
+    "AudioLanguageBadge is a label, not a control. Language variants stay as separate catalog rows —\n" +
+      "      one English, one Spanish — and nothing may link or toggle between them. That decision exists\n" +
+      "      to stop buyers getting the wrong language.",
+  );
+
+  /* 10m. BUG THIS CATCHES: ContentTranslator injected Google Translate from
+     translate.google.com, whose bootstrap loads the real engine from
+     translate.googleapis.com — a host that has never been in the CSP. Every
+     language change paid for a blocked request, two cookie writes and, in one
+     branch, a window.location.reload(). Either the host is in the policy or
+     the injection is gone; shipping the injection against a policy that blocks
+     it is the state that wasted a page reload on nothing. */
+  /* stripComments: the rewritten component explains its own removal by
+     quoting the exact URL it used to load. This check looks for the ABSENCE
+     of that injection, so it must not read the explanation as the offence. */
+  const translator = stripComments(read("components/ContentTranslator.tsx"));
+  const csp = read("next.config.ts");
+  const injects = /translate\.google\.com\/translate_a/.test(translator);
+  const allowed = /translate\.googleapis\.com/.test(csp);
+  check(
+    !injects || allowed,
+    "i18n: the page injects a translate engine the CSP blocks",
+    "components/ContentTranslator.tsx loads translate.google.com/translate_a/element.js, which pulls\n" +
+      "      its engine from translate.googleapis.com. That host is absent from script-src in\n" +
+      "      next.config.ts, so the engine cannot load and the injection is pure cost.",
+  );
+}
+
+if (failures.length > 0) {
+  console.error("Feed integrity contract: FAIL");
+  for (const f of failures) console.error(`  - ${f}`);
+  console.error(`\n  ${failures.length} failing check(s).`);
+  process.exit(1);
+}
+
+console.log("Feed integrity contract: PASS");
+

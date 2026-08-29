@@ -1,11 +1,27 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { T } from "@/lib/theme";
+import { getUser } from "@/lib/auth";
+import { SavedShowsList, RecentlyWatchedList } from "@/components/AccountLists";
 
 export const metadata: Metadata = {
   title: "My List",
   description: "Your saved shows and watchlist on VERZA TV.",
 };
+
+/* ------------------------------------------------------------------ */
+/*  BUG THIS FIXES: both tabs of this page rendered a hard-coded empty  */
+/*  state. There was no fetch, no storage read and no props — the two    */
+/*  <EmptyState> calls were literals in the JSX. It told every viewer,   */
+/*  forever, "No saved shows yet — tap the bookmark icon on any show to  */
+/*  add it here", including the viewer who had just done exactly that.   */
+/*  The bookmark was real; this page simply never looked.                */
+/*                                                                      */
+/*  The URL, the tab parameter and the layout are unchanged. The two     */
+/*  literals are now the two list components, which read the account     */
+/*  first and this device second — so the page works signed out, which   */
+/*  is the state the free preview leaves people in.                      */
+/* ------------------------------------------------------------------ */
 
 /* ------------------------------------------------------------------ */
 /*  SVG icons                                                         */
@@ -28,17 +44,6 @@ const Icons = {
       <polyline points="12 19 5 12 12 5" />
     </svg>
   ),
-  bookmark: (
-    <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
-    </svg>
-  ),
-  clock: (
-    <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" />
-      <polyline points="12 6 12 12 16 14" />
-    </svg>
-  ),
   lock: (
     <svg {...iconProps} width="16" height="16">
       <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
@@ -58,54 +63,16 @@ const tabs: { id: TabId; label: string }[] = [
 ];
 
 /* ------------------------------------------------------------------ */
-/*  Empty-state component                                             */
-/* ------------------------------------------------------------------ */
-function EmptyState({
-  icon,
-  title,
-  message,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  message: string;
-}) {
-  return (
-    <div className="flex flex-col items-center justify-center py-16 px-4">
-      <div
-        className="w-20 h-20 rounded-full flex items-center justify-center mb-5"
-        style={{ background: `${T.accent}12` }}
-      >
-        <span style={{ color: T.accent }}>{icon}</span>
-      </div>
-      <p className="text-base font-semibold mb-1.5" style={{ color: T.text }}>
-        {title}
-      </p>
-      <p
-        className="text-sm text-center max-w-[260px] mb-6 leading-relaxed"
-        style={{ color: T.textMute }}
-      >
-        {message}
-      </p>
-      <Link
-        href="/"
-        className="px-6 py-2.5 rounded-lg text-sm font-semibold no-underline transition-opacity hover:opacity-90"
-        style={{ background: T.accent, color: "#fff" }}
-      >
-        Browse Shows
-      </Link>
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
 /*  Page (server component)                                           */
 /* ------------------------------------------------------------------ */
 export default async function MyListPage(props: {
   searchParams: Promise<{ tab?: string }>;
 }) {
   const searchParams = await props.searchParams;
-  const activeTab: TabId =
-    searchParams.tab === "recent" ? "recent" : "saved";
+  const activeTab: TabId = searchParams.tab === "recent" ? "recent" : "saved";
+  // Only a guest needs the sync prompt. It used to render for everyone,
+  // including a signed-in viewer whose list was already syncing.
+  const user = await getUser();
 
   return (
     <section className="max-w-lg mx-auto pb-10">
@@ -151,40 +118,33 @@ export default async function MyListPage(props: {
       </div>
 
       {/* ---- Tab content ---- */}
-      {activeTab === "saved" ? (
-        <EmptyState
-          icon={Icons.bookmark}
-          title="No saved shows yet"
-          message="Tap the bookmark icon on any show to add it here for easy access."
-        />
-      ) : (
-        <EmptyState
-          icon={Icons.clock}
-          title="Nothing watched yet"
-          message="Shows you start watching will appear here so you can pick up where you left off."
-        />
-      )}
+      <div className="px-4 pt-2 pb-4">
+        {activeTab === "saved" ? <SavedShowsList /> : <RecentlyWatchedList />}
+      </div>
 
       {/* ---- Guest sync prompt ---- */}
-      <div
-        className="mx-4 rounded-xl p-4 flex items-center gap-3"
-        style={{
-          background: `${T.accent}0A`,
-          border: `1px solid ${T.accent}22`,
-        }}
-      >
-        <span style={{ color: T.accent }}>{Icons.lock}</span>
-        <p className="text-xs leading-relaxed flex-1" style={{ color: T.textDim }}>
-          <Link
-            href="/sign-in"
-            className="font-semibold no-underline"
-            style={{ color: T.accent }}
-          >
-            Sign in
-          </Link>{" "}
-          to sync your list across devices.
-        </p>
-      </div>
+      {!user && (
+        <div
+          className="mx-4 rounded-xl p-4 flex items-center gap-3"
+          style={{
+            background: `${T.accent}0A`,
+            border: `1px solid ${T.accent}22`,
+          }}
+        >
+          <span style={{ color: T.accent }}>{Icons.lock}</span>
+          <p className="text-xs leading-relaxed flex-1" style={{ color: T.textDim }}>
+            This list is saved on this device.{" "}
+            <Link
+              href="/sign-in?next=%2Fme%2Flist"
+              className="font-semibold no-underline"
+              style={{ color: T.accent }}
+            >
+              Sign in
+            </Link>{" "}
+            and it moves to your account, so it follows you to every device.
+          </p>
+        </div>
+      )}
     </section>
   );
 }

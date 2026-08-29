@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { Series } from "@/lib/catalog";
+import { seriesHref } from "@/lib/series-href";
 
 interface SeriesCardProps {
   series: Series;
@@ -10,7 +11,7 @@ interface SeriesCardProps {
 export default function SeriesCard({ series, dimmed }: SeriesCardProps) {
   return (
     <Link
-      href={`/series/${series.slug}/1`}
+      href={seriesHref(series)}
       className="flex-shrink-0 group"
       style={{ width: 130, opacity: dimmed ? 0.45 : 1 }}
     >

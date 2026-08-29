@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { catalog, getLiveSeries } from "@/lib/catalog";
+import { seriesHref } from "@/lib/series-href";
 import { seriesMatchesQuery } from "@/lib/search-index";
 import { T } from "@/lib/theme";
 
@@ -177,7 +178,7 @@ export default async function SearchPage({ searchParams }: Props) {
           {results.map((series) => (
             <Link
               key={series.slug}
-              href={`/series/${series.slug}/1`}
+              href={seriesHref(series)}
               className="group no-underline"
             >
               <div

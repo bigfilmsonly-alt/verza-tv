@@ -3,6 +3,7 @@ import Link from "next/link";
 import { T } from "@/lib/theme";
 import { BRAND } from "@/lib/config";
 import { signUpAction } from "@/app/actions/auth";
+import AuthErrorNotice from "@/components/AuthErrorNotice";
 import OAuthButtons from "@/components/OAuthButtons";
 
 export const metadata: Metadata = {
@@ -30,7 +31,7 @@ type Props = {
 };
 
 export default async function SignUpPage({ searchParams }: Props) {
-  const { next } = await searchParams;
+  const { next, error } = await searchParams;
   const redirectNext = next || "/";
 
   return (
@@ -70,6 +71,11 @@ export default async function SignUpPage({ searchParams }: Props) {
       </p>
 
       {/* Registration form */}
+      {/* Same silent-failure bug as /sign-in: signUpAction redirects here with
+          ?error= for a duplicate email, a weak password or a failed age gate,
+          and nothing rendered it. */}
+      <AuthErrorNotice error={error} />
+
       <form action={signUpAction} className="flex flex-col gap-3 mb-6">
         <input type="hidden" name="next" value={redirectNext} />
         <label className="sr-only" htmlFor="email">Email address</label>
