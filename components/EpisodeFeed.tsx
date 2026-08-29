@@ -83,6 +83,10 @@ interface EpisodeFeedProps {
    is far below the shortest episode in the catalogue (about 29 seconds), so a
    viewer never meets it during normal playback. */
 const ADVANCE_COOLDOWN_MS = 700;
+/* How many episodes the feed may advance on its own before it must see the
+   viewer do something. Chosen well above normal binge behaviour and far below
+   the length of any series in the catalogue. */
+const MAX_UNATTENDED_ADVANCES = 8;
 
 function EpisodeSlide({
   episode,
@@ -148,6 +152,10 @@ function EpisodeSlide({
   // True once playback has begun; stays true through pauses so the paused frame
   // remains visible (no black poster flash on pause). Reset only on teardown.
   const [started, setStarted] = useState(false);
+  /* Ref mirror of `started`. The ended listener's effect deliberately does not
+     depend on it, so reading the state directly there would capture whatever it
+     was when the listener was attached. */
+  const startedRef = useRef(false);
   const [, setLoading] = useState(false);
   const [showPause, setShowPause] = useState(false);
   const pauseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -307,7 +315,9 @@ function EpisodeSlide({
       setAuthorizedSource(null);
       setSourceReady(false);
       setPlaying(false);
-      setStarted(false);
+      startedRef.current = false;
+      startedRef.current = false;
+    setStarted(false);
       setSourceRequestNonce((value) => value + 1);
     });
   }, [episode.requiresAuthorization]);
@@ -412,11 +422,11 @@ function EpisodeSlide({
       queueMicrotask(() => {
         setSourceReady(true);
         setPlaying(!vid.paused);
-        if (frameAlreadyReady) setStarted(true);
+        if (frameAlreadyReady) { startedRef.current = true; setStarted(true); }
       });
       // A frame is already decoded → reveal the movie in this same pre-paint
       // pass (the poster never appears). Otherwise reveal on first frame.
-      if (!frameAlreadyReady) onFirstFrame(vid, () => setStarted(true));
+      if (!frameAlreadyReady) onFirstFrame(vid, () => { startedRef.current = true; setStarted(true); });
     } else {
       const vid = document.createElement("video");
       vid.muted = true;
@@ -504,6 +514,7 @@ function EpisodeSlide({
         // Don't set started yet — wait for the first actual frame to be
         // composited so the poster stays visible until real pixels are ready.
         onFirstFrame(vid, () => {
+          startedRef.current = true;
           setStarted(true);
           if (!mutedRef.current) {
             vid.muted = false;
@@ -535,6 +546,7 @@ function EpisodeSlide({
     attachedRef.current = false;
     mediaRecoveriesRef.current = 0;
     setSourceReady(false);
+    startedRef.current = false;
     setStarted(false);
     setAttachNonce((n) => n + 1); // re-runs the attach effect
   }, []);
@@ -775,7 +787,9 @@ function EpisodeSlide({
     queueMicrotask(() => {
       setSourceReady(false);
       setPlaying(false);
-      setStarted(false);
+      startedRef.current = false;
+      startedRef.current = false;
+    setStarted(false);
       setLoading(false);
     });
   }, [isActive, isNear]);
@@ -856,6 +870,17 @@ function EpisodeSlide({
          just as fast, and the feed raced to the paywall with nothing visible.
          A real completion has a finite duration and a playhead at the end of
          it. Anything else is the element telling us it has nothing to play. */
+      /* An episode that never showed a single frame cannot have finished.
+         This is the guard that actually stops the runaway. The adjacency guard
+         on the index only rejects JUMPS, and walking 5 to 60 is 55 perfectly
+         adjacent steps, so it never applied. What produces those steps is a
+         slide completing without ever playing: it advances, the next slide is
+         equally dead, it completes too, and the counter climbs to the end of
+         the series over a black screen.
+         `started` flips only when a real frame is composited, so requiring it
+         means a black slide can never advance the feed no matter what fires
+         the event or why. */
+      if (!startedRef.current) return;
       const duration = vid.duration;
       const playedToEnd =
         Number.isFinite(duration) && duration > 0 && vid.currentTime >= duration - 1.5;
@@ -906,7 +931,7 @@ function EpisodeSlide({
         setPlaying(true);
         // Reveal only once a real frame is composited — flipping `started`
         // immediately would fade the posters over a still-black video.
-        onFirstFrame(vid, () => setStarted(true));
+        onFirstFrame(vid, () => { startedRef.current = true; setStarted(true); });
       } else {
         vid.pause();
         setPlaying(false);
@@ -1355,6 +1380,28 @@ export default function EpisodeFeed({
   /* Long enough to cover a smooth scroll settling, short enough that a viewer
      watching very short episodes back to back never notices it. */
   const lastAdvanceAt = useRef(0);
+  /* Consecutive automatic advances since the viewer last touched anything.
+     A person watching several short episodes back to back is normal, so this is
+     generous; a feed walking itself to the end of a 60 episode series is not. */
+  const autoAdvanceRunRef = useRef(0);
+  /* Any genuine interaction means a person is present and in control, so the
+     unattended-advance run resets. Registered on the document rather than the
+     container because a tap on the overlay chrome counts just as much as a
+     swipe on the feed itself. */
+  useEffect(() => {
+    const reset = () => { autoAdvanceRunRef.current = 0; };
+    const opts = { passive: true } as AddEventListenerOptions;
+    document.addEventListener("pointerdown", reset, opts);
+    document.addEventListener("touchstart", reset, opts);
+    document.addEventListener("wheel", reset, opts);
+    document.addEventListener("keydown", reset, opts);
+    return () => {
+      document.removeEventListener("pointerdown", reset, opts);
+      document.removeEventListener("touchstart", reset, opts);
+      document.removeEventListener("wheel", reset, opts);
+      document.removeEventListener("keydown", reset, opts);
+    };
+  }, []);
   /* False until the observer has accepted one index. The first settle may be
      any distance (a deep link to episode 20); every one after it must be
      adjacent. */
@@ -1485,6 +1532,17 @@ export default function EpisodeFeed({
     const now = Date.now();
     if (now - lastAdvanceAt.current < ADVANCE_COOLDOWN_MS) return;
     lastAdvanceAt.current = now;
+    /* Circuit breaker. The reported failure is the counter climbing from
+       episode 5 to 60 on its own over a black screen, then the tab dying. Every
+       one of those steps is adjacent, so the adjacency guard never fired, and
+       every one is spaced by the cooldown, so the cooldown never fired either.
+       Neither bounds the TOTAL, which is the thing that was actually wrong.
+       A viewer who genuinely watches this many episodes without touching the
+       screen will have generated touch or scroll events long before here; any
+       gesture resets the run. Hitting the cap means the feed is driving itself,
+       so it stops rather than running to the end of the series. */
+    if (autoAdvanceRunRef.current >= MAX_UNATTENDED_ADVANCES) return;
+    autoAdvanceRunRef.current += 1;
     // Pause the current video immediately to prevent audio overlap. The
     // adopted instant-player video lives in <body>, not in the slide.
     const currentSlide = container.querySelector(`[data-index="${activeIndexRef.current}"]`);

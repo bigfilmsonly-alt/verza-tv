@@ -480,6 +480,39 @@ notes.push(`walked ${episodesWalked} episodes across ${live.length} live series 
   notes.push("player failure paths exercised: 503, 502, 401, 402 and a hanging request");
 }
 
+
+/* ------------------------------------------------------------------ */
+/*  10. THE RUNAWAY MUST BE BOUNDED IN TOTAL, NOT JUST PER STEP         */
+/*                                                                      */
+/*  BUG THIS CATCHES: the feed walked from episode 5 to 60 on its own    */
+/*  over a black screen and then the tab died. Every one of those 55     */
+/*  steps was ADJACENT, so the adjacency guard never applied, and every  */
+/*  one was spaced by the cooldown, so the cooldown never applied.       */
+/*  Neither bounded the total, which was the thing actually wrong.       */
+/* ------------------------------------------------------------------ */
+
+check(
+  /startedRef\.current/.test(feedCode) && /if \(!startedRef\.current\) return;/.test(feedCode),
+  "runaway: an episode can complete without ever showing a frame",
+  "The ended handler must require that a real frame was composited. A slide that never played\n" +
+    "      cannot have finished, and a slide that completes without playing advances the feed into\n" +
+    "      the next equally dead slide, which is the runaway.",
+);
+
+check(
+  /autoAdvanceRunRef\.current\s*>=\s*MAX_UNATTENDED_ADVANCES/.test(feedCode),
+  "runaway: no cap on consecutive automatic advances",
+  "Bound the TOTAL, not only the gap between steps. Without a cap the feed can walk itself to the\n" +
+    "      end of a 60 episode series one legal step at a time.",
+);
+
+check(
+  /autoAdvanceRunRef\.current = 0/.test(feedCode),
+  "runaway: the advance cap never resets on interaction",
+  "A cap that never resets would eventually stop a genuine binge-watcher. Any pointer, touch,\n" +
+    "      wheel or key event means a person is present and must clear the run.",
+);
+
 /* ------------------------------------------------------------------ */
 /*  Report                                                             */
 /* ------------------------------------------------------------------ */
