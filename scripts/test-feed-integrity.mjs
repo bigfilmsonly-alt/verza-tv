@@ -2366,6 +2366,90 @@ check(
   );
 }
 
+/* ------------------------------------------------------------------ */
+/*  14. AUDIT FIXES                                                     */
+/* ------------------------------------------------------------------ */
+
+/* BUG THIS CATCHES: /search?q=a&q=b returned HTTP 500 and a blank page. The
+   route typed searchParams as { q?: string } and called q.trim(), but Next
+   hands back string[] whenever a parameter repeats, and /search has no
+   error.tsx to catch the throw. A repeated parameter is not exotic — a double
+   form submit, an edited shared link, or a crawler recombining parameters all
+   produce one. */
+{
+  const searchPage = read("app/search/page.tsx");
+  check(
+    /q\?: string \| string\[\]/.test(searchPage),
+    "search: the query parameter is typed as a bare string",
+    "Next gives string[] when a parameter repeats. Typing it as string is what let q.trim() throw and\n" +
+      "      return a 500 on a blank page.",
+  );
+  check(
+    /function readQuery\(/.test(searchPage) && !/q\?\.trim\(\)/.test(searchPage),
+    "search: the repeated-parameter normaliser is gone",
+    "Both the metadata function and the page body must normalise through one helper. A second\n" +
+      "      q?.trim() anywhere re-opens the 500.",
+  );
+}
+
+/* BUG THIS CATCHES: 22 of the 96 show pages printed the same sentence twice, a
+   paragraph apart, with the metadata row wedged between them — on the one page
+   whose whole job is to describe the show. SERIES_DETAIL.description opens with
+   the catalogue logline verbatim for those rows.
+
+   The obvious fix is wrong and was caught by measuring rather than reasoning: an
+   equality test suppresses ZERO of the 22, because every one of them is
+   "logline + genuinely new text". Dropping the paragraph would delete the only
+   new information on the page. The repeat must be stripped, not the paragraph. */
+{
+  const showPage = read("app/series/[slug]/page.tsx");
+  check(
+    /dk\.startsWith\(lk\)/.test(showPage),
+    "show page: the duplicated synopsis is compared for equality only",
+    "All 22 affected rows are prefix duplicates, not exact ones. An equality test reads like a fix and\n" +
+      "      suppresses nothing. Strip the repeated opening and keep the remainder.",
+  );
+
+  const detail = loadTypeScriptModule("lib/series-detail.ts");
+  const collapse = (t) => String(t || "").trim().replace(/\s+/g, " ");
+  const key = (t) => collapse(t).replace(/[.\u2026]+$/, "").toLowerCase();
+  const rows = catalog.catalog;
+  const map = detail.SERIES_DETAIL || detail.default || {};
+  let stranded = 0;
+  const examples = [];
+  for (const r of rows) {
+    const d = map[r.slug];
+    const desc = collapse(d && d.description);
+    const log = collapse(r.logline);
+    if (!desc || !log) continue;
+    const dk = key(desc), lk = key(log);
+    if (dk !== lk && dk.startsWith(lk)) {
+      const remainder = collapse(desc.slice(log.length).replace(/^[\s.,;:\u2014-]+/, ""));
+      if (!remainder) { stranded++; if (examples.length < 4) examples.push(r.slug); }
+    }
+  }
+  check(
+    stranded === 0,
+    "show page: stripping the duplicate would leave an empty synopsis",
+    `${stranded} row(s) would render an empty paragraph after the repeated logline is removed, which\n` +
+      `      means the description carries no information the logline did not: ${examples.join(", ")}.\n` +
+      `      Those rows need real copy, not a render-time trim.`,
+  );
+}
+
+/* BUG THIS CATCHES: /search told every viewer it searches "91+ micro-drama
+   series" when exactly 91 are live. The plus sign claims a catalogue that does
+   not exist, on the page a viewer uses when they already suspect we do not
+   carry what they want. */
+{
+  const searchPage = read("app/search/page.tsx");
+  check(
+    !/\}\+ micro-drama/.test(searchPage),
+    "search: the catalogue size is overstated",
+    "getLiveSeries().length is the WHOLE live catalogue, so the trailing + promises titles beyond it.",
+  );
+}
+
 if (failures.length > 0) {
   console.error("Feed integrity contract: FAIL");
   for (const f of failures) console.error(`  - ${f}`);

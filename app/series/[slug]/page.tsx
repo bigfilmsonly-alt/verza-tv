@@ -219,15 +219,51 @@ export default async function SeriesPage({ params }: Props) {
           </div>
         )}
 
-        {/* Description */}
-        {series.description && (
-          <p
-            className="text-sm leading-relaxed mb-4"
-            style={{ color: T.textDim }}
-          >
-            {series.description}
-          </p>
-        )}
+        {/* Description.
+
+            Suppressed when it merely restates the logline printed above. 22 of
+            the 96 rows carry a SERIES_DETAIL.description that opens with the
+            catalogue logline verbatim, so those pages printed the same sentence
+            twice, one paragraph apart, with the metadata row wedged between
+            them. It reads as a rendering fault rather than as editorial detail,
+            on the one page whose whole job is to describe the show.
+
+            Compared on normalised text so punctuation and whitespace drift do
+            not defeat it, and the longer text wins: where the description is
+            the logline PLUS more, that extra is the only new information on the
+            page and must survive. */}
+        {(() => {
+          /* Strip the repeated opening rather than dropping the paragraph.
+             All 22 of the affected rows are "logline + genuinely new text", not
+             an exact copy, so suppressing the whole paragraph would delete the
+             only new information on the page. An equality test suppresses zero
+             of them — measured, not assumed. */
+          const collapse = (t: string) => t.trim().replace(/\s+/g, " ");
+          const key = (t: string) => collapse(t).replace(/[.\u2026]+$/, "").toLowerCase();
+          const logline = collapse(series.logline ?? "");
+          let description = collapse(series.description ?? "");
+          if (!description) return null;
+
+          const dk = key(description);
+          const lk = key(logline);
+          if (lk && dk === lk) return null;
+          if (lk && dk.startsWith(lk)) {
+            // Cut at the same offset in the ORIGINAL string: key() lowercases,
+            // so its indices are only safe because collapse() already made the
+            // two strings character-aligned up to case.
+            description = collapse(description.slice(logline.length).replace(/^[\s.,;:\u2014-]+/, ""));
+            if (!description) return null;
+            description = description.charAt(0).toUpperCase() + description.slice(1);
+          }
+          return (
+            <p
+              className="text-sm leading-relaxed mb-4"
+              style={{ color: T.textDim }}
+            >
+              {description}
+            </p>
+          );
+        })()}
 
         {/* Cast */}
         {series.cast && series.cast.length > 0 && (

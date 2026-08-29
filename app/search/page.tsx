@@ -10,17 +10,29 @@ import { T } from "@/lib/theme";
 /*  Metadata                                                           */
 /* ------------------------------------------------------------------ */
 
-type Props = { searchParams: Promise<{ q?: string }> };
+/* Next hands back `string[]`, not `string`, whenever a query parameter repeats.
+   This type claimed `string`, so `q.trim()` threw on ?q=a&q=b and the route
+   returned a 500 with a completely blank page — no error boundary caught it,
+   because /search has none. A repeated parameter is not exotic: a double form
+   submit, a shared link that was edited, or a crawler recombining parameters
+   all produce one. Type it honestly and normalise once. */
+type Props = { searchParams: Promise<{ q?: string | string[] }> };
+
+/** First value wins, which is what a browser's own form semantics do. */
+function readQuery(q: string | string[] | undefined): string {
+  const raw = Array.isArray(q) ? q[0] : q;
+  return typeof raw === "string" ? raw.trim() : "";
+}
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const { q } = await searchParams;
-  const query = q?.trim() ?? "";
+  const query = readQuery(q);
 
   if (!query) {
     return {
       title: "Search Micro-Dramas",
       description:
-        `Search ${getLiveSeries().length}+ micro-drama series on VERZA TV by title, genre, or keyword.`,
+        `Search all ${getLiveSeries().length} micro-drama series on VERZA TV by title, genre, or keyword.`,
       alternates: { canonical: "/search" },
     };
   }
@@ -51,7 +63,7 @@ function searchCatalog(query: string) {
 
 export default async function SearchPage({ searchParams }: Props) {
   const { q } = await searchParams;
-  const query = q?.trim() ?? "";
+  const query = readQuery(q);
   const results = searchCatalog(query);
 
   return (
@@ -83,7 +95,7 @@ export default async function SearchPage({ searchParams }: Props) {
 
       {query && (
         <p className="text-sm mb-6" style={{ color: T.textMute }}>
-          {results.length} {results.length === 1 ? "series" : "series"} found
+          {results.length} series found
         </p>
       )}
 
@@ -140,7 +152,7 @@ export default async function SearchPage({ searchParams }: Props) {
             <line x1="16.65" y1="16.65" x2="21" y2="21" />
           </svg>
           <p className="text-sm mb-1" style={{ color: T.textDim }}>
-            Search {getLiveSeries().length}+ micro-drama series
+            Search all {getLiveSeries().length} micro-drama series
           </p>
           <p className="text-xs" style={{ color: T.textMute }}>
             Try &ldquo;billionaire&rdquo;, &ldquo;revenge&rdquo;, or
