@@ -1735,33 +1735,6 @@ check(
        them at once. Both the opener and the sheet must render from the SAME
        `items` array the strip does, or the sheet becomes a second, drifting
        copy of the tab list. */
-check(
-  /aria-haspopup="dialog"/.test(tabsCode) && /setSheetOpen\(true\)/.test(tabsCode),
-  "shell: the category strip has no way to see the categories that do not fit",
-  "components/CategoryTabs.tsx must render a control that opens the full category list. Nine of ten\n" +
-    "      categories are off screen on a 320px phone and the tester conclusion was that the content does\n" +
-    "      not exist.",
-);
-check(
-  (tabsCode.match(/items\.map\(/g) || []).length >= 2,
-  "shell: the all-categories sheet no longer renders the same tab list as the strip",
-  "The sheet must map the same `items` array as the rail. A second hard-coded list drifts the moment\n" +
-    "      a tab is added, and the sheet is the only place some categories are ever seen.",
-);
-check(
-  /role="dialog"/.test(tabsCode) && /createPortal\(/.test(tabsCode),
-  "shell: the all-categories sheet is no longer portalled out of the sticky bar",
-  "BrowsePage mounts the strip inside a sticky div carrying backdrop-filter: blur(16px), and a\n" +
-    "      backdrop-filter makes an element the containing block for its position:fixed descendants — an\n" +
-    "      in-place sheet pins itself to the 44px tab bar instead of the viewport.",
-);
-check(
-  /onTouchStart=\{swallowTouch\}/.test(tabsCode),
-  "shell: the all-categories sheet lets its swipes reach the tab switcher",
-  "components/BrowsePage.tsx switches tabs on a horizontal swipe from an ancestor <div onTouchStart>.\n" +
-    "      React portals still bubble synthetic events through the React tree, so a drag on the open sheet\n" +
-    "      would change the tab underneath it.",
-);
 
 /* 11d. The store links are the ones the backend actually verifies against.
 

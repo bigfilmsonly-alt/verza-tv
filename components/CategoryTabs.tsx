@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import Image from "next/image";
 import { BROWSE_TABS, type BrowseCategory } from "@/lib/catalog";
 import { useTranslation } from "@/components/LangProvider";
@@ -40,8 +39,6 @@ export default function CategoryTabs({ active, onSelect, tabs }: CategoryTabsPro
   const { t } = useTranslation();
   const railRef = useRef<HTMLDivElement | null>(null);
   const buttonRefs = useRef(new Map<string, HTMLButtonElement>());
-  const openerRef = useRef<HTMLButtonElement | null>(null);
-  const closeRef = useRef<HTMLButtonElement | null>(null);
 
   /* Which side of the rail still has track on it. Seeded false/false so the
      server HTML and the first client render agree — the effect below measures
@@ -49,12 +46,6 @@ export default function CategoryTabs({ active, onSelect, tabs }: CategoryTabsPro
      Seeding `right: true` would paint a fade on a rail that may not overflow
      (a short `tabs` prop), i.e. an affordance that lies. */
   const [overflow, setOverflow] = useState({ left: false, right: false });
-  /* createPortal needs document.body, which does not exist during the server
-     render — but `sheetOpen` can only become true from a click, so the portal
-     branch is unreachable on the server and the typeof guard below is belt and
-     braces. Doing this with a mounted flag set from an effect costs an extra
-     render pass on every mount of the browse page for no gain. */
-  const [sheetOpen, setSheetOpen] = useState(false);
 
   const labelFor = (tab: { key: BrowseCategory; label: string }) => {
     const translationKey = TAB_KEYS[tab.key];
@@ -141,35 +132,6 @@ export default function CategoryTabs({ active, onSelect, tabs }: CategoryTabsPro
       behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
     });
   }, [active]);
-
-  const closeSheet = useCallback(() => {
-    setSheetOpen(false);
-    // Send the caret back where it came from, or a keyboard viewer is dropped
-    // at the top of the document.
-    openerRef.current?.focus();
-  }, []);
-
-  useEffect(() => {
-    if (!sheetOpen) return;
-    closeRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") closeSheet();
-    };
-    document.addEventListener("keydown", onKey);
-    // Scoped by identity — see the note on the scroll listener above.
-    return () => document.removeEventListener("keydown", onKey);
-  }, [sheetOpen, closeSheet]);
-
-  const pick = (key: BrowseCategory) => {
-    onSelect(key);
-    closeSheet();
-  };
-
-  /* BrowsePage mounts this component inside <div onTouchStart onTouchEnd> and
-     switches tabs on a horizontal swipe. React portals still bubble synthetic
-     events through the React tree, so without this a swipe anywhere on the
-     sheet would silently change the tab underneath it. */
-  const swallowTouch = (e: React.TouchEvent) => e.stopPropagation();
 
   const fadeBase: React.CSSProperties = {
     position: "absolute",
@@ -294,148 +256,8 @@ export default function CategoryTabs({ active, onSelect, tabs }: CategoryTabsPro
           />
         </div>
 
-        {/* A fade tells you the row moves. It does not tell you that six of the
-            ten sections are over there, and a fade cannot: at 320px only three
-            labels fit, so Bollywood, Reality, Creators, Red Carpet and Music are
-            invisible however pretty the edge is. One tester concluded there is
-            no Indian content while six Bollywood titles were on sale. This
-            button is the answer to that — every category, named, in one tap, at
-            every width. It sits OUTSIDE the scroller (a flex sibling, not an
-            overlay) so it can never cover a label or be scrolled away. */}
-        <button
-          type="button"
-          ref={openerRef}
-          onClick={() => setSheetOpen(true)}
-          aria-haspopup="dialog"
-          aria-expanded={sheetOpen}
-          aria-label={`All ${items.length} categories`}
-          className="flex-shrink-0 flex items-center gap-1.5 cursor-pointer my-2 mr-3 ml-1 px-2.5 rounded-full"
-          style={{
-            background: "rgba(255,255,255,0.07)",
-            border: "1px solid rgba(255,255,255,0.16)",
-            color: "rgba(255,255,255,0.72)",
-          }}
-        >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <rect x="3" y="3" width="7.5" height="7.5" rx="1.6" />
-            <rect x="13.5" y="3" width="7.5" height="7.5" rx="1.6" />
-            <rect x="3" y="13.5" width="7.5" height="7.5" rx="1.6" />
-            <rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.6" />
-          </svg>
-          <span className="text-[11px] font-black uppercase tracking-wider">All</span>
-        </button>
       </div>
 
-      {sheetOpen && typeof document !== "undefined"
-        ? createPortal(
-            /* Portalled to <body> on purpose. The sticky bar this component
-               renders into carries backdrop-filter: blur(16px), and a filter or
-               backdrop-filter makes an element a containing block for its
-               position: fixed descendants — an in-place sheet would be pinned
-               to the 44px tab bar instead of the viewport. */
-            <div
-              role="dialog"
-              aria-modal="true"
-              aria-label="All categories"
-              className="fixed inset-0 flex flex-col justify-end"
-              style={{ zIndex: 70 }}
-              onTouchStart={swallowTouch}
-              onTouchMove={swallowTouch}
-              onTouchEnd={swallowTouch}
-            >
-              <div
-                onClick={closeSheet}
-                aria-hidden="true"
-                className="absolute inset-0 animate-fadeIn"
-                style={{
-                  background: "rgba(4,4,10,0.78)",
-                  backdropFilter: "blur(6px)",
-                  WebkitBackdropFilter: "blur(6px)",
-                  // Stops a drag on the backdrop from scrolling the grid behind
-                  // the sheet, without touching document.body — a global style
-                  // mutation that leaks if this unmounts mid-animation.
-                  touchAction: "none",
-                  overscrollBehavior: "contain",
-                }}
-              />
-              <div
-                className="relative mx-auto w-full animate-slideUp"
-                style={{
-                  maxWidth: 440,
-                  background: "#0B0B14",
-                  borderTop: "1px solid rgba(255,255,255,0.10)",
-                  borderRadius: "20px 20px 0 0",
-                  padding: "14px 16px calc(20px + env(safe-area-inset-bottom, 0px))",
-                }}
-              >
-                <div
-                  aria-hidden="true"
-                  className="mx-auto mb-3 rounded-full"
-                  style={{ width: 38, height: 4, background: "rgba(255,255,255,0.18)" }}
-                />
-                <div className="flex items-center justify-between mb-3">
-                  <p className="m-0 text-[11px] font-black uppercase tracking-[0.14em]" style={{ color: "#8A8A9A" }}>
-                    Browse all categories
-                  </p>
-                  <button
-                    type="button"
-                    ref={closeRef}
-                    onClick={closeSheet}
-                    aria-label="Close"
-                    className="border-0 cursor-pointer rounded-full flex items-center justify-center"
-                    style={{ width: 30, height: 30, background: "rgba(255,255,255,0.07)", color: "#F5F4F8" }}
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true">
-                      <path d="M5 5l14 14M19 5L5 19" />
-                    </svg>
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                  {items.map((tab) => {
-                    const isActive = tab.key === active;
-                    return (
-                      <button
-                        key={tab.key}
-                        type="button"
-                        onClick={() => pick(tab.key)}
-                        aria-current={isActive ? "page" : undefined}
-                        className="flex items-center justify-center cursor-pointer rounded-xl px-3 transition-transform active:scale-[0.97]"
-                        style={{
-                          minHeight: 52,
-                          background: isActive ? "rgba(224,17,95,0.14)" : "rgba(255,255,255,0.05)",
-                          border: `1px solid ${isActive ? "#E0115F" : "rgba(255,255,255,0.10)"}`,
-                        }}
-                      >
-                        {tab.key === "tubi" ? (
-                          <Image
-                            src="/tubi-logo.png"
-                            alt="Tubi"
-                            width={760}
-                            height={300}
-                            style={{ height: 26, width: "auto", display: "block", borderRadius: 6 }}
-                          />
-                        ) : (
-                          /* No truncation and no ellipsis anywhere in this sheet:
-                             the whole point of it is that every category can be
-                             read in full. "Red Carpet" wraps to two lines on a
-                             320px screen rather than becoming "Red Carp…". */
-                          <span
-                            className="text-[14px] font-black uppercase tracking-wide text-center leading-tight"
-                            style={{ color: isActive ? "#E0115F" : "#F5F4F8" }}
-                          >
-                            {labelFor(tab)}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>,
-            document.body,
-          )
-        : null}
     </>
   );
 }
