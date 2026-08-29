@@ -46,9 +46,13 @@ playback, legal copy, catalog data, or release configuration. `CLAUDE.md` and
    production/sandbox URLs are exact,
    but no real signed notification or Sandbox purchase has completed yet.
    Never describe local code or a successful build as deployed.
-2. **The product sold now is a full-series unlock.** The catalog has 91
-   rows: all 91 live, of which 86 are paid and five are wholly free. No
-   coming-soon rows remain. (2026-08-27, post App Store approval: four Espanol titles,
+2. **The product sold now is a full-series unlock.** The catalog has 96
+   rows: 91 live and 5 `coming_soon`. Of the 91 live, 86 are paid and five are
+   wholly free. `scripts/test-payment-integrity.mjs` asserts 96/91/5 and is the
+   oracle; this sentence previously read "91 rows ... no coming-soon rows
+   remain", which was true when written and was falsified 47 minutes later by a
+   commit that did not update it. The coming-soon rows are not dead code: they
+   render as real links to `/series/<slug>` on the bollywood and espanol tabs. (2026-08-27, post App Store approval: four Espanol titles,
    two Bollywood titles, and "I'm Obsessed with My Boss Part II" released from
    coming-soon. Later the same day a second ingest added four Hindi titles and
    the Spanish cut of the professor title, taking Bollywood to six live titles
