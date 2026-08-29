@@ -36,6 +36,20 @@ const RATE_TIERS: { pattern: RegExp; limit: number }[] = [
   // Auth routes — brute-force protection
   { pattern: /^\/api\/auth\//, limit: 10 },
 
+  /* Playback-path reads. These are cheap, they are driven by the viewer simply
+     watching rather than by anything abusive, and throttling them corrupts the
+     product: a 429 on /api/access makes r.ok false in EpisodeFeed, which falls
+     through to setAuthFree(false) and paywalls a customer who has already paid.
+     Under the old shared 30/min catch-all a single binge could exhaust the
+     bucket on its own, because one paid episode costs an /api/playback call,
+     watch-progress POSTs every 10s and analytics beacons, all keyed to the
+     same ip:limit bucket. Each of these now gets its own bucket, since the key
+     is `${ip}:${limit}` and the limits differ. */
+  { pattern: /^\/api\/access/, limit: 120 },
+  { pattern: /^\/api\/playback\//, limit: 90 },
+  { pattern: /^\/api\/watch-progress/, limit: 60 },
+  { pattern: /^\/api\/events/, limit: 180 },
+
   // Catch-all for every other API route
   { pattern: /^\/api\//, limit: 30 },
 ];

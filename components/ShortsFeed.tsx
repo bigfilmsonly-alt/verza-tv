@@ -319,7 +319,19 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
         }
         return;
       }
-      const hls = new Hls({ maxBufferLength: 15, enableWorker: true, startLevel: 0, abrEwmaDefaultEstimate: 1_000_000 });
+      const hls = new Hls({
+        maxBufferLength: 15,
+        enableWorker: true,
+        startLevel: 0,
+        abrEwmaDefaultEstimate: 1_000_000,
+        // This rail swaps one full-size player between sources, so the element
+        // is already at its final size when the cap is computed. maxDevicePixelRatio
+        // matters as much as the cap itself: hls.js multiplies the element width
+        // by devicePixelRatio, so on a DPR-3 phone a 393px element reports
+        // ~1179px and nothing is ever capped.
+        capLevelToPlayerSize: true,
+        maxDevicePixelRatio: 1,
+      });
       hlsRef.current = hls;
       hls.loadSource(hlsUrl);
       hls.attachMedia(vid);

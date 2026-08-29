@@ -19,10 +19,15 @@ function getHls(): Promise<typeof HlsType | null> {
   return hlsPromise || Promise.resolve(null);
 }
 
+/** The ERROR listener this module installs, so an adopter can remove exactly it. */
+export type InstantErrorListener = (_e: string, data: { type: string; fatal: boolean }) => void;
+
 export interface AdoptedPlayer {
   video: HTMLVideoElement;
   hls: HlsType | null;
   playbackId: string;
+  /** Present only once the hls instance exists. Remove by identity, never with a bare off(). */
+  onError?: InstantErrorListener;
 }
 
 interface Entry extends AdoptedPlayer {
@@ -99,12 +104,22 @@ export function startInstantPlayer(playbackId: string | undefined): void {
       entry.hls = hls;
       hls.loadSource(url);
       hls.attachMedia(video);
-      hls.on(Hls.Events.ERROR, (_e: string, data: { type: string; fatal: boolean }) => {
+      /* Keep the reference. EpisodeFeed replaces this handler on adoption and
+         must remove it BY IDENTITY: hls.js registers 21 internal ERROR
+         subscriptions on this same emitter (BufferController.onError,
+         StreamController.onError and friends), and a bare off(Events.ERROR)
+         clears the whole event, taking reduceLengthAndFlushBuffer,
+         flushMainBuffer and recoverWorkerError with it. That is hls.js's own
+         memory-shedding path, and losing it on the one instance that also
+         plays uncapped is how a tight-memory device gets pushed over. */
+      const onError = (_e: string, data: { type: string; fatal: boolean }) => {
         if (data.fatal) {
           if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hls.startLoad();
           else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
         }
-      });
+      };
+      entry.onError = onError;
+      hls.on(Hls.Events.ERROR, onError);
     } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
       // iOS Safari — native HLS
       video.src = url;
@@ -132,5 +147,5 @@ export function adoptInstantPlayer(playbackId: string | undefined): AdoptedPlaye
     try { entry.video.remove(); } catch {}
     return null;
   }
-  return { video: entry.video, hls: entry.hls, playbackId: entry.playbackId };
+  return { video: entry.video, hls: entry.hls, playbackId: entry.playbackId, onError: entry.onError };
 }

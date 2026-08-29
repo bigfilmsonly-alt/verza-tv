@@ -77,7 +77,17 @@ function HorizontalCard({ video, index }: { video: HorizontalVideo; index: numbe
       return;
     }
 
-    const hls = new Hls({ maxBufferLength: 20, enableWorker: true, startLevel: 0, abrEwmaDefaultEstimate: 1_000_000 });
+    const hls = new Hls({
+      maxBufferLength: 20,
+      enableWorker: true,
+      startLevel: 0,
+      abrEwmaDefaultEstimate: 1_000_000,
+      // Fifteen cards mount on this route and each can start its own pipeline.
+      // Uncapped, every one of them is free to pull 1080p into a phone-sized
+      // element; eight of the source assets are 1920x1080.
+      capLevelToPlayerSize: true,
+      maxDevicePixelRatio: 1,
+    });
     hlsRef.current = hls;
     hls.loadSource(hlsUrl);
     hls.attachMedia(vid);
@@ -120,7 +130,17 @@ function HorizontalCard({ video, index }: { video: HorizontalVideo; index: numbe
     if (!vid) return;
     const io = new IntersectionObserver((entries) => {
       for (const e of entries) {
-        if (!e.isIntersecting && !vid.paused) vid.pause();
+        if (e.isIntersecting) continue;
+        if (!vid.paused) vid.pause();
+        /* Pausing stops the audio but leaves the pipeline, its buffers and its
+           decoder allocated. Scrolling the row therefore accumulated live hls
+           instances, up to one per card, and released them only on unmount.
+           Releasing here means a scrolled-past card costs nothing; handlePlay
+           rebuilds it if the viewer comes back. */
+        if (hlsRef.current) {
+          hlsRef.current.destroy();
+          hlsRef.current = null;
+        }
       }
     }, { threshold: 0.1 });
     io.observe(vid);

@@ -519,6 +519,147 @@ check(
 
 for (const n of notes) console.log(`  ${n}`);
 
+/* ------------------------------------------------------------------ */
+/*  The rail is bounded by entitlement                                 */
+/* ------------------------------------------------------------------ */
+
+/* Each check names the defect it prevents. The defect here was reported by the
+   founder in these words: "once you hit 4 or 5, it just turns black... the
+   number runs at the bottom... it'll just run all the way up to 60 and then
+   give us an error page."
+
+   The cause was structural, not a logic error. The feed received every episode
+   of the series and built a scroller that many viewports tall for every
+   viewer, so a guest entitled to five episodes of a sixty-episode title was
+   handed a rail with fifty-five locked slides on it. A locked slide has no
+   playbackId and deliberately renders no spinner and no error, so it is a
+   black rectangle. Walking five to sixty is fifty-five adjacent single steps,
+   which is a legal traversal of that rail, so no guard on step size could ever
+   have caught it. Two earlier guards bounded how fast and how often the feed
+   could advance itself; neither bounded the track. */
+
+check(
+  /episodes:\s*allEpisodes/.test(feedCode),
+  "rail: the episode list is consumed unbounded",
+  "The feed must take the full list under a distinct name and derive a bounded rail from it. If it\n" +
+    "      binds `episodes` straight from props again, every viewer gets a rail as long as the series\n" +
+    "      and the runaway to episode 60 is reachable once more.",
+);
+
+check(
+  /const episodes = useMemo\(\(\) => \{[\s\S]{0,400}?allEpisodes\.slice\(0, bound\)/.test(feedCode),
+  "rail: no bounded rail is derived from the full episode list",
+  "Without the slice the scroller is `episodes.length` viewports tall for everyone. Fifty-five of\n" +
+    "      those viewports are black locked slides with nothing to explain them.",
+);
+
+check(
+  /Math\.max\(freeEpisodes \+ 1, startIdx \+ 1\)/.test(feedCode),
+  "rail: the bound is not derived from freeEpisodes",
+  "The bound must be the viewer's free allowance plus exactly one locked slide to carry the paywall,\n" +
+    "      widened only far enough to include a deep-linked episode. A hard-coded 5 is wrong for the\n" +
+    "      five wholly free titles and for the two whose allowance is clamped to real Mux inventory.",
+);
+
+check(
+  /if \(authFree\) return allEpisodes;/.test(feedCode),
+  "rail: an entitled viewer does not get the whole series",
+  "Bounding must apply only to viewers who cannot watch past the boundary. A paying customer must\n" +
+    "      still be able to scroll the full series.",
+);
+
+/* The counter reads "EP n / total". Bounding the rail must not shrink the
+   advertised series length, or a sixty-episode title starts describing itself
+   as six episodes on the one screen where the viewer is deciding whether to
+   pay for it. */
+check(
+  /\/ \{totalEpisodes\}/.test(feedCode) && /All \$\{totalEpisodes\} episodes, instantly/.test(feedCode),
+  "rail: series length is being read from the bounded rail",
+  "The counter and the paywall's headline benefit must both come from totalEpisodes. Reading\n" +
+    "      episodes.length there would advertise the free preview as the whole series.",
+);
+
+/* ------------------------------------------------------------------ */
+/*  Entitlement resolution cannot hang                                 */
+/* ------------------------------------------------------------------ */
+
+/* authResolved is what allows the paywall to mount: the effect forces
+   setShowUnlock(false) whenever it is false. It becomes true only in a
+   finally(). A fetch that hangs rather than rejecting therefore leaves a
+   locked slide with no playbackId AND no paywall, permanently. */
+check(
+  /const deadline = new AbortController\(\)/.test(feedCode) &&
+    /setTimeout\(\(\) => deadline\.abort\(\), ACCESS_REQUEST_TIMEOUT_MS\)/.test(feedCode),
+  "entitlement: the access request has no deadline",
+  "Without an abort the promise can stay open forever, authResolved never settles, and the paywall\n" +
+    "      is suppressed on a slide that has nothing else to show. That is a permanent black screen.",
+);
+
+check(
+  /\/api\/access\?slug=\$\{seriesSlug\}`, \{ signal: deadline\.signal \}/.test(feedCode),
+  "entitlement: the access fetch is not wired to the deadline",
+  "The AbortController must actually be passed to the request it is meant to bound.",
+);
+
+/* ------------------------------------------------------------------ */
+/*  The adopted pipeline is capped and keeps its own recovery          */
+/* ------------------------------------------------------------------ */
+
+const instantPlayer = read("lib/instant-player.ts");
+
+check(
+  /ahls\.capLevelToPlayerSize = true;/.test(feedCode),
+  "player: the adopted instance is never capped",
+  "A poster tap adopts the instant player's hls instance, which is deliberately built uncapped\n" +
+    "      because its element is 2px until adoption. If the cap is not applied on adoption the most\n" +
+    "      common path into the player decodes uncapped 1080p for the entire watch, and only cold deep\n" +
+    "      links get the cap that was supposed to be shipped.",
+);
+
+check(
+  !/ahls\.config\.capLevelToPlayerSize\s*=/.test(feedCode),
+  "player: capping is being set on config instead of the instance",
+  "hls.js exposes capLevelToPlayerSize as a setter that calls capLevelController.startCapping().\n" +
+    "      Writing config directly sets a flag and starts nothing, which reads as a fix and is a no-op.",
+);
+
+check(
+  /ahls\.off\(AdoptedHls\.Events\.ERROR, adopted\.onError\)/.test(feedCode),
+  "player: the ERROR listener is removed without a handler reference",
+  "hls.js subscribes its own controllers to ERROR on the same emitter, and eventemitter3 treats\n" +
+    "      off(event) with no listener as removeAllListeners. A bare off() therefore deletes\n" +
+    "      BufferController.onError and StreamController.onError too, taking reduceLengthAndFlushBuffer,\n" +
+    "      flushMainBuffer and recoverWorkerError with them. That removes hls.js's own response to\n" +
+    "      BUFFER_FULL_ERROR from the one instance that is also playing uncapped. Remove by identity.",
+);
+
+check(
+  /entry\.onError = onError;/.test(instantPlayer) && /onError: entry\.onError/.test(instantPlayer),
+  "player: the instant player does not expose its ERROR listener",
+  "The adopter cannot remove a listener by identity unless the reference survives adoption.",
+);
+
+/* ------------------------------------------------------------------ */
+/*  Watching does not rate-limit itself                                */
+/* ------------------------------------------------------------------ */
+
+{
+  const mw = read("middleware.ts");
+  const tier = (re) => {
+    const m = mw.match(re);
+    return m ? Number(m[1]) : 0;
+  };
+  const access = tier(/\/\^\\\/api\\\/access\/, limit: (\d+)/);
+  check(
+    access >= 60,
+    "middleware: /api/access shares the catch-all rate tier",
+    "The bucket key is `${ip}:${limit}`, so every route on the 30/min catch-all shares one bucket:\n" +
+      "      /api/access, /api/playback/*, /api/watch-progress, /api/saved-list and /api/events. A binge\n" +
+      "      spends that budget on its own. A 429 makes r.ok false in EpisodeFeed, the chain falls through\n" +
+      "      to setAuthFree(false), and a paying customer is paywalled and their episodes turn black.",
+  );
+}
+
 if (failures.length > 0) {
   console.error("Feed integrity contract: FAIL");
   for (const f of failures) console.error(`  - ${f}`);

@@ -146,7 +146,15 @@ check("no code claims iOS Safari lacks MSE", () => {
 
 /* ------------------------------------------------------------------ */
 check("every hls.js config caps the rendition to the player", () => {
-  const files = ["components/EpisodeFeed.tsx", "components/HorizontalFeed.tsx", "lib/instant-player.ts"];
+  /* ShortsFeed was missing from this list, so the one uncapped construction it
+     owns was never audited at all. A guard that does not look at a file cannot
+     protect it. */
+  const files = [
+    "components/EpisodeFeed.tsx",
+    "components/HorizontalFeed.tsx",
+    "components/ShortsFeed.tsx",
+    "lib/instant-player.ts",
+  ];
   for (const f of files) {
     if (!exists(f)) continue;
     const src = read(f);
@@ -154,6 +162,33 @@ check("every hls.js config caps the rendition to the player", () => {
     for (const c of configs) {
       const body = c[1];
       const line = src.slice(0, c.index ?? 0).split("\n").length;
+      /* The instant player is the one legitimate exception, and it is only
+         legitimate while somebody else applies the cap. Its element is 2px
+         until adoption, so capping at construction would pin it to the worst
+         rendition and keep it there once the element goes full-screen. That
+         means the obligation moves to the adopter, and this guard now checks
+         the adopter actually meets it rather than warning about the same line
+         forever. The failure it prevents is real and shipped: for months the
+         cap existed in EpisodeFeed's own config and never bound on a poster
+         tap, because adoption skipped it and a poster tap is the most common
+         way into the player. */
+      if (f === "lib/instant-player.ts" && !/capLevelToPlayerSize:\s*true/.test(body)) {
+        const adopter = read("components/EpisodeFeed.tsx");
+        if (
+          /ahls\.capLevelToPlayerSize = true;/.test(adopter) &&
+          /ahls\.config\.maxDevicePixelRatio = 1;/.test(adopter)
+        ) {
+          pass(`${f}:${line} is uncapped by design and the adopter applies the cap`);
+        } else {
+          fail(
+            `${f}:${line} is uncapped and components/EpisodeFeed.tsx does not cap it on adoption. ` +
+              "A poster tap adopts this instance and plays it full-screen, so nothing caps the " +
+              "most common path into the player. Assign ahls.capLevelToPlayerSize (the instance " +
+              "setter, which calls startCapping) — writing to .config sets a flag and starts nothing.",
+          );
+        }
+        continue;
+      }
       if (!/capLevelToPlayerSize:\s*true/.test(body)) {
         // WARN, not fail. Turning this on is a playback-QUALITY decision that
         // needs on-device review, and it is not universally correct: the

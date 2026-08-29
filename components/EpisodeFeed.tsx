@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect, useLayoutEffect, useCallback } from "react";
+import { useRef, useState, useEffect, useLayoutEffect, useCallback, useMemo } from "react";
 import Image from "next/image";
 import type HlsType from "hls.js";
 import { adoptInstantPlayer } from "@/lib/instant-player";
@@ -87,6 +87,15 @@ const ADVANCE_COOLDOWN_MS = 700;
    viewer do something. Chosen well above normal binge behaviour and far below
    the length of any series in the catalogue. */
 const MAX_UNATTENDED_ADVANCES = 8;
+
+/* Deadline for the entitlement round-trip. Shorter than playback's 12s: this
+   one only gates whether the paywall may mount, and a viewer staring at a
+   locked black slide should not wait twelve seconds to be told why. On timeout
+   the request aborts, the finally() still runs, authResolved becomes true and
+   the paywall mounts. Failing to a paywall is correct: it is the state that
+   explains itself and offers a way out, and the server is the thing that
+   actually grants media access. */
+const ACCESS_REQUEST_TIMEOUT_MS = 6_000;
 
 function EpisodeSlide({
   episode,
@@ -388,18 +397,42 @@ function EpisodeSlide({
       if (adopted.hls) {
         const AdoptedHls = adopted.hls.constructor as typeof HlsType;
         const ahls = adopted.hls;
-        /* Remove the instant player's handler before installing this one.
-           lib/instant-player.ts registers an ERROR handler at construction and
-           this adds a second, and neither ever called .off(). So after adoption
-           ONE instance carried TWO handlers, and a single fatal media error,
-           which is the normal iOS signal that the decoder is under pressure,
-           triggered two recoverMediaError rebuilds instead of one. That is an
-           allocation burst at precisely the moment memory is tight, which makes
-           the crash it is reacting to more likely rather than less.
-           Documented as P2 in docs/handoff/IOS-CONTENT-PROCESS-CRASH.md.
-           Passing no listener removes every ERROR listener on this instance, so
-           the richer bounded recovery below is the only one that runs. */
-        ahls.off(AdoptedHls.Events.ERROR);
+        /* The instant player is deliberately uncapped: its element is 2px
+           until adoption, so capLevelToPlayerSize would have pinned it to the
+           lowest rendition (lib/instant-player.ts). The element is full size
+           NOW, so the reason to stay uncapped has expired. Without this, a
+           poster tap, which is the single most common way into the player,
+           decoded uncapped 1080p for the entire watch while only cold deep
+           links got the cap. P1 was shipped and was not binding on the path
+           almost everyone takes. */
+        ahls.config.maxDevicePixelRatio = 1;
+        /* Assign the INSTANCE property, not config. hls.js exposes
+           capLevelToPlayerSize as a setter that calls
+           capLevelController.startCapping(); writing config directly sets the
+           flag and starts nothing, which is a silent no-op. maxDevicePixelRatio
+           is read lazily out of config when the cap is computed, so setting it
+           on config first is correct and is what makes the cap bind on a
+           3x-DPR phone at all. */
+        ahls.capLevelToPlayerSize = true;
+        /* Remove the instant player's handler before installing this one, BY
+           IDENTITY. lib/instant-player.ts registers an ERROR handler at
+           construction and this adds a second, so after adoption ONE instance
+           carried TWO, and a single fatal media error triggered two
+           recoverMediaError rebuilds instead of one: an allocation burst at
+           exactly the moment memory is tight. That is P2 in
+           docs/handoff/IOS-CONTENT-PROCESS-CRASH.md.
+
+           The first cut of this fix called ahls.off(Events.ERROR) with no
+           listener, and that was worse than the bug. hls.js subscribes its own
+           controllers to ERROR on this same emitter (21 call sites in
+           hls.js/dist/hls.js), and eventemitter3 treats off(event) with no
+           handler as removeAllListeners. It therefore deleted
+           BufferController.onError and StreamController.onError too, taking
+           reduceLengthAndFlushBuffer, flushMainBuffer and recoverWorkerError
+           with them. Those are hls.js's memory-shedding responses to
+           BUFFER_FULL_ERROR and INTERNAL_EXCEPTION, and they were removed from
+           the one instance that is also playing uncapped. Scope the removal. */
+        if (adopted.onError) ahls.off(AdoptedHls.Events.ERROR, adopted.onError);
         ahls.on(AdoptedHls.Events.ERROR, (_e: string, data: { type: string; fatal: boolean }) => {
           if (!data.fatal) return;
           const resume = () => {
@@ -1148,9 +1181,10 @@ export default function EpisodeFeed({
   seriesSlug,
   seriesTitle,
   posterUrl,
-  episodes,
+  episodes: allEpisodes,
   startEpisode,
   startPositionS: startPositionProp = 0,
+  freeEpisodes,
   totalEpisodes,
   horizontal = false,
   backHref = "/",
@@ -1223,13 +1257,27 @@ export default function EpisodeFeed({
 
     async function confirmSession(id: string): Promise<boolean> {
       try {
-        const r = await fetch(`/api/unlock/confirm?session_id=${encodeURIComponent(id)}&slug=${encodeURIComponent(seriesSlug)}`);
+        const r = await fetch(
+          `/api/unlock/confirm?session_id=${encodeURIComponent(id)}&slug=${encodeURIComponent(seriesSlug)}`,
+          { signal: deadline.signal },
+        );
         const d = (await r.json()) as { full?: boolean };
         return !!d.full;
       } catch {
         return false;
       }
     }
+
+    /* Every request on this path gets a deadline. authResolved is what allows
+       the paywall to mount, and it only becomes true in the finally() below.
+       A fetch that hangs rather than rejecting, which is the normal shape of a
+       flaky mobile network rather than an offline one, left authResolved false
+       forever. A locked slide then rendered with no playbackId AND no paywall:
+       a permanent black screen on a rail the viewer can keep scrolling. That
+       is the reported symptom exactly. lib/playback-client.ts has had a 12s
+       deadline for this reason; this path never got one. */
+    const deadline = new AbortController();
+    const deadlineTimer = setTimeout(() => deadline.abort(), ACCESS_REQUEST_TIMEOUT_MS);
 
     (async () => {
       if (sessionId?.startsWith("cs_")) {
@@ -1243,7 +1291,7 @@ export default function EpisodeFeed({
         setAuthFree(false); // forged/expired param — fall through to /api/access
       }
       try {
-        const r = await fetch(`/api/access?slug=${seriesSlug}`);
+        const r = await fetch(`/api/access?slug=${seriesSlug}`, { signal: deadline.signal });
         const d = r.ok ? ((await r.json()) as { full?: boolean }) : null;
         if (!stale && d?.full) { setAuthFree(true); return; }
       } catch {}
@@ -1256,15 +1304,59 @@ export default function EpisodeFeed({
         }
       } catch {}
       if (!stale) setAuthFree(false);
-    })().finally(() => { if (!stale) setAuthResolved(true); });
+    })().finally(() => {
+      clearTimeout(deadlineTimer);
+      if (!stale) setAuthResolved(true);
+    });
 
-    return () => { stale = true; };
+    return () => { stale = true; deadline.abort(); clearTimeout(deadlineTimer); };
   }, [seriesSlug]);
 
   // Dismiss any visible paywall popup when auth resolves
   useEffect(() => {
     if (authFree) setShowUnlock(false);
   }, [authFree]);
+
+  /* ---------------------------------------------------------------------
+     THE RAIL IS BOUNDED BY WHAT THIS VIEWER CAN ACTUALLY WATCH.
+
+     Until now the feed received every episode of the series and built a
+     scroller that many viewports tall for everyone, entitled or not. A guest
+     entitled to five episodes of a sixty-episode title got a rail sixty
+     viewports deep, of which fifty-five were locked. A locked slide has no
+     playbackId, so it renders as a black rectangle with no spinner and no
+     error by design. That is why the counter could climb to sixty over a
+     black screen: fifty-five accepted single steps is a legal traversal of
+     the rail as it was built, and no guard on step size can catch it. The
+     cooldown and the unattended-advance cap shipped earlier are real, but
+     they bound the driver, not the track. This bounds the track.
+
+     freeEpisodes was already being passed into this component and was read by
+     nothing (it appeared exactly once, in the props interface).
+
+     The bound is max(freeEpisodes, startIndex) + 1, so:
+       - normal entry at episode 1: five playable slides plus one locked slide
+         that mounts the paywall. There is nowhere to run to.
+       - a deep link to a paid episode: the rail still reaches that episode, so
+         the viewer lands where the URL pointed and meets the paywall there
+         rather than being silently relocated.
+       - entitled, or a wholly free title: the full series, unchanged.
+
+     Before entitlement resolves we assume unentitled, which is the safe
+     default and is invisible in practice because every in-app entry point
+     lands on episode 1. When resolution grants access the rail extends
+     downward while the viewer sits above the change, so the scroll position
+     does not move. */
+  const episodes = useMemo(() => {
+    if (authFree) return allEpisodes;
+    const startIdx = allEpisodes.findIndex((e) => e.number === startEpisode);
+    // freeEpisodes + 1 = every free slide plus the one locked slide that
+    // carries the paywall. A deep link past that boundary extends the rail
+    // just far enough to include the episode the URL named, and no further,
+    // so the paywall is the last thing on the track either way.
+    const bound = Math.max(freeEpisodes + 1, startIdx + 1);
+    return bound >= allEpisodes.length ? allEpisodes : allEpisodes.slice(0, bound);
+  }, [allEpisodes, authFree, freeEpisodes, startEpisode]);
 
   const [activeIndex, setActiveIndex] = useState(() => {
     const idx = episodes.findIndex((e) => e.number === startEpisode);
@@ -2266,7 +2358,7 @@ export default function EpisodeFeed({
             {!iosApp && (
               <div className="flex flex-col gap-1.5 mb-5 text-left mx-auto" style={{ width: "fit-content" }}>
                 {[
-                  `All ${episodes.length} episodes, instantly`,
+                  `All ${totalEpisodes} episodes, instantly`,
                   "Access on your Verza account while this title remains available",
                 ].map((line) => (
                   <div key={line} className="flex items-center gap-2">
