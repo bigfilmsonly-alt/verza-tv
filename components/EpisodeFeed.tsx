@@ -97,12 +97,21 @@ const MAX_UNATTENDED_ADVANCES = 8;
    actually grants media access. */
 const ACCESS_REQUEST_TIMEOUT_MS = 6_000;
 
+/* Buffer budgets. The active slide gets the full window; the slide one swipe
+   ahead gets just enough to paint its first frame the instant it is reached,
+   which is what makes the feed feel instant instead of showing a spinner. These
+   mirror the values in the Hls config below and must stay in step with it. */
+const ACTIVE_BUFFER_S = 8;
+const ACTIVE_MAX_BUFFER_S = 15;
+const NEXT_SLIDE_PREFETCH_S = 4;
+
 function EpisodeSlide({
   episode,
   seriesSlug,
   posterUrl,
   isActive,
   isNear,
+  isNext,
   muted,
   resumePositionS,
   isResumeTarget,
@@ -123,6 +132,8 @@ function EpisodeSlide({
   posterUrl: string;
   isActive: boolean;
   isNear: boolean;
+  /** The slide one swipe ahead. It prefetches so the swipe starts instantly. */
+  isNext: boolean;
   muted: boolean;
   /** Seconds to seek to on the starting episode's first activation (resume). */
   resumePositionS: number;
@@ -727,8 +738,11 @@ function EpisodeSlide({
       }
 
       const hls = new Hls({
-        maxBufferLength: 8,
-        maxMaxBufferLength: 15,
+        /* Budget chosen at construction so a slide never spends its first
+           moments on the wrong one. The effect below moves it between these
+           two values as the slide becomes active or falls behind. */
+        maxBufferLength: isActive ? ACTIVE_BUFFER_S : NEXT_SLIDE_PREFETCH_S,
+        maxMaxBufferLength: isActive ? ACTIVE_MAX_BUFFER_S : NEXT_SLIDE_PREFETCH_S,
         backBufferLength: 0,
         enableWorker: true,
         startLevel: 0,
@@ -836,26 +850,51 @@ function EpisodeSlide({
     if (!vid) return;
     if (isActive && sourceReady && !blocked) {
       tryPlay(vid);
-      /* Resume buffering on the slide the viewer is actually watching. It may
-         have been stopped while it was a neighbour. */
-      try { hlsRef.current?.startLoad(); } catch {}
+      /* Resume buffering on the slide the viewer is actually watching, and give
+         it back the full budget. It may have been stopped while it was a
+         neighbour, or clamped to the small prefetch window while it was next. */
+      try {
+        const hls = hlsRef.current;
+        if (hls) {
+          hls.config.maxBufferLength = ACTIVE_BUFFER_S;
+          hls.config.maxMaxBufferLength = ACTIVE_MAX_BUFFER_S;
+          hls.startLoad();
+        }
+      } catch {}
     } else if (!isActive || blocked) {
       vid.muted = true;
       vid.pause();
-      /* Stop the neighbour BUFFERING, not just playing.
-         Three pipelines are attached at once by design, and pausing a video
-         does not stop hls.js filling its buffer, so two slides the viewer is
-         not watching kept downloading and decoding segments. On a phone that is
-         the difference between comfortable and jetsam killing the tab, which is
-         what the "this page could not load" screen is.
-         stopLoad keeps the instance and its already-buffered data alive, so a
-         swipe back still resumes warm rather than rebuilding from nothing. This
-         is the lower-risk half of P3 in docs/handoff/IOS-CONTENT-PROCESS-CRASH.md:
-         it cuts the memory without dropping to a single look-ahead. */
-      try { hlsRef.current?.stopLoad(); } catch {}
+      /* Stop the neighbour BUFFERING, not just playing — but NOT the slide the
+         viewer is about to swipe to.
+
+         The first version of this stopped every inactive pipeline, and that is
+         why the second episode of a series opened on a black screen with a
+         spinner on good wifi. The next slide attaches its pipeline and parses
+         its manifest while you are still watching the current episode, and then
+         this effect immediately stopped it, so it buffered nothing at all. The
+         swipe then had to fetch segment one from scratch. The prefetch that
+         makes a vertical feed feel instant was being cancelled by the code that
+         was supposed to be protecting memory.
+
+         Memory is bounded by maxBufferLength, which is the correct knob, not by
+         refusing to load. The next slide is clamped to a few seconds: enough to
+         paint a first frame the moment it becomes active, small enough that it
+         costs a fraction of what an uncapped rendition used to. Renditions are
+         capped now, so this is a much cheaper prefetch than it would have been
+         before. Everything further away still stops dead. */
+      const hls = hlsRef.current;
+      if (hls && isNext && !blocked) {
+        try {
+          hls.config.maxBufferLength = NEXT_SLIDE_PREFETCH_S;
+          hls.config.maxMaxBufferLength = NEXT_SLIDE_PREFETCH_S;
+          hls.startLoad();
+        } catch {}
+      } else {
+        try { hls?.stopLoad(); } catch {}
+      }
       queueMicrotask(() => setPlaying(false));
     }
-  }, [isActive, sourceReady, blocked, tryPlay]);
+  }, [isActive, sourceReady, blocked, isNext, tryPlay]);
 
   /* Step 3: Sync muted prop instantly to video element */
   useEffect(() => {
@@ -2007,6 +2046,7 @@ export default function EpisodeFeed({
                 posterUrl={!hasSwiped && ep.number === startEpisode ? posterUrl : ""}
                 isActive={i === activeIndex}
                 isNear={Math.abs(i - activeIndex) <= 1}
+                isNext={i === activeIndex + 1}
                 muted={muted}
                 resumePositionS={startPositionS}
                 isResumeTarget={ep.number === startEpisode}

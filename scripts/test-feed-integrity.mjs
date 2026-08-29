@@ -660,6 +660,55 @@ check(
   );
 }
 
+/* ------------------------------------------------------------------ */
+/*  The next slide prefetches                                          */
+/* ------------------------------------------------------------------ */
+
+/* BUG THIS CATCHES: the founder reported that the second episode of a series
+   opened on a black screen with a spinner, on good wifi, and took seconds to
+   start. The next slide attaches its pipeline and parses its manifest while
+   the viewer is still on the current episode, and an earlier memory fix then
+   stopped every inactive pipeline outright, so it buffered nothing at all. The
+   swipe had to fetch segment one from scratch. The prefetch that makes a
+   vertical feed feel instant was being cancelled by the code meant to protect
+   memory. Memory belongs to maxBufferLength, not to refusing to load. */
+
+check(
+  /isNext={i === activeIndex \+ 1}/.test(feedCode),
+  "player: slides cannot tell whether they are next",
+  "Without knowing which slide is one swipe ahead, the feed can only choose between buffering\n" +
+    "      every neighbour or none of them. It chose none, and the next episode started cold.",
+);
+
+check(
+  /if \(hls && isNext && !blocked\) \{[\s\S]{0,260}?hls\.startLoad\(\);/.test(feedCode),
+  "player: the next slide is not allowed to prefetch",
+  "The slide one swipe ahead must keep loading so it can paint a first frame the instant it is\n" +
+    "      reached. If it is stopped with the rest, every swipe starts from an empty buffer and the\n" +
+    "      viewer sees a spinner on a fast connection.",
+);
+
+check(
+  /hls\.config\.maxBufferLength = NEXT_SLIDE_PREFETCH_S;/.test(feedCode),
+  "player: the prefetch is not bounded",
+  "An unbounded prefetch on the next slide would restore the memory problem the stopLoad was\n" +
+    "      protecting against. The window must be clamped, not merely allowed.",
+);
+
+check(
+  /hls\.config\.maxBufferLength = ACTIVE_BUFFER_S;/.test(feedCode),
+  "player: an activated slide is never given its full buffer back",
+  "A slide clamped to the small prefetch window while it was next must have the full budget\n" +
+    "      restored when it becomes the slide being watched, or every episode plays with a 4s buffer.",
+);
+
+check(
+  /maxBufferLength: isActive \? ACTIVE_BUFFER_S : NEXT_SLIDE_PREFETCH_S/.test(feedCode),
+  "player: the buffer budget is not chosen at construction",
+  "The instance is built before the effect can clamp it, so a slide would spend its first moments\n" +
+    "      on whichever budget the literal happened to be. Choose it at construction.",
+);
+
 if (failures.length > 0) {
   console.error("Feed integrity contract: FAIL");
   for (const f of failures) console.error(`  - ${f}`);
