@@ -830,3 +830,16 @@ img {
     animation: none;
   }
 }
+
+/* Player buffering spinner. Only shown once a stall has lasted long enough to
+   be worth mentioning, so a fast start never flashes it. Reduced motion gets a
+   static ring rather than nothing, because the point is to say "working". */
+@keyframes verzaSpin {
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  [role="status"][aria-label="Loading"] {
+    animation: none;
+    border-top-color: rgba(255, 255, 255, 0.55);
+  }
+}

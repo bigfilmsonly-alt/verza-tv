@@ -103,6 +103,7 @@ function EpisodeSlide({
   transitionPoster,
   blocked = false,
   onAccessDenied,
+  backHref,
 }: {
   episode: FeedEpisode;
   seriesSlug: string;
@@ -132,6 +133,10 @@ function EpisodeSlide({
   blocked?: boolean;
   /** A cached token can outlive an entitlement. A 401/402 refresh re-locks UI. */
   onAccessDenied: () => void;
+  /** Where the failure state sends a viewer who gives up. The action rail can
+      be hidden when a slide never resolves, so the error must carry its own
+      exit rather than relying on the back arrow being visible. */
+  backHref: string;
 }) {
   const videoBoxRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -158,6 +163,12 @@ function EpisodeSlide({
   const [authorizedSource, setAuthorizedSource] =
     useState<AuthorizedPlaybackSource | null>(null);
   const [sourceRequestNonce, setSourceRequestNonce] = useState(0);
+  /* Non-null whenever the source could not be resolved for a reason that is
+     NOT an entitlement answer. Drives the visible failure state. */
+  const [sourceError, setSourceError] = useState<{ status: number; message: string } | null>(null);
+  /* True while the browser says it is stalled and the stall has lasted long
+     enough to be worth telling the viewer about. */
+  const [buffering, setBuffering] = useState(false);
   const forceSourceRefreshRef = useRef(false);
   const sourceRefreshInFlightRef = useRef(false);
   const protectedRefreshCountRef = useRef(0);
@@ -205,18 +216,32 @@ function EpisodeSlide({
       .then((source) => {
         if (cancelled) return;
         setAuthorizedSource(source);
+        setSourceError(null);
         sourceRefreshInFlightRef.current = false;
       })
       .catch((error: unknown) => {
         if (cancelled) return;
         sourceRefreshInFlightRef.current = false;
         setAuthorizedSource(null);
-        if (
-          error instanceof PlaybackAccessError &&
-          (error.status === 401 || error.status === 402)
-        ) {
+        /* 401 and 402 are answers, and the paywall handles them. EVERY other
+           failure used to land here and do nothing at all: no state, no
+           message, no retry. The slide simply kept its null source, the attach
+           effect returned on its first line, and the stall watchdog could not
+           fire because it requires a ready source. The viewer was left on a
+           black frame with no way out, which is exactly what a 503 from the
+           playback route produces when signing config is incomplete. */
+        if (error instanceof PlaybackAccessError && error.isEntitlement) {
+          setSourceError(null);
           onAccessDenied();
+          return;
         }
+        setSourceError({
+          status: error instanceof PlaybackAccessError ? error.status : 0,
+          message:
+            error instanceof PlaybackAccessError && error.status === 504
+              ? "This is taking longer than usual."
+              : "We could not load this episode.",
+        });
       });
     return () => {
       cancelled = true;
@@ -353,6 +378,18 @@ function EpisodeSlide({
       if (adopted.hls) {
         const AdoptedHls = adopted.hls.constructor as typeof HlsType;
         const ahls = adopted.hls;
+        /* Remove the instant player's handler before installing this one.
+           lib/instant-player.ts registers an ERROR handler at construction and
+           this adds a second, and neither ever called .off(). So after adoption
+           ONE instance carried TWO handlers, and a single fatal media error,
+           which is the normal iOS signal that the decoder is under pressure,
+           triggered two recoverMediaError rebuilds instead of one. That is an
+           allocation burst at precisely the moment memory is tight, which makes
+           the crash it is reacting to more likely rather than less.
+           Documented as P2 in docs/handoff/IOS-CONTENT-PROCESS-CRASH.md.
+           Passing no listener removes every ERROR listener on this instance, so
+           the richer bounded recovery below is the only one that runs. */
+        ahls.off(AdoptedHls.Events.ERROR);
         ahls.on(AdoptedHls.Events.ERROR, (_e: string, data: { type: string; fatal: boolean }) => {
           if (!data.fatal) return;
           const resume = () => {
@@ -502,6 +539,81 @@ function EpisodeSlide({
     setAttachNonce((n) => n + 1); // re-runs the attach effect
   }, []);
 
+  /* Retry the source. Clears the error so the UI leaves the failed state, then
+     bumps the nonce the resolution effect depends on, forcing a fresh request
+     that bypasses the cache. */
+  const retrySource = useCallback(() => {
+    setSourceError(null);
+    forceSourceRefreshRef.current = true;
+    setSourceRequestNonce((n) => n + 1);
+  }, []);
+
+  /* Source watchdog. The stall watchdog below cannot help here because it
+     requires sourceReady, and the whole failure being guarded is that a source
+     never arrives. If this slide is active and still has nothing to play after
+     a grace period, say so and offer a retry rather than holding a black frame
+     indefinitely. Covers the cases no catch can see: a request that resolves
+     to nothing, an effect that never ran, a state update lost to a race. */
+  useEffect(() => {
+    if (!isActive || blocked || hlsUrl || sourceError) return;
+    const t = setTimeout(() => {
+      setSourceError({ status: 0, message: "We could not load this episode." });
+    }, 12000);
+    return () => clearTimeout(t);
+  }, [isActive, blocked, hlsUrl, sourceError]);
+
+  /* Say something while it loads, and give up out loud rather than silently.
+     Twelve people tested this and not one of them saw a spinner, a bar, a
+     message or a retry. The player was styled for the happy path only: the
+     poster holds, which reads as "working" for about a second and as "broken"
+     by five, and nothing ever escalated. Three testers left at this screen.
+     Worse, the error state built for paid episodes could never fire on a FREE
+     one. Both of its triggers sat behind requiresAuthorization, which is false
+     for episodes 1 to 5, so on the first tap of every new viewer there was no
+     message and no retry available at all.
+     The browser already tells us: it fires `waiting` when it stalls and
+     `playing` when it recovers. This listens to that rather than inventing a
+     timer, shows a quiet spinner once a stall lasts long enough to notice, and
+     escalates to the real error screen if the frame never arrives. */
+  useEffect(() => {
+    const vid = videoRef.current;
+    if (!vid || !isActive || blocked) return;
+    let spinTimer: ReturnType<typeof setTimeout> | null = null;
+    let giveUpTimer: ReturnType<typeof setTimeout> | null = null;
+    const clear = () => {
+      if (spinTimer) clearTimeout(spinTimer);
+      if (giveUpTimer) clearTimeout(giveUpTimer);
+      spinTimer = null;
+      giveUpTimer = null;
+    };
+    const onWaiting = () => {
+      clear();
+      // A brief stall is normal and a spinner for it is noise.
+      spinTimer = setTimeout(() => setBuffering(true), 1500);
+      giveUpTimer = setTimeout(() => {
+        setBuffering(false);
+        setSourceError((prev) => prev ?? { status: 0, message: "This episode will not play." });
+      }, 20000);
+    };
+    const onMoving = () => {
+      clear();
+      setBuffering(false);
+    };
+    vid.addEventListener("waiting", onWaiting);
+    vid.addEventListener("stalled", onWaiting);
+    vid.addEventListener("playing", onMoving);
+    vid.addEventListener("timeupdate", onMoving);
+    vid.addEventListener("error", onWaiting);
+    return () => {
+      clear();
+      vid.removeEventListener("waiting", onWaiting);
+      vid.removeEventListener("stalled", onWaiting);
+      vid.removeEventListener("playing", onMoving);
+      vid.removeEventListener("timeupdate", onMoving);
+      vid.removeEventListener("error", onWaiting);
+    };
+  }, [isActive, blocked, sourceReady, attachNonce]);
+
   /* Stall watchdog: if this slide is ACTIVE and a source is attached but no
      frame has been composited after 10s, the pipeline is silently dead
      (worker died, native-HLS stall, poisoned element) — rebuild it.
@@ -567,6 +679,17 @@ function EpisodeSlide({
         enableWorker: true,
         startLevel: 0,
         capLevelToPlayerSize: true,
+        /* Without this the cap above never binds. hls.js multiplies the element
+           width by devicePixelRatio, and maxDevicePixelRatio defaults to
+           Infinity, so on a DPR 3 iPhone a 393px element reports ~1179px, which
+           is wider than every Mux rendition. No cap was ever applied and each
+           attached pipeline pulled 1080p. Three pipelines of 1080p decode and
+           buffer is what pushes an iPhone into jetsam, and jetsam killing the
+           WebContent process is the "this page could not load" screen.
+           Documented as P1 in docs/handoff/IOS-CONTENT-PROCESS-CRASH.md.
+           Capping to the real element width selects roughly 480p/540p for a
+           390px-wide phone, which is the resolution the pixels can show. */
+        maxDevicePixelRatio: 1,
         maxLoadingDelay: 0,
         startFragPrefetch: true,
         abrEwmaDefaultEstimate: 500_000,
@@ -657,9 +780,23 @@ function EpisodeSlide({
     if (!vid) return;
     if (isActive && sourceReady && !blocked) {
       tryPlay(vid);
+      /* Resume buffering on the slide the viewer is actually watching. It may
+         have been stopped while it was a neighbour. */
+      try { hlsRef.current?.startLoad(); } catch {}
     } else if (!isActive || blocked) {
       vid.muted = true;
       vid.pause();
+      /* Stop the neighbour BUFFERING, not just playing.
+         Three pipelines are attached at once by design, and pausing a video
+         does not stop hls.js filling its buffer, so two slides the viewer is
+         not watching kept downloading and decoding segments. On a phone that is
+         the difference between comfortable and jetsam killing the tab, which is
+         what the "this page could not load" screen is.
+         stopLoad keeps the instance and its already-buffered data alive, so a
+         swipe back still resumes warm rather than rebuilding from nothing. This
+         is the lower-risk half of P3 in docs/handoff/IOS-CONTENT-PROCESS-CRASH.md:
+         it cuts the memory without dropping to a single look-ahead. */
+      try { hlsRef.current?.stopLoad(); } catch {}
       queueMicrotask(() => setPlaying(false));
     }
   }, [isActive, sourceReady, blocked, tryPlay]);
@@ -825,7 +962,65 @@ function EpisodeSlide({
           poster fade-out so the swap is a true crossfade with no gap. */}
       <div ref={videoBoxRef} className="absolute inset-0" style={{ zIndex: 2 }} />
 
-      {/* No spinner — poster holds until video plays */}
+      {/* Buffering. Deliberately quiet: the poster stays, and this sits on top
+          of it so the viewer knows the app is working rather than dead. It only
+          appears once a stall has lasted 1.5s, so a normal fast start never
+          flashes it. */}
+      {isActive && !blocked && buffering && !sourceError && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
+          <div
+            style={{
+              width: 34, height: 34, borderRadius: "50%",
+              border: "2.5px solid rgba(255,255,255,0.22)",
+              borderTopColor: "rgba(255,255,255,0.9)",
+              animation: "verzaSpin 0.8s linear infinite",
+            }}
+            role="status"
+            aria-label="Loading"
+          />
+        </div>
+      )}
+
+      {/* Failure state. The poster holds during normal loading, so there is no
+          spinner for the happy path, but a slide that cannot resolve a source
+          must SAY so and offer a way out. Before this, every failure other than
+          401/402 left a black frame with no message and nothing to tap. */}
+      {isActive && !blocked && sourceError && (
+        <div
+          className="absolute inset-0 z-20 flex flex-col items-center justify-center px-8 text-center"
+          style={{ background: "rgba(7,7,14,0.82)", backdropFilter: "blur(6px)" }}
+          role="alert"
+        >
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#F5F4F8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 14, opacity: 0.9 }}>
+            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+            <line x1="12" y1="9" x2="12" y2="13" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+          <p className="text-[15px] font-bold mb-1" style={{ color: "#F5F4F8" }}>
+            {sourceError.message}
+          </p>
+          <p className="text-[12px] mb-5" style={{ color: "rgba(255,255,255,0.55)" }}>
+            Your purchase is safe. This is a playback problem on our side.
+          </p>
+          <button
+            type="button"
+            onClick={retrySource}
+            className="px-6 py-3 rounded-full text-[14px] font-bold cursor-pointer transition-transform active:scale-95"
+            style={{ background: "linear-gradient(135deg, #E0115F, #8B5CF6)", color: "#fff", border: "none" }}
+          >
+            Try again
+          </button>
+          <a
+            href={backHref}
+            className="mt-3 text-[12px] no-underline"
+            style={{ color: "rgba(255,255,255,0.6)" }}
+          >
+            Back to browsing
+          </a>
+        </div>
+      )}
+
+      {/* No spinner for the normal path: the poster holds until video plays. */}
 
       {/* Pause/Play indicator (animated) */}
       {showPause && (
@@ -1665,6 +1860,7 @@ export default function EpisodeFeed({
                 transitionPoster={ep.number === startEpisode ? transitionPoster ?? undefined : undefined}
                 blocked={!ep.isFree && !authFree}
                 onAccessDenied={handlePlaybackAccessDenied}
+                backHref={backHref}
               />
             </div>
           );
