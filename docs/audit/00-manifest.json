@@ -1,0 +1,4745 @@
+{
+  "generatedFrom": "repo scan",
+  "commit": "83c29d1",
+  "routes": {
+    "pages": [
+      "/[handle]",
+      "/about",
+      "/admin/dashboard",
+      "/admin/review",
+      "/alan-mruvka",
+      "/alan-mruvka/[slug]",
+      "/amazon",
+      "/best",
+      "/best/[slug]",
+      "/brand-assets",
+      "/c/[slug]",
+      "/careers",
+      "/channels",
+      "/collections",
+      "/collections/[slug]",
+      "/company",
+      "/compare",
+      "/compare/[slug]",
+      "/contact",
+      "/creator",
+      "/dev/perf",
+      "/discover",
+      "/discover/[genre]",
+      "/editorial-standards",
+      "/forgot-password",
+      "/founder",
+      "/genre/[genre]",
+      "/genres",
+      "/genres/[slug]",
+      "/guides",
+      "/guides/[slug]",
+      "/help",
+      "/horizontal",
+      "/investors",
+      "/leadership",
+      "/learn/[slug]",
+      "/legal/creator-agreement",
+      "/library",
+      "/me",
+      "/me/list",
+      "/me/purchases",
+      "/media-kit",
+      "/newsroom",
+      "/page.tsx",
+      "/partnerships",
+      "/press",
+      "/privacy",
+      "/refund-policy",
+      "/reset-password",
+      "/search",
+      "/series/[slug]",
+      "/series/[slug]/[episode]",
+      "/share",
+      "/shop",
+      "/shop/[slug]",
+      "/shorts",
+      "/sign-in",
+      "/sign-up",
+      "/sitemap",
+      "/studio",
+      "/support",
+      "/terms",
+      "/watch-in",
+      "/watch-in/[slug]",
+      "/watch/[...slug]"
+    ],
+    "api": [
+      "/api/access",
+      "/api/account/delete",
+      "/api/account/sync",
+      "/api/admin/creators",
+      "/api/admin/review",
+      "/api/admin/stats",
+      "/api/ai-host",
+      "/api/auth/callback",
+      "/api/billing-portal",
+      "/api/checkout",
+      "/api/checkout/native-return",
+      "/api/coins/balance",
+      "/api/coins/purchase",
+      "/api/creator-unlock",
+      "/api/creator/analytics",
+      "/api/creator/apply",
+      "/api/creator/beta",
+      "/api/creator/channel",
+      "/api/creator/channels",
+      "/api/creator/content",
+      "/api/creator/content/[id]",
+      "/api/creator/content/[id]/submit",
+      "/api/creator/me",
+      "/api/creator/upload",
+      "/api/cron/vip-renewal-reminders",
+      "/api/entitlements",
+      "/api/entitlements/check",
+      "/api/entitlements/claim",
+      "/api/events",
+      "/api/iap/apple/notifications",
+      "/api/iap/apple/preflight",
+      "/api/iap/apple/transactions",
+      "/api/mux/webhook",
+      "/api/og/[slug]",
+      "/api/payments/capabilities",
+      "/api/playback/[episode]",
+      "/api/push/send",
+      "/api/push/subscribe",
+      "/api/saved-list",
+      "/api/stripe/webhook",
+      "/api/studio/generate",
+      "/api/subscribe",
+      "/api/subscribe/confirm",
+      "/api/unlock",
+      "/api/unlock/confirm",
+      "/api/unlock/season-pass",
+      "/api/uploads",
+      "/api/watch-progress",
+      "/llms.txt",
+      "/robots.txt",
+      "/sitemap.xml",
+      "/sitemaps/episodes.xml",
+      "/sitemaps/genres.xml",
+      "/sitemaps/pages.xml",
+      "/sitemaps/shows.xml"
+    ],
+    "fileRoutes": [],
+    "counts": {
+      "pages": 65,
+      "api": 55,
+      "fileRoutes": 0
+    }
+  },
+  "catalog": {
+    "rows": 96,
+    "live": 1,
+    "comingSoon": 0,
+    "slugs": [
+      "the-mistress-trap",
+      "the-dumb-billionaire-heiress-in-love",
+      "do-not-deceive-me",
+      "collateral-hearts",
+      "the-billionaires-betrayal",
+      "undercovered-heart",
+      "under-her-control",
+      "two-worlds-apart",
+      "the-blackthornes",
+      "marry-the-wrong-bride",
+      "destined-to-be",
+      "the-day-we-got-married",
+      "the-winter-veil",
+      "the-marriage-contract",
+      "the-haunted-sisters",
+      "the-missing-piece",
+      "mysterious-murder",
+      "married-to-a-stranger",
+      "blood-contract",
+      "cleopatra",
+      "im-obsessed-with-my-boss",
+      "im-obsessed-with-my-boss-2",
+      "duty-of-desire",
+      "echo-of-vengeance",
+      "faded-threads",
+      "hidden-agenda",
+      "hollywood-stars-fake-girlfriend",
+      "i-think-my-wife-wants-to-kill-me",
+      "in-love-with-my-godfathers-daughter",
+      "love-lies-and-bloodline",
+      "loves-perfect-crime",
+      "mafia-lords-secret-love",
+      "my-celebrity-boyfriend-killed-me",
+      "my-handsome-bodyguard",
+      "never-mess-with-a-badass-girl",
+      "sisters-have-crush-on-the-same-man",
+      "the-billionaires-vow",
+      "lost-and-found",
+      "help-im-falling-in-love-with-my-rude-ceo",
+      "an-affair-with-my-boss",
+      "a-love-once-betrayed",
+      "in-her-shadow",
+      "good-for-him",
+      "one-night-stand",
+      "if-only-you-were-mine",
+      "one-night-one-forever",
+      "runaway-bride",
+      "the-billionaires-lost-love",
+      "camouflage",
+      "killer-romance",
+      "honey-gold",
+      "revenge-on-my-cheating-fiance",
+      "the-escort",
+      "school-hall",
+      "conflicted-hearts",
+      "my-sister-stole-my-man",
+      "storage-pirates",
+      "the-phoenix-conspiracy",
+      "the-chauffeur",
+      "twisted-fates",
+      "the-dumb-billionaire-heiress-pt-2",
+      "tied-by-fate",
+      "the-crown",
+      "rosy-psycho",
+      "the-unforgettable-love",
+      "why-i-did-it",
+      "the-ceo",
+      "twist-of-time",
+      "she-is-mine",
+      "the-pendleton-secret",
+      "the-perfect-husband",
+      "the-inheritance-game",
+      "too-much-junk",
+      "exes-premiere",
+      "love-awards",
+      "billionaire-daughters-love-triangle",
+      "married-to-my-brothers-ex",
+      "tangled-in-desire",
+      "the-escaping-mistress",
+      "trial-marriage-to-a-billionaire-s2",
+      "sentence-of-passion-es",
+      "i-cheated-on-my-wedding-night-es",
+      "i-fell-in-love-with-my-presidential-brother-in-law-es",
+      "the-goat-mistress-es",
+      "im-having-my-professors-baby-es",
+      "falling-for-flatmate",
+      "dil-dosa-dosti",
+      "salt-and-pepper",
+      "love-for-sale",
+      "the-breakup-podcast",
+      "reset",
+      "the-chairmans-revenge",
+      "protected-by-the-devil",
+      "the-last-will",
+      "the-billionaires-apron",
+      "i-cant-resist-my-mansion-gardener"
+    ],
+    "detail": [
+      {
+        "slug": "the-mistress-trap",
+        "status": "live",
+        "episodeCount": 61,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/the-mistress-trap/1",
+        "showPage": "/series/the-mistress-trap"
+      },
+      {
+        "slug": "the-dumb-billionaire-heiress-in-love",
+        "status": "live",
+        "episodeCount": 50,
+        "freeEpisodes": 50,
+        "expectedPosterHref": "/series/the-dumb-billionaire-heiress-in-love/1",
+        "showPage": "/series/the-dumb-billionaire-heiress-in-love"
+      },
+      {
+        "slug": "do-not-deceive-me",
+        "status": "live",
+        "episodeCount": 60,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/do-not-deceive-me/1",
+        "showPage": "/series/do-not-deceive-me"
+      },
+      {
+        "slug": "collateral-hearts",
+        "status": "live",
+        "episodeCount": 60,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/collateral-hearts/1",
+        "showPage": "/series/collateral-hearts"
+      },
+      {
+        "slug": "the-billionaires-betrayal",
+        "status": "live",
+        "episodeCount": 59,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/the-billionaires-betrayal/1",
+        "showPage": "/series/the-billionaires-betrayal"
+      },
+      {
+        "slug": "undercovered-heart",
+        "status": "live",
+        "episodeCount": 60,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/undercovered-heart/1",
+        "showPage": "/series/undercovered-heart"
+      },
+      {
+        "slug": "under-her-control",
+        "status": "live",
+        "episodeCount": 60,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/under-her-control/1",
+        "showPage": "/series/under-her-control"
+      },
+      {
+        "slug": "two-worlds-apart",
+        "status": "live",
+        "episodeCount": 60,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/two-worlds-apart/1",
+        "showPage": "/series/two-worlds-apart"
+      },
+      {
+        "slug": "the-blackthornes",
+        "status": "live",
+        "episodeCount": 51,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/the-blackthornes/1",
+        "showPage": "/series/the-blackthornes"
+      },
+      {
+        "slug": "marry-the-wrong-bride",
+        "status": "live",
+        "episodeCount": 50,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/marry-the-wrong-bride/1",
+        "showPage": "/series/marry-the-wrong-bride"
+      },
+      {
+        "slug": "destined-to-be",
+        "status": "live",
+        "episodeCount": 61,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/destined-to-be/1",
+        "showPage": "/series/destined-to-be"
+      },
+      {
+        "slug": "the-day-we-got-married",
+        "status": "live",
+        "episodeCount": 60,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/the-day-we-got-married/1",
+        "showPage": "/series/the-day-we-got-married"
+      },
+      {
+        "slug": "the-winter-veil",
+        "status": "live",
+        "episodeCount": 61,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/the-winter-veil/1",
+        "showPage": "/series/the-winter-veil"
+      },
+      {
+        "slug": "the-marriage-contract",
+        "status": "live",
+        "episodeCount": 60,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/the-marriage-contract/1",
+        "showPage": "/series/the-marriage-contract"
+      },
+      {
+        "slug": "the-haunted-sisters",
+        "status": "live",
+        "episodeCount": 51,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/the-haunted-sisters/1",
+        "showPage": "/series/the-haunted-sisters"
+      },
+      {
+        "slug": "the-missing-piece",
+        "status": "live",
+        "episodeCount": 61,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/the-missing-piece/1",
+        "showPage": "/series/the-missing-piece"
+      },
+      {
+        "slug": "mysterious-murder",
+        "status": "live",
+        "episodeCount": 48,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/mysterious-murder/1",
+        "showPage": "/series/mysterious-murder"
+      },
+      {
+        "slug": "married-to-a-stranger",
+        "status": "live",
+        "episodeCount": 62,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/married-to-a-stranger/1",
+        "showPage": "/series/married-to-a-stranger"
+      },
+      {
+        "slug": "blood-contract",
+        "status": "live",
+        "episodeCount": 54,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/blood-contract/1",
+        "showPage": "/series/blood-contract"
+      },
+      {
+        "slug": "cleopatra",
+        "status": "live",
+        "episodeCount": 49,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/cleopatra/1",
+        "showPage": "/series/cleopatra"
+      },
+      {
+        "slug": "im-obsessed-with-my-boss",
+        "status": "live",
+        "episodeCount": 49,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/im-obsessed-with-my-boss/1",
+        "showPage": "/series/im-obsessed-with-my-boss"
+      },
+      {
+        "slug": "im-obsessed-with-my-boss-2",
+        "status": "live",
+        "episodeCount": 50,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/im-obsessed-with-my-boss-2/1",
+        "showPage": "/series/im-obsessed-with-my-boss-2"
+      },
+      {
+        "slug": "duty-of-desire",
+        "status": "live",
+        "episodeCount": 61,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/duty-of-desire/1",
+        "showPage": "/series/duty-of-desire"
+      },
+      {
+        "slug": "echo-of-vengeance",
+        "status": "live",
+        "episodeCount": 50,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/echo-of-vengeance/1",
+        "showPage": "/series/echo-of-vengeance"
+      },
+      {
+        "slug": "faded-threads",
+        "status": "live",
+        "episodeCount": 61,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/faded-threads/1",
+        "showPage": "/series/faded-threads"
+      },
+      {
+        "slug": "hidden-agenda",
+        "status": "live",
+        "episodeCount": 50,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/hidden-agenda/1",
+        "showPage": "/series/hidden-agenda"
+      },
+      {
+        "slug": "hollywood-stars-fake-girlfriend",
+        "status": "live",
+        "episodeCount": 50,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/hollywood-stars-fake-girlfriend/1",
+        "showPage": "/series/hollywood-stars-fake-girlfriend"
+      },
+      {
+        "slug": "i-think-my-wife-wants-to-kill-me",
+        "status": "live",
+        "episodeCount": 59,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/i-think-my-wife-wants-to-kill-me/1",
+        "showPage": "/series/i-think-my-wife-wants-to-kill-me"
+      },
+      {
+        "slug": "in-love-with-my-godfathers-daughter",
+        "status": "live",
+        "episodeCount": 50,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/in-love-with-my-godfathers-daughter/1",
+        "showPage": "/series/in-love-with-my-godfathers-daughter"
+      },
+      {
+        "slug": "love-lies-and-bloodline",
+        "status": "live",
+        "episodeCount": 60,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/love-lies-and-bloodline/1",
+        "showPage": "/series/love-lies-and-bloodline"
+      },
+      {
+        "slug": "loves-perfect-crime",
+        "status": "live",
+        "episodeCount": 60,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/loves-perfect-crime/1",
+        "showPage": "/series/loves-perfect-crime"
+      },
+      {
+        "slug": "mafia-lords-secret-love",
+        "status": "live",
+        "episodeCount": 51,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/mafia-lords-secret-love/1",
+        "showPage": "/series/mafia-lords-secret-love"
+      },
+      {
+        "slug": "my-celebrity-boyfriend-killed-me",
+        "status": "live",
+        "episodeCount": 41,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/my-celebrity-boyfriend-killed-me/1",
+        "showPage": "/series/my-celebrity-boyfriend-killed-me"
+      },
+      {
+        "slug": "my-handsome-bodyguard",
+        "status": "live",
+        "episodeCount": 50,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/my-handsome-bodyguard/1",
+        "showPage": "/series/my-handsome-bodyguard"
+      },
+      {
+        "slug": "never-mess-with-a-badass-girl",
+        "status": "live",
+        "episodeCount": 50,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/never-mess-with-a-badass-girl/1",
+        "showPage": "/series/never-mess-with-a-badass-girl"
+      },
+      {
+        "slug": "sisters-have-crush-on-the-same-man",
+        "status": "live",
+        "episodeCount": 50,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/sisters-have-crush-on-the-same-man/1",
+        "showPage": "/series/sisters-have-crush-on-the-same-man"
+      },
+      {
+        "slug": "the-billionaires-vow",
+        "status": "live",
+        "episodeCount": 60,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/the-billionaires-vow/1",
+        "showPage": "/series/the-billionaires-vow"
+      },
+      {
+        "slug": "lost-and-found",
+        "status": "live",
+        "episodeCount": 60,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/lost-and-found/1",
+        "showPage": "/series/lost-and-found"
+      },
+      {
+        "slug": "help-im-falling-in-love-with-my-rude-ceo",
+        "status": "live",
+        "episodeCount": 60,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/help-im-falling-in-love-with-my-rude-ceo/1",
+        "showPage": "/series/help-im-falling-in-love-with-my-rude-ceo"
+      },
+      {
+        "slug": "an-affair-with-my-boss",
+        "status": "live",
+        "episodeCount": 60,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/an-affair-with-my-boss/1",
+        "showPage": "/series/an-affair-with-my-boss"
+      },
+      {
+        "slug": "a-love-once-betrayed",
+        "status": "live",
+        "episodeCount": 60,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/a-love-once-betrayed/1",
+        "showPage": "/series/a-love-once-betrayed"
+      },
+      {
+        "slug": "in-her-shadow",
+        "status": "live",
+        "episodeCount": 60,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/in-her-shadow/1",
+        "showPage": "/series/in-her-shadow"
+      },
+      {
+        "slug": "good-for-him",
+        "status": "live",
+        "episodeCount": 61,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/good-for-him/1",
+        "showPage": "/series/good-for-him"
+      },
+      {
+        "slug": "one-night-stand",
+        "status": "live",
+        "episodeCount": 50,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/one-night-stand/1",
+        "showPage": "/series/one-night-stand"
+      },
+      {
+        "slug": "if-only-you-were-mine",
+        "status": "live",
+        "episodeCount": 50,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/if-only-you-were-mine/1",
+        "showPage": "/series/if-only-you-were-mine"
+      },
+      {
+        "slug": "one-night-one-forever",
+        "status": "live",
+        "episodeCount": 60,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/one-night-one-forever/1",
+        "showPage": "/series/one-night-one-forever"
+      },
+      {
+        "slug": "runaway-bride",
+        "status": "live",
+        "episodeCount": 51,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/runaway-bride/1",
+        "showPage": "/series/runaway-bride"
+      },
+      {
+        "slug": "the-billionaires-lost-love",
+        "status": "live",
+        "episodeCount": 60,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/the-billionaires-lost-love/1",
+        "showPage": "/series/the-billionaires-lost-love"
+      },
+      {
+        "slug": "camouflage",
+        "status": "live",
+        "episodeCount": 60,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/camouflage/1",
+        "showPage": "/series/camouflage"
+      },
+      {
+        "slug": "killer-romance",
+        "status": "live",
+        "episodeCount": 59,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/killer-romance/1",
+        "showPage": "/series/killer-romance"
+      },
+      {
+        "slug": "honey-gold",
+        "status": "live",
+        "episodeCount": 61,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/honey-gold/1",
+        "showPage": "/series/honey-gold"
+      },
+      {
+        "slug": "revenge-on-my-cheating-fiance",
+        "status": "live",
+        "episodeCount": 50,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/revenge-on-my-cheating-fiance/1",
+        "showPage": "/series/revenge-on-my-cheating-fiance"
+      },
+      {
+        "slug": "the-escort",
+        "status": "live",
+        "episodeCount": 52,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/the-escort/1",
+        "showPage": "/series/the-escort"
+      },
+      {
+        "slug": "school-hall",
+        "status": "live",
+        "episodeCount": 49,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/school-hall/1",
+        "showPage": "/series/school-hall"
+      },
+      {
+        "slug": "conflicted-hearts",
+        "status": "live",
+        "episodeCount": 60,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/conflicted-hearts/1",
+        "showPage": "/series/conflicted-hearts"
+      },
+      {
+        "slug": "my-sister-stole-my-man",
+        "status": "live",
+        "episodeCount": 50,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/my-sister-stole-my-man/1",
+        "showPage": "/series/my-sister-stole-my-man"
+      },
+      {
+        "slug": "storage-pirates",
+        "status": "live",
+        "episodeCount": 13,
+        "freeEpisodes": 13,
+        "expectedPosterHref": "/series/storage-pirates/1",
+        "showPage": "/series/storage-pirates"
+      },
+      {
+        "slug": "the-phoenix-conspiracy",
+        "status": "live",
+        "episodeCount": 48,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/the-phoenix-conspiracy/1",
+        "showPage": "/series/the-phoenix-conspiracy"
+      },
+      {
+        "slug": "the-chauffeur",
+        "status": "live",
+        "episodeCount": 50,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/the-chauffeur/1",
+        "showPage": "/series/the-chauffeur"
+      },
+      {
+        "slug": "twisted-fates",
+        "status": "live",
+        "episodeCount": 49,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/twisted-fates/1",
+        "showPage": "/series/twisted-fates"
+      },
+      {
+        "slug": "the-dumb-billionaire-heiress-pt-2",
+        "status": "live",
+        "episodeCount": 50,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/the-dumb-billionaire-heiress-pt-2/1",
+        "showPage": "/series/the-dumb-billionaire-heiress-pt-2"
+      },
+      {
+        "slug": "tied-by-fate",
+        "status": "live",
+        "episodeCount": 50,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/tied-by-fate/1",
+        "showPage": "/series/tied-by-fate"
+      },
+      {
+        "slug": "the-crown",
+        "status": "live",
+        "episodeCount": 51,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/the-crown/1",
+        "showPage": "/series/the-crown"
+      },
+      {
+        "slug": "rosy-psycho",
+        "status": "live",
+        "episodeCount": 49,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/rosy-psycho/1",
+        "showPage": "/series/rosy-psycho"
+      },
+      {
+        "slug": "the-unforgettable-love",
+        "status": "live",
+        "episodeCount": 50,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/the-unforgettable-love/1",
+        "showPage": "/series/the-unforgettable-love"
+      },
+      {
+        "slug": "why-i-did-it",
+        "status": "live",
+        "episodeCount": 60,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/why-i-did-it/1",
+        "showPage": "/series/why-i-did-it"
+      },
+      {
+        "slug": "the-ceo",
+        "status": "live",
+        "episodeCount": 60,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/the-ceo/1",
+        "showPage": "/series/the-ceo"
+      },
+      {
+        "slug": "twist-of-time",
+        "status": "live",
+        "episodeCount": 60,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/twist-of-time/1",
+        "showPage": "/series/twist-of-time"
+      },
+      {
+        "slug": "she-is-mine",
+        "status": "live",
+        "episodeCount": 60,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/she-is-mine/1",
+        "showPage": "/series/she-is-mine"
+      },
+      {
+        "slug": "the-pendleton-secret",
+        "status": "live",
+        "episodeCount": 60,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/the-pendleton-secret/1",
+        "showPage": "/series/the-pendleton-secret"
+      },
+      {
+        "slug": "the-perfect-husband",
+        "status": "live",
+        "episodeCount": 60,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/the-perfect-husband/1",
+        "showPage": "/series/the-perfect-husband"
+      },
+      {
+        "slug": "the-inheritance-game",
+        "status": "live",
+        "episodeCount": 51,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/the-inheritance-game/1",
+        "showPage": "/series/the-inheritance-game"
+      },
+      {
+        "slug": "too-much-junk",
+        "status": "live",
+        "episodeCount": 1,
+        "freeEpisodes": 1,
+        "expectedPosterHref": "/series/too-much-junk/1",
+        "showPage": "/series/too-much-junk"
+      },
+      {
+        "slug": "exes-premiere",
+        "status": "live",
+        "episodeCount": 12,
+        "freeEpisodes": 12,
+        "expectedPosterHref": "/series/exes-premiere/1",
+        "showPage": "/series/exes-premiere"
+      },
+      {
+        "slug": "love-awards",
+        "status": "live",
+        "episodeCount": 13,
+        "freeEpisodes": 13,
+        "expectedPosterHref": "/series/love-awards/1",
+        "showPage": "/series/love-awards"
+      },
+      {
+        "slug": "billionaire-daughters-love-triangle",
+        "status": "live",
+        "episodeCount": 60,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/billionaire-daughters-love-triangle/1",
+        "showPage": "/series/billionaire-daughters-love-triangle"
+      },
+      {
+        "slug": "married-to-my-brothers-ex",
+        "status": "live",
+        "episodeCount": 62,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/married-to-my-brothers-ex/1",
+        "showPage": "/series/married-to-my-brothers-ex"
+      },
+      {
+        "slug": "tangled-in-desire",
+        "status": "live",
+        "episodeCount": 60,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/tangled-in-desire/1",
+        "showPage": "/series/tangled-in-desire"
+      },
+      {
+        "slug": "the-escaping-mistress",
+        "status": "live",
+        "episodeCount": 60,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/the-escaping-mistress/1",
+        "showPage": "/series/the-escaping-mistress"
+      },
+      {
+        "slug": "trial-marriage-to-a-billionaire-s2",
+        "status": "live",
+        "episodeCount": 60,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/trial-marriage-to-a-billionaire-s2/1",
+        "showPage": "/series/trial-marriage-to-a-billionaire-s2"
+      },
+      {
+        "slug": "sentence-of-passion-es",
+        "status": "live",
+        "episodeCount": 60,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/sentence-of-passion-es/1",
+        "showPage": "/series/sentence-of-passion-es"
+      },
+      {
+        "slug": "i-cheated-on-my-wedding-night-es",
+        "status": "live",
+        "episodeCount": 58,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/i-cheated-on-my-wedding-night-es/1",
+        "showPage": "/series/i-cheated-on-my-wedding-night-es"
+      },
+      {
+        "slug": "i-fell-in-love-with-my-presidential-brother-in-law-es",
+        "status": "live",
+        "episodeCount": 59,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/i-fell-in-love-with-my-presidential-brother-in-law-es/1",
+        "showPage": "/series/i-fell-in-love-with-my-presidential-brother-in-law-es"
+      },
+      {
+        "slug": "the-goat-mistress-es",
+        "status": "live",
+        "episodeCount": 60,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/the-goat-mistress-es/1",
+        "showPage": "/series/the-goat-mistress-es"
+      },
+      {
+        "slug": "im-having-my-professors-baby-es",
+        "status": "live",
+        "episodeCount": 61,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/im-having-my-professors-baby-es/1",
+        "showPage": "/series/im-having-my-professors-baby-es"
+      },
+      {
+        "slug": "falling-for-flatmate",
+        "status": "live",
+        "episodeCount": 60,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/falling-for-flatmate/1",
+        "showPage": "/series/falling-for-flatmate"
+      },
+      {
+        "slug": "dil-dosa-dosti",
+        "status": "live",
+        "episodeCount": 57,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/dil-dosa-dosti/1",
+        "showPage": "/series/dil-dosa-dosti"
+      },
+      {
+        "slug": "salt-and-pepper",
+        "status": "live",
+        "episodeCount": 60,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/salt-and-pepper/1",
+        "showPage": "/series/salt-and-pepper"
+      },
+      {
+        "slug": "love-for-sale",
+        "status": "live",
+        "episodeCount": 60,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/love-for-sale/1",
+        "showPage": "/series/love-for-sale"
+      },
+      {
+        "slug": "the-breakup-podcast",
+        "status": "live",
+        "episodeCount": 60,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/the-breakup-podcast/1",
+        "showPage": "/series/the-breakup-podcast"
+      },
+      {
+        "slug": "reset",
+        "status": "live",
+        "episodeCount": 56,
+        "freeEpisodes": 5,
+        "expectedPosterHref": "/series/reset/1",
+        "showPage": "/series/reset"
+      },
+      {
+        "slug": "the-chairmans-revenge",
+        "status": "coming_soon",
+        "episodeCount": 0,
+        "freeEpisodes": 0,
+        "expectedPosterHref": "/series/the-chairmans-revenge",
+        "showPage": "/series/the-chairmans-revenge"
+      },
+      {
+        "slug": "protected-by-the-devil",
+        "status": "coming_soon",
+        "episodeCount": 0,
+        "freeEpisodes": 0,
+        "expectedPosterHref": "/series/protected-by-the-devil",
+        "showPage": "/series/protected-by-the-devil"
+      },
+      {
+        "slug": "the-last-will",
+        "status": "coming_soon",
+        "episodeCount": 0,
+        "freeEpisodes": 0,
+        "expectedPosterHref": "/series/the-last-will",
+        "showPage": "/series/the-last-will"
+      },
+      {
+        "slug": "the-billionaires-apron",
+        "status": "coming_soon",
+        "episodeCount": 0,
+        "freeEpisodes": 0,
+        "expectedPosterHref": "/series/the-billionaires-apron",
+        "showPage": "/series/the-billionaires-apron"
+      },
+      {
+        "slug": "i-cant-resist-my-mansion-gardener",
+        "status": "coming_soon",
+        "episodeCount": 0,
+        "freeEpisodes": 0,
+        "expectedPosterHref": "/series/i-cant-resist-my-mansion-gardener",
+        "showPage": "/series/i-cant-resist-my-mansion-gardener"
+      }
+    ]
+  },
+  "i18n": {
+    "locales": [
+      "en",
+      "es",
+      "fr",
+      "pt",
+      "de",
+      "it",
+      "ja",
+      "ko",
+      "zh",
+      "hi",
+      "ar",
+      "ru",
+      "tr",
+      "pl",
+      "nl",
+      "th",
+      "vi",
+      "id",
+      "tl",
+      "sw"
+    ],
+    "localeCount": 20,
+    "keys": [
+      "nav.discover",
+      "nav.shorts",
+      "nav.widescreen",
+      "nav.shop",
+      "nav.library",
+      "nav.profile",
+      "header.followUs",
+      "browse.startWatchingFree",
+      "browse.trending",
+      "browse.episodes",
+      "browse.allShows",
+      "tab.drama",
+      "tab.new",
+      "tab.popular",
+      "tab.music",
+      "tab.reality",
+      "tab.redCarpet",
+      "shorts.like",
+      "shorts.liked",
+      "shorts.list",
+      "shorts.saved",
+      "shorts.share",
+      "shorts.copied",
+      "shorts.sound",
+      "shorts.soundOn",
+      "shorts.soundOff",
+      "horizontal.widescreen",
+      "horizontal.episodes",
+      "horizontal.play",
+      "horizontal.pause",
+      "profile.guest",
+      "profile.signIn",
+      "profile.signInPrompt",
+      "profile.coinBalance",
+      "profile.coins",
+      "profile.buyCoins",
+      "profile.myList",
+      "profile.continueWatching",
+      "profile.purchaseHistory",
+      "profile.language",
+      "profile.notifications",
+      "profile.darkMode",
+      "profile.helpFaq",
+      "profile.sendFeedback",
+      "profile.reportProblem",
+      "profile.signOut",
+      "library.title",
+      "library.channels",
+      "library.myList",
+      "library.noSavedShows",
+      "library.browseShows",
+      "library.comingSoon",
+      "library.shows",
+      "auth.signInHeading",
+      "auth.signUpHeading",
+      "auth.email",
+      "auth.displayName",
+      "auth.continueWithEmail",
+      "auth.continueWithGoogle",
+      "auth.continueWithApple",
+      "auth.createAccount",
+      "auth.continueAsGuest",
+      "auth.noAccount",
+      "auth.haveAccount",
+      "auth.signUp",
+      "legal.terms",
+      "legal.privacy",
+      "legal.refund",
+      "content.synopsis",
+      "content.episodes",
+      "content.cast",
+      "content.moreLikeThis",
+      "content.views",
+      "content.now",
+      "content.info",
+      "content.allEpisodes",
+      "content.previous",
+      "content.next",
+      "content.episodeOf",
+      "content.freeEpisodeOf",
+      "content.trending",
+      "content.watchFree",
+      "content.unlockSeries",
+      "content.oneTimePayment",
+      "content.allEpisodesIncluded",
+      "content.episodeLocked",
+      "content.unlockPrompt",
+      "content.tryAgain",
+      "paywall.unlockAll",
+      "paywall.unavailableTitle",
+      "paywall.unavailableBody",
+      "paywall.previewOver",
+      "paywall.benefitEpisodes",
+      "paywall.benefitAccess",
+      "paywall.oneTimeUnlock",
+      "paywall.cta",
+      "paywall.ctaLoading",
+      "paywall.secure",
+      "paywall.goBack",
+      "checkout.errorStart",
+      "checkout.errorNotOpened",
+      "checkout.errorNetwork",
+      "checkout.errorAuth",
+      "checkout.errorNotPurchasable",
+      "checkout.errorEligibility",
+      "checkout.errorAccountDeletion",
+      "checkout.errorPaymentReview",
+      "checkout.errorCheckoutUnusable",
+      "checkout.errorRefunded",
+      "checkout.errorNotFound",
+      "language.audio",
+      "language.audioSubs",
+      "misc.free",
+      "misc.comingSoon",
+      "misc.close"
+    ],
+    "keyCount": 115
+  },
+  "interactive": {
+    "count": 535,
+    "byKind": {
+      "link": 183,
+      "button": 125,
+      "handler": 163,
+      "input": 52,
+      "anchor": 12
+    },
+    "items": [
+      {
+        "id": "components/AccountLists.tsx:163",
+        "kind": "link",
+        "file": "components/AccountLists.tsx",
+        "line": 163
+      },
+      {
+        "id": "components/AccountLists.tsx:176",
+        "kind": "link",
+        "file": "components/AccountLists.tsx",
+        "line": 176
+      },
+      {
+        "id": "components/AccountLists.tsx:183",
+        "kind": "button",
+        "file": "components/AccountLists.tsx",
+        "line": 183
+      },
+      {
+        "id": "components/AccountLists.tsx:184",
+        "kind": "handler",
+        "file": "components/AccountLists.tsx",
+        "line": 184
+      },
+      {
+        "id": "components/AccountLists.tsx:250",
+        "kind": "link",
+        "file": "components/AccountLists.tsx",
+        "line": 250
+      },
+      {
+        "id": "components/AddToCartButton.tsx:23",
+        "kind": "button",
+        "file": "components/AddToCartButton.tsx",
+        "line": 23
+      },
+      {
+        "id": "components/AddToCartButton.tsx:24",
+        "kind": "handler",
+        "file": "components/AddToCartButton.tsx",
+        "line": 24
+      },
+      {
+        "id": "components/AddToCartButton.tsx:36",
+        "kind": "button",
+        "file": "components/AddToCartButton.tsx",
+        "line": 36
+      },
+      {
+        "id": "components/AddToCartButton.tsx:37",
+        "kind": "handler",
+        "file": "components/AddToCartButton.tsx",
+        "line": 37
+      },
+      {
+        "id": "components/AddToCartButton.tsx:47",
+        "kind": "button",
+        "file": "components/AddToCartButton.tsx",
+        "line": 47
+      },
+      {
+        "id": "components/AddToCartButton.tsx:48",
+        "kind": "handler",
+        "file": "components/AddToCartButton.tsx",
+        "line": 48
+      },
+      {
+        "id": "components/AdminDashboard.tsx:358",
+        "kind": "button",
+        "file": "components/AdminDashboard.tsx",
+        "line": 358
+      },
+      {
+        "id": "components/AdminDashboard.tsx:360",
+        "kind": "handler",
+        "file": "components/AdminDashboard.tsx",
+        "line": 360
+      },
+      {
+        "id": "components/AdminReview.tsx:358",
+        "kind": "input",
+        "file": "components/AdminReview.tsx",
+        "line": 358
+      },
+      {
+        "id": "components/AdminReview.tsx:373",
+        "kind": "button",
+        "file": "components/AdminReview.tsx",
+        "line": 373
+      },
+      {
+        "id": "components/AdminReview.tsx:374",
+        "kind": "handler",
+        "file": "components/AdminReview.tsx",
+        "line": 374
+      },
+      {
+        "id": "components/AdminReview.tsx:385",
+        "kind": "button",
+        "file": "components/AdminReview.tsx",
+        "line": 385
+      },
+      {
+        "id": "components/AdminReview.tsx:386",
+        "kind": "handler",
+        "file": "components/AdminReview.tsx",
+        "line": 386
+      },
+      {
+        "id": "components/AdminReview.tsx:404",
+        "kind": "button",
+        "file": "components/AdminReview.tsx",
+        "line": 404
+      },
+      {
+        "id": "components/AdminReview.tsx:405",
+        "kind": "handler",
+        "file": "components/AdminReview.tsx",
+        "line": 405
+      },
+      {
+        "id": "components/AdminReview.tsx:414",
+        "kind": "button",
+        "file": "components/AdminReview.tsx",
+        "line": 414
+      },
+      {
+        "id": "components/AdminReview.tsx:415",
+        "kind": "handler",
+        "file": "components/AdminReview.tsx",
+        "line": 415
+      },
+      {
+        "id": "components/AdminReview.tsx:422",
+        "kind": "button",
+        "file": "components/AdminReview.tsx",
+        "line": 422
+      },
+      {
+        "id": "components/AdminReview.tsx:423",
+        "kind": "handler",
+        "file": "components/AdminReview.tsx",
+        "line": 423
+      },
+      {
+        "id": "components/AdminReview.tsx:430",
+        "kind": "button",
+        "file": "components/AdminReview.tsx",
+        "line": 430
+      },
+      {
+        "id": "components/AdminReview.tsx:431",
+        "kind": "handler",
+        "file": "components/AdminReview.tsx",
+        "line": 431
+      },
+      {
+        "id": "components/AdminReview.tsx:661",
+        "kind": "button",
+        "file": "components/AdminReview.tsx",
+        "line": 661
+      },
+      {
+        "id": "components/AdminReview.tsx:662",
+        "kind": "handler",
+        "file": "components/AdminReview.tsx",
+        "line": 662
+      },
+      {
+        "id": "components/AdminReview.tsx:669",
+        "kind": "button",
+        "file": "components/AdminReview.tsx",
+        "line": 669
+      },
+      {
+        "id": "components/AdminReview.tsx:670",
+        "kind": "handler",
+        "file": "components/AdminReview.tsx",
+        "line": 670
+      },
+      {
+        "id": "components/AmazonBag.tsx:41",
+        "kind": "button",
+        "file": "components/AmazonBag.tsx",
+        "line": 41
+      },
+      {
+        "id": "components/AmazonBag.tsx:42",
+        "kind": "handler",
+        "file": "components/AmazonBag.tsx",
+        "line": 42
+      },
+      {
+        "id": "components/AmazonBag.tsx:70",
+        "kind": "handler",
+        "file": "components/AmazonBag.tsx",
+        "line": 70
+      },
+      {
+        "id": "components/AmazonBag.tsx:93",
+        "kind": "button",
+        "file": "components/AmazonBag.tsx",
+        "line": 93
+      },
+      {
+        "id": "components/AmazonBag.tsx:94",
+        "kind": "handler",
+        "file": "components/AmazonBag.tsx",
+        "line": 94
+      },
+      {
+        "id": "components/AmazonBag.tsx:145",
+        "kind": "button",
+        "file": "components/AmazonBag.tsx",
+        "line": 145
+      },
+      {
+        "id": "components/AmazonBag.tsx:146",
+        "kind": "handler",
+        "file": "components/AmazonBag.tsx",
+        "line": 146
+      },
+      {
+        "id": "components/AmazonBag.tsx:159",
+        "kind": "button",
+        "file": "components/AmazonBag.tsx",
+        "line": 159
+      },
+      {
+        "id": "components/AmazonBag.tsx:160",
+        "kind": "handler",
+        "file": "components/AmazonBag.tsx",
+        "line": 160
+      },
+      {
+        "id": "components/AmazonBag.tsx:170",
+        "kind": "button",
+        "file": "components/AmazonBag.tsx",
+        "line": 170
+      },
+      {
+        "id": "components/AmazonBag.tsx:171",
+        "kind": "handler",
+        "file": "components/AmazonBag.tsx",
+        "line": 171
+      },
+      {
+        "id": "components/AmazonBag.tsx:209",
+        "kind": "button",
+        "file": "components/AmazonBag.tsx",
+        "line": 209
+      },
+      {
+        "id": "components/AmazonBag.tsx:210",
+        "kind": "handler",
+        "file": "components/AmazonBag.tsx",
+        "line": 210
+      },
+      {
+        "id": "components/AmazonBag.tsx:216",
+        "kind": "button",
+        "file": "components/AmazonBag.tsx",
+        "line": 216
+      },
+      {
+        "id": "components/AmazonBag.tsx:217",
+        "kind": "handler",
+        "file": "components/AmazonBag.tsx",
+        "line": 217
+      },
+      {
+        "id": "components/AmazonDeepLink.tsx:10",
+        "kind": "link",
+        "file": "components/AmazonDeepLink.tsx",
+        "line": 10
+      },
+      {
+        "id": "components/AmazonProducts.tsx:169",
+        "kind": "button",
+        "file": "components/AmazonProducts.tsx",
+        "line": 169
+      },
+      {
+        "id": "components/AmazonProducts.tsx:173",
+        "kind": "handler",
+        "file": "components/AmazonProducts.tsx",
+        "line": 173
+      },
+      {
+        "id": "components/AmazonProducts.tsx:282",
+        "kind": "button",
+        "file": "components/AmazonProducts.tsx",
+        "line": 282
+      },
+      {
+        "id": "components/AmazonProducts.tsx:283",
+        "kind": "handler",
+        "file": "components/AmazonProducts.tsx",
+        "line": 283
+      },
+      {
+        "id": "components/AmazonProducts.tsx:338",
+        "kind": "button",
+        "file": "components/AmazonProducts.tsx",
+        "line": 338
+      },
+      {
+        "id": "components/AmazonProducts.tsx:339",
+        "kind": "handler",
+        "file": "components/AmazonProducts.tsx",
+        "line": 339
+      },
+      {
+        "id": "components/AskVerza.tsx:110",
+        "kind": "button",
+        "file": "components/AskVerza.tsx",
+        "line": 110
+      },
+      {
+        "id": "components/AskVerza.tsx:111",
+        "kind": "handler",
+        "file": "components/AskVerza.tsx",
+        "line": 111
+      },
+      {
+        "id": "components/AskVerza.tsx:166",
+        "kind": "handler",
+        "file": "components/AskVerza.tsx",
+        "line": 166
+      },
+      {
+        "id": "components/AskVerza.tsx:236",
+        "kind": "button",
+        "file": "components/AskVerza.tsx",
+        "line": 236
+      },
+      {
+        "id": "components/AskVerza.tsx:237",
+        "kind": "handler",
+        "file": "components/AskVerza.tsx",
+        "line": 237
+      },
+      {
+        "id": "components/AskVerza.tsx:370",
+        "kind": "button",
+        "file": "components/AskVerza.tsx",
+        "line": 370
+      },
+      {
+        "id": "components/AskVerza.tsx:372",
+        "kind": "handler",
+        "file": "components/AskVerza.tsx",
+        "line": 372
+      },
+      {
+        "id": "components/AskVerza.tsx:417",
+        "kind": "input",
+        "file": "components/AskVerza.tsx",
+        "line": 417
+      },
+      {
+        "id": "components/AskVerza.tsx:444",
+        "kind": "button",
+        "file": "components/AskVerza.tsx",
+        "line": 444
+      },
+      {
+        "id": "components/AuthErrorNotice.tsx:70",
+        "kind": "link",
+        "file": "components/AuthErrorNotice.tsx",
+        "line": 70
+      },
+      {
+        "id": "components/BottomNav.tsx:102",
+        "kind": "link",
+        "file": "components/BottomNav.tsx",
+        "line": 102
+      },
+      {
+        "id": "components/BrowsePage.tsx:580",
+        "kind": "handler",
+        "file": "components/BrowsePage.tsx",
+        "line": 580
+      },
+      {
+        "id": "components/BrowsePage.tsx:626",
+        "kind": "link",
+        "file": "components/BrowsePage.tsx",
+        "line": 626
+      },
+      {
+        "id": "components/BrowsePage.tsx:631",
+        "kind": "handler",
+        "file": "components/BrowsePage.tsx",
+        "line": 631
+      },
+      {
+        "id": "components/BrowsePage.tsx:667",
+        "kind": "link",
+        "file": "components/BrowsePage.tsx",
+        "line": 667
+      },
+      {
+        "id": "components/BrowsePage.tsx:670",
+        "kind": "handler",
+        "file": "components/BrowsePage.tsx",
+        "line": 670
+      },
+      {
+        "id": "components/BrowsePage.tsx:722",
+        "kind": "button",
+        "file": "components/BrowsePage.tsx",
+        "line": 722
+      },
+      {
+        "id": "components/BrowsePage.tsx:724",
+        "kind": "handler",
+        "file": "components/BrowsePage.tsx",
+        "line": 724
+      },
+      {
+        "id": "components/BrowsePage.tsx:856",
+        "kind": "button",
+        "file": "components/BrowsePage.tsx",
+        "line": 856
+      },
+      {
+        "id": "components/BrowsePage.tsx:894",
+        "kind": "link",
+        "file": "components/BrowsePage.tsx",
+        "line": 894
+      },
+      {
+        "id": "components/BrowsePage.tsx:899",
+        "kind": "handler",
+        "file": "components/BrowsePage.tsx",
+        "line": 899
+      },
+      {
+        "id": "components/BrowsePage.tsx:948",
+        "kind": "link",
+        "file": "components/BrowsePage.tsx",
+        "line": 948
+      },
+      {
+        "id": "components/BrowsePage.tsx:953",
+        "kind": "handler",
+        "file": "components/BrowsePage.tsx",
+        "line": 953
+      },
+      {
+        "id": "components/BrowsePage.tsx:977",
+        "kind": "handler",
+        "file": "components/BrowsePage.tsx",
+        "line": 977
+      },
+      {
+        "id": "components/BrowsePage.tsx:986",
+        "kind": "link",
+        "file": "components/BrowsePage.tsx",
+        "line": 986
+      },
+      {
+        "id": "components/BrowsePage.tsx:989",
+        "kind": "handler",
+        "file": "components/BrowsePage.tsx",
+        "line": 989
+      },
+      {
+        "id": "components/BrowsePage.tsx:1062",
+        "kind": "button",
+        "file": "components/BrowsePage.tsx",
+        "line": 1062
+      },
+      {
+        "id": "components/BrowsePage.tsx:1064",
+        "kind": "handler",
+        "file": "components/BrowsePage.tsx",
+        "line": 1064
+      },
+      {
+        "id": "components/BrowsePage.tsx:1190",
+        "kind": "link",
+        "file": "components/BrowsePage.tsx",
+        "line": 1190
+      },
+      {
+        "id": "components/BrowsePage.tsx:1201",
+        "kind": "handler",
+        "file": "components/BrowsePage.tsx",
+        "line": 1201
+      },
+      {
+        "id": "components/CartButton.tsx:10",
+        "kind": "button",
+        "file": "components/CartButton.tsx",
+        "line": 10
+      },
+      {
+        "id": "components/CartButton.tsx:11",
+        "kind": "handler",
+        "file": "components/CartButton.tsx",
+        "line": 11
+      },
+      {
+        "id": "components/CartDrawer.tsx:22",
+        "kind": "handler",
+        "file": "components/CartDrawer.tsx",
+        "line": 22
+      },
+      {
+        "id": "components/CartDrawer.tsx:40",
+        "kind": "button",
+        "file": "components/CartDrawer.tsx",
+        "line": 40
+      },
+      {
+        "id": "components/CartDrawer.tsx:41",
+        "kind": "handler",
+        "file": "components/CartDrawer.tsx",
+        "line": 41
+      },
+      {
+        "id": "components/CartDrawer.tsx:101",
+        "kind": "button",
+        "file": "components/CartDrawer.tsx",
+        "line": 101
+      },
+      {
+        "id": "components/CartDrawer.tsx:102",
+        "kind": "handler",
+        "file": "components/CartDrawer.tsx",
+        "line": 102
+      },
+      {
+        "id": "components/CartDrawer.tsx:116",
+        "kind": "button",
+        "file": "components/CartDrawer.tsx",
+        "line": 116
+      },
+      {
+        "id": "components/CartDrawer.tsx:117",
+        "kind": "handler",
+        "file": "components/CartDrawer.tsx",
+        "line": 117
+      },
+      {
+        "id": "components/CartDrawer.tsx:128",
+        "kind": "button",
+        "file": "components/CartDrawer.tsx",
+        "line": 128
+      },
+      {
+        "id": "components/CartDrawer.tsx:129",
+        "kind": "handler",
+        "file": "components/CartDrawer.tsx",
+        "line": 129
+      },
+      {
+        "id": "components/CartDrawer.tsx:155",
+        "kind": "button",
+        "file": "components/CartDrawer.tsx",
+        "line": 155
+      },
+      {
+        "id": "components/CartDrawer.tsx:156",
+        "kind": "handler",
+        "file": "components/CartDrawer.tsx",
+        "line": 156
+      },
+      {
+        "id": "components/CategoryTabs.tsx:203",
+        "kind": "button",
+        "file": "components/CategoryTabs.tsx",
+        "line": 203
+      },
+      {
+        "id": "components/CategoryTabs.tsx:209",
+        "kind": "handler",
+        "file": "components/CategoryTabs.tsx",
+        "line": 209
+      },
+      {
+        "id": "components/CoinPaywall.tsx:128",
+        "kind": "button",
+        "file": "components/CoinPaywall.tsx",
+        "line": 128
+      },
+      {
+        "id": "components/CoinPaywall.tsx:129",
+        "kind": "handler",
+        "file": "components/CoinPaywall.tsx",
+        "line": 129
+      },
+      {
+        "id": "components/CreatorAITools.tsx:214",
+        "kind": "input",
+        "file": "components/CreatorAITools.tsx",
+        "line": 214
+      },
+      {
+        "id": "components/CreatorAITools.tsx:228",
+        "kind": "input",
+        "file": "components/CreatorAITools.tsx",
+        "line": 228
+      },
+      {
+        "id": "components/CreatorAITools.tsx:243",
+        "kind": "button",
+        "file": "components/CreatorAITools.tsx",
+        "line": 243
+      },
+      {
+        "id": "components/CreatorAITools.tsx:244",
+        "kind": "handler",
+        "file": "components/CreatorAITools.tsx",
+        "line": 244
+      },
+      {
+        "id": "components/CreatorAITools.tsx:330",
+        "kind": "button",
+        "file": "components/CreatorAITools.tsx",
+        "line": 330
+      },
+      {
+        "id": "components/CreatorAITools.tsx:331",
+        "kind": "handler",
+        "file": "components/CreatorAITools.tsx",
+        "line": 331
+      },
+      {
+        "id": "components/CreatorBetaForm.tsx:98",
+        "kind": "input",
+        "file": "components/CreatorBetaForm.tsx",
+        "line": 98
+      },
+      {
+        "id": "components/CreatorBetaForm.tsx:112",
+        "kind": "input",
+        "file": "components/CreatorBetaForm.tsx",
+        "line": 112
+      },
+      {
+        "id": "components/CreatorBetaForm.tsx:136",
+        "kind": "input",
+        "file": "components/CreatorBetaForm.tsx",
+        "line": 136
+      },
+      {
+        "id": "components/CreatorBetaForm.tsx:165",
+        "kind": "button",
+        "file": "components/CreatorBetaForm.tsx",
+        "line": 165
+      },
+      {
+        "id": "components/CreatorBetaForm.tsx:191",
+        "kind": "link",
+        "file": "components/CreatorBetaForm.tsx",
+        "line": 191
+      },
+      {
+        "id": "components/CreatorDashboard.tsx:89",
+        "kind": "link",
+        "file": "components/CreatorDashboard.tsx",
+        "line": 89
+      },
+      {
+        "id": "components/CreatorDashboard.tsx:319",
+        "kind": "button",
+        "file": "components/CreatorDashboard.tsx",
+        "line": 319
+      },
+      {
+        "id": "components/CreatorDashboard.tsx:320",
+        "kind": "handler",
+        "file": "components/CreatorDashboard.tsx",
+        "line": 320
+      },
+      {
+        "id": "components/CreatorDashboard.tsx:337",
+        "kind": "input",
+        "file": "components/CreatorDashboard.tsx",
+        "line": 337
+      },
+      {
+        "id": "components/CreatorDashboard.tsx:349",
+        "kind": "input",
+        "file": "components/CreatorDashboard.tsx",
+        "line": 349
+      },
+      {
+        "id": "components/CreatorDashboard.tsx:353",
+        "kind": "input",
+        "file": "components/CreatorDashboard.tsx",
+        "line": 353
+      },
+      {
+        "id": "components/CreatorDashboard.tsx:363",
+        "kind": "input",
+        "file": "components/CreatorDashboard.tsx",
+        "line": 363
+      },
+      {
+        "id": "components/CreatorDashboard.tsx:367",
+        "kind": "input",
+        "file": "components/CreatorDashboard.tsx",
+        "line": 367
+      },
+      {
+        "id": "components/CreatorDashboard.tsx:371",
+        "kind": "input",
+        "file": "components/CreatorDashboard.tsx",
+        "line": 371
+      },
+      {
+        "id": "components/CreatorDashboard.tsx:376",
+        "kind": "input",
+        "file": "components/CreatorDashboard.tsx",
+        "line": 376
+      },
+      {
+        "id": "components/CreatorDashboard.tsx:388",
+        "kind": "button",
+        "file": "components/CreatorDashboard.tsx",
+        "line": 388
+      },
+      {
+        "id": "components/CreatorDashboard.tsx:389",
+        "kind": "handler",
+        "file": "components/CreatorDashboard.tsx",
+        "line": 389
+      },
+      {
+        "id": "components/CreatorDashboard.tsx:396",
+        "kind": "button",
+        "file": "components/CreatorDashboard.tsx",
+        "line": 396
+      },
+      {
+        "id": "components/CreatorDashboard.tsx:397",
+        "kind": "handler",
+        "file": "components/CreatorDashboard.tsx",
+        "line": 397
+      },
+      {
+        "id": "components/CreatorDashboard.tsx:533",
+        "kind": "input",
+        "file": "components/CreatorDashboard.tsx",
+        "line": 533
+      },
+      {
+        "id": "components/CreatorDashboard.tsx:542",
+        "kind": "button",
+        "file": "components/CreatorDashboard.tsx",
+        "line": 542
+      },
+      {
+        "id": "components/CreatorDashboard.tsx:545",
+        "kind": "handler",
+        "file": "components/CreatorDashboard.tsx",
+        "line": 545
+      },
+      {
+        "id": "components/CreatorDashboard.tsx:560",
+        "kind": "input",
+        "file": "components/CreatorDashboard.tsx",
+        "line": 560
+      },
+      {
+        "id": "components/CreatorDashboard.tsx:673",
+        "kind": "button",
+        "file": "components/CreatorDashboard.tsx",
+        "line": 673
+      },
+      {
+        "id": "components/CreatorDashboard.tsx:674",
+        "kind": "handler",
+        "file": "components/CreatorDashboard.tsx",
+        "line": 674
+      },
+      {
+        "id": "components/CreatorDashboard.tsx:682",
+        "kind": "button",
+        "file": "components/CreatorDashboard.tsx",
+        "line": 682
+      },
+      {
+        "id": "components/CreatorDashboard.tsx:683",
+        "kind": "handler",
+        "file": "components/CreatorDashboard.tsx",
+        "line": 683
+      },
+      {
+        "id": "components/CreatorDashboard.tsx:692",
+        "kind": "link",
+        "file": "components/CreatorDashboard.tsx",
+        "line": 692
+      },
+      {
+        "id": "components/CreatorDashboard.tsx:757",
+        "kind": "handler",
+        "file": "components/CreatorDashboard.tsx",
+        "line": 757
+      },
+      {
+        "id": "components/CreatorDashboard.tsx:762",
+        "kind": "handler",
+        "file": "components/CreatorDashboard.tsx",
+        "line": 762
+      },
+      {
+        "id": "components/CreatorDashboard.tsx:768",
+        "kind": "button",
+        "file": "components/CreatorDashboard.tsx",
+        "line": 768
+      },
+      {
+        "id": "components/CreatorDashboard.tsx:775",
+        "kind": "input",
+        "file": "components/CreatorDashboard.tsx",
+        "line": 775
+      },
+      {
+        "id": "components/CreatorDashboard.tsx:783",
+        "kind": "input",
+        "file": "components/CreatorDashboard.tsx",
+        "line": 783
+      },
+      {
+        "id": "components/CreatorDashboard.tsx:792",
+        "kind": "input",
+        "file": "components/CreatorDashboard.tsx",
+        "line": 792
+      },
+      {
+        "id": "components/CreatorDashboard.tsx:801",
+        "kind": "input",
+        "file": "components/CreatorDashboard.tsx",
+        "line": 801
+      },
+      {
+        "id": "components/CreatorDashboard.tsx:818",
+        "kind": "button",
+        "file": "components/CreatorDashboard.tsx",
+        "line": 818
+      },
+      {
+        "id": "components/CreatorDashboard.tsx:821",
+        "kind": "handler",
+        "file": "components/CreatorDashboard.tsx",
+        "line": 821
+      },
+      {
+        "id": "components/CreatorDashboard.tsx:837",
+        "kind": "input",
+        "file": "components/CreatorDashboard.tsx",
+        "line": 837
+      },
+      {
+        "id": "components/CreatorDashboard.tsx:850",
+        "kind": "button",
+        "file": "components/CreatorDashboard.tsx",
+        "line": 850
+      },
+      {
+        "id": "components/CreatorDashboard.tsx:851",
+        "kind": "handler",
+        "file": "components/CreatorDashboard.tsx",
+        "line": 851
+      },
+      {
+        "id": "components/CreatorWatch.tsx:169",
+        "kind": "link",
+        "file": "components/CreatorWatch.tsx",
+        "line": 169
+      },
+      {
+        "id": "components/CreatorWatch.tsx:206",
+        "kind": "button",
+        "file": "components/CreatorWatch.tsx",
+        "line": 206
+      },
+      {
+        "id": "components/CreatorWatch.tsx:207",
+        "kind": "handler",
+        "file": "components/CreatorWatch.tsx",
+        "line": 207
+      },
+      {
+        "id": "components/CreatorWatch.tsx:223",
+        "kind": "button",
+        "file": "components/CreatorWatch.tsx",
+        "line": 223
+      },
+      {
+        "id": "components/CreatorWatch.tsx:224",
+        "kind": "handler",
+        "file": "components/CreatorWatch.tsx",
+        "line": 224
+      },
+      {
+        "id": "components/CreatorWatch.tsx:258",
+        "kind": "button",
+        "file": "components/CreatorWatch.tsx",
+        "line": 258
+      },
+      {
+        "id": "components/CreatorWatch.tsx:259",
+        "kind": "handler",
+        "file": "components/CreatorWatch.tsx",
+        "line": 259
+      },
+      {
+        "id": "components/CreatorsLanding.tsx:194",
+        "kind": "link",
+        "file": "components/CreatorsLanding.tsx",
+        "line": 194
+      },
+      {
+        "id": "components/CreatorsLanding.tsx:270",
+        "kind": "link",
+        "file": "components/CreatorsLanding.tsx",
+        "line": 270
+      },
+      {
+        "id": "components/CreatorsLanding.tsx:345",
+        "kind": "input",
+        "file": "components/CreatorsLanding.tsx",
+        "line": 345
+      },
+      {
+        "id": "components/CreatorsLanding.tsx:374",
+        "kind": "link",
+        "file": "components/CreatorsLanding.tsx",
+        "line": 374
+      },
+      {
+        "id": "components/CreatorsLanding.tsx:405",
+        "kind": "link",
+        "file": "components/CreatorsLanding.tsx",
+        "line": 405
+      },
+      {
+        "id": "components/CreatorsLanding.tsx:458",
+        "kind": "button",
+        "file": "components/CreatorsLanding.tsx",
+        "line": 458
+      },
+      {
+        "id": "components/CreatorsLanding.tsx:459",
+        "kind": "handler",
+        "file": "components/CreatorsLanding.tsx",
+        "line": 459
+      },
+      {
+        "id": "components/CreatorsLanding.tsx:490",
+        "kind": "link",
+        "file": "components/CreatorsLanding.tsx",
+        "line": 490
+      },
+      {
+        "id": "components/EmptyState.tsx:92",
+        "kind": "link",
+        "file": "components/EmptyState.tsx",
+        "line": 92
+      },
+      {
+        "id": "components/EmptyState.tsx:100",
+        "kind": "button",
+        "file": "components/EmptyState.tsx",
+        "line": 100
+      },
+      {
+        "id": "components/EmptyState.tsx:102",
+        "kind": "handler",
+        "file": "components/EmptyState.tsx",
+        "line": 102
+      },
+      {
+        "id": "components/EpisodeDropdown.tsx:48",
+        "kind": "link",
+        "file": "components/EpisodeDropdown.tsx",
+        "line": 48
+      },
+      {
+        "id": "components/EpisodeDropdown.tsx:62",
+        "kind": "button",
+        "file": "components/EpisodeDropdown.tsx",
+        "line": 62
+      },
+      {
+        "id": "components/EpisodeDropdown.tsx:63",
+        "kind": "handler",
+        "file": "components/EpisodeDropdown.tsx",
+        "line": 63
+      },
+      {
+        "id": "components/EpisodeDropdown.tsx:98",
+        "kind": "link",
+        "file": "components/EpisodeDropdown.tsx",
+        "line": 98
+      },
+      {
+        "id": "components/EpisodeDropdown.tsx:123",
+        "kind": "link",
+        "file": "components/EpisodeDropdown.tsx",
+        "line": 123
+      },
+      {
+        "id": "components/EpisodeDropdown.tsx:126",
+        "kind": "handler",
+        "file": "components/EpisodeDropdown.tsx",
+        "line": 126
+      },
+      {
+        "id": "components/EpisodeFeed.tsx:1049",
+        "kind": "handler",
+        "file": "components/EpisodeFeed.tsx",
+        "line": 1049
+      },
+      {
+        "id": "components/EpisodeFeed.tsx:1142",
+        "kind": "button",
+        "file": "components/EpisodeFeed.tsx",
+        "line": 1142
+      },
+      {
+        "id": "components/EpisodeFeed.tsx:1144",
+        "kind": "handler",
+        "file": "components/EpisodeFeed.tsx",
+        "line": 1144
+      },
+      {
+        "id": "components/EpisodeFeed.tsx:2183",
+        "kind": "handler",
+        "file": "components/EpisodeFeed.tsx",
+        "line": 2183
+      },
+      {
+        "id": "components/EpisodeFeed.tsx:2202",
+        "kind": "button",
+        "file": "components/EpisodeFeed.tsx",
+        "line": 2202
+      },
+      {
+        "id": "components/EpisodeFeed.tsx:2203",
+        "kind": "handler",
+        "file": "components/EpisodeFeed.tsx",
+        "line": 2203
+      },
+      {
+        "id": "components/EpisodeFeed.tsx:2228",
+        "kind": "button",
+        "file": "components/EpisodeFeed.tsx",
+        "line": 2228
+      },
+      {
+        "id": "components/EpisodeFeed.tsx:2229",
+        "kind": "handler",
+        "file": "components/EpisodeFeed.tsx",
+        "line": 2229
+      },
+      {
+        "id": "components/EpisodeFeed.tsx:2272",
+        "kind": "button",
+        "file": "components/EpisodeFeed.tsx",
+        "line": 2272
+      },
+      {
+        "id": "components/EpisodeFeed.tsx:2273",
+        "kind": "handler",
+        "file": "components/EpisodeFeed.tsx",
+        "line": 2273
+      },
+      {
+        "id": "components/EpisodeFeed.tsx:2291",
+        "kind": "button",
+        "file": "components/EpisodeFeed.tsx",
+        "line": 2291
+      },
+      {
+        "id": "components/EpisodeFeed.tsx:2292",
+        "kind": "handler",
+        "file": "components/EpisodeFeed.tsx",
+        "line": 2292
+      },
+      {
+        "id": "components/EpisodeFeed.tsx:2310",
+        "kind": "button",
+        "file": "components/EpisodeFeed.tsx",
+        "line": 2310
+      },
+      {
+        "id": "components/EpisodeFeed.tsx:2311",
+        "kind": "handler",
+        "file": "components/EpisodeFeed.tsx",
+        "line": 2311
+      },
+      {
+        "id": "components/EpisodeFeed.tsx:2330",
+        "kind": "button",
+        "file": "components/EpisodeFeed.tsx",
+        "line": 2330
+      },
+      {
+        "id": "components/EpisodeFeed.tsx:2331",
+        "kind": "handler",
+        "file": "components/EpisodeFeed.tsx",
+        "line": 2331
+      },
+      {
+        "id": "components/EpisodeFeed.tsx:2363",
+        "kind": "handler",
+        "file": "components/EpisodeFeed.tsx",
+        "line": 2363
+      },
+      {
+        "id": "components/EpisodeFeed.tsx:2367",
+        "kind": "handler",
+        "file": "components/EpisodeFeed.tsx",
+        "line": 2367
+      },
+      {
+        "id": "components/EpisodeFeed.tsx:2379",
+        "kind": "handler",
+        "file": "components/EpisodeFeed.tsx",
+        "line": 2379
+      },
+      {
+        "id": "components/EpisodeFeed.tsx:2391",
+        "kind": "handler",
+        "file": "components/EpisodeFeed.tsx",
+        "line": 2391
+      },
+      {
+        "id": "components/EpisodeFeed.tsx:2403",
+        "kind": "handler",
+        "file": "components/EpisodeFeed.tsx",
+        "line": 2403
+      },
+      {
+        "id": "components/EpisodeFeed.tsx:2411",
+        "kind": "button",
+        "file": "components/EpisodeFeed.tsx",
+        "line": 2411
+      },
+      {
+        "id": "components/EpisodeFeed.tsx:2412",
+        "kind": "handler",
+        "file": "components/EpisodeFeed.tsx",
+        "line": 2412
+      },
+      {
+        "id": "components/EpisodeFeed.tsx:2567",
+        "kind": "button",
+        "file": "components/EpisodeFeed.tsx",
+        "line": 2567
+      },
+      {
+        "id": "components/EpisodeFeed.tsx:2568",
+        "kind": "handler",
+        "file": "components/EpisodeFeed.tsx",
+        "line": 2568
+      },
+      {
+        "id": "components/EpisodeFeed.tsx:2649",
+        "kind": "button",
+        "file": "components/EpisodeFeed.tsx",
+        "line": 2649
+      },
+      {
+        "id": "components/EpisodeFeed.tsx:2659",
+        "kind": "handler",
+        "file": "components/EpisodeFeed.tsx",
+        "line": 2659
+      },
+      {
+        "id": "components/FeedSearch.tsx:46",
+        "kind": "button",
+        "file": "components/FeedSearch.tsx",
+        "line": 46
+      },
+      {
+        "id": "components/FeedSearch.tsx:47",
+        "kind": "handler",
+        "file": "components/FeedSearch.tsx",
+        "line": 47
+      },
+      {
+        "id": "components/FeedSearch.tsx:81",
+        "kind": "input",
+        "file": "components/FeedSearch.tsx",
+        "line": 81
+      },
+      {
+        "id": "components/FeedSearch.tsx:95",
+        "kind": "button",
+        "file": "components/FeedSearch.tsx",
+        "line": 95
+      },
+      {
+        "id": "components/FeedSearch.tsx:96",
+        "kind": "handler",
+        "file": "components/FeedSearch.tsx",
+        "line": 96
+      },
+      {
+        "id": "components/FeedSearch.tsx:109",
+        "kind": "link",
+        "file": "components/FeedSearch.tsx",
+        "line": 109
+      },
+      {
+        "id": "components/FeedSearch.tsx:114",
+        "kind": "handler",
+        "file": "components/FeedSearch.tsx",
+        "line": 114
+      },
+      {
+        "id": "components/Footer.tsx:118",
+        "kind": "link",
+        "file": "components/Footer.tsx",
+        "line": 118
+      },
+      {
+        "id": "components/FooterSitemap.tsx:16",
+        "kind": "button",
+        "file": "components/FooterSitemap.tsx",
+        "line": 16
+      },
+      {
+        "id": "components/FooterSitemap.tsx:18",
+        "kind": "handler",
+        "file": "components/FooterSitemap.tsx",
+        "line": 18
+      },
+      {
+        "id": "components/FooterSitemap.tsx:56",
+        "kind": "handler",
+        "file": "components/FooterSitemap.tsx",
+        "line": 56
+      },
+      {
+        "id": "components/FooterSitemap.tsx:89",
+        "kind": "button",
+        "file": "components/FooterSitemap.tsx",
+        "line": 89
+      },
+      {
+        "id": "components/FooterSitemap.tsx:91",
+        "kind": "handler",
+        "file": "components/FooterSitemap.tsx",
+        "line": 91
+      },
+      {
+        "id": "components/FooterSitemap.tsx:139",
+        "kind": "link",
+        "file": "components/FooterSitemap.tsx",
+        "line": 139
+      },
+      {
+        "id": "components/FooterSitemap.tsx:142",
+        "kind": "handler",
+        "file": "components/FooterSitemap.tsx",
+        "line": 142
+      },
+      {
+        "id": "components/FooterSitemap.tsx:179",
+        "kind": "link",
+        "file": "components/FooterSitemap.tsx",
+        "line": 179
+      },
+      {
+        "id": "components/FooterSitemap.tsx:181",
+        "kind": "handler",
+        "file": "components/FooterSitemap.tsx",
+        "line": 181
+      },
+      {
+        "id": "components/FooterSitemap.tsx:199",
+        "kind": "handler",
+        "file": "components/FooterSitemap.tsx",
+        "line": 199
+      },
+      {
+        "id": "components/FooterSitemap.tsx:206",
+        "kind": "link",
+        "file": "components/FooterSitemap.tsx",
+        "line": 206
+      },
+      {
+        "id": "components/FooterSitemap.tsx:208",
+        "kind": "handler",
+        "file": "components/FooterSitemap.tsx",
+        "line": 208
+      },
+      {
+        "id": "components/FooterSitemap.tsx:224",
+        "kind": "link",
+        "file": "components/FooterSitemap.tsx",
+        "line": 224
+      },
+      {
+        "id": "components/FooterSitemap.tsx:226",
+        "kind": "handler",
+        "file": "components/FooterSitemap.tsx",
+        "line": 226
+      },
+      {
+        "id": "components/Header.tsx:29",
+        "kind": "link",
+        "file": "components/Header.tsx",
+        "line": 29
+      },
+      {
+        "id": "components/HeroCarousel.tsx:26",
+        "kind": "link",
+        "file": "components/HeroCarousel.tsx",
+        "line": 26
+      },
+      {
+        "id": "components/HeroCarousel.tsx:58",
+        "kind": "link",
+        "file": "components/HeroCarousel.tsx",
+        "line": 58
+      },
+      {
+        "id": "components/HeroCarousel.tsx:82",
+        "kind": "button",
+        "file": "components/HeroCarousel.tsx",
+        "line": 82
+      },
+      {
+        "id": "components/HeroCarousel.tsx:84",
+        "kind": "handler",
+        "file": "components/HeroCarousel.tsx",
+        "line": 84
+      },
+      {
+        "id": "components/HeroCarousel.tsx:117",
+        "kind": "handler",
+        "file": "components/HeroCarousel.tsx",
+        "line": 117
+      },
+      {
+        "id": "components/HorizontalBackButton.tsx:6",
+        "kind": "button",
+        "file": "components/HorizontalBackButton.tsx",
+        "line": 6
+      },
+      {
+        "id": "components/HorizontalBackButton.tsx:7",
+        "kind": "handler",
+        "file": "components/HorizontalBackButton.tsx",
+        "line": 7
+      },
+      {
+        "id": "components/HorizontalFeed.tsx:206",
+        "kind": "handler",
+        "file": "components/HorizontalFeed.tsx",
+        "line": 206
+      },
+      {
+        "id": "components/HorizontalFeed.tsx:222",
+        "kind": "button",
+        "file": "components/HorizontalFeed.tsx",
+        "line": 222
+      },
+      {
+        "id": "components/HorizontalFeed.tsx:225",
+        "kind": "handler",
+        "file": "components/HorizontalFeed.tsx",
+        "line": 225
+      },
+      {
+        "id": "components/HorizontalFeed.tsx:271",
+        "kind": "button",
+        "file": "components/HorizontalFeed.tsx",
+        "line": 271
+      },
+      {
+        "id": "components/HorizontalFeed.tsx:272",
+        "kind": "handler",
+        "file": "components/HorizontalFeed.tsx",
+        "line": 272
+      },
+      {
+        "id": "components/ImageCarousel.tsx:45",
+        "kind": "button",
+        "file": "components/ImageCarousel.tsx",
+        "line": 45
+      },
+      {
+        "id": "components/ImageCarousel.tsx:46",
+        "kind": "handler",
+        "file": "components/ImageCarousel.tsx",
+        "line": 46
+      },
+      {
+        "id": "components/ImageCarousel.tsx:59",
+        "kind": "button",
+        "file": "components/ImageCarousel.tsx",
+        "line": 59
+      },
+      {
+        "id": "components/ImageCarousel.tsx:60",
+        "kind": "handler",
+        "file": "components/ImageCarousel.tsx",
+        "line": 60
+      },
+      {
+        "id": "components/ImageCarousel.tsx:80",
+        "kind": "button",
+        "file": "components/ImageCarousel.tsx",
+        "line": 80
+      },
+      {
+        "id": "components/ImageCarousel.tsx:82",
+        "kind": "handler",
+        "file": "components/ImageCarousel.tsx",
+        "line": 82
+      },
+      {
+        "id": "components/InstallPrompt.tsx:268",
+        "kind": "button",
+        "file": "components/InstallPrompt.tsx",
+        "line": 268
+      },
+      {
+        "id": "components/InstallPrompt.tsx:269",
+        "kind": "handler",
+        "file": "components/InstallPrompt.tsx",
+        "line": 269
+      },
+      {
+        "id": "components/InstallPrompt.tsx:284",
+        "kind": "button",
+        "file": "components/InstallPrompt.tsx",
+        "line": 284
+      },
+      {
+        "id": "components/InstallPrompt.tsx:285",
+        "kind": "handler",
+        "file": "components/InstallPrompt.tsx",
+        "line": 285
+      },
+      {
+        "id": "components/LangDropdown.tsx:24",
+        "kind": "button",
+        "file": "components/LangDropdown.tsx",
+        "line": 24
+      },
+      {
+        "id": "components/LangDropdown.tsx:25",
+        "kind": "handler",
+        "file": "components/LangDropdown.tsx",
+        "line": 25
+      },
+      {
+        "id": "components/LangDropdown.tsx:50",
+        "kind": "button",
+        "file": "components/LangDropdown.tsx",
+        "line": 50
+      },
+      {
+        "id": "components/LangDropdown.tsx:52",
+        "kind": "handler",
+        "file": "components/LangDropdown.tsx",
+        "line": 52
+      },
+      {
+        "id": "components/LanguagePicker.tsx:17",
+        "kind": "button",
+        "file": "components/LanguagePicker.tsx",
+        "line": 17
+      },
+      {
+        "id": "components/LanguagePicker.tsx:18",
+        "kind": "handler",
+        "file": "components/LanguagePicker.tsx",
+        "line": 18
+      },
+      {
+        "id": "components/LanguagePicker.tsx:51",
+        "kind": "handler",
+        "file": "components/LanguagePicker.tsx",
+        "line": 51
+      },
+      {
+        "id": "components/LanguagePicker.tsx:56",
+        "kind": "handler",
+        "file": "components/LanguagePicker.tsx",
+        "line": 56
+      },
+      {
+        "id": "components/LanguagePicker.tsx:63",
+        "kind": "button",
+        "file": "components/LanguagePicker.tsx",
+        "line": 63
+      },
+      {
+        "id": "components/LanguagePicker.tsx:64",
+        "kind": "handler",
+        "file": "components/LanguagePicker.tsx",
+        "line": 64
+      },
+      {
+        "id": "components/LanguagePicker.tsx:78",
+        "kind": "button",
+        "file": "components/LanguagePicker.tsx",
+        "line": 78
+      },
+      {
+        "id": "components/LanguagePicker.tsx:80",
+        "kind": "handler",
+        "file": "components/LanguagePicker.tsx",
+        "line": 80
+      },
+      {
+        "id": "components/LibraryPage.tsx:22",
+        "kind": "link",
+        "file": "components/LibraryPage.tsx",
+        "line": 22
+      },
+      {
+        "id": "components/LibraryPage.tsx:160",
+        "kind": "link",
+        "file": "components/LibraryPage.tsx",
+        "line": 160
+      },
+      {
+        "id": "components/LibraryPage.tsx:201",
+        "kind": "button",
+        "file": "components/LibraryPage.tsx",
+        "line": 201
+      },
+      {
+        "id": "components/LibraryPage.tsx:203",
+        "kind": "handler",
+        "file": "components/LibraryPage.tsx",
+        "line": 203
+      },
+      {
+        "id": "components/OAuthButtons.tsx:73",
+        "kind": "button",
+        "file": "components/OAuthButtons.tsx",
+        "line": 73
+      },
+      {
+        "id": "components/OAuthButtons.tsx:77",
+        "kind": "handler",
+        "file": "components/OAuthButtons.tsx",
+        "line": 77
+      },
+      {
+        "id": "components/OAuthButtons.tsx:82",
+        "kind": "button",
+        "file": "components/OAuthButtons.tsx",
+        "line": 82
+      },
+      {
+        "id": "components/OAuthButtons.tsx:86",
+        "kind": "handler",
+        "file": "components/OAuthButtons.tsx",
+        "line": 86
+      },
+      {
+        "id": "components/PerfHarness.tsx:115",
+        "kind": "button",
+        "file": "components/PerfHarness.tsx",
+        "line": 115
+      },
+      {
+        "id": "components/PerfHarness.tsx:116",
+        "kind": "button",
+        "file": "components/PerfHarness.tsx",
+        "line": 116
+      },
+      {
+        "id": "components/PerfHarness.tsx:117",
+        "kind": "button",
+        "file": "components/PerfHarness.tsx",
+        "line": 117
+      },
+      {
+        "id": "components/PlayNowLink.tsx:76",
+        "kind": "link",
+        "file": "components/PlayNowLink.tsx",
+        "line": 76
+      },
+      {
+        "id": "components/Player.tsx:631",
+        "kind": "handler",
+        "file": "components/Player.tsx",
+        "line": 631
+      },
+      {
+        "id": "components/Player.tsx:695",
+        "kind": "button",
+        "file": "components/Player.tsx",
+        "line": 695
+      },
+      {
+        "id": "components/Player.tsx:701",
+        "kind": "handler",
+        "file": "components/Player.tsx",
+        "line": 701
+      },
+      {
+        "id": "components/Player.tsx:742",
+        "kind": "button",
+        "file": "components/Player.tsx",
+        "line": 742
+      },
+      {
+        "id": "components/Player.tsx:745",
+        "kind": "handler",
+        "file": "components/Player.tsx",
+        "line": 745
+      },
+      {
+        "id": "components/Player.tsx:801",
+        "kind": "handler",
+        "file": "components/Player.tsx",
+        "line": 801
+      },
+      {
+        "id": "components/Player.tsx:807",
+        "kind": "handler",
+        "file": "components/Player.tsx",
+        "line": 807
+      },
+      {
+        "id": "components/Player.tsx:808",
+        "kind": "handler",
+        "file": "components/Player.tsx",
+        "line": 808
+      },
+      {
+        "id": "components/Player.tsx:869",
+        "kind": "button",
+        "file": "components/Player.tsx",
+        "line": 869
+      },
+      {
+        "id": "components/Player.tsx:875",
+        "kind": "handler",
+        "file": "components/Player.tsx",
+        "line": 875
+      },
+      {
+        "id": "components/Player.tsx:941",
+        "kind": "button",
+        "file": "components/Player.tsx",
+        "line": 941
+      },
+      {
+        "id": "components/Player.tsx:942",
+        "kind": "handler",
+        "file": "components/Player.tsx",
+        "line": 942
+      },
+      {
+        "id": "components/Player.tsx:1004",
+        "kind": "button",
+        "file": "components/Player.tsx",
+        "line": 1004
+      },
+      {
+        "id": "components/Player.tsx:1005",
+        "kind": "handler",
+        "file": "components/Player.tsx",
+        "line": 1005
+      },
+      {
+        "id": "components/Player.tsx:1082",
+        "kind": "button",
+        "file": "components/Player.tsx",
+        "line": 1082
+      },
+      {
+        "id": "components/Player.tsx:1088",
+        "kind": "handler",
+        "file": "components/Player.tsx",
+        "line": 1088
+      },
+      {
+        "id": "components/Player.tsx:1098",
+        "kind": "button",
+        "file": "components/Player.tsx",
+        "line": 1098
+      },
+      {
+        "id": "components/Player.tsx:1104",
+        "kind": "handler",
+        "file": "components/Player.tsx",
+        "line": 1104
+      },
+      {
+        "id": "components/ProfileDynamic.tsx:164",
+        "kind": "button",
+        "file": "components/ProfileDynamic.tsx",
+        "line": 164
+      },
+      {
+        "id": "components/ProfileDynamic.tsx:165",
+        "kind": "handler",
+        "file": "components/ProfileDynamic.tsx",
+        "line": 165
+      },
+      {
+        "id": "components/ProfileDynamic.tsx:200",
+        "kind": "button",
+        "file": "components/ProfileDynamic.tsx",
+        "line": 200
+      },
+      {
+        "id": "components/ProfileDynamic.tsx:201",
+        "kind": "handler",
+        "file": "components/ProfileDynamic.tsx",
+        "line": 201
+      },
+      {
+        "id": "components/PurchaseHistoryList.tsx:146",
+        "kind": "link",
+        "file": "components/PurchaseHistoryList.tsx",
+        "line": 146
+      },
+      {
+        "id": "components/PushNotificationToggle.tsx:113",
+        "kind": "button",
+        "file": "components/PushNotificationToggle.tsx",
+        "line": 113
+      },
+      {
+        "id": "components/PushNotificationToggle.tsx:114",
+        "kind": "handler",
+        "file": "components/PushNotificationToggle.tsx",
+        "line": 114
+      },
+      {
+        "id": "components/SearchBar.tsx:42",
+        "kind": "input",
+        "file": "components/SearchBar.tsx",
+        "line": 42
+      },
+      {
+        "id": "components/SearchBar.tsx:65",
+        "kind": "link",
+        "file": "components/SearchBar.tsx",
+        "line": 65
+      },
+      {
+        "id": "components/SearchBar.tsx:70",
+        "kind": "handler",
+        "file": "components/SearchBar.tsx",
+        "line": 70
+      },
+      {
+        "id": "components/SearchButton.tsx:51",
+        "kind": "button",
+        "file": "components/SearchButton.tsx",
+        "line": 51
+      },
+      {
+        "id": "components/SearchButton.tsx:52",
+        "kind": "handler",
+        "file": "components/SearchButton.tsx",
+        "line": 52
+      },
+      {
+        "id": "components/SearchButton.tsx:95",
+        "kind": "input",
+        "file": "components/SearchButton.tsx",
+        "line": 95
+      },
+      {
+        "id": "components/SearchButton.tsx:106",
+        "kind": "button",
+        "file": "components/SearchButton.tsx",
+        "line": 106
+      },
+      {
+        "id": "components/SearchButton.tsx:123",
+        "kind": "link",
+        "file": "components/SearchButton.tsx",
+        "line": 123
+      },
+      {
+        "id": "components/SearchButton.tsx:128",
+        "kind": "handler",
+        "file": "components/SearchButton.tsx",
+        "line": 128
+      },
+      {
+        "id": "components/SeriesCard.tsx:13",
+        "kind": "link",
+        "file": "components/SeriesCard.tsx",
+        "line": 13
+      },
+      {
+        "id": "components/SeriesInfoButton.tsx:29",
+        "kind": "button",
+        "file": "components/SeriesInfoButton.tsx",
+        "line": 29
+      },
+      {
+        "id": "components/SeriesInfoButton.tsx:30",
+        "kind": "handler",
+        "file": "components/SeriesInfoButton.tsx",
+        "line": 30
+      },
+      {
+        "id": "components/SeriesInfoDrawer.tsx:147",
+        "kind": "handler",
+        "file": "components/SeriesInfoDrawer.tsx",
+        "line": 147
+      },
+      {
+        "id": "components/SeriesInfoDrawer.tsx:160",
+        "kind": "handler",
+        "file": "components/SeriesInfoDrawer.tsx",
+        "line": 160
+      },
+      {
+        "id": "components/SeriesInfoDrawer.tsx:170",
+        "kind": "button",
+        "file": "components/SeriesInfoDrawer.tsx",
+        "line": 170
+      },
+      {
+        "id": "components/SeriesInfoDrawer.tsx:171",
+        "kind": "handler",
+        "file": "components/SeriesInfoDrawer.tsx",
+        "line": 171
+      },
+      {
+        "id": "components/SeriesInfoDrawer.tsx:239",
+        "kind": "button",
+        "file": "components/SeriesInfoDrawer.tsx",
+        "line": 239
+      },
+      {
+        "id": "components/SeriesInfoDrawer.tsx:241",
+        "kind": "handler",
+        "file": "components/SeriesInfoDrawer.tsx",
+        "line": 241
+      },
+      {
+        "id": "components/SeriesInfoDrawer.tsx:317",
+        "kind": "button",
+        "file": "components/SeriesInfoDrawer.tsx",
+        "line": 317
+      },
+      {
+        "id": "components/SeriesInfoDrawer.tsx:320",
+        "kind": "handler",
+        "file": "components/SeriesInfoDrawer.tsx",
+        "line": 320
+      },
+      {
+        "id": "components/ShortsFeed.tsx:38",
+        "kind": "button",
+        "file": "components/ShortsFeed.tsx",
+        "line": 38
+      },
+      {
+        "id": "components/ShortsFeed.tsx:40",
+        "kind": "handler",
+        "file": "components/ShortsFeed.tsx",
+        "line": 40
+      },
+      {
+        "id": "components/ShortsFeed.tsx:108",
+        "kind": "link",
+        "file": "components/ShortsFeed.tsx",
+        "line": 108
+      },
+      {
+        "id": "components/ShortsFeed.tsx:116",
+        "kind": "link",
+        "file": "components/ShortsFeed.tsx",
+        "line": 116
+      },
+      {
+        "id": "components/ShortsFeed.tsx:122",
+        "kind": "handler",
+        "file": "components/ShortsFeed.tsx",
+        "line": 122
+      },
+      {
+        "id": "components/ShortsFeed.tsx:128",
+        "kind": "handler",
+        "file": "components/ShortsFeed.tsx",
+        "line": 128
+      },
+      {
+        "id": "components/ShortsFeed.tsx:134",
+        "kind": "handler",
+        "file": "components/ShortsFeed.tsx",
+        "line": 134
+      },
+      {
+        "id": "components/ShortsFeed.tsx:141",
+        "kind": "handler",
+        "file": "components/ShortsFeed.tsx",
+        "line": 141
+      },
+      {
+        "id": "components/TubiHeroCarousel.tsx:133",
+        "kind": "handler",
+        "file": "components/TubiHeroCarousel.tsx",
+        "line": 133
+      },
+      {
+        "id": "components/TubiHeroCarousel.tsx:152",
+        "kind": "handler",
+        "file": "components/TubiHeroCarousel.tsx",
+        "line": 152
+      },
+      {
+        "id": "components/TubiHeroCarousel.tsx:198",
+        "kind": "button",
+        "file": "components/TubiHeroCarousel.tsx",
+        "line": 198
+      },
+      {
+        "id": "components/TubiHeroCarousel.tsx:201",
+        "kind": "handler",
+        "file": "components/TubiHeroCarousel.tsx",
+        "line": 201
+      },
+      {
+        "id": "components/VipCard.tsx:182",
+        "kind": "button",
+        "file": "components/VipCard.tsx",
+        "line": 182
+      },
+      {
+        "id": "components/VipCard.tsx:183",
+        "kind": "handler",
+        "file": "components/VipCard.tsx",
+        "line": 183
+      },
+      {
+        "id": "components/VipCard.tsx:276",
+        "kind": "button",
+        "file": "components/VipCard.tsx",
+        "line": 276
+      },
+      {
+        "id": "components/VipCard.tsx:277",
+        "kind": "handler",
+        "file": "components/VipCard.tsx",
+        "line": 277
+      },
+      {
+        "id": "components/VipCard.tsx:310",
+        "kind": "button",
+        "file": "components/VipCard.tsx",
+        "line": 310
+      },
+      {
+        "id": "components/VipCard.tsx:311",
+        "kind": "handler",
+        "file": "components/VipCard.tsx",
+        "line": 311
+      },
+      {
+        "id": "components/VipCard.tsx:391",
+        "kind": "link",
+        "file": "components/VipCard.tsx",
+        "line": 391
+      },
+      {
+        "id": "components/VipCard.tsx:395",
+        "kind": "link",
+        "file": "components/VipCard.tsx",
+        "line": 395
+      },
+      {
+        "id": "components/VipCard.tsx:399",
+        "kind": "link",
+        "file": "components/VipCard.tsx",
+        "line": 399
+      },
+      {
+        "id": "components/creator/ApplicationWizard.tsx:268",
+        "kind": "button",
+        "file": "components/creator/ApplicationWizard.tsx",
+        "line": 268
+      },
+      {
+        "id": "components/creator/ApplicationWizard.tsx:270",
+        "kind": "handler",
+        "file": "components/creator/ApplicationWizard.tsx",
+        "line": 270
+      },
+      {
+        "id": "components/creator/ApplicationWizard.tsx:345",
+        "kind": "input",
+        "file": "components/creator/ApplicationWizard.tsx",
+        "line": 345
+      },
+      {
+        "id": "components/creator/ApplicationWizard.tsx:355",
+        "kind": "input",
+        "file": "components/creator/ApplicationWizard.tsx",
+        "line": 355
+      },
+      {
+        "id": "components/creator/ApplicationWizard.tsx:368",
+        "kind": "input",
+        "file": "components/creator/ApplicationWizard.tsx",
+        "line": 368
+      },
+      {
+        "id": "components/creator/ApplicationWizard.tsx:380",
+        "kind": "input",
+        "file": "components/creator/ApplicationWizard.tsx",
+        "line": 380
+      },
+      {
+        "id": "components/creator/ApplicationWizard.tsx:390",
+        "kind": "input",
+        "file": "components/creator/ApplicationWizard.tsx",
+        "line": 390
+      },
+      {
+        "id": "components/creator/ApplicationWizard.tsx:400",
+        "kind": "input",
+        "file": "components/creator/ApplicationWizard.tsx",
+        "line": 400
+      },
+      {
+        "id": "components/creator/ApplicationWizard.tsx:415",
+        "kind": "input",
+        "file": "components/creator/ApplicationWizard.tsx",
+        "line": 415
+      },
+      {
+        "id": "components/creator/ApplicationWizard.tsx:453",
+        "kind": "input",
+        "file": "components/creator/ApplicationWizard.tsx",
+        "line": 453
+      },
+      {
+        "id": "components/creator/ApplicationWizard.tsx:519",
+        "kind": "input",
+        "file": "components/creator/ApplicationWizard.tsx",
+        "line": 519
+      },
+      {
+        "id": "components/creator/ApplicationWizard.tsx:530",
+        "kind": "input",
+        "file": "components/creator/ApplicationWizard.tsx",
+        "line": 530
+      },
+      {
+        "id": "components/creator/ApplicationWizard.tsx:543",
+        "kind": "input",
+        "file": "components/creator/ApplicationWizard.tsx",
+        "line": 543
+      },
+      {
+        "id": "components/creator/ApplicationWizard.tsx:597",
+        "kind": "input",
+        "file": "components/creator/ApplicationWizard.tsx",
+        "line": 597
+      },
+      {
+        "id": "components/creator/ApplicationWizard.tsx:628",
+        "kind": "link",
+        "file": "components/creator/ApplicationWizard.tsx",
+        "line": 628
+      },
+      {
+        "id": "components/creator/ApplicationWizard.tsx:670",
+        "kind": "input",
+        "file": "components/creator/ApplicationWizard.tsx",
+        "line": 670
+      },
+      {
+        "id": "components/creator/ApplicationWizard.tsx:817",
+        "kind": "button",
+        "file": "components/creator/ApplicationWizard.tsx",
+        "line": 817
+      },
+      {
+        "id": "components/creator/ApplicationWizard.tsx:819",
+        "kind": "handler",
+        "file": "components/creator/ApplicationWizard.tsx",
+        "line": 819
+      },
+      {
+        "id": "components/creator/ApplicationWizard.tsx:866",
+        "kind": "button",
+        "file": "components/creator/ApplicationWizard.tsx",
+        "line": 866
+      },
+      {
+        "id": "components/creator/ApplicationWizard.tsx:868",
+        "kind": "handler",
+        "file": "components/creator/ApplicationWizard.tsx",
+        "line": 868
+      },
+      {
+        "id": "components/creator/ApplicationWizard.tsx:944",
+        "kind": "button",
+        "file": "components/creator/ApplicationWizard.tsx",
+        "line": 944
+      },
+      {
+        "id": "components/creator/ApplicationWizard.tsx:948",
+        "kind": "handler",
+        "file": "components/creator/ApplicationWizard.tsx",
+        "line": 948
+      },
+      {
+        "id": "components/creator/ApplicationWizard.tsx:977",
+        "kind": "button",
+        "file": "components/creator/ApplicationWizard.tsx",
+        "line": 977
+      },
+      {
+        "id": "components/creator/ApplicationWizard.tsx:981",
+        "kind": "handler",
+        "file": "components/creator/ApplicationWizard.tsx",
+        "line": 981
+      },
+      {
+        "id": "components/creator/ApplicationWizard.tsx:1047",
+        "kind": "handler",
+        "file": "components/creator/ApplicationWizard.tsx",
+        "line": 1047
+      },
+      {
+        "id": "components/creator/ApplicationWizard.tsx:1059",
+        "kind": "handler",
+        "file": "components/creator/ApplicationWizard.tsx",
+        "line": 1059
+      },
+      {
+        "id": "components/creator/ui.tsx:114",
+        "kind": "button",
+        "file": "components/creator/ui.tsx",
+        "line": 114
+      },
+      {
+        "id": "components/creator/ui.tsx:181",
+        "kind": "handler",
+        "file": "components/creator/ui.tsx",
+        "line": 181
+      },
+      {
+        "id": "components/creator/ui.tsx:206",
+        "kind": "button",
+        "file": "components/creator/ui.tsx",
+        "line": 206
+      },
+      {
+        "id": "components/creator/ui.tsx:208",
+        "kind": "handler",
+        "file": "components/creator/ui.tsx",
+        "line": 208
+      },
+      {
+        "id": "components/creator/ui.tsx:278",
+        "kind": "button",
+        "file": "components/creator/ui.tsx",
+        "line": 278
+      },
+      {
+        "id": "components/creator/ui.tsx:282",
+        "kind": "handler",
+        "file": "components/creator/ui.tsx",
+        "line": 282
+      },
+      {
+        "id": "components/creator/ui.tsx:307",
+        "kind": "button",
+        "file": "components/creator/ui.tsx",
+        "line": 307
+      },
+      {
+        "id": "components/creator/ui.tsx:311",
+        "kind": "handler",
+        "file": "components/creator/ui.tsx",
+        "line": 311
+      },
+      {
+        "id": "components/creator/ui.tsx:376",
+        "kind": "input",
+        "file": "components/creator/ui.tsx",
+        "line": 376
+      },
+      {
+        "id": "components/creator/ui.tsx:388",
+        "kind": "handler",
+        "file": "components/creator/ui.tsx",
+        "line": 388
+      },
+      {
+        "id": "components/creator/ui.tsx:409",
+        "kind": "handler",
+        "file": "components/creator/ui.tsx",
+        "line": 409
+      },
+      {
+        "id": "app/[handle]/page.tsx:141",
+        "kind": "link",
+        "file": "app/[handle]/page.tsx",
+        "line": 141
+      },
+      {
+        "id": "app/alan-mruvka/[slug]/page.tsx:85",
+        "kind": "link",
+        "file": "app/alan-mruvka/[slug]/page.tsx",
+        "line": 85
+      },
+      {
+        "id": "app/alan-mruvka/[slug]/page.tsx:89",
+        "kind": "link",
+        "file": "app/alan-mruvka/[slug]/page.tsx",
+        "line": 89
+      },
+      {
+        "id": "app/alan-mruvka/[slug]/page.tsx:130",
+        "kind": "link",
+        "file": "app/alan-mruvka/[slug]/page.tsx",
+        "line": 130
+      },
+      {
+        "id": "app/alan-mruvka/[slug]/page.tsx:139",
+        "kind": "link",
+        "file": "app/alan-mruvka/[slug]/page.tsx",
+        "line": 139
+      },
+      {
+        "id": "app/alan-mruvka/[slug]/page.tsx:158",
+        "kind": "link",
+        "file": "app/alan-mruvka/[slug]/page.tsx",
+        "line": 158
+      },
+      {
+        "id": "app/alan-mruvka/[slug]/page.tsx:165",
+        "kind": "link",
+        "file": "app/alan-mruvka/[slug]/page.tsx",
+        "line": 165
+      },
+      {
+        "id": "app/alan-mruvka/[slug]/page.tsx:172",
+        "kind": "link",
+        "file": "app/alan-mruvka/[slug]/page.tsx",
+        "line": 172
+      },
+      {
+        "id": "app/alan-mruvka/[slug]/page.tsx:179",
+        "kind": "link",
+        "file": "app/alan-mruvka/[slug]/page.tsx",
+        "line": 179
+      },
+      {
+        "id": "app/alan-mruvka/page.tsx:80",
+        "kind": "link",
+        "file": "app/alan-mruvka/page.tsx",
+        "line": 80
+      },
+      {
+        "id": "app/alan-mruvka/page.tsx:114",
+        "kind": "link",
+        "file": "app/alan-mruvka/page.tsx",
+        "line": 114
+      },
+      {
+        "id": "app/alan-mruvka/page.tsx:131",
+        "kind": "link",
+        "file": "app/alan-mruvka/page.tsx",
+        "line": 131
+      },
+      {
+        "id": "app/alan-mruvka/page.tsx:157",
+        "kind": "link",
+        "file": "app/alan-mruvka/page.tsx",
+        "line": 157
+      },
+      {
+        "id": "app/alan-mruvka/page.tsx:160",
+        "kind": "link",
+        "file": "app/alan-mruvka/page.tsx",
+        "line": 160
+      },
+      {
+        "id": "app/alan-mruvka/page.tsx:163",
+        "kind": "link",
+        "file": "app/alan-mruvka/page.tsx",
+        "line": 163
+      },
+      {
+        "id": "app/alan-mruvka/page.tsx:166",
+        "kind": "link",
+        "file": "app/alan-mruvka/page.tsx",
+        "line": 166
+      },
+      {
+        "id": "app/amazon/page.tsx:96",
+        "kind": "link",
+        "file": "app/amazon/page.tsx",
+        "line": 96
+      },
+      {
+        "id": "app/best/[slug]/page.tsx:130",
+        "kind": "link",
+        "file": "app/best/[slug]/page.tsx",
+        "line": 130
+      },
+      {
+        "id": "app/best/[slug]/page.tsx:189",
+        "kind": "link",
+        "file": "app/best/[slug]/page.tsx",
+        "line": 189
+      },
+      {
+        "id": "app/best/[slug]/page.tsx:197",
+        "kind": "link",
+        "file": "app/best/[slug]/page.tsx",
+        "line": 197
+      },
+      {
+        "id": "app/best/[slug]/page.tsx:255",
+        "kind": "link",
+        "file": "app/best/[slug]/page.tsx",
+        "line": 255
+      },
+      {
+        "id": "app/best/[slug]/page.tsx:295",
+        "kind": "link",
+        "file": "app/best/[slug]/page.tsx",
+        "line": 295
+      },
+      {
+        "id": "app/best/page.tsx:71",
+        "kind": "link",
+        "file": "app/best/page.tsx",
+        "line": 71
+      },
+      {
+        "id": "app/best/page.tsx:122",
+        "kind": "link",
+        "file": "app/best/page.tsx",
+        "line": 122
+      },
+      {
+        "id": "app/best/page.tsx:166",
+        "kind": "link",
+        "file": "app/best/page.tsx",
+        "line": 166
+      },
+      {
+        "id": "app/brand-assets/page.tsx:85",
+        "kind": "link",
+        "file": "app/brand-assets/page.tsx",
+        "line": 85
+      },
+      {
+        "id": "app/brand-assets/page.tsx:101",
+        "kind": "link",
+        "file": "app/brand-assets/page.tsx",
+        "line": 101
+      },
+      {
+        "id": "app/c/[slug]/page.tsx:219",
+        "kind": "link",
+        "file": "app/c/[slug]/page.tsx",
+        "line": 219
+      },
+      {
+        "id": "app/c/[slug]/page.tsx:245",
+        "kind": "link",
+        "file": "app/c/[slug]/page.tsx",
+        "line": 245
+      },
+      {
+        "id": "app/c/[slug]/page.tsx:258",
+        "kind": "link",
+        "file": "app/c/[slug]/page.tsx",
+        "line": 258
+      },
+      {
+        "id": "app/c/[slug]/page.tsx:290",
+        "kind": "link",
+        "file": "app/c/[slug]/page.tsx",
+        "line": 290
+      },
+      {
+        "id": "app/c/[slug]/page.tsx:322",
+        "kind": "link",
+        "file": "app/c/[slug]/page.tsx",
+        "line": 322
+      },
+      {
+        "id": "app/careers/page.tsx:50",
+        "kind": "link",
+        "file": "app/careers/page.tsx",
+        "line": 50
+      },
+      {
+        "id": "app/careers/page.tsx:175",
+        "kind": "link",
+        "file": "app/careers/page.tsx",
+        "line": 175
+      },
+      {
+        "id": "app/channels/page.tsx:45",
+        "kind": "link",
+        "file": "app/channels/page.tsx",
+        "line": 45
+      },
+      {
+        "id": "app/channels/page.tsx:229",
+        "kind": "link",
+        "file": "app/channels/page.tsx",
+        "line": 229
+      },
+      {
+        "id": "app/collections/[slug]/page.tsx:132",
+        "kind": "link",
+        "file": "app/collections/[slug]/page.tsx",
+        "line": 132
+      },
+      {
+        "id": "app/collections/[slug]/page.tsx:191",
+        "kind": "link",
+        "file": "app/collections/[slug]/page.tsx",
+        "line": 191
+      },
+      {
+        "id": "app/collections/[slug]/page.tsx:199",
+        "kind": "link",
+        "file": "app/collections/[slug]/page.tsx",
+        "line": 199
+      },
+      {
+        "id": "app/collections/[slug]/page.tsx:257",
+        "kind": "link",
+        "file": "app/collections/[slug]/page.tsx",
+        "line": 257
+      },
+      {
+        "id": "app/collections/[slug]/page.tsx:297",
+        "kind": "link",
+        "file": "app/collections/[slug]/page.tsx",
+        "line": 297
+      },
+      {
+        "id": "app/collections/page.tsx:71",
+        "kind": "link",
+        "file": "app/collections/page.tsx",
+        "line": 71
+      },
+      {
+        "id": "app/collections/page.tsx:123",
+        "kind": "link",
+        "file": "app/collections/page.tsx",
+        "line": 123
+      },
+      {
+        "id": "app/collections/page.tsx:167",
+        "kind": "link",
+        "file": "app/collections/page.tsx",
+        "line": 167
+      },
+      {
+        "id": "app/company/page.tsx:88",
+        "kind": "link",
+        "file": "app/company/page.tsx",
+        "line": 88
+      },
+      {
+        "id": "app/compare/[slug]/page.tsx:77",
+        "kind": "link",
+        "file": "app/compare/[slug]/page.tsx",
+        "line": 77
+      },
+      {
+        "id": "app/compare/[slug]/page.tsx:141",
+        "kind": "link",
+        "file": "app/compare/[slug]/page.tsx",
+        "line": 141
+      },
+      {
+        "id": "app/compare/[slug]/page.tsx:167",
+        "kind": "link",
+        "file": "app/compare/[slug]/page.tsx",
+        "line": 167
+      },
+      {
+        "id": "app/compare/[slug]/page.tsx:176",
+        "kind": "link",
+        "file": "app/compare/[slug]/page.tsx",
+        "line": 176
+      },
+      {
+        "id": "app/compare/page.tsx:68",
+        "kind": "link",
+        "file": "app/compare/page.tsx",
+        "line": 68
+      },
+      {
+        "id": "app/compare/page.tsx:102",
+        "kind": "link",
+        "file": "app/compare/page.tsx",
+        "line": 102
+      },
+      {
+        "id": "app/compare/page.tsx:132",
+        "kind": "link",
+        "file": "app/compare/page.tsx",
+        "line": 132
+      },
+      {
+        "id": "app/contact/page.tsx:149",
+        "kind": "link",
+        "file": "app/contact/page.tsx",
+        "line": 149
+      },
+      {
+        "id": "app/discover/[genre]/page.tsx:153",
+        "kind": "link",
+        "file": "app/discover/[genre]/page.tsx",
+        "line": 153
+      },
+      {
+        "id": "app/discover/[genre]/page.tsx:213",
+        "kind": "link",
+        "file": "app/discover/[genre]/page.tsx",
+        "line": 213
+      },
+      {
+        "id": "app/discover/[genre]/page.tsx:311",
+        "kind": "link",
+        "file": "app/discover/[genre]/page.tsx",
+        "line": 311
+      },
+      {
+        "id": "app/discover/page.tsx:44",
+        "kind": "link",
+        "file": "app/discover/page.tsx",
+        "line": 44
+      },
+      {
+        "id": "app/discover/page.tsx:71",
+        "kind": "link",
+        "file": "app/discover/page.tsx",
+        "line": 71
+      },
+      {
+        "id": "app/editorial-standards/page.tsx:129",
+        "kind": "link",
+        "file": "app/editorial-standards/page.tsx",
+        "line": 129
+      },
+      {
+        "id": "app/forgot-password/page.tsx:44",
+        "kind": "link",
+        "file": "app/forgot-password/page.tsx",
+        "line": 44
+      },
+      {
+        "id": "app/forgot-password/page.tsx:79",
+        "kind": "link",
+        "file": "app/forgot-password/page.tsx",
+        "line": 79
+      },
+      {
+        "id": "app/forgot-password/page.tsx:100",
+        "kind": "input",
+        "file": "app/forgot-password/page.tsx",
+        "line": 100
+      },
+      {
+        "id": "app/forgot-password/page.tsx:110",
+        "kind": "button",
+        "file": "app/forgot-password/page.tsx",
+        "line": 110
+      },
+      {
+        "id": "app/forgot-password/page.tsx:123",
+        "kind": "link",
+        "file": "app/forgot-password/page.tsx",
+        "line": 123
+      },
+      {
+        "id": "app/genre/[genre]/page.tsx:228",
+        "kind": "link",
+        "file": "app/genre/[genre]/page.tsx",
+        "line": 228
+      },
+      {
+        "id": "app/genre/[genre]/page.tsx:287",
+        "kind": "link",
+        "file": "app/genre/[genre]/page.tsx",
+        "line": 287
+      },
+      {
+        "id": "app/genre/[genre]/page.tsx:299",
+        "kind": "link",
+        "file": "app/genre/[genre]/page.tsx",
+        "line": 299
+      },
+      {
+        "id": "app/genre/[genre]/page.tsx:361",
+        "kind": "link",
+        "file": "app/genre/[genre]/page.tsx",
+        "line": 361
+      },
+      {
+        "id": "app/genres/[slug]/page.tsx:113",
+        "kind": "link",
+        "file": "app/genres/[slug]/page.tsx",
+        "line": 113
+      },
+      {
+        "id": "app/genres/[slug]/page.tsx:156",
+        "kind": "link",
+        "file": "app/genres/[slug]/page.tsx",
+        "line": 156
+      },
+      {
+        "id": "app/genres/[slug]/page.tsx:170",
+        "kind": "link",
+        "file": "app/genres/[slug]/page.tsx",
+        "line": 170
+      },
+      {
+        "id": "app/genres/page.tsx:67",
+        "kind": "link",
+        "file": "app/genres/page.tsx",
+        "line": 67
+      },
+      {
+        "id": "app/genres/page.tsx:96",
+        "kind": "link",
+        "file": "app/genres/page.tsx",
+        "line": 96
+      },
+      {
+        "id": "app/guides/[slug]/page.tsx:78",
+        "kind": "link",
+        "file": "app/guides/[slug]/page.tsx",
+        "line": 78
+      },
+      {
+        "id": "app/guides/[slug]/page.tsx:142",
+        "kind": "link",
+        "file": "app/guides/[slug]/page.tsx",
+        "line": 142
+      },
+      {
+        "id": "app/guides/[slug]/page.tsx:168",
+        "kind": "link",
+        "file": "app/guides/[slug]/page.tsx",
+        "line": 168
+      },
+      {
+        "id": "app/guides/[slug]/page.tsx:177",
+        "kind": "link",
+        "file": "app/guides/[slug]/page.tsx",
+        "line": 177
+      },
+      {
+        "id": "app/guides/page.tsx:56",
+        "kind": "link",
+        "file": "app/guides/page.tsx",
+        "line": 56
+      },
+      {
+        "id": "app/guides/page.tsx:80",
+        "kind": "link",
+        "file": "app/guides/page.tsx",
+        "line": 80
+      },
+      {
+        "id": "app/investors/page.tsx:50",
+        "kind": "link",
+        "file": "app/investors/page.tsx",
+        "line": 50
+      },
+      {
+        "id": "app/investors/page.tsx:151",
+        "kind": "link",
+        "file": "app/investors/page.tsx",
+        "line": 151
+      },
+      {
+        "id": "app/leadership/page.tsx:45",
+        "kind": "link",
+        "file": "app/leadership/page.tsx",
+        "line": 45
+      },
+      {
+        "id": "app/leadership/page.tsx:104",
+        "kind": "link",
+        "file": "app/leadership/page.tsx",
+        "line": 104
+      },
+      {
+        "id": "app/leadership/page.tsx:138",
+        "kind": "link",
+        "file": "app/leadership/page.tsx",
+        "line": 138
+      },
+      {
+        "id": "app/leadership/page.tsx:146",
+        "kind": "link",
+        "file": "app/leadership/page.tsx",
+        "line": 146
+      },
+      {
+        "id": "app/learn/[slug]/page.tsx:59",
+        "kind": "link",
+        "file": "app/learn/[slug]/page.tsx",
+        "line": 59
+      },
+      {
+        "id": "app/learn/[slug]/page.tsx:101",
+        "kind": "link",
+        "file": "app/learn/[slug]/page.tsx",
+        "line": 101
+      },
+      {
+        "id": "app/legal/creator-agreement/page.tsx:62",
+        "kind": "link",
+        "file": "app/legal/creator-agreement/page.tsx",
+        "line": 62
+      },
+      {
+        "id": "app/me/list/page.tsx:81",
+        "kind": "link",
+        "file": "app/me/list/page.tsx",
+        "line": 81
+      },
+      {
+        "id": "app/me/list/page.tsx:105",
+        "kind": "link",
+        "file": "app/me/list/page.tsx",
+        "line": 105
+      },
+      {
+        "id": "app/me/list/page.tsx:137",
+        "kind": "link",
+        "file": "app/me/list/page.tsx",
+        "line": 137
+      },
+      {
+        "id": "app/me/page.tsx:181",
+        "kind": "anchor",
+        "file": "app/me/page.tsx",
+        "line": 181
+      },
+      {
+        "id": "app/me/page.tsx:188",
+        "kind": "link",
+        "file": "app/me/page.tsx",
+        "line": 188
+      },
+      {
+        "id": "app/me/page.tsx:258",
+        "kind": "link",
+        "file": "app/me/page.tsx",
+        "line": 258
+      },
+      {
+        "id": "app/me/page.tsx:269",
+        "kind": "link",
+        "file": "app/me/page.tsx",
+        "line": 269
+      },
+      {
+        "id": "app/me/page.tsx:335",
+        "kind": "link",
+        "file": "app/me/page.tsx",
+        "line": 335
+      },
+      {
+        "id": "app/me/purchases/page.tsx:25",
+        "kind": "link",
+        "file": "app/me/purchases/page.tsx",
+        "line": 25
+      },
+      {
+        "id": "app/media-kit/page.tsx:131",
+        "kind": "link",
+        "file": "app/media-kit/page.tsx",
+        "line": 131
+      },
+      {
+        "id": "app/newsroom/page.tsx:45",
+        "kind": "link",
+        "file": "app/newsroom/page.tsx",
+        "line": 45
+      },
+      {
+        "id": "app/newsroom/page.tsx:167",
+        "kind": "link",
+        "file": "app/newsroom/page.tsx",
+        "line": 167
+      },
+      {
+        "id": "app/not-found.tsx:16",
+        "kind": "link",
+        "file": "app/not-found.tsx",
+        "line": 16
+      },
+      {
+        "id": "app/page.tsx:55",
+        "kind": "anchor",
+        "file": "app/page.tsx",
+        "line": 55
+      },
+      {
+        "id": "app/partnerships/page.tsx:45",
+        "kind": "link",
+        "file": "app/partnerships/page.tsx",
+        "line": 45
+      },
+      {
+        "id": "app/partnerships/page.tsx:139",
+        "kind": "link",
+        "file": "app/partnerships/page.tsx",
+        "line": 139
+      },
+      {
+        "id": "app/privacy/page.tsx:26",
+        "kind": "link",
+        "file": "app/privacy/page.tsx",
+        "line": 26
+      },
+      {
+        "id": "app/privacy/page.tsx:281",
+        "kind": "anchor",
+        "file": "app/privacy/page.tsx",
+        "line": 281
+      },
+      {
+        "id": "app/privacy/page.tsx:394",
+        "kind": "anchor",
+        "file": "app/privacy/page.tsx",
+        "line": 394
+      },
+      {
+        "id": "app/privacy/page.tsx:438",
+        "kind": "anchor",
+        "file": "app/privacy/page.tsx",
+        "line": 438
+      },
+      {
+        "id": "app/privacy/page.tsx:465",
+        "kind": "anchor",
+        "file": "app/privacy/page.tsx",
+        "line": 465
+      },
+      {
+        "id": "app/refund-policy/page.tsx:26",
+        "kind": "link",
+        "file": "app/refund-policy/page.tsx",
+        "line": 26
+      },
+      {
+        "id": "app/refund-policy/page.tsx:96",
+        "kind": "anchor",
+        "file": "app/refund-policy/page.tsx",
+        "line": 96
+      },
+      {
+        "id": "app/refund-policy/page.tsx:212",
+        "kind": "anchor",
+        "file": "app/refund-policy/page.tsx",
+        "line": 212
+      },
+      {
+        "id": "app/reset-password/ResetPasswordClient.tsx:45",
+        "kind": "button",
+        "file": "app/reset-password/ResetPasswordClient.tsx",
+        "line": 45
+      },
+      {
+        "id": "app/reset-password/ResetPasswordClient.tsx:138",
+        "kind": "link",
+        "file": "app/reset-password/ResetPasswordClient.tsx",
+        "line": 138
+      },
+      {
+        "id": "app/reset-password/ResetPasswordClient.tsx:176",
+        "kind": "link",
+        "file": "app/reset-password/ResetPasswordClient.tsx",
+        "line": 176
+      },
+      {
+        "id": "app/reset-password/ResetPasswordClient.tsx:205",
+        "kind": "input",
+        "file": "app/reset-password/ResetPasswordClient.tsx",
+        "line": 205
+      },
+      {
+        "id": "app/reset-password/ResetPasswordClient.tsx:208",
+        "kind": "input",
+        "file": "app/reset-password/ResetPasswordClient.tsx",
+        "line": 208
+      },
+      {
+        "id": "app/reset-password/ResetPasswordClient.tsx:223",
+        "kind": "input",
+        "file": "app/reset-password/ResetPasswordClient.tsx",
+        "line": 223
+      },
+      {
+        "id": "app/search/page.tsx:60",
+        "kind": "link",
+        "file": "app/search/page.tsx",
+        "line": 60
+      },
+      {
+        "id": "app/search/page.tsx:107",
+        "kind": "input",
+        "file": "app/search/page.tsx",
+        "line": 107
+      },
+      {
+        "id": "app/search/page.tsx:163",
+        "kind": "link",
+        "file": "app/search/page.tsx",
+        "line": 163
+      },
+      {
+        "id": "app/search/page.tsx:179",
+        "kind": "link",
+        "file": "app/search/page.tsx",
+        "line": 179
+      },
+      {
+        "id": "app/series/[slug]/[episode]/error.tsx:61",
+        "kind": "button",
+        "file": "app/series/[slug]/[episode]/error.tsx",
+        "line": 61
+      },
+      {
+        "id": "app/series/[slug]/[episode]/error.tsx:62",
+        "kind": "handler",
+        "file": "app/series/[slug]/[episode]/error.tsx",
+        "line": 62
+      },
+      {
+        "id": "app/series/[slug]/[episode]/error.tsx:68",
+        "kind": "link",
+        "file": "app/series/[slug]/[episode]/error.tsx",
+        "line": 68
+      },
+      {
+        "id": "app/series/[slug]/page.tsx:294",
+        "kind": "link",
+        "file": "app/series/[slug]/page.tsx",
+        "line": 294
+      },
+      {
+        "id": "app/series/[slug]/page.tsx:415",
+        "kind": "link",
+        "file": "app/series/[slug]/page.tsx",
+        "line": 415
+      },
+      {
+        "id": "app/share/page.tsx:65",
+        "kind": "link",
+        "file": "app/share/page.tsx",
+        "line": 65
+      },
+      {
+        "id": "app/shop/page.tsx:40",
+        "kind": "link",
+        "file": "app/shop/page.tsx",
+        "line": 40
+      },
+      {
+        "id": "app/shop/page.tsx:132",
+        "kind": "link",
+        "file": "app/shop/page.tsx",
+        "line": 132
+      },
+      {
+        "id": "app/sign-in/page.tsx:57",
+        "kind": "link",
+        "file": "app/sign-in/page.tsx",
+        "line": 57
+      },
+      {
+        "id": "app/sign-in/page.tsx:97",
+        "kind": "input",
+        "file": "app/sign-in/page.tsx",
+        "line": 97
+      },
+      {
+        "id": "app/sign-in/page.tsx:99",
+        "kind": "input",
+        "file": "app/sign-in/page.tsx",
+        "line": 99
+      },
+      {
+        "id": "app/sign-in/page.tsx:110",
+        "kind": "input",
+        "file": "app/sign-in/page.tsx",
+        "line": 110
+      },
+      {
+        "id": "app/sign-in/page.tsx:127",
+        "kind": "link",
+        "file": "app/sign-in/page.tsx",
+        "line": 127
+      },
+      {
+        "id": "app/sign-in/page.tsx:135",
+        "kind": "button",
+        "file": "app/sign-in/page.tsx",
+        "line": 135
+      },
+      {
+        "id": "app/sign-in/page.tsx:160",
+        "kind": "link",
+        "file": "app/sign-in/page.tsx",
+        "line": 160
+      },
+      {
+        "id": "app/sign-in/page.tsx:168",
+        "kind": "link",
+        "file": "app/sign-in/page.tsx",
+        "line": 168
+      },
+      {
+        "id": "app/sign-up/page.tsx:40",
+        "kind": "link",
+        "file": "app/sign-up/page.tsx",
+        "line": 40
+      },
+      {
+        "id": "app/sign-up/page.tsx:80",
+        "kind": "input",
+        "file": "app/sign-up/page.tsx",
+        "line": 80
+      },
+      {
+        "id": "app/sign-up/page.tsx:82",
+        "kind": "input",
+        "file": "app/sign-up/page.tsx",
+        "line": 82
+      },
+      {
+        "id": "app/sign-up/page.tsx:100",
+        "kind": "input",
+        "file": "app/sign-up/page.tsx",
+        "line": 100
+      },
+      {
+        "id": "app/sign-up/page.tsx:118",
+        "kind": "input",
+        "file": "app/sign-up/page.tsx",
+        "line": 118
+      },
+      {
+        "id": "app/sign-up/page.tsx:132",
+        "kind": "input",
+        "file": "app/sign-up/page.tsx",
+        "line": 132
+      },
+      {
+        "id": "app/sign-up/page.tsx:147",
+        "kind": "link",
+        "file": "app/sign-up/page.tsx",
+        "line": 147
+      },
+      {
+        "id": "app/sign-up/page.tsx:151",
+        "kind": "link",
+        "file": "app/sign-up/page.tsx",
+        "line": 151
+      },
+      {
+        "id": "app/sign-up/page.tsx:157",
+        "kind": "button",
+        "file": "app/sign-up/page.tsx",
+        "line": 157
+      },
+      {
+        "id": "app/sign-up/page.tsx:182",
+        "kind": "link",
+        "file": "app/sign-up/page.tsx",
+        "line": 182
+      },
+      {
+        "id": "app/sign-up/page.tsx:190",
+        "kind": "link",
+        "file": "app/sign-up/page.tsx",
+        "line": 190
+      },
+      {
+        "id": "app/sitemap/page.tsx:67",
+        "kind": "link",
+        "file": "app/sitemap/page.tsx",
+        "line": 67
+      },
+      {
+        "id": "app/sitemap/page.tsx:88",
+        "kind": "link",
+        "file": "app/sitemap/page.tsx",
+        "line": 88
+      },
+      {
+        "id": "app/sitemap/page.tsx:124",
+        "kind": "link",
+        "file": "app/sitemap/page.tsx",
+        "line": 124
+      },
+      {
+        "id": "app/sitemap/page.tsx:159",
+        "kind": "link",
+        "file": "app/sitemap/page.tsx",
+        "line": 159
+      },
+      {
+        "id": "app/support/page.tsx:81",
+        "kind": "link",
+        "file": "app/support/page.tsx",
+        "line": 81
+      },
+      {
+        "id": "app/support/page.tsx:164",
+        "kind": "link",
+        "file": "app/support/page.tsx",
+        "line": 164
+      },
+      {
+        "id": "app/support/page.tsx:181",
+        "kind": "anchor",
+        "file": "app/support/page.tsx",
+        "line": 181
+      },
+      {
+        "id": "app/support/page.tsx:185",
+        "kind": "anchor",
+        "file": "app/support/page.tsx",
+        "line": 185
+      },
+      {
+        "id": "app/terms/page.tsx:26",
+        "kind": "link",
+        "file": "app/terms/page.tsx",
+        "line": 26
+      },
+      {
+        "id": "app/terms/page.tsx:102",
+        "kind": "anchor",
+        "file": "app/terms/page.tsx",
+        "line": 102
+      },
+      {
+        "id": "app/terms/page.tsx:342",
+        "kind": "anchor",
+        "file": "app/terms/page.tsx",
+        "line": 342
+      },
+      {
+        "id": "app/watch-in/[slug]/page.tsx:185",
+        "kind": "link",
+        "file": "app/watch-in/[slug]/page.tsx",
+        "line": 185
+      },
+      {
+        "id": "app/watch-in/[slug]/page.tsx:189",
+        "kind": "link",
+        "file": "app/watch-in/[slug]/page.tsx",
+        "line": 189
+      },
+      {
+        "id": "app/watch-in/[slug]/page.tsx:238",
+        "kind": "link",
+        "file": "app/watch-in/[slug]/page.tsx",
+        "line": 238
+      },
+      {
+        "id": "app/watch-in/[slug]/page.tsx:312",
+        "kind": "link",
+        "file": "app/watch-in/[slug]/page.tsx",
+        "line": 312
+      },
+      {
+        "id": "app/watch-in/[slug]/page.tsx:358",
+        "kind": "link",
+        "file": "app/watch-in/[slug]/page.tsx",
+        "line": 358
+      },
+      {
+        "id": "app/watch-in/page.tsx:73",
+        "kind": "link",
+        "file": "app/watch-in/page.tsx",
+        "line": 73
+      },
+      {
+        "id": "app/watch-in/page.tsx:116",
+        "kind": "link",
+        "file": "app/watch-in/page.tsx",
+        "line": 116
+      }
+    ]
+  },
+  "externalLinks": [
+    {
+      "url": "https://image.mux.com/${item.mux_playback_id}/thumbnail.jpg?width=480",
+      "file": "components/AdminReview.tsx"
+    },
+    {
+      "url": "https://stream.mux.com/${item.mux_playback_id}.m3u8",
+      "file": "components/AdminReview.tsx"
+    },
+    {
+      "url": "https://tubitv.com/",
+      "file": "components/TubiHeroCarousel.tsx"
+    },
+    {
+      "url": "https://www.storageblue.com",
+      "file": "components/BrowsePage.tsx"
+    },
+    {
+      "url": "https://translate.google.com/translate_a/element.js?cb=googleTranslateInit",
+      "file": "components/ContentTranslator.tsx"
+    },
+    {
+      "url": "https://translate.google.com",
+      "file": "components/ContentTranslator.tsx"
+    },
+    {
+      "url": "https://image.mux.com/${item.mux_playback_id}/thumbnail.jpg?width=160",
+      "file": "components/CreatorDashboard.tsx"
+    },
+    {
+      "url": "https://…",
+      "file": "components/CreatorDashboard.tsx"
+    },
+    {
+      "url": "https://stream.mux.com/${playbackId}.m3u8",
+      "file": "lib/instant-player.ts"
+    },
+    {
+      "url": "https://image.mux.com/${playbackId}/thumbnail.jpg?width=720",
+      "file": "components/CreatorWatch.tsx"
+    },
+    {
+      "url": "https://stream.mux.com/${episode.playbackId}.m3u8",
+      "file": "components/EpisodeFeed.tsx"
+    },
+    {
+      "url": "https://wa.me/?text=${encodeURIComponent(",
+      "file": "components/EpisodeFeed.tsx"
+    },
+    {
+      "url": "https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText",
+      "file": "components/EpisodeFeed.tsx"
+    },
+    {
+      "url": "https://www.instagram.com/verzatv",
+      "file": "lib/seo/schema.ts"
+    },
+    {
+      "url": "https://www.tiktok.com/@verzatv",
+      "file": "lib/seo/schema.ts"
+    },
+    {
+      "url": "https://x.com/VerzaTV",
+      "file": "lib/seo/schema.ts"
+    },
+    {
+      "url": "https://www.youtube.com/@VerzaTV",
+      "file": "lib/data/sitemap.ts"
+    },
+    {
+      "url": "https://www.facebook.com/VerzaTV",
+      "file": "components/Footer.tsx"
+    },
+    {
+      "url": "https://stream.mux.com/${video.playbackId}.m3u8",
+      "file": "components/HorizontalFeed.tsx"
+    },
+    {
+      "url": "https://image.mux.com/${video.playbackId}/thumbnail.jpg?time=3&width=640&height=360",
+      "file": "components/HorizontalFeed.tsx"
+    },
+    {
+      "url": "https://stream.mux.com/${publicPlaybackId}.m3u8",
+      "file": "components/Player.tsx"
+    },
+    {
+      "url": "https://image.mux.com/${publicPlaybackId}/thumbnail.jpg?time=2&width=720",
+      "file": "components/Player.tsx"
+    },
+    {
+      "url": "https://stream.mux.com/${next.playbackId}.m3u8",
+      "file": "components/Player.tsx"
+    },
+    {
+      "url": "https://image.mux.com/${next.playbackId}/thumbnail.jpg?time=2&width=480",
+      "file": "components/Player.tsx"
+    },
+    {
+      "url": "https://stream.mux.com/${nextId}.m3u8",
+      "file": "components/ShortsFeed.tsx"
+    },
+    {
+      "url": "https://image.mux.com/${nextId}/thumbnail.jpg?time=2&width=480",
+      "file": "components/ShortsFeed.tsx"
+    },
+    {
+      "url": "https://image.mux.com/${activeId}/thumbnail.jpg?time=2&width=480",
+      "file": "components/ShortsFeed.tsx"
+    },
+    {
+      "url": "https://www.googletagmanager.com/gtm.js?id=GTM-K9GWK2XT",
+      "file": "components/ThirdPartyScripts.tsx"
+    },
+    {
+      "url": "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8089901381021947",
+      "file": "components/ThirdPartyScripts.tsx"
+    },
+    {
+      "url": "https://..",
+      "file": "components/creator/ApplicationWizard.tsx"
+    },
+    {
+      "url": "https://",
+      "file": "lib/creator-client.ts"
+    },
+    {
+      "url": "https://drive.google.com/..",
+      "file": "components/creator/ui.tsx"
+    },
+    {
+      "url": "https://schema.org",
+      "file": "lib/seo/schema.ts"
+    },
+    {
+      "url": "https://image.mux.com/${mux.playbackId}/thumbnail.jpg?time=3&width=1080&height=1920",
+      "file": "app/c/[slug]/page.tsx"
+    },
+    {
+      "url": "https://image.mux.com/${mux.playbackId}/thumbnail.jpg?time=${clip.startSeconds",
+      "file": "app/c/[slug]/page.tsx"
+    },
+    {
+      "url": "https://stream.mux.com/${opts.playbackId}.m3u8",
+      "file": "app/c/[slug]/page.tsx"
+    },
+    {
+      "url": "https://stream.mux.com",
+      "file": "lib/mux-playback.ts"
+    },
+    {
+      "url": "https://image.mux.com",
+      "file": "lib/mux-playback.ts"
+    },
+    {
+      "url": "https://litix.io",
+      "file": "app/layout.tsx"
+    },
+    {
+      "url": "https://www.googletagmanager.com/ns.html?id=GTM-K9GWK2XT",
+      "file": "app/layout.tsx"
+    },
+    {
+      "url": "https://reportaproblem.apple.com/",
+      "file": "app/support/page.tsx"
+    },
+    {
+      "url": "https://image.mux.com/${getPlayback(slug",
+      "file": "app/series/[slug]/[episode]/page.tsx"
+    },
+    {
+      "url": "https://support.apple.com/billing",
+      "file": "app/support/page.tsx"
+    },
+    {
+      "url": "https://image.mux.com/${content.mux_playback_id}/thumbnail.jpg?width=1080",
+      "file": "app/watch/[...slug]/page.tsx"
+    },
+    {
+      "url": "https://www.amazon.com/b?node=53629917011&linkCode=ll2&tag=verzatv-20&linkId=1877149370959eec0902c66cb14fb4e5&language=en_US&ref_=as_li_ss_tl",
+      "file": "lib/amazon-sponsors.ts"
+    },
+    {
+      "url": "https://m.media-amazon.com/images/I/${imageId}._SL${size}_.jpg",
+      "file": "lib/amazon-sponsors.ts"
+    },
+    {
+      "url": "https://www.amazon.com/gp/aws/cart/add.html?${params.toString(",
+      "file": "lib/amazon-sponsors.ts"
+    },
+    {
+      "url": "https://www.amazon.com/gp/aw/d/B09V7Z4TJG?_encoding=UTF8&pd_rd_plhdr=t&aaxitk=4c9b78033cdd3087e01a61513088d42f&hsa_cr_id=0&qid=1783959200&sr=1-2-9e67e56a-6f64-441f-a281-df67fc737124&pd_rd_w=q4V7O&content-id=amzn1.sym.2fb72bc8-96ef-420d-b08f-c04b69f36507%3Aamzn1.sym.2fb72bc8-96ef-420d-b08f-c04b69f36507&pf_rd_p=2fb72bc8-96ef-420d-b08f-c04b69f36507&pf_rd_r=ZM6TPR25MF7ECRY13NFT&pd_rd_wg=7OrCb&pd_rd_r=418b7a3c-3941-455f-89e8-0a605ce54b04&th=1&linkCode=ll2&tag=verzatv-20&linkId=eec59b28fc955417cf5e0fbc72a743e2&language=en_US&ref_=as_li_ss_tl",
+      "file": "lib/amazon-sponsors.ts"
+    },
+    {
+      "url": "https://www.amazon.com/eos-Cashmere-Moisture-Lightweight-Non-Greasy/dp/B08KT2Z93D?crid=1DMKKRFDBQOCC&dib=eyJ2IjoiMSJ9.QPaNYrCWq56W11ASKYPeaAf4riMPsFLuZKWqBMiWrEZiHYj2YRe6EP7but1lQLhj6U8sI3r5Nby_VtQoOKFfYW-Ywg5XIoSt8bjLm8WNyNGnCbIGCJc6RCdxCcDpTzwwLv_vjS0xLFQ1fX_hbmH2TeaSZ0aazIbiwNIUQTzFaPAmGnJbrFczey5ngr9ongtMV8snnX3YFiICTKtDsQ_cWc8-Dq0HldTjmwdanXmNQGuPp-LGtljq-ltdiYP_VnCWExM5MWjONyKEhLqEiOqd0XPB83SoILIi05bdZ033zDo.xma_yxIElSai3Fu-kfZW_WOeUSqwjCnXrPPkA0Pr9us&dib_tag=se&keywords=eos%2Bshea%2Bbetter%2Bbody%2Blotion%2C%2Bvanilla%2Bcashmere&qid=1783959254&sprefix=eos%2BShea%2BBetter%2BBody%2BLotion%2C%2BVanilla%2BCashmere%2Caps%2C101&sr=8-1&th=1&linkCode=ll2&tag=verzatv-20&linkId=262054032b89c723e802eb0c458f3f45&language=en_US&ref_=as_li_ss_tl",
+      "file": "lib/amazon-sponsors.ts"
+    },
+    {
+      "url": "https://www.amazon.com/Mighty-Patch-MP008-Variety-Pack/dp/B085P3TYPS?crid=OY1KIR6YUKG2&dib=eyJ2IjoiMSJ9.G_7UqE1VNz6IpwfKIcsvxQTU8HXSUwU2L147EV3yT-IVYMm0qxvXKcPuxyr2zdauaPXgM0JyrEJlCcDeQ9D-GKM9HNH-n2rYem7CB-G4S48m1k2hLTLWRDK7TDX5_5GILUDtNd0xE55ESY5yQp1IdjxNDmy-DPIqk1sIsd1l5S-T_XvHwxUnr5kXGbfFTll9FuHRqG8iP9_1PFej6CtQL1lB7BV3yoNrjliopcdE1Ryk-aUCiR5uPvSati8kowagZ79tVF1ZuRSi3W923Ob6pKMV_x-6fAx7bioHsIQ2oyI.GpNL8dzvALmgpuZZ2eLE4XbU6KnMJAdUckbbiWtn-7s&dib_tag=se&keywords=Hero%2BCosmetics%2BMighty%2BPatch%2BOriginal&qid=1783959300&sprefix=hero%2Bcosmetics%2Bmighty%2Bpatch%2Boriginal%2Caps%2C114&sr=8-11&th=1&linkCode=ll2&tag=verzatv-20&linkId=14ab9ac6c134ad5a30323e2fcf62c0fe&language=en_US&ref_=as_li_ss_tl",
+      "file": "lib/amazon-sponsors.ts"
+    },
+    {
+      "url": "https://www.amazon.com/Maybelline-Volumizing-Buildable-Lengthening-Multiplying/dp/B08H3JPH74?crid=VVXTV4DH4B4B&dib=eyJ2IjoiMSJ9.Aecm-pL2EtxLYPEyeVue1CjiVQ6AnPQvIsSv2yiciZ_4slBmIFnMLC1HoVlr_K-xIFt5YWQEakEF_8aVW4q1et6SUOJeiHZUAu0VOWHzGaz4HSuRa9g-3V34PBRGwfCw8KVE-Gcpuw_CW2codLJ5LZ5eF2K1gjmOHV8cOgvnuDjFJQkGmfUEV2_NTZ_FL4vZfQN09VPf4fa1rrLKyQA6ANNciDRiIOOZ-PgxMztu-zMNyQN0wH-kT6HnrC07puuD-3JSIV_3V0SJY9ImLqlSRu1_aGLmYoYqTofHYMcri9o.xp11wL6vMU5Tc3q2ocJ5zsUSNUP2jgez3MzFChHS1BI&dib_tag=se&keywords=Maybelline%2BLash%2BSensational%2BSky%2BHigh%2BMascara&qid=1783959349&sprefix=maybelline%2Blash%2Bsensational%2Bsky%2Bhigh%2Bmascara%2Caps%2C134&sr=8-6&th=1&linkCode=ll2&tag=verzatv-20&linkId=42770f49dfc83fdc0c325efa3e914552&language=en_US&ref_=as_li_ss_tl",
+      "file": "lib/amazon-sponsors.ts"
+    },
+    {
+      "url": "https://www.amazon.com/Biodance-Bio-Collagen-Tightening-Hydrating-Molecular/dp/B0B2RM68G2?crid=24HGFSYLYAM1I&dib=eyJ2IjoiMSJ9.h2i0eeAZfU9Vi6t89dK_Mwq-2tuSfCV_zXErQdNMBfjdjK2__zxPRWOFId2oggrFHXXaKARi6XJCAxD3cLjeVOCOSackxRdp_lDUJztjQoadpkdxCDiuxPpygEYIFK4rAs1c38sZ6Ip8EIbk1URFsEI-CNjoXVC0uM6yF5HzmHxSThdalnNd0bbyIBkk-IVWEbwMl_EPb-McYMgkeXn9SlW2ilEmtI_jnma9TNDHoxw9-AlbCAWSmukJy-5GrpEb-aMNxGCiWOeSPqGIAZvDhB_LpFfkQ7dEMtQDujm5Tso._twXPunvBzUBvZkOcl0IgHHdwAcntZDHJQL5fPV0OHY&dib_tag=se&keywords=BIODANCE%2BBio-Collagen%2BReal%2BDeep%2BMask&qid=1783959418&sprefix=biodance%2Bbio-collagen%2Breal%2Bdeep%2Bmask%2Caps%2C497&sr=8-6&th=1&linkCode=ll2&tag=verzatv-20&linkId=e2713177aa444c80b552332c40ba448f&language=en_US&ref_=as_li_ss_tl",
+      "file": "lib/amazon-sponsors.ts"
+    },
+    {
+      "url": "https://www.amazon.com/PRETTYGARDEN-Elegant-Sleeveless-Cocktail-Dresses/dp/B0BRSD3BPQ?crid=2N91978ATBN06&dib=eyJ2IjoiMSJ9.ZwXBixuG_8-ipmG6XrMZz9Vcka2pPJ40YtM0nR7UolwZtiihjtUX83SKl0QXb7xrfUOhzEKMi68ipt_mz6HHmYGxUKVHAXo-KUH_qO4oPC9ZfLFoZsBelyNsrgvSg9cxd9H01JUK74KpV_7Sb8LIjl2vWiwwDaXVDr-d-bDZC2km5UEcztWmqW9kWPKjOzfQhSA3bAp9wPZdwkfkHgWZgc27km89Cvrja4X7BtV5zivVvhTaUxIU5Y8AhuXP5s4Vjf2jOec7klPGVD6DuGEHwIK_6xwR5g_buMLX51Dhl5c.2VVgVcJSST-NpycQZmScDcSw8BIVa8GtiflOFpTIQtw&dib_tag=se&keywords=PRETTYGARDEN%2Bsatin%2Bcocktail%2Bmaxi%2Bdress&qid=1783959454&sprefix=%2Caps%2C135&sr=8-6&th=1&psc=1&linkCode=ll2&tag=verzatv-20&linkId=63ffd732e9f53c665d2bb08f9b6373e3&language=en_US&ref_=as_li_ss_tl",
+      "file": "lib/amazon-sponsors.ts"
+    },
+    {
+      "url": "https://www.amazon.com/ZESICA-Strapless-Bodycon-Wedding-Cocktail/dp/B0FXWCKFRG?crid=26TVA0K2J9WVP&dib=eyJ2IjoiMSJ9.oXZyHsTU0E5TWkizqo02ZbMfoWhrnv6EXgjXpEs0Rs6lKYBWHFdxa6xm_4XUuEnmLocDa3fJ7l6kCtkQx4XdEdXzoPY2cmNgMyhssfEYHQgzV1UjDDVqr9cZ5-6q7Ztv4rSlKrwP2NIkAG50ZiUAvGaLAHNMSpyKMk5Q0_vnUEqa1ouRTc1LY2uWLzoYWF9l_8xuc_fI2HU1hvWQQJuWCGm9R-Z22vShsf6BiOUWz2HgiTQml6W_azXTqWzS-KgN2e6QGc55E6ADy9VHeomJ0WJSX4GtyhytTs7bNOZwy60.qcBAoFXCSB3sZoabPzggLSvHXujiMJclue56alopJrQ&dib_tag=se&keywords=ZESICA%2Bstrapless%2Bfloral%2Bmidi%2Bdress&qid=1783959486&sprefix=zesica%2Bstrapless%2Bfloral%2Bmidi%2Bdress%2Caps%2C189&sr=8-6&th=1&psc=1&linkCode=ll2&tag=verzatv-20&linkId=cc143e127470da372fc91535ec6b8a04&language=en_US&ref_=as_li_ss_tl",
+      "file": "lib/amazon-sponsors.ts"
+    },
+    {
+      "url": "https://www.amazon.com/ANRABESS-Womens-Sleeve-Fashion-Outfits/dp/B0F6C1YBRB?crid=3D5RF5ZBT16KN&dib=eyJ2IjoiMSJ9.2x7NBZMdMXthsWg9WICmUc_704yu0X2fUNEW7iGv7ZZxlD99WnApCYgFQ2cMb391It__BALOHEPBhuOLARZxFB40tM1AjIxsqC2eDr00Ph8brah0e3WFKzz9s9XJrqU7ErrPYFhXrLb02QVGibg3eECy8MAn9kgop3442Ii84TX2IxC2vIrueg1Nv3Qc7SsB2iK86qRaodUxDHm_YVPTTVX31ooPv1fDbsPL0djXT2Ld-01z45SbMuowBGqqOqiAGtz3JvvuKTaOPcGx34y5Zg-6oXNj459bA5PKMdCJShU.7-6e7KQcI220go7-vsnIqj1f0aGKlBeD344WuPFfrFU&dib_tag=se&keywords=ANRABESS%2Bhenley%2Band%2Bribbed%2Btops&qid=1783959515&sprefix=anrabess%2Bhenley%2Band%2Bribbed%2Btops%2Caps%2C172&sr=8-6&th=1&psc=1&linkCode=ll2&tag=verzatv-20&linkId=17aa869957b5f657c1b54640c0ee408c&language=en_US&ref_=as_li_ss_tl",
+      "file": "lib/amazon-sponsors.ts"
+    },
+    {
+      "url": "https://www.amazon.com/PJGGZ-Wearable-Blanket-Sweatshirt-Oversize/dp/B0FHHK3CKT?crid=3Q0HJCF636UWJ&dib=eyJ2IjoiMSJ9.AsShPAZFgGOrCg-mjQ7asHnYPQtvgQbkUVnk3qNHmjrGsKahczBOiQJV06S8fH-EdvtTbO-qsOlwUKwLfXOfwLT9bSM26aZhH9A1JWUugfrkr0pDv0SH3qM3DKYSKGErzzisTRqUACkG1SImAjlhQenXVxuobLAFPIerUYgxTCXfHkfpvgodTHZzX_nO-2qGW9P7r55Tb10t_fgdNXtZw4EfPWvQ7UML5qlzMzEqs3iUpgLsa_PWCP33dVVlcViorAmsfAJRlan9ATLTYTtd6_V85ChpHH_zmBtdVjtpBs0.QT7oy5YB9cRP4sp24b_cGprmkt5FZ3SIYhp4v-qJ_Yw&dib_tag=se&keywords=Wearable%2Bblanket%2Bhoodie&qid=1783959548&sprefix=wearable%2Bblanket%2Bhoodie%2Caps%2C151&sr=8-6&th=1&psc=1&linkCode=ll2&tag=verzatv-20&linkId=28cef4e398ac8e0029f9098852ce1058&language=en_US&ref_=as_li_ss_tl",
+      "file": "lib/amazon-sponsors.ts"
+    },
+    {
+      "url": "https://www.amazon.com/dp/B0157T1ZK2?linkCode=ll1&tag=verzatv-20&language=en_US&ref_=as_li_ss_tl",
+      "file": "lib/amazon-sponsors.ts"
+    },
+    {
+      "url": "https://www.amazon.com/WATERSY-Tumbler-Insulated-Stainless-Beverages/dp/B0D76368QD?crid=4VAGI1XRGHHQ&dib=eyJ2IjoiMSJ9.aqLaPv7pKvJ7u46ee58yr0iCnHuegzSpbVoMLNnXFPgaG6DtLCOMqfgRDYvA21f9mgMopTt6Yqv6_hQwAOB5dU_JAe7r9z9xKkr03qBKGP6DSevwogPc6rIGLbSdbrstJDIuU8vzt5PFzjutPR2rucXFoUy1BKsWUlGpdqgAQOmKjO4cKiohGRMPjM9Aow0f96sMk2AukoS2312UeuUhyD531QhyjBAPeCvOFoLa2-Xjd7_G_FZed_G-x-aSFoNCNzyz64lVyZb7q_yyuDT5tWtkxQqCpHVPKcIsTPP8-II.MdvudJ_fv5abbghwuJbLTS8ilrr2VdLzhmd4ksF0IQY&dib_tag=se&keywords=Insulated%2B40oz%2Btumbler&qid=1783959605&sprefix=insulated%2B40oz%2Btumbler%2Caps%2C154&sr=8-6&th=1&linkCode=ll2&tag=verzatv-20&linkId=01ce58643b9b19174435e0039c5e980c&language=en_US&ref_=as_li_ss_tl",
+      "file": "lib/amazon-sponsors.ts"
+    },
+    {
+      "url": "https://www.amazon.com/easeking-Projector-Multicolor-180%C2%B0Rotation-Photography/dp/B0FNWFRQMQ?crid=3U7PRUJUI0DTP&dib=eyJ2IjoiMSJ9.HVTfiMHKiyj3-7CTgt6pMGFuH8-EqrxCOQJ9-5E6o7hulETwpvkeEaYPwAYOcMYH4o4RQcu7MYnoDoqmjorUX8xJYIJYgAZcsu_aCkx673YSPEC9aJxhgQrOaEu6WiH_AU9brWszZC4c9QIMH3C1emCgElJ_hP9yZrvh-byenrIYOaaOpNSWrvE7PaN5E2mFvm6xqaDbe11NLyboSHeciUnMk02dejFAReT9RknByFiQY9D_FTmHI3ydDR7rMHtqvow1y2WT3C97tzu8qgP-TRlyhMtPfRxCSWtUQ_sl7Xo.fmkZeyMFtMsRVOxOzaU_b9gS4LVePxaGTOXoxCBD_RQ&dib_tag=se&keywords=Sunset%2BLED%2Blamp&qid=1783959632&sprefix=sunset%2Bled%2Blamp%2Caps%2C173&sr=8-6&th=1&linkCode=ll2&tag=verzatv-20&linkId=fc1c5846795f57064a6ee0dec2262f01&language=en_US&ref_=as_li_ss_tl",
+      "file": "lib/amazon-sponsors.ts"
+    },
+    {
+      "url": "https://apps.apple.com/app/id6752884623",
+      "file": "lib/app-store.ts"
+    },
+    {
+      "url": "https://apps.apple.com/us/app/verza-tv-vertical-drama/id6752884623",
+      "file": "lib/app-store.ts"
+    },
+    {
+      "url": "https://play.google.com/store/apps/details?id=com.verzatv.app",
+      "file": "lib/app-store.ts"
+    },
+    {
+      "url": "https://www.apple.com/certificateauthority/",
+      "file": "lib/apple-iap-root-certificates.ts"
+    },
+    {
+      "url": "https://image.mux.com/${playbackId}/thumbnail.jpg?time=${time}&width=1080&height=1920",
+      "file": "lib/clips.ts"
+    },
+    {
+      "url": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+      "file": "lib/perf/seed.ts"
+    },
+    {
+      "url": "https://test-streams.mux.dev/test_001/stream.m3u8",
+      "file": "lib/perf/seed.ts"
+    },
+    {
+      "url": "https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8",
+      "file": "lib/perf/seed.ts"
+    },
+    {
+      "url": "https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_4x3/bipbop_4x3_variant.m3u8",
+      "file": "lib/perf/seed.ts"
+    },
+    {
+      "url": "https://test-streams.mux.dev/pts_shift/master.m3u8",
+      "file": "lib/perf/seed.ts"
+    },
+    {
+      "url": "https://test-streams.mux.dev/elephants_dream/playlist.m3u8",
+      "file": "lib/perf/seed.ts"
+    },
+    {
+      "url": "https://test-streams.mux.dev/bbb-360/playlist.m3u8",
+      "file": "lib/perf/seed.ts"
+    },
+    {
+      "url": "https://stream.mux.com/${clip.playbackId}.m3u8",
+      "file": "lib/perf/seed.ts"
+    },
+    {
+      "url": "https://image.mux.com/${clip.playbackId}/thumbnail.jpg?time=2&width=720",
+      "file": "lib/perf/seed.ts"
+    },
+    {
+      "url": "https://image.mux.com/${episode.muxPlaybackId}/thumbnail.webp",
+      "file": "lib/seo/schema.ts"
+    }
+  ],
+  "rateLimitTiers": [
+    {
+      "pattern": "/^\\/api\\/ai-host/",
+      "limit": 5
+    },
+    {
+      "pattern": "/^\\/api\\/push\\/send/",
+      "limit": 10
+    },
+    {
+      "pattern": "/^\\/api\\/checkout/",
+      "limit": 15
+    },
+    {
+      "pattern": "/^\\/api\\/unlock/",
+      "limit": 15
+    },
+    {
+      "pattern": "/^\\/api\\/subscribe/",
+      "limit": 15
+    },
+    {
+      "pattern": "/^\\/api\\/auth\\//",
+      "limit": 10
+    },
+    {
+      "pattern": "/^\\/api\\/access/",
+      "limit": 120
+    },
+    {
+      "pattern": "/^\\/api\\/playback\\//",
+      "limit": 90
+    },
+    {
+      "pattern": "/^\\/api\\/watch-progress/",
+      "limit": 60
+    },
+    {
+      "pattern": "/^\\/api\\/events/",
+      "limit": 180
+    },
+    {
+      "pattern": "/^\\/api\\//",
+      "limit": 30
+    }
+  ],
+  "uiFiles": 139,
+  "resolvedInstances": {
+    "showPages": 96,
+    "showPagesPrerendered": 91,
+    "episodeRoutes": 4913,
+    "episodeRoutesPrerendered": 2214,
+    "staticPages": 65,
+    "apiRoutes": 55
+  },
+  "denominator": {
+    "routeInstances": 5129,
+    "interactiveElements": 535,
+    "i18nCells": 2300,
+    "externalLinks": 74,
+    "catalogRows": 96,
+    "total": 8038
+  },
+  "knownOpenUnverified": [
+    "Agent C status: $1.99 buy path, guest-purchase attachment, restore purchases, five paywall fixes, Amazon pill, Shop pricing, VIP",
+    "No purchase has ever been completed on this platform - checkout unverified by definition",
+    "iOS/IAP architecture decision pending",
+    "Duplicate synopses across ~1/4 of the Drama catalog",
+    "Free-run chip correctness on the 5 wholly-free titles and 2 clamped titles",
+    "Preview burnable without watching - gating on watch time vs swipe count unconfirmed",
+    "Mux audio tracks LANGUAGE=und (needs Mux write credentials)",
+    "Two false comments in lib/catalog.ts (blocked by source fingerprint)"
+  ]
+}
