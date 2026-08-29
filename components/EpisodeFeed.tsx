@@ -588,9 +588,18 @@ function EpisodeSlide({
     };
     const onWaiting = () => {
       clear();
+      /* Never escalate while the tab is in the background. A browser does not
+         decode video for a hidden document, so a viewer who switches apps for
+         half a minute would come back to "this episode will not play" about an
+         app that was working perfectly. Observed exactly that while verifying
+         this on a hidden tab. The spinner is harmless either way, but the
+         error is a claim, and it must only be made about a document the viewer
+         can actually see. */
+      if (typeof document !== "undefined" && document.hidden) return;
       // A brief stall is normal and a spinner for it is noise.
       spinTimer = setTimeout(() => setBuffering(true), 1500);
       giveUpTimer = setTimeout(() => {
+        if (typeof document !== "undefined" && document.hidden) return;
         setBuffering(false);
         setSourceError((prev) => prev ?? { status: 0, message: "This episode will not play." });
       }, 20000);
@@ -1000,7 +1009,12 @@ function EpisodeSlide({
             {sourceError.message}
           </p>
           <p className="text-[12px] mb-5" style={{ color: "rgba(255,255,255,0.55)" }}>
-            Your purchase is safe. This is a playback problem on our side.
+            {/* Only reassure about a purchase when there was one. Saying "your
+                purchase is safe" on a free preview episode is confusing at
+                best and looks like a billing error at worst. */}
+            {episode.requiresAuthorization
+              ? "Your purchase is safe. This is a playback problem on our side."
+              : "This is a playback problem on our side, not something you did."}
           </p>
           <button
             type="button"
