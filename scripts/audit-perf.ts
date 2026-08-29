@@ -187,12 +187,35 @@ check("one ERROR handler per hls.js instance", () => {
   // two recoverMediaError() rebuilds, i.e. an allocation burst exactly when the
   // device is already under memory pressure.
   const adopts = /adoptInstantPlayer/.test(ef);
-  if (ipHandlers > 0 && efHandlers > 0 && adopts && !/\.off\(Hls\.Events\.ERROR/.test(ef + ip)) {
+  /* Match any identifier before .Events.ERROR. The adoption path reads the
+     constructor off the adopted instance and aliases it, so the detach is
+     written `ahls.off(AdoptedHls.Events.ERROR)`. Pinning the literal `Hls.`
+     made this check miss a correct fix and keep warning about a bug that had
+     been fixed. */
+  if (ipHandlers > 0 && efHandlers > 0 && adopts && !/\.off\(\s*\w+\.Events\.ERROR/.test(ef + ip)) {
     console.log("  ⚠️  lib/instant-player.ts and components/EpisodeFeed.tsx BOTH attach an " +
       "Hls ERROR handler and neither calls .off(). After adoption one instance carries both, " +
       "so a single fatal media error triggers two detach/attach rebuilds.");
   } else {
     pass("no duplicate ERROR handlers on a shared instance");
+  }
+});
+
+/* ------------------------------------------------------------------ */
+check("non-active feed slides stop buffering, not just playing", () => {
+  const ef = exists("components/EpisodeFeed.tsx") ? read("components/EpisodeFeed.tsx") : "";
+  if (!ef) { console.log("  ⚠️  EpisodeFeed not found"); return; }
+  // Three pipelines are attached at once by design (active plus one either
+  // side). Pausing a video does NOT stop hls.js filling its buffer, so two
+  // slides nobody is watching kept downloading and decoding. On a phone that is
+  // the margin between comfortable and jetsam terminating the WebContent
+  // process, which is the "this page could not load" screen users report.
+  if (/stopLoad\(\)/.test(ef) && /startLoad\(\)/.test(ef)) {
+    pass("neighbour slides stopLoad when inactive and startLoad when activated");
+  } else {
+    fail("components/EpisodeFeed.tsx pauses inactive slides but never calls stopLoad(), so the two " +
+      "neighbouring pipelines keep buffering and decoding for a viewer who is not watching them. " +
+      "See P3 in docs/handoff/IOS-CONTENT-PROCESS-CRASH.md.");
   }
 });
 

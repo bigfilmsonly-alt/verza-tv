@@ -1045,9 +1045,9 @@ export const catalog: Series[] = [
   /* ================================================================ */
   {
     slug: "sentence-of-passion-es",
-    title: "Sentencia de pasion",
-    logline: "Ella entra a la sala como acusada y sale marcada por el hombre que debia juzgarla. La condena que ninguno de los dos esperaba no la dicta el tribunal.",
-    genre: "Drama \u00b7 Pasion",
+    title: "Sentencia de pasión",
+    logline: "Ella entra a la sala como acusada y sale marcada por el hombre que debía juzgarla. La condena que ninguno de los dos esperaba no la dicta el tribunal.",
+    genre: "Drama \u00b7 Pasión",
     channel: "VERZA Originals",
     categories: ["espanol"],
     episodeCount: 60,
@@ -1057,7 +1057,7 @@ export const catalog: Series[] = [
   {
     slug: "i-cheated-on-my-wedding-night-es",
     title: "Enga\u00f1\u00e9 a mi pareja en mi noche de bodas",
-    logline: "Una sola noche destruye el matrimonio perfecto que todos vinieron a celebrar. Lo que nadie sabe es por que ella lo hizo.",
+    logline: "Una sola noche destruye el matrimonio perfecto que todos vinieron a celebrar. Lo que nadie sabe es por qué ella lo hizo.",
     genre: "Drama \u00b7 Traici\u00f3n",
     channel: "VERZA Originals",
     categories: ["espanol"],
@@ -1068,7 +1068,7 @@ export const catalog: Series[] = [
   {
     slug: "i-fell-in-love-with-my-presidential-brother-in-law-es",
     title: "Me enamor\u00e9 de mi cu\u00f1ado presidencial",
-    logline: "El hombre mas poderoso del pais es su cunado. Tambien es la unica persona que la ve de verdad.",
+    logline: "El hombre más poderoso del país es su cuñado. También es la única persona que la ve de verdad.",
     genre: "Romance \u00b7 Poder",
     channel: "VERZA Originals",
     categories: ["espanol"],
@@ -1078,8 +1078,8 @@ export const catalog: Series[] = [
   },
   {
     slug: "the-goat-mistress-es",
-    title: "La amante de las cabras",
-    logline: "La llaman asi en todo el pueblo para humillarla. Ella decide convertir el insulto en su nombre.",
+    title: "La amante de la cabra",
+    logline: "La llaman así en todo el pueblo para humillarla. Ella decide convertir el insulto en su nombre.",
     genre: "Drama \u00b7 Romance rural",
     channel: "VERZA Originals",
     categories: ["espanol"],
@@ -1098,7 +1098,7 @@ export const catalog: Series[] = [
   {
     slug: "im-having-my-professors-baby-es",
     title: "Estoy embarazada de mi profesor",
-    logline: "Una prueba de embarazo en el bano de la facultad y el unico hombre que no puede enterarse esta parado frente al pizarron. Lo que empezo como una nota alta termina siendo el secreto que puede hundirlos a los dos.",
+    logline: "Una prueba de embarazo en el baño de la facultad y el único hombre que no puede enterarse está parado frente al pizarrón. Lo que empezó como una nota alta termina siendo el secreto que puede hundirlos a los dos.",
     genre: "Drama · Romance prohibido",
     channel: "VERZA Originals",
     categories: ["espanol"],
@@ -1247,7 +1247,7 @@ export const catalog: Series[] = [
   {
     slug: "i-cant-resist-my-mansion-gardener",
     title: "No puedo resistir a mi jardinero de la mansión",
-    logline: "Ella tiene el apellido, la casa y un matrimonio que todos envidian. El jardinero es el unico que la mira como si nada de eso importara.",
+    logline: "Ella tiene el apellido, la casa y un matrimonio que todos envidian. El jardinero es el único que la mira como si nada de eso importara.",
     genre: "Romance · Prohibido",
     channel: "VERZA Originals",
     categories: ["espanol"],

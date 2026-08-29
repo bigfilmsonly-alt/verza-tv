@@ -166,6 +166,9 @@ function EpisodeSlide({
   /* Non-null whenever the source could not be resolved for a reason that is
      NOT an entitlement answer. Drives the visible failure state. */
   const [sourceError, setSourceError] = useState<{ status: number; message: string } | null>(null);
+  /* True while the browser says it is stalled and the stall has lasted long
+     enough to be worth telling the viewer about. */
+  const [buffering, setBuffering] = useState(false);
   const forceSourceRefreshRef = useRef(false);
   const sourceRefreshInFlightRef = useRef(false);
   const protectedRefreshCountRef = useRef(0);
@@ -375,6 +378,18 @@ function EpisodeSlide({
       if (adopted.hls) {
         const AdoptedHls = adopted.hls.constructor as typeof HlsType;
         const ahls = adopted.hls;
+        /* Remove the instant player's handler before installing this one.
+           lib/instant-player.ts registers an ERROR handler at construction and
+           this adds a second, and neither ever called .off(). So after adoption
+           ONE instance carried TWO handlers, and a single fatal media error,
+           which is the normal iOS signal that the decoder is under pressure,
+           triggered two recoverMediaError rebuilds instead of one. That is an
+           allocation burst at precisely the moment memory is tight, which makes
+           the crash it is reacting to more likely rather than less.
+           Documented as P2 in docs/handoff/IOS-CONTENT-PROCESS-CRASH.md.
+           Passing no listener removes every ERROR listener on this instance, so
+           the richer bounded recovery below is the only one that runs. */
+        ahls.off(AdoptedHls.Events.ERROR);
         ahls.on(AdoptedHls.Events.ERROR, (_e: string, data: { type: string; fatal: boolean }) => {
           if (!data.fatal) return;
           const resume = () => {
@@ -541,12 +556,63 @@ function EpisodeSlide({
      to nothing, an effect that never ran, a state update lost to a race. */
   useEffect(() => {
     if (!isActive || blocked || hlsUrl || sourceError) return;
-    if (!episode.requiresAuthorization) return;
     const t = setTimeout(() => {
       setSourceError({ status: 0, message: "We could not load this episode." });
     }, 12000);
     return () => clearTimeout(t);
-  }, [isActive, blocked, hlsUrl, sourceError, episode.requiresAuthorization]);
+  }, [isActive, blocked, hlsUrl, sourceError]);
+
+  /* Say something while it loads, and give up out loud rather than silently.
+     Twelve people tested this and not one of them saw a spinner, a bar, a
+     message or a retry. The player was styled for the happy path only: the
+     poster holds, which reads as "working" for about a second and as "broken"
+     by five, and nothing ever escalated. Three testers left at this screen.
+     Worse, the error state built for paid episodes could never fire on a FREE
+     one. Both of its triggers sat behind requiresAuthorization, which is false
+     for episodes 1 to 5, so on the first tap of every new viewer there was no
+     message and no retry available at all.
+     The browser already tells us: it fires `waiting` when it stalls and
+     `playing` when it recovers. This listens to that rather than inventing a
+     timer, shows a quiet spinner once a stall lasts long enough to notice, and
+     escalates to the real error screen if the frame never arrives. */
+  useEffect(() => {
+    const vid = videoRef.current;
+    if (!vid || !isActive || blocked) return;
+    let spinTimer: ReturnType<typeof setTimeout> | null = null;
+    let giveUpTimer: ReturnType<typeof setTimeout> | null = null;
+    const clear = () => {
+      if (spinTimer) clearTimeout(spinTimer);
+      if (giveUpTimer) clearTimeout(giveUpTimer);
+      spinTimer = null;
+      giveUpTimer = null;
+    };
+    const onWaiting = () => {
+      clear();
+      // A brief stall is normal and a spinner for it is noise.
+      spinTimer = setTimeout(() => setBuffering(true), 1500);
+      giveUpTimer = setTimeout(() => {
+        setBuffering(false);
+        setSourceError((prev) => prev ?? { status: 0, message: "This episode will not play." });
+      }, 20000);
+    };
+    const onMoving = () => {
+      clear();
+      setBuffering(false);
+    };
+    vid.addEventListener("waiting", onWaiting);
+    vid.addEventListener("stalled", onWaiting);
+    vid.addEventListener("playing", onMoving);
+    vid.addEventListener("timeupdate", onMoving);
+    vid.addEventListener("error", onWaiting);
+    return () => {
+      clear();
+      vid.removeEventListener("waiting", onWaiting);
+      vid.removeEventListener("stalled", onWaiting);
+      vid.removeEventListener("playing", onMoving);
+      vid.removeEventListener("timeupdate", onMoving);
+      vid.removeEventListener("error", onWaiting);
+    };
+  }, [isActive, blocked, sourceReady, attachNonce]);
 
   /* Stall watchdog: if this slide is ACTIVE and a source is attached but no
      frame has been composited after 10s, the pipeline is silently dead
@@ -613,6 +679,17 @@ function EpisodeSlide({
         enableWorker: true,
         startLevel: 0,
         capLevelToPlayerSize: true,
+        /* Without this the cap above never binds. hls.js multiplies the element
+           width by devicePixelRatio, and maxDevicePixelRatio defaults to
+           Infinity, so on a DPR 3 iPhone a 393px element reports ~1179px, which
+           is wider than every Mux rendition. No cap was ever applied and each
+           attached pipeline pulled 1080p. Three pipelines of 1080p decode and
+           buffer is what pushes an iPhone into jetsam, and jetsam killing the
+           WebContent process is the "this page could not load" screen.
+           Documented as P1 in docs/handoff/IOS-CONTENT-PROCESS-CRASH.md.
+           Capping to the real element width selects roughly 480p/540p for a
+           390px-wide phone, which is the resolution the pixels can show. */
+        maxDevicePixelRatio: 1,
         maxLoadingDelay: 0,
         startFragPrefetch: true,
         abrEwmaDefaultEstimate: 500_000,
@@ -703,9 +780,23 @@ function EpisodeSlide({
     if (!vid) return;
     if (isActive && sourceReady && !blocked) {
       tryPlay(vid);
+      /* Resume buffering on the slide the viewer is actually watching. It may
+         have been stopped while it was a neighbour. */
+      try { hlsRef.current?.startLoad(); } catch {}
     } else if (!isActive || blocked) {
       vid.muted = true;
       vid.pause();
+      /* Stop the neighbour BUFFERING, not just playing.
+         Three pipelines are attached at once by design, and pausing a video
+         does not stop hls.js filling its buffer, so two slides the viewer is
+         not watching kept downloading and decoding segments. On a phone that is
+         the difference between comfortable and jetsam killing the tab, which is
+         what the "this page could not load" screen is.
+         stopLoad keeps the instance and its already-buffered data alive, so a
+         swipe back still resumes warm rather than rebuilding from nothing. This
+         is the lower-risk half of P3 in docs/handoff/IOS-CONTENT-PROCESS-CRASH.md:
+         it cuts the memory without dropping to a single look-ahead. */
+      try { hlsRef.current?.stopLoad(); } catch {}
       queueMicrotask(() => setPlaying(false));
     }
   }, [isActive, sourceReady, blocked, tryPlay]);
@@ -870,6 +961,25 @@ function EpisodeSlide({
           It fades in once the first real frame is composited, overlapping the
           poster fade-out so the swap is a true crossfade with no gap. */}
       <div ref={videoBoxRef} className="absolute inset-0" style={{ zIndex: 2 }} />
+
+      {/* Buffering. Deliberately quiet: the poster stays, and this sits on top
+          of it so the viewer knows the app is working rather than dead. It only
+          appears once a stall has lasted 1.5s, so a normal fast start never
+          flashes it. */}
+      {isActive && !blocked && buffering && !sourceError && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
+          <div
+            style={{
+              width: 34, height: 34, borderRadius: "50%",
+              border: "2.5px solid rgba(255,255,255,0.22)",
+              borderTopColor: "rgba(255,255,255,0.9)",
+              animation: "verzaSpin 0.8s linear infinite",
+            }}
+            role="status"
+            aria-label="Loading"
+          />
+        </div>
+      )}
 
       {/* Failure state. The poster holds during normal loading, so there is no
           spinner for the happy path, but a slide that cannot resolve a source
