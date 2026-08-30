@@ -49,8 +49,15 @@ function HorizontalCard({ video, index }: { video: HorizontalVideo; index: numbe
   const [started, setStarted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [videoMuted, setVideoMuted] = useState(() => {
-    if (typeof window !== "undefined") return localStorage.getItem("verza-muted") !== "false";
-    return true;
+    // Guarded: localStorage THROWS, not returns null, when site data is blocked,
+    // and a throw in a useState initialiser happens during render. See the note
+    // on the same read in components/EpisodeFeed.tsx.
+    if (typeof window === "undefined") return true;
+    try {
+      return localStorage.getItem("verza-muted") !== "false";
+    } catch {
+      return true;
+    }
   });
 
   const hlsUrl = `https://stream.mux.com/${video.playbackId}.m3u8`;

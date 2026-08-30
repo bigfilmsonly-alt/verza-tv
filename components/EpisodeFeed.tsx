@@ -1441,8 +1441,19 @@ export default function EpisodeFeed({
     if (activeIndex !== (idx >= 0 ? idx : 0)) queueMicrotask(() => setHasSwiped(true));
   }, [activeIndex, episodes, startEpisode]);
   const [muted, setMuted] = useState(() => {
-    if (typeof window !== "undefined") return localStorage.getItem("verza-muted") !== "false";
-    return true;
+    /* Guarded because localStorage does not merely return null when site data is
+       blocked — accessing it THROWS. Safari's "Block All Cookies", Firefox's
+       strictest mode and enterprise policy all do this. A throw inside a
+       useState initialiser happens during render, so it propagated to the route
+       error boundary and the player never mounted at all: the viewer got an
+       error page instead of a video, for a preference read. Muted is the safe
+       default and is what autoplay policy requires anyway. */
+    if (typeof window === "undefined") return true;
+    try {
+      return localStorage.getItem("verza-muted") !== "false";
+    } catch {
+      return true;
+    }
   });
   // $1.99 "Unlock Full Series" popup — pops up when the viewer reaches the first
   // locked episode (after the free preview, before entering the paid episode).

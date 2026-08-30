@@ -2450,6 +2450,62 @@ check(
   );
 }
 
+/* ------------------------------------------------------------------ */
+/*  15. STORAGE ACCESS CANNOT CRASH A RENDER                            */
+/* ------------------------------------------------------------------ */
+
+/* BUG THIS CATCHES: localStorage does not return null when site data is
+   blocked — accessing it THROWS. Safari's "Block All Cookies", Firefox's
+   strictest mode and enterprise policy all do it. Both feed components read the
+   mute preference in a useState initialiser, which runs DURING RENDER, so the
+   throw propagated to the route error boundary and the player never mounted:
+   an error page instead of a video, for a preference read. */
+{
+  const players = [
+    ["components/EpisodeFeed.tsx", "the main vertical rail"],
+    ["components/HorizontalFeed.tsx", "the horizontal rail"],
+    ["components/ShortsFeed.tsx", "the shorts rail"],
+  ];
+  const unguarded = [];
+  for (const [file] of players) {
+    const src = read(file);
+    for (const m of src.matchAll(/useState\(\(\)\s*=>\s*\{([\s\S]*?)\n {2}\}\)/g)) {
+      const body = m[1];
+      if (/localStorage|sessionStorage/.test(body) && !/try\s*\{/.test(body)) {
+        unguarded.push(`${file}:${src.slice(0, m.index).split("\n").length}`);
+      }
+    }
+  }
+  check(
+    unguarded.length === 0,
+    "player: a storage read runs unguarded during render",
+    `A throw here reaches the route error boundary and the player never mounts. Wrap every storage\n` +
+      `      access in a useState initialiser in try/catch and fall back to muted. Offenders:\n` +
+      `      ${unguarded.join(", ")}`,
+  );
+}
+
+/* BUG THIS CATCHES: /shorts autoplayed with sound ON and ignored the shared
+   mute preference that it nonetheless WRITES on every toggle, so a viewer who
+   muted the app in the main player still got audio on this rail. */
+check(
+  /verza-muted/.test(read("components/ShortsFeed.tsx").match(/const \[muted, setMuted\] = useState\([\s\S]{0,400}/)?.[0] ?? ""),
+  "shorts: the rail ignores the saved mute preference",
+  "It writes verza-muted on every toggle and never read it back, so it disagreed with both other\n" +
+    "      players about a preference the viewer had already expressed.",
+);
+
+/* BUG THIS CATCHES: JSON.stringify does not escape `<`, and the HTML tokenizer
+   ends a <script> block at the first literal `</script` regardless of JSON
+   syntax. Every value reaching JsonLd is catalogue-authored today, which is
+   exactly why the escape must be there before that stops being true. */
+check(
+  /\\\\u003c/.test(read("components/JsonLd.tsx")),
+  "seo: structured data is written into a script tag without escaping",
+  "Escape < and > before injecting JSON into <script>. It does not change the parsed value and it\n" +
+    "      removes the whole class of script-context breakout from every page that emits JSON-LD.",
+);
+
 if (failures.length > 0) {
   console.error("Feed integrity contract: FAIL");
   for (const f of failures) console.error(`  - ${f}`);

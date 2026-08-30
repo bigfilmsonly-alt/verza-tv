@@ -160,7 +160,21 @@ function ShortCard({ series, visible, muted, setMuted, saved, onToggleSave }: {
 export default function ShortsFeed({ series }: { series: Series[] }) {
   const [shuffled, setShuffled] = useState<Series[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [muted, setMuted] = useState(false);
+  /* Start muted, and honour the viewer's saved preference, exactly as
+     EpisodeFeed and Player do. This rail alone defaulted to sound ON and
+     ignored the shared "verza-muted" key that it nonetheless WRITES on every
+     toggle, so a viewer who muted the app elsewhere still got audio here.
+     Reading in an initialiser rather than an effect avoids a frame of sound
+     before the correction lands. localStorage can throw outright when site data
+     is blocked, so the read is guarded. */
+  const [muted, setMuted] = useState(() => {
+    if (typeof window === "undefined") return true;
+    try {
+      return localStorage.getItem("verza-muted") !== "false";
+    } catch {
+      return true;
+    }
+  });
   const [savedSlugs, setSavedSlugs] = useState<Set<string>>(new Set());
   const [showSplash, setShowSplash] = useState(true);
   // All overlay chrome (title / close / right rail / dots) shows for 10s on each
