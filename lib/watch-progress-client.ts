@@ -1,4 +1,4 @@
-import { saveGuestProgress } from "./guest-storage";
+import { saveGuestProgress, clearDismissedOnProgress } from "./guest-storage";
 
 /* ------------------------------------------------------------------ */
 /*  Recording a playhead, from any player.                              */
@@ -36,6 +36,13 @@ export function recordWatchProgress(
   options: { keepalive?: boolean } = {},
 ): void {
   // 1. The device. Always, session or no session.
+  /* Watching a dismissed title again brings it back to the rail. Without this a
+     viewer who removed a show, then deliberately reopened it from the grid and
+     watched on, would never see it offered again and would have no way to work
+     out why. Removing is a statement about the rail; watching is the opposite
+     statement, and the later one wins. */
+  clearDismissedOnProgress(input.seriesSlug);
+
   saveGuestProgress({
     seriesSlug: input.seriesSlug,
     episodeNumber: input.episodeNumber,

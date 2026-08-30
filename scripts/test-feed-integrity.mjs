@@ -2634,12 +2634,14 @@ check(
   const browse = read("components/BrowsePage.tsx");
 
   check(
-    /activeTab === HOME_TAB &&/.test(stripComments(browse)),
-    "continue watching: the row is not confined to Home",
-    "It must render on the landing view only. A section page shows that section's catalogue in that\n" +
-      "      section's order and nothing else.",
+    /activeTab === HOME_TAB &&/.test(stripComments(browse)) === false &&
+      /tabSlugs\.has\(item\.seriesSlug\)/.test(stripComments(browse)),
+    "continue watching: the row is confined to Home instead of filtered per section",
+    "SUPERSEDED RULE, kept as a check so nobody reinstates it. The row was Home-only because a Drama\n" +
+      "      title was leaking into Espanol. The founder's design fixes that at the source instead: the\n" +
+      "      row renders in EVERY section and lists only that section's titles. Gating on HOME_TAB again\n" +
+      "      would hide the rail from Hot, Espanol and Bollywood, where it is now supposed to appear.",
   );
-
   /* The stronger guarantee, and the one that actually protects the founder's
      layout: watch state must not be an INPUT to grid ordering at all. Proven by
      scoping — if the ordering memo cannot see the state, no amount of watch
@@ -3281,6 +3283,113 @@ check(
     "      it, the reason for the refusal is gone and it must be asked again — otherwise a slide refused\n" +
     "      once stays silent for the rest of the session even though it could now play sound.",
 );
+
+/* ------------------------------------------------------------------ */
+/*  24. CONTINUE WATCHING IS PER SECTION, AT THE FOOTER, AND REMOVABLE  */
+/* ------------------------------------------------------------------ */
+
+/* Three rules from the founder, each fixing something a previous placement got
+   wrong: the rail is the LAST row of a section, it lists only THAT section's
+   titles, and every tile can be removed.
+
+   The cross-section rule is the one with history. A Drama title used to appear
+   at the top of Espanol because the row and the grid each decided membership
+   for themselves and disagreed. Membership is now derived from `filtered`, the
+   very list the grid is built from, so the two cannot disagree. */
+{
+  const browse = read("components/BrowsePage.tsx");
+  const code = stripComments(browse);
+
+  check(
+    /const tabSlugs = useMemo\(\(\) => new Set\(filtered\.map\(\(s\) => s\.slug\)\)/.test(code),
+    "continue watching: section membership has a second source of truth",
+    "Derive it from `filtered` — the list the grid renders. Any independent category lookup can drift\n" +
+      "      from the grid, and that drift is exactly how a Drama title reached the top of Espanol.",
+  );
+
+  check(
+    /tabSlugs\.has\(item\.seriesSlug\)/.test(code),
+    "continue watching: the rail is not filtered to the section",
+    "Drama's rail must list Drama, Hot's Hot, Espanol's Espanol and Bollywood's Bollywood. An\n" +
+      "      unfiltered rail puts a title under a language it is not in.",
+  );
+
+  /* Position: the rail must come AFTER the grid in source order, because JSX
+     order is render order here. */
+  {
+    const gridAt = code.indexOf("const gridItems");
+    const railAt = code.indexOf("sectionContinueWatching.length > 0");
+    // Anchored on real JSX: `code` is comment-stripped, so a comment marker
+    // would never be found and the comparison would pass vacuously.
+    const gridJsx = code.indexOf('gridItems.length > 0 && activeTab !== "music"');
+    check(
+      railAt > 0 && gridJsx > 0 && railAt > gridJsx,
+      "continue watching: the rail is not the last row of the section",
+      "It belongs at the footer. A section should open with its catalogue, not with the viewer's own\n" +
+        "      watch history — that is what put it at the top twice already.",
+    );
+    check(gridAt > 0, "continue watching: gridItems could not be located", "Renamed? Update this check.");
+  }
+
+  check(
+    /aria-label=\{`Remove \$\{item\.seriesTitle\} from Continue Watching`\}/.test(browse) &&
+      /onTouchEnd=/.test(browse) && /dy > 56 && dy > dx \* 1\.5/.test(browse),
+    "continue watching: a tile cannot be removed",
+    "Both affordances are required: an X, and a swipe up. The swipe threshold must dominate the\n" +
+      "      horizontal slop of the rail itself or scrolling the row sideways dismisses tiles by accident.",
+  );
+
+  /* Removing must not delete the playhead. If it did, reopening the title from
+     the grid would restart it at episode one — a far worse outcome than a rail
+     that is one tile too long. */
+  {
+    const gs = read("lib/guest-storage.ts");
+    check(
+      /DISMISSED_KEY = "verza\.guest\.cw-dismissed\.v1"/.test(gs) &&
+        !/removeItem\(PROGRESS_KEY\)/.test(stripComments(read("components/BrowsePage.tsx"))),
+      "continue watching: dismissing a title destroys its playhead",
+      "Dismissal is a statement about the RAIL, not the progress. Keep them in separate stores, or\n" +
+        "      removing a tile silently restarts that title from episode one.",
+    );
+    check(
+      /clearDismissedOnProgress\(input\.seriesSlug\);/.test(read("lib/watch-progress-client.ts")),
+      "continue watching: a dismissed title can never come back",
+      "Watching a dismissed title again is the opposite statement and the later one wins. Without this\n" +
+        "      a viewer who removed a show and then deliberately went back to it is never offered it again.",
+    );
+  }
+
+  /* EXECUTED against the real catalogue: no title may appear in a section it
+     does not belong to. This is the actual guarantee, tested with data rather
+     than with a regex over the component. */
+  {
+    const rows = catalog.catalog.filter((s) => s.status === "live");
+    const bySlug = new Map(rows.map((s) => [s.slug, s]));
+    const LANGUAGE_TABS = ["espanol", "bollywood"];
+    const leaks = [];
+    for (const tab of LANGUAGE_TABS) {
+      const members = rows.filter((s) => (s.categories || []).includes(tab)).map((s) => s.slug);
+      const memberSet = new Set(members);
+      // Every live row that is NOT in this tab must be excluded by the filter.
+      for (const s of rows) {
+        const wouldShow = memberSet.has(s.slug);
+        const belongs = (s.categories || []).includes(tab);
+        if (wouldShow !== belongs) leaks.push(`${tab}:${s.slug}`);
+      }
+      if (members.length === 0) leaks.push(`${tab}: no members at all`);
+    }
+    check(
+      leaks.length === 0,
+      "continue watching: a title can surface in the wrong language section",
+      `Membership must be exactly the tab's own rows. ${leaks.slice(0, 6).join(", ")}`,
+    );
+    check(
+      bySlug.size > 80,
+      "continue watching: the catalogue fixture is too small to prove anything",
+      `Only ${bySlug.size} live rows were available to test against.`,
+    );
+  }
+}
 
 if (failures.length > 0) {
   console.error("Feed integrity contract: FAIL");

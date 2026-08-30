@@ -72,6 +72,16 @@ export const PROGRESS_KEY = "verza.guest.progress.v1";
 /** Digest of the last snapshot successfully merged into an account. */
 export const MIGRATED_KEY = "verza.guest.migrated.v1";
 
+/* Titles the viewer has dismissed from their Continue Watching row.
+
+   Kept SEPARATE from the progress rows on purpose. Deleting the progress row
+   would also erase where they had got to, so reopening the title from the grid
+   would restart it at episode one. Dismissing is a statement about the rail,
+   not about the playhead: "stop offering me this", not "forget that I watched
+   it". A viewer who opens the title again and watches on is offered it again,
+   because that is a new statement in the other direction. */
+export const DISMISSED_KEY = "verza.guest.cw-dismissed.v1";
+
 /**
  * Hard cap on remembered playheads. GET /api/watch-progress returns at most 20
  * rows, so 40 is already twice what any surface can display; the cap exists so
@@ -335,4 +345,58 @@ export function clearGuestState(): void {
       /* ignore */
     }
   }
+}
+
+
+/* ------------------------------------------------------------------ */
+/*  Continue Watching dismissals                                        */
+/* ------------------------------------------------------------------ */
+
+/** Slugs the viewer has removed from the Continue Watching rail. */
+export function readDismissedContinue(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(DISMISSED_KEY);
+    if (!raw) return [];
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    // Validated on the way OUT: localStorage is attacker-writable, and these
+    // slugs are compared against catalogue rows and rendered.
+    return parsed.filter(isValidSlug).slice(0, MAX_PROGRESS_ROWS);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Dismiss a title from the rail, or restore it.
+ *
+ * Bounded by MAX_PROGRESS_ROWS for the same reason the progress store is: this
+ * shares a ~5MB origin quota with the cart, the language and the unlock hints,
+ * and an unbounded list eventually makes every write in the app throw.
+ */
+export function setDismissedContinue(seriesSlug: string, dismissed: boolean): string[] {
+  if (typeof window === "undefined" || !isValidSlug(seriesSlug)) return [];
+  const next = new Set(readDismissedContinue());
+  if (dismissed) next.add(seriesSlug);
+  else next.delete(seriesSlug);
+  const list = [...next].slice(-MAX_PROGRESS_ROWS);
+  try {
+    localStorage.setItem(DISMISSED_KEY, JSON.stringify(list));
+  } catch {
+    /* Site data blocked. The dismissal holds for this session only, which is
+       better than throwing inside a tap handler. */
+  }
+  return list;
+}
+
+/**
+ * Watching a dismissed title again un-dismisses it.
+ *
+ * Without this a viewer who removed a show, then deliberately went back to it
+ * from the grid and watched three more episodes, would never see it in the rail
+ * again and would have no way to work out why.
+ */
+export function clearDismissedOnProgress(seriesSlug: string): void {
+  if (readDismissedContinue().includes(seriesSlug)) setDismissedContinue(seriesSlug, false);
 }
