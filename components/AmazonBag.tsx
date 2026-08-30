@@ -1,15 +1,24 @@
 "use client";
 
+import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { useAmazonBag } from "@/lib/amazon-bag";
 import { productImage } from "@/lib/amazon-sponsors";
 import { T } from "@/lib/theme";
 
 /* ------------------------------------------------------------------ */
-/*  The Verza bag: floating button + drawer                            */
+/*  The Verza bag: floating button + drawer — SHOP SURFACES ONLY       */
 /*                                                                      */
-/*  Mounted inside the device frame, so the bag follows shoppers across */
-/*  the browse grid, search and /amazon. The floating pill only appears */
-/*  once something is in it, so it never covers the app for free.       */
+/*  This is mounted from the ROOT layout, so before the pathname gate   */
+/*  below it painted an orange pill over every page in the app: on the  */
+/*  player it sat on top of the episode title card, and opening it      */
+/*  covered half the video. The bag is persisted in localStorage, so a  */
+/*  single add followed the viewer around the entire site — the home    */
+/*  hero, legal pages, 404 — until they cleared it by hand.             */
+/*                                                                      */
+/*  Only the UI is confined. The PROVIDER stays global in              */
+/*  app/layout.tsx: unmounting it would throw away the Stripe cart      */
+/*  (in-memory only) the moment someone stepped off a shop route.       */
 /*                                                                      */
 /*  Positioning lives in globals.css under .amazon-bag-layer: pinned to */
 /*  the viewport on mobile, anchored to the iPhone frame on desktop —    */
@@ -18,7 +27,40 @@ import { T } from "@/lib/theme";
 /*  app-shell width so it lines up with the app either way.              */
 /* ------------------------------------------------------------------ */
 
+/**
+ * The surfaces that actually sell, and so the only ones allowed to float cart
+ * chrome over the app.
+ *
+ * Checked against the tree rather than assumed: `AmazonProducts` — the only
+ * add-to-bag affordance there is — is imported by app/shop/page.tsx and
+ * app/amazon/page.tsx and nowhere else, and `AddToCartButton` by
+ * app/shop/[slug]/page.tsx and nowhere else. This list therefore covers every
+ * route a viewer can put something in either cart from, so nobody can add an
+ * item and be left with no drawer to check out from. Getting back is the
+ * permanent Shop tab in the bottom nav; the bag itself survives in
+ * localStorage.
+ *
+ * Exported so CartDrawer shares the exact same rule and the two cannot drift.
+ */
+export function isShopSurface(pathname: string | null | undefined): boolean {
+  if (!pathname) return false;
+  return pathname === "/shop" || pathname.startsWith("/shop/") || pathname === "/amazon";
+}
+
 export default function AmazonBag() {
+  const { isOpen, closeBag } = useAmazonBag();
+  const onShop = isShopSurface(usePathname());
+
+  // Walking out of the shop closes the sheet. Without this `isOpen` stays true
+  // in the still-global provider while the UI is hidden, and the drawer springs
+  // open unprompted the next time the viewer opens /shop. This closes the
+  // drawer, it does not touch the items.
+  useEffect(() => {
+    if (!onShop && isOpen) closeBag();
+  }, [onShop, isOpen, closeBag]);
+
+  if (!onShop) return null;
+
   return (
     <>
       <BagButton />

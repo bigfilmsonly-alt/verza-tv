@@ -449,7 +449,11 @@ export default function Player({
     }
 
     // Restore mute preference — if user unmuted on previous episode, keep sound on
-    const wasMuted = localStorage.getItem("verza-muted") !== "false";
+    /* Sound ON by default, matching the episode feed. Only an explicit stored
+       "true" mutes. This player already does the right thing structurally — it
+       sets muted BEFORE play() and falls back to muted only if play() rejects —
+       so flipping the default here needs no other change. */
+    const wasMuted = localStorage.getItem("verza-muted") === "true";
     video.muted = wasMuted;
     setMuted(wasMuted);
     video.play()

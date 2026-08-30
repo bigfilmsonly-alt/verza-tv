@@ -75,6 +75,28 @@ export function startInstantPlayer(playbackId: string | undefined): void {
     "position:fixed;bottom:0;right:0;width:2px;height:2px;opacity:0;pointer-events:none;";
   document.body.appendChild(video);
 
+  /* Claim the gesture NOW, synchronously, while the poster tap is still on the
+     stack. This element has no source yet, so this play() cannot succeed and is
+     not meant to — the return value is deliberately ignored.
+
+     What it does is call WebKit's removeBehaviorRestrictionsAfterFirstUserGesture
+     on THIS element, which lasts for the element's whole lifetime. EpisodeFeed
+     adopts this exact element a moment later, so the adopted player carries a
+     permission that a freshly created element cannot have: it may be unmuted
+     without asking again.
+
+     Timing is the entire point and it is why this cannot live below. The play()
+     that already existed runs inside getHls().then(...), which resolves after a
+     dynamic import — hundreds of milliseconds later, long outside the gesture,
+     by which time WebKit has stopped associating it with the tap. Everything a
+     viewer does after that is negotiating for permission the tap could simply
+     have granted.
+
+     This is the mechanism behind "the sound should just start playing once you
+     click on the poster". Muted, so nothing is audible from a 2px offscreen
+     element and no autoplay policy is violated. */
+  video.play().catch(() => {});
+
   const url = `https://stream.mux.com/${playbackId}.m3u8`;
   const entry: Entry = {
     video,

@@ -2,17 +2,27 @@ import { STORE_LISTINGS } from "@/lib/app-store";
 import HideInIOSApp from "@/components/HideInIOSApp";
 
 /**
- * The two real store listings, as tappable links.
+ * The real store listings, as tappable links. Today there is exactly one — the
+ * App Store — because that is the only download that exists.
  *
- * Deliberately NOT the official Apple / Google badge artwork: this repo ships
- * no such asset, and inventing a lookalike is worse than plain type. These are
- * text buttons in the app's own scale, which is also what keeps them legible in
- * the footer of every page.
+ * Deliberately NOT the official Apple badge artwork: this repo ships no such
+ * asset, and inventing a lookalike is worse than plain type. These are text
+ * buttons in the app's own scale, which is also what keeps them legible in the
+ * footer of every page.
  *
- * Wrapped in HideInIOSApp because inside the native iOS binary a row of store
- * buttons is at best noise and at worst reads as cross-platform steering. This
- * is not a purchase surface, so AGENTS.md rule 11 does not apply — but there is
- * no reason to show it there either.
+ * THE SOLO LAYOUT IS THE POINT. A two-up row of chips reads as a pair; drop one
+ * and the survivor reads as the half that failed to load — a small chip adrift
+ * in a centred row, which is exactly how it looked when Google Play came out of
+ * the list. So a lone listing is rendered as one deliberate bar instead: it
+ * takes the available width up to a cap, and centres its own contents rather
+ * than hugging the left edge of a chip. `solo` is derived from the data, so
+ * re-adding a second store restores the chip row with no edit here.
+ *
+ * Wrapped in HideInIOSApp because inside the native iOS binary a store button
+ * is at best noise — and pointing an iPhone that already has the app at the
+ * listing for that same app is worse than noise. This is not a purchase
+ * surface, so AGENTS.md rule 11 does not apply — but there is no reason to show
+ * it there either.
  */
 export default function StoreLinks({
   heading = "Get the app",
@@ -21,6 +31,8 @@ export default function StoreLinks({
   heading?: string | null;
   className?: string;
 }) {
+  const solo = STORE_LISTINGS.length === 1;
+
   return (
     <HideInIOSApp>
       <div className={className}>
@@ -39,7 +51,12 @@ export default function StoreLinks({
               href={store.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 no-underline rounded-xl px-3.5 py-2 transition-transform active:scale-[0.97]"
+              className={
+                "flex items-center gap-2 no-underline rounded-xl transition-transform active:scale-[0.97] " +
+                (solo
+                  ? "w-full max-w-[260px] justify-center px-4 py-2.5"
+                  : "px-3.5 py-2")
+              }
               style={{
                 background: "rgba(255,255,255,0.05)",
                 border: "1px solid rgba(255,255,255,0.12)",

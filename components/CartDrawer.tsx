@@ -1,30 +1,54 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { useCart } from "@/lib/cart";
+import { isShopSurface } from "@/components/AmazonBag";
 import { T } from "@/lib/theme";
+
+/* ------------------------------------------------------------------ */
+/*  Stripe merch cart drawer — SHOP SURFACES ONLY                      */
+/*                                                                      */
+/*  Mounted from the ROOT layout, like the Amazon bag, so it was a      */
+/*  live `useCart()` subscriber on all ~2,200 pages while only ever     */
+/*  being openable from /shop and /shop/[slug] — the only two routes    */
+/*  that render CartButton and AddToCartButton. The gate makes that     */
+/*  reachability explicit instead of accidental.                        */
+/*                                                                      */
+/*  CartProvider itself stays global. Its items live in React state     */
+/*  with NO localStorage behind them (unlike the Amazon bag), so        */
+/*  unmounting the provider on the way out of /shop would silently      */
+/*  empty a real cart between a product page and checkout.              */
+/* ------------------------------------------------------------------ */
 
 export default function CartDrawer() {
   const { items, isOpen, closeCart, removeItem, updateQuantity, subtotal } =
     useCart();
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const onShop = isShopSurface(usePathname());
 
-  if (!isOpen) return null;
+  // Leaving the shop closes the drawer so it cannot spring open again on the
+  // way back in. The cart items are untouched.
+  useEffect(() => {
+    if (!onShop && isOpen) closeCart();
+  }, [onShop, isOpen, closeCart]);
+
+  if (!onShop || !isOpen) return null;
 
   return (
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-50"
+        className="amazon-bag-layer inset-0"
         style={{ background: "rgba(0,0,0,0.6)" }}
         onClick={closeCart}
       />
 
       {/* Drawer */}
       <div
-        className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full z-50 rounded-t-2xl flex flex-col"
+        className="amazon-bag-layer bottom-0 left-1/2 -translate-x-1/2 w-full rounded-t-2xl flex flex-col"
         style={{
           maxWidth: 440,
           maxHeight: "80dvh",

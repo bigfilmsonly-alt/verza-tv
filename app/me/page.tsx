@@ -57,6 +57,15 @@ const Icons = {
       <line x1="1" y1="10" x2="23" y2="10" />
     </svg>
   ),
+  // Same glyph the Shop tab uses in BottomNav, redrawn at this page's icon
+  // size so the profile row is recognisably the same destination as the tab.
+  shoppingBag: (
+    <svg {...iconProps}>
+      <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+      <line x1="3" y1="6" x2="21" y2="6" />
+      <path d="M16 10a4 4 0 01-8 0" />
+    </svg>
+  ),
   globe: (
     <svg {...iconProps}>
       <circle cx="12" cy="12" r="10" />
@@ -235,6 +244,10 @@ export default async function MePage({
   const user = await getUser();
   const subscriptionCheckoutEnabled = vipSubscriptionCheckoutEnabled();
   const yearlyCheckoutEnabled = vipYearlyCheckoutEnabled();
+  // The one flag app/shop/page.tsx reads to decide what it renders. Read here
+  // too so the row's detail can never advertise merch on a page that is
+  // currently showing only sponsored Amazon picks.
+  const merchEnabled = process.env.MERCH_CHECKOUT_ENABLED === "true";
   return (
     <section className="px-4 pt-6 pb-10 max-w-lg mx-auto">
       <VipCheckoutRecovery sessionId={sessionId} />
@@ -326,6 +339,31 @@ export default async function MePage({
           label="Purchase History"
           detail={<PurchaseCount />}
           href="/me/purchases"
+          last
+        />
+      </SectionCard>
+
+      {/* ---- Store ----
+           The Shop had no entry point on this page. Its own section rather
+           than a fourth row under "Library": everything in that card is
+           content this account already has, and a store is not that. It sits
+           directly under Purchase History because that is the commerce
+           adjacency — what you bought, then where to buy — without filing a
+           shop as part of the library.
+
+           The detail is derived from MERCH_CHECKOUT_ENABLED, the same flag
+           app/shop/page.tsx switches on, rather than a hard-coded string. The
+           three rows above are here because each once carried copy that was
+           false the moment it was written; this one cannot drift from the page
+           it opens. With merch fail-closed the destination is the sponsored
+           Amazon grid, so the row says so before anyone taps it. */}
+      <SectionLabel>Store</SectionLabel>
+      <SectionCard>
+        <MenuRow
+          icon={Icons.shoppingBag}
+          label="Shop"
+          detail={merchEnabled ? "Merch" : "Sponsored"}
+          href="/shop"
           last
         />
       </SectionCard>

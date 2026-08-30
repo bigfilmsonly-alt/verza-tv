@@ -2503,7 +2503,7 @@ check(
    mute preference that it nonetheless WRITES on every toggle, so a viewer who
    muted the app in the main player still got audio on this rail. */
 check(
-  /verza-muted/.test(read("components/ShortsFeed.tsx").match(/const \[muted, setMuted\] = useState\([\s\S]{0,400}/)?.[0] ?? ""),
+  /verza-muted/.test(stripComments(read("components/ShortsFeed.tsx")).match(/const \[muted, setMuted\] = useState\([\s\S]{0,400}/)?.[0] ?? ""),
   "shorts: the rail ignores the saved mute preference",
   "It writes verza-muted on every toggle and never read it back, so it disagreed with both other\n" +
     "      players about a preference the viewer had already expressed.",
@@ -2975,6 +2975,257 @@ check(
     "audio: another player now gates its unmute on a composited frame",
     `EpisodeFeed was the only player with this bug and the others are the reference. Offenders:\n` +
       `      ${gated.map(([f, why]) => `${f} (was: ${why})`).join(", ")}`,
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  21. THE FEED STARTS WITH SOUND ON                                   */
+/* ------------------------------------------------------------------ */
+
+/* BUG THIS CATCHES, reported by the founder: "The sound should just start
+   playing once you click on the poster automatically. You should not have to
+   turn it on."
+
+   The feed opened MUTED for everyone who had never touched the speaker. The
+   read was `localStorage.getItem("verza-muted") !== "false"`, so the ABSENCE of
+   a preference was treated as a preference for silence, and a first-time viewer
+   got a silent drama plus a speaker button that fades out with the rest of the
+   chrome after a few seconds. Sound is the point of a drama; this is not a
+   setting people should have to discover.
+
+   Flipping the default is one line. Keeping it flipped is not, because sound
+   has to survive a trip that silence does not: an unmute is a PERMISSION
+   REQUEST, WebKit answers a refusal by pausing the element, and the answer
+   depends on how close in wall-clock time the request is to a real gesture.
+   Four invariants hold the trip together and each has already been broken once:
+
+     - the default itself, read so that only an explicit "true" mutes;
+     - a refused unmute is never written to storage — it is the platform's
+       answer, not the viewer's, and verza-muted is shared with three other
+       players;
+     - the adopted instant player, which the poster tap itself created and
+       started, is unmuted AT ADOPTION, the closest to that tap this component
+       ever gets;
+     - nothing later re-mutes an element that is already audible, because the
+       second ask happens outside the window that made the first one a yes.
+
+   Measured in a scripted Chrome against the running app: before the change, a
+   poster tap left the adopted element playing with muted === true and the icon
+   reading "Unmute". After it, the same tap lands on muted === false. With
+   WebKit's refusal shimmed in, the picture keeps running, the icon says
+   "Unmute", verza-muted stays absent, and one tap on the speaker restores
+   audio. */
+{
+  const feedPlain = stripComments(feed);
+
+  /* (a) The default. Comments are stripped first on purpose: the initialiser
+     documents the `!== "false"` test it replaced, and matching that sentence
+     would re-trigger the very check it explains. */
+  const initBody =
+    feedPlain.match(/const \[muted, setMuted\] = useState\(\(\) => \{([\s\S]*?)\n {2}\}\);/)?.[1] ?? "";
+  check(
+    Boolean(initBody),
+    "audio: the feed's mute-state initialiser could not be located",
+    "Expected `const [muted, setMuted] = useState(() => { ... })` in EpisodeFeed. If it moved or was\n" +
+      "      renamed, update this check — it guards the switch that decides whether a poster tap has sound.",
+  );
+  if (initBody) {
+    check(
+      /localStorage\.getItem\("verza-muted"\)\s*===\s*"true"/.test(initBody) &&
+        !/!==\s*"false"/.test(initBody) &&
+        !/\breturn\s+true\b/.test(initBody),
+      "audio: the feed opens muted for a viewer who never asked for silence",
+      "`!== \"false\"` (and any `return true` fallback) makes the ABSENCE of a preference mean silence,\n" +
+        "      so every first-time viewer gets a silent drama and has to find a speaker button that fades\n" +
+        "      out. Test `=== \"true\"`: only an explicit stored choice mutes, and that choice still wins.",
+    );
+  }
+
+  /* (b) A platform refusal is not a preference. */
+  const refusedBody =
+    feedPlain.match(/const handleUnmuteRefused = useCallback\(\(\) => \{([\s\S]*?)\n {2}\}, \[\]\);/)?.[1] ?? "";
+  check(
+    Boolean(refusedBody) && !/localStorage|setItem/.test(refusedBody),
+    "audio: a refused unmute is written down as if the viewer had asked for it",
+    "handleUnmuteRefused must not touch storage. verza-muted is shared with ShortsFeed, HorizontalFeed\n" +
+      "      and Player, so persisting one WebKit refusal on one slide silences every player on the site\n" +
+      "      for that viewer, permanently — sound on by default would survive exactly one cold slide.",
+  );
+
+  const writers = [...feedPlain.matchAll(/setItem\("verza-muted"/g)].length;
+  const toggleBody = feedPlain.match(/function toggleMute\(\) \{([\s\S]*?)\n {2}\}/)?.[1] ?? "";
+  check(
+    writers === 1 && /setItem\("verza-muted"/.test(toggleBody),
+    "audio: something other than the viewer's own tap can persist a mute preference",
+    `The speaker button must be the ONLY writer of verza-muted (found ${writers} in EpisodeFeed). Any\n` +
+      `      other writer records a decision the viewer did not make, into a key three other players read.`,
+  );
+
+  /* (c) The adopted instant player is where a poster tap's sound comes from. */
+  const adoptBlock =
+    feedPlain.match(/const adopted = isActive \? adoptInstantPlayer[\s\S]*?const frameAlreadyReady/)?.[0] ?? "";
+  check(
+    Boolean(adoptBlock),
+    "audio: the instant-player adoption block could not be located",
+    "Expected the `adoptInstantPlayer(...)` branch in EpisodeSlide's layout effect. If it moved, update\n" +
+      "      this check — that branch is the only place a user gesture crosses into the episode route.",
+  );
+  if (adoptBlock) {
+    check(
+      /vid\.muted = false;/.test(adoptBlock) && /onUnmuteRefused\(\)/.test(adoptBlock),
+      "audio: the adopted player no longer carries the poster tap's sound",
+      "The instant player was created and started BY the tap and is already playing, so unmuting it at\n" +
+        "      adoption needs no play permission and happens in the first pre-paint commit after the\n" +
+        "      navigation. Waiting for the activation effect instead costs the sourceReady round trip plus\n" +
+        "      the play() resolve (~450ms measured) and spends a budget WebKit counts in whole seconds.",
+    );
+  }
+
+  /* (d) Nothing may blanket-mute an element that is already audible. */
+  const tryPlayPrefix =
+    feedPlain.match(/const tryPlay = useCallback\(\(vid: HTMLVideoElement\) => \{([\s\S]*?)const p = vid\.play\(\);/)?.[1] ??
+    "";
+  check(
+    Boolean(tryPlayPrefix),
+    "audio: tryPlay's preamble could not be located",
+    "Expected `const tryPlay = useCallback((vid: HTMLVideoElement) => {` ... `const p = vid.play();`.",
+  );
+  if (tryPlayPrefix) {
+    check(
+      !/^\s*vid\.muted = true;\s*$/m.test(tryPlayPrefix) &&
+        /if\s*\([^)]*\)\s*vid\.muted = true;/.test(tryPlayPrefix),
+      "audio: tryPlay re-mutes a player that was already audible",
+      "An adopted slide can arrive already unmuted, because adoption asked while the tap was fresh.\n" +
+        "      Muting it here throws that yes away and re-asks ~450ms later, outside the window that\n" +
+        "      produced it; a second ask can be refused, and a refusal PAUSES the element. Guard the mute\n" +
+        "      on the element not already playing unmuted — every other path still starts muted.",
+    );
+  }
+
+  check(
+    !/if \(vid\) vid\.muted = muted;/.test(feedCode),
+    "audio: the mute sync can strand a paused element",
+    "`vid.muted = muted` is a plain assignment one way and a PERMISSION REQUEST the other. With sound\n" +
+      "      on by default it now runs at mount, before this element has a gesture to point to; WebKit\n" +
+      "      answers by pausing, and the one-liner never noticed — frozen picture, speaker still promising\n" +
+      "      sound. Restore muted playback and report the refusal instead.",
+  );
+
+  /* (e) The speaker icon must survive hydration.
+
+     Found while flipping the default and measured on both sides of it: the two
+     icons are structurally different SVGs (two <line>s against two <path>s), so
+     driving the button straight off a localStorage-derived value produces
+     "Hydration failed ... this tree will be regenerated on the client" on the
+     episode route — the whole feed thrown away and rebuilt on the page where
+     instant play lives. With the old muted-first default it fired for viewers
+     who had turned sound ON; with sound on by default it fires for viewers who
+     had turned it OFF. The audio must still be decided on the first render;
+     only the drawing waits for hydration. */
+  const muteButton = feedPlain.match(/<button\s+onClick=\{toggleMute\}[\s\S]*?<\/button>/)?.[0] ?? "";
+  check(
+    Boolean(muteButton),
+    "audio: the mute button could not be located",
+    "Expected `<button onClick={toggleMute}> ... </button>` in EpisodeFeed.",
+  );
+  if (muteButton) {
+    const flag = muteButton.match(/aria-label=\{(\w+) \?/)?.[1] ?? "";
+    const flagDef = flag ? (feedPlain.match(new RegExp(`const ${flag} = ([^;]+);`))?.[1] ?? "") : "";
+    check(
+      flag !== "" &&
+        flag !== "muted" &&
+        /\bmuted\b/.test(flagDef) &&
+        /&&/.test(flagDef) &&
+        /useSyncExternalStore/.test(feedPlain),
+      "audio: the speaker icon is drawn from a value the server cannot know",
+      "The muted and unmuted icons are different ELEMENTS, so a first client render that disagrees with\n" +
+        "      the HTML is not a patchable attribute mismatch — React regenerates the entire episode tree,\n" +
+        "      on the one route where instant play lives. Render the server's icon during hydration and the\n" +
+        "      real one after (useSyncExternalStore's server snapshot). `muted` itself stays correct from\n" +
+        "      the first render, so the audio decision is never deferred.",
+    );
+  }
+
+  /* (f) Every automatic unmute must own its refusal. */
+  const lines = feedPlain.split("\n");
+  const orphans = [];
+  lines.forEach((line, i) => {
+    if (!/vid\.muted = false;/.test(line)) return;
+    const window = lines.slice(i, i + 12).join("\n");
+    if (!/onUnmuteRefused\(\)/.test(window)) orphans.push(i + 1);
+  });
+  check(
+    orphans.length === 0,
+    "audio: an unmute attempt has no refusal path",
+    `Every automatic unmute must handle WebKit pausing the element: restore muted playback, resume it,\n` +
+      `      and tell the feed so the speaker icon stops claiming sound over silence. Unmutes with no\n` +
+      `      onUnmuteRefused() within 12 lines (approx. line numbers in the comment-stripped source):\n` +
+      `      ${orphans.join(", ")}`,
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  22. EVERY PLAYER AGREES ABOUT SOUND                                 */
+/* ------------------------------------------------------------------ */
+
+/* BUG THIS CATCHES: the four players share ONE localStorage key, verza-muted,
+   and used to disagree about what an absent value means. When the episode feed
+   was flipped to sound-on-by-default, the shorts rail, the horizontal rail and
+   the standalone player were left reading `!== "false"` — so the same viewer got
+   audio in one player and silence in another, from the same stored state.
+
+   The test is `=== "true"`: only an explicit stored preference mutes. An absent
+   value is a first-time viewer, and they should hear the show. */
+{
+  const PLAYERS = [
+    ["components/EpisodeFeed.tsx", "the episode rail"],
+    ["components/ShortsFeed.tsx", "the shorts rail"],
+    ["components/HorizontalFeed.tsx", "the horizontal rail"],
+    ["components/Player.tsx", "the standalone player"],
+  ];
+  const wrong = PLAYERS.filter(([f]) => {
+    if (!existsSync(resolve(ROOT, f))) return false;
+    const src = stripComments(read(f));
+    return /verza-muted"\)\s*!==\s*"false"/.test(src);
+  });
+  check(
+    wrong.length === 0,
+    "audio: a player still defaults to silence",
+    `They share one key, so they must agree on what an absent value means. Test === "true", not\n` +
+      `      !== "false". Offenders: ${wrong.map(([f, why]) => `${f} (${why})`).join(", ")}`,
+  );
+
+  const reads = PLAYERS.filter(([f]) => existsSync(resolve(ROOT, f)))
+    .filter(([f]) => /verza-muted"\)\s*===\s*"true"/.test(stripComments(read(f))));
+  check(
+    reads.length >= 4,
+    "audio: a player stopped reading the shared mute preference",
+    `Every player must honour the same stored preference or the setting means nothing. Only\n` +
+      `      ${reads.length} of 4 read it.`,
+  );
+}
+
+/* BUG THIS CATCHES: the instant player claimed the poster tap's gesture only
+   inside getHls().then(...), which resolves after a dynamic import — hundreds of
+   milliseconds later, long outside the gesture. WebKit grants
+   removeBehaviorRestrictionsAfterFirstUserGesture for an element's LIFETIME when
+   play() is called during the gesture, and EpisodeFeed adopts this exact
+   element. Claiming it synchronously is what lets the adopted player be unmuted
+   without asking again, which is the whole of "sound starts when you tap the
+   poster". */
+{
+  // Comments stripped: the block above discusses getHls().then(...) in prose,
+  // and matching that would make the check compare against its own comment.
+  const ip = stripComments(read("lib/instant-player.ts"));
+  const appendAt = ip.indexOf("document.body.appendChild(video)");
+  const syncPlay = ip.indexOf("video.play().catch(() => {})");
+  const hlsThen = ip.indexOf("getHls().then");
+  check(
+    appendAt !== -1 && syncPlay !== -1 && syncPlay > appendAt && syncPlay < hlsThen,
+    "instant player: the poster tap's gesture is not claimed synchronously",
+    "A muted play() must run in the same tick as the tap, after the element is in the DOM and BEFORE\n" +
+      "      the hls import resolves. Inside getHls().then() it is too late — the gesture is gone and the\n" +
+      "      adopted element has to negotiate for permission the tap could have granted outright.",
   );
 }
 

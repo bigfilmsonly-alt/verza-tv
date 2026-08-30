@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect, useLayoutEffect, useCallback, useMemo } from "react";
+import { useRef, useState, useEffect, useLayoutEffect, useCallback, useMemo, useSyncExternalStore } from "react";
 import Image from "next/image";
 import type HlsType from "hls.js";
 import { adoptInstantPlayer } from "@/lib/instant-player";
@@ -69,6 +69,16 @@ function getHls(): Promise<typeof HlsType | null> {
 // the bundler's chunk loader (the promise never settles), which leaves every
 // video waiting on hls.js forever.
 if (typeof window !== "undefined") setTimeout(() => { void getHls(); }, 0);
+
+/* ---- "Are we past hydration yet?" ----------------------------------
+   React's own mechanism for a value the server cannot know: the hydrating
+   render is handed the server snapshot, so the first client render matches the
+   HTML exactly, and React re-renders with the client snapshot once hydration
+   is done. Stable module-scope functions, because a new getSnapshot identity on
+   every render makes useSyncExternalStore loop. */
+const subscribeNever = () => () => {};
+const snapshotHydrated = () => true;
+const snapshotServer = () => false;
 
 /* ---- Haptic feedback ---- */
 function haptic() {
@@ -208,6 +218,17 @@ function EpisodeSlide({
   const hlsRef = useRef<HlsType | null>(null);
   const attachedRef = useRef(false);
   const mutedRef = useRef(muted);
+  /* True once WebKit has refused an automatic unmute on THIS element. Every
+     automatic attempt checks it, so a refusal is asked once and not churned:
+     re-asking pauses the element again on each try, and each restore is another
+     play() on a decoder that is already under pressure. Cleared only when the
+     viewer explicitly unmutes, because that tap is a fresh gesture and a fresh
+     gesture is the one thing WebKit always honours. */
+  const unmuteRefusedRef = useRef(false);
+  /* Previous value of the `muted` prop, so the sync effect below can tell an
+     explicit unmute (true -> false, which only toggleMute produces) from the
+     mount pass of a feed that simply starts with sound on. */
+  const prevMutedRef = useRef(muted);
   const [sourceReady, setSourceReady] = useState(false);
   const [playing, setPlaying] = useState(false);
   // True once playback has begun; stays true through pauses so the paused frame
@@ -409,6 +430,38 @@ function EpisodeSlide({
       const vid = adopted.video;
       vid.dataset.verzaFixed = "1";
       vid.muted = true;
+      /* THIS is where a poster tap gets its sound, and it is the only place on
+         the site that can.
+
+         The instant player was created by the tap itself (lib/instant-player),
+         and it is ALREADY PLAYING by the time we get here — so an unmute needs
+         only the audio-rate-change permission, not a play permission, and this
+         line runs in the first pre-paint commit after the navigation: the
+         closest to that tap in wall-clock time that any code in this component
+         ever gets. Waiting for the activation effect instead costs the
+         sourceReady round trip plus the play() resolve, measured at ~450ms on
+         the slide that matters most, and spends a budget WebKit counts in
+         whole seconds.
+
+         A cold attach cannot do this. It has no element yet, nothing is
+         playing, and autoplay policy forces the muted-then-unmute dance in
+         tryPlay below. The adopted element is the one entry path that carries
+         a gesture across the navigation, which is exactly the path a poster
+         tap takes — the way nearly every viewer starts watching. */
+      if (!mutedRef.current) {
+        const wasPlaying = !vid.paused;
+        vid.muted = false;
+        /* Refused: WebKit pauses the element synchronously rather than letting
+           it play unheard. Keep the picture, tell the feed the truth so the
+           speaker icon does not claim sound over silence, and do not ask
+           again until the viewer taps. */
+        if (wasPlaying && vid.paused) {
+          vid.muted = true;
+          unmuteRefusedRef.current = true;
+          onUnmuteRefused();
+          vid.play().catch(() => {});
+        }
+      }
       // The feed root (.episode-immersive) is an OPAQUE z-50 layer that would
       // paint a black wall over this body-level z-10 video. Make the root and
       // this slide transparent so the movie shows through, while everything
@@ -571,7 +624,17 @@ function EpisodeSlide({
 
   // Fire play() on a video element — shared by attach + activation paths.
   const tryPlay = useCallback((vid: HTMLVideoElement) => {
-    vid.muted = true; // iOS requires muted for autoplay
+    /* iOS requires muted for autoplay — but ONLY for an element that has to be
+       started. An adopted instant player is already playing and may already be
+       audible, because the adoption above unmuted it while the poster tap was
+       still fresh. Muting it here and unmuting again in the play() promise
+       throws that away and re-asks WebKit ~450ms later, outside the window that
+       made the first answer a yes. A second ask can be refused, and a refusal
+       pauses the element, so the blanket mute could turn a working audible
+       slide into a silent one. Leave an already-audible element alone; every
+       other path still starts muted, exactly as the policy demands. */
+    const alreadyAudible = !vid.muted && !vid.paused;
+    if (!alreadyAudible) vid.muted = true;
     // A token refresh reuses the same video element/source slot and restores
     // the exact playhead. It never creates an extra player or restarts a paid
     // episode from zero after an authenticated retry.
@@ -630,7 +693,7 @@ function EpisodeSlide({
 
            The poster crossfade stays in onFirstFrame below, because that
            genuinely does need real pixels. Only the audio moved. */
-        if (!mutedRef.current) {
+        if (!mutedRef.current && !unmuteRefusedRef.current) {
           vid.muted = false;
           /* iOS pauses a muted-autoplayed element when the unmute is refused.
              Keep the picture by restoring muted playback — but tell React the
@@ -642,6 +705,7 @@ function EpisodeSlide({
              always accepts. */
           if (vid.paused) {
             vid.muted = true;
+            unmuteRefusedRef.current = true;
             onUnmuteRefused();
             vid.play().catch(() => {});
           }
@@ -656,7 +720,7 @@ function EpisodeSlide({
         trackEpisodeStart(seriesSlug, episode.number);
       }).catch(() => {});
     }
-  }, [isResumeTarget, resumePositionS, seriesSlug, episode.number]);
+  }, [isResumeTarget, resumePositionS, seriesSlug, episode.number, onUnmuteRefused]);
 
   /* Last-resort recovery: tear the player down completely and re-attach.
      Bounded (2 per slide) so a truly broken stream can't loop forever. */
@@ -978,11 +1042,33 @@ function EpisodeSlide({
     }
   }, [isActive, sourceReady, blocked, isNext, tryPlay]);
 
-  /* Step 3: Sync muted prop instantly to video element */
+  /* Step 3: Sync muted prop instantly to video element.
+
+     Muting is always permitted, so that half is a plain assignment. UNMUTING
+     is a permission request, and this effect now makes one: with sound on by
+     default it runs at mount, before any gesture this element can point to.
+     WebKit answers a refusal by PAUSING the element, and the old one-liner had
+     no idea that had happened — it left a frozen picture with the speaker icon
+     still promising sound. Restore muted playback and report it instead. */
   useEffect(() => {
     const vid = videoRef.current;
-    if (vid) vid.muted = muted;
-  }, [muted]);
+    const prevMuted = prevMutedRef.current;
+    prevMutedRef.current = muted;
+    if (!vid) return;
+    if (muted) { vid.muted = true; return; }
+    /* true -> false only ever comes from toggleMute, i.e. from a finger.
+       That is a fresh gesture, so a previous refusal no longer applies. */
+    if (prevMuted) unmuteRefusedRef.current = false;
+    else if (unmuteRefusedRef.current) return;
+    const wasPlaying = !vid.paused;
+    vid.muted = false;
+    if (wasPlaying && vid.paused) {
+      vid.muted = true;
+      unmuteRefusedRef.current = true;
+      onUnmuteRefused();
+      vid.play().catch(() => {});
+    }
+  }, [muted, onUnmuteRefused]);
 
   /* Time update → progress bar + auto-advance on ended */
   useEffect(() => {
@@ -1479,9 +1565,17 @@ export default function EpisodeFeed({
      the viewer's next tap RESTORES audio instead of muting an already-silent
      video. That tap is itself a fresh user gesture, which WebKit always
      honours, so it is the reliable way back. */
+  /* Deliberately does NOT write verza-muted. A refusal is the platform's
+     answer for one element in one moment; it is not something the viewer
+     asked for, and it must never be recorded as if it were. That write was
+     harmless while the feed defaulted to silence — it stored the value the
+     default already had. With sound on by default it is a trap: verza-muted is
+     shared with ShortsFeed, HorizontalFeed and Player, so a single refusal on
+     a single slide would have silenced every player on the site for that
+     viewer, permanently, and the founder's "it should just play" would have
+     survived exactly one cold slide. Only toggleMute persists. */
   const handleUnmuteRefused = useCallback(() => {
     setMuted(true);
-    try { localStorage.setItem("verza-muted", "true"); } catch {}
   }, []);
 
   const [activeIndex, setActiveIndex] = useState(() => {
@@ -1502,18 +1596,34 @@ export default function EpisodeFeed({
     if (activeIndex !== (idx >= 0 ? idx : 0)) queueMicrotask(() => setHasSwiped(true));
   }, [activeIndex, episodes, startEpisode]);
   const [muted, setMuted] = useState(() => {
-    /* Guarded because localStorage does not merely return null when site data is
-       blocked — accessing it THROWS. Safari's "Block All Cookies", Firefox's
+    /* SOUND IS ON BY DEFAULT. Tapping a poster is the viewer asking to watch
+       something, and a drama arriving silent reads as broken: the founder's
+       report was that you should not have to turn the sound on. This is the
+       switch. It only decides what the feed WANTS; the element still starts
+       muted and the unmute is a request the platform can refuse, handled per
+       slide above.
+
+       It is a default, not an override. `=== "true"` means only an explicit
+       stored preference mutes, so a viewer who pressed the speaker stays muted
+       across sessions and across players — verza-muted is shared. `!== "false"`
+       (the old test) inverted that: absence of a preference meant silence, so
+       every first-time viewer was muted and had to find the button. Nothing
+       writes "true" now except the viewer's own tap, so nothing but the viewer
+       can turn this off.
+
+       Guarded because localStorage does not merely return null when site data
+       is blocked — accessing it THROWS. Safari's "Block All Cookies", Firefox's
        strictest mode and enterprise policy all do this. A throw inside a
        useState initialiser happens during render, so it propagated to the route
        error boundary and the player never mounted at all: the viewer got an
-       error page instead of a video, for a preference read. Muted is the safe
-       default and is what autoplay policy requires anyway. */
-    if (typeof window === "undefined") return true;
+       error page instead of a video, for a preference read. The fallback is the
+       default, because a viewer we cannot read a preference for is a viewer who
+       has not expressed one. */
+    if (typeof window === "undefined") return false;
     try {
-      return localStorage.getItem("verza-muted") !== "false";
+      return localStorage.getItem("verza-muted") === "true";
     } catch {
-      return true;
+      return false;
     }
   });
   // $1.99 "Unlock Full Series" popup — pops up when the viewer reaches the first
@@ -2079,10 +2189,40 @@ export default function EpisodeFeed({
     };
   }, [episodes, seriesSlug, seriesTitle, posterUrl]);
 
+  /* The speaker ICON, unlike the audio itself, has to survive hydration.
+
+     The two icons are structurally different SVGs — two <line>s against two
+     <path>s — so a first client render that disagrees with the server is not a
+     patchable attribute mismatch, it is "Hydration failed ... this tree will be
+     regenerated on the client", measured in a scripted Chrome on this very
+     route. The whole episode tree is thrown away and rebuilt, on the page where
+     instant play lives.
+
+     The preference is only knowable on the client, so the first client render
+     must render what the SERVER rendered — the sound-on icon — and the real one
+     only once hydration is finished. useSyncExternalStore is React's own way to
+     say that: the hydrating render gets the server snapshot, and React
+     re-renders with the client snapshot on its own afterwards. The AUDIO is not
+     deferred: `muted` is correct from the very first render, so a viewer who
+     chose silence gets silence, and only the drawing waits.
+
+     This mismatch predates the sound-on default and was measured on both sides
+     of it. It simply changed which viewers met it: with the old muted-first
+     default it fired for everyone who had turned sound ON, and with this one it
+     would have fired for everyone who had turned it OFF. Neither is acceptable
+     on this route, so it is fixed rather than moved. */
+  const hydrated = useSyncExternalStore(subscribeNever, snapshotHydrated, snapshotServer);
+  const showMutedIcon = hydrated && muted;
+
   function toggleMute() {
     const next = !muted;
     setMuted(next);
-    localStorage.setItem("verza-muted", String(next));
+    /* The ONLY writer of verza-muted, and now the only thing that can silence
+       the feed for good. Guarded: setItem throws outright when site data is
+       blocked, and an unguarded throw here skipped the haptic and escaped the
+       click handler for what is only a preference save. The toggle itself must
+       still work in that browser, it simply will not be remembered. */
+    try { localStorage.setItem("verza-muted", String(next)); } catch {}
     haptic();
   }
 
@@ -2425,9 +2565,9 @@ export default function EpisodeFeed({
           pointerEvents: showActionRail ? "auto" : "none",
           transition: showActionRail ? "opacity 0.2s cubic-bezier(0.22, 1, 0.36, 1)" : "opacity 0.6s ease",
         }}
-        aria-label={muted ? "Unmute" : "Mute"}
+        aria-label={showMutedIcon ? "Unmute" : "Mute"}
       >
-        {muted ? (
+        {showMutedIcon ? (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
             <line x1="23" y1="9" x2="17" y2="15" /><line x1="17" y1="9" x2="23" y2="15" />

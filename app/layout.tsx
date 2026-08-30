@@ -134,6 +134,12 @@ export default function RootLayout({
             network request at all unless this device holds guest state no
             account has absorbed yet. */}
         <GuestStateSync />
+        {/* Both cart providers stay GLOBAL even though their UI is confined to
+            the shop (above). CartProvider holds its items in React state with
+            no storage behind them, so scoping it to the shop route would empty
+            a real cart the moment a shopper stepped out to browse and came
+            back. AmazonBagProvider is also read by the product tiles on /shop
+            and /amazon. Neither renders anything on its own. */}
         <CartProvider>
         <AmazonBagProvider>
         <LangProvider>
@@ -152,14 +158,22 @@ export default function RootLayout({
               <BottomNav />
             </div>
 
-            {/* Amazon bag — follows shoppers across browse, search and /amazon.
-                Lives INSIDE the frame so that on desktop, where the nav is
-                docked rather than fixed, it anchors to the phone instead of
+            {/* Shop chrome: the Amazon bag (orange pill + drawer) and the
+                Stripe merch cart drawer.
+
+                Both render ONLY on the surfaces that sell — /shop,
+                /shop/[slug], /amazon — via isShopSurface() in AmazonBag.tsx.
+                They used to float over the whole app from here: the bag pill
+                sat on top of the episode title on the player and its drawer
+                covered half the video, and because the bag persists in
+                localStorage one add followed the viewer everywhere.
+
+                Both live INSIDE the frame so that on desktop, where the nav is
+                docked rather than fixed, they anchor to the phone instead of
                 sliding under the nav. */}
             <AmazonBag />
+            <CartDrawer />
           </div>
-
-          <CartDrawer />
         </LangProvider>
         </AmazonBagProvider>
         </CartProvider>

@@ -168,11 +168,19 @@ export default function ShortsFeed({ series }: { series: Series[] }) {
      before the correction lands. localStorage can throw outright when site data
      is blocked, so the read is guarded. */
   const [muted, setMuted] = useState(() => {
-    if (typeof window === "undefined") return true;
+    /* Sound ON by default, matching the episode feed. Only an explicit stored
+       "true" mutes, so a viewer who pressed the speaker stays muted. The old
+       test (!== "false") defaulted to SILENCE for anyone with no stored
+       preference, which is every first-time viewer.
+
+       Both fallbacks return false for the same reason: a server render and a
+       browser with site data blocked are both "no stored preference", and that
+       is a viewer who should hear the show, not a viewer who asked for silence. */
+    if (typeof window === "undefined") return false;
     try {
-      return localStorage.getItem("verza-muted") !== "false";
+      return localStorage.getItem("verza-muted") === "true";
     } catch {
-      return true;
+      return false;
     }
   });
   const [savedSlugs, setSavedSlugs] = useState<Set<string>>(new Set());
