@@ -1793,11 +1793,17 @@ export default function EpisodeFeed({
     const span = horizontal ? container.clientWidth : container.clientHeight;
     if (span <= 0) return;
     const target = (activeIndex - railStart) * span;
-    if (horizontal) {
-      if (Math.abs(container.scrollLeft - target) > 1) container.scrollLeft = target;
-    } else if (Math.abs(container.scrollTop - target) > 1) {
-      container.scrollTop = target;
-    }
+    const current = horizontal ? container.scrollLeft : container.scrollTop;
+    if (Math.abs(current - target) <= 1) return;
+    /* behavior: "instant" explicitly, and not merely inherited. The container
+       opts out of the global smooth rule above, but stating it here means the
+       recycle cannot silently start animating again if that style is ever lost,
+       reordered or overridden. An animated recycle is a visible correction, and
+       it emits scroll events that re-arm the settle timer while the viewer is
+       already flicking again. */
+    container.scrollTo(
+      horizontal ? { left: target, behavior: "instant" } : { top: target, behavior: "instant" },
+    );
   }, [activeIndex, railStart, horizontal, episodes.length]);
 
   /* Scroll to start episode on mount. Look the slide up by data-index — the
@@ -2211,6 +2217,18 @@ export default function EpisodeFeed({
                 scrollSnapType: "x mandatory",
                 scrollbarWidth: "none",
                 overflowAnchor: "none",
+                /* Opt OUT of the global `scroll-behavior: smooth` in
+                   app/globals.css. Measured in a real browser on production:
+                   with smooth inherited, `container.scrollTop = target` does not
+                   jump — it ANIMATES, and the synchronous read still returns the
+                   old value. Every programmatic reposition in this feed was
+                   therefore a visible one-viewport slide rather than the
+                   invisible recycle it was written to be, and while that
+                   animation runs it keeps emitting scroll events that re-arm the
+                   settle timer and fight the viewer's next flick. That is the
+                   correction the founder can see. Explicit behaviors still win,
+                   so auto-advance keeps its deliberate smooth scroll. */
+                scrollBehavior: "auto",
                 /* Contain the fling. Without this a hard flick that reaches
                    either end hands its remaining momentum to the page behind
                    the rail, which on iOS is what produces the rubber-band that
@@ -2229,6 +2247,18 @@ export default function EpisodeFeed({
                 // Browser scroll anchoring fights the spacer resizes that keep
                 // the virtual window's geometry stable — disable it.
                 overflowAnchor: "none",
+                /* Opt OUT of the global `scroll-behavior: smooth` in
+                   app/globals.css. Measured in a real browser on production:
+                   with smooth inherited, `container.scrollTop = target` does not
+                   jump — it ANIMATES, and the synchronous read still returns the
+                   old value. Every programmatic reposition in this feed was
+                   therefore a visible one-viewport slide rather than the
+                   invisible recycle it was written to be, and while that
+                   animation runs it keeps emitting scroll events that re-arm the
+                   settle timer and fight the viewer's next flick. That is the
+                   correction the founder can see. Explicit behaviors still win,
+                   so auto-advance keeps its deliberate smooth scroll. */
+                scrollBehavior: "auto",
                 /* Contain the fling. Without this a hard flick that reaches
                    either end hands its remaining momentum to the page behind
                    the rail, which on iOS is what produces the rubber-band that

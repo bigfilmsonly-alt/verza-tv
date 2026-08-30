@@ -2744,7 +2744,7 @@ check(
 );
 
 check(
-  /useLayoutEffect\(\(\) => \{[\s\S]{0,700}?scrollTop = target/.test(feedCode),
+  /useLayoutEffect\(\(\) => \{[\s\S]{0,900}?container\.scrollTo\(/.test(feedCode),
   "scroll: the recycle is not re-centred before paint",
   "useLayoutEffect and an instant assignment are both load-bearing. A passive effect or a smooth\n" +
     "      scroll lets one frame through at the wrong offset, and that frame is the visible jump.",
@@ -2841,6 +2841,53 @@ check(
     tooMany.length === 0,
     "scroll: more than three slides exist in the scrollport",
     `Previous, current and next is the whole scrollport. ${tooMany.slice(0, 5).join(", ")}`,
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  19. THE FEED'S PROGRAMMATIC SCROLLS ARE INSTANT                     */
+/* ------------------------------------------------------------------ */
+
+/* BUG THIS CATCHES, measured in a real browser on production rather than
+   reasoned about: app/globals.css applies `* { scroll-behavior: smooth }` to
+   EVERY element, the feed scroller included. Under that rule
+   `container.scrollTop = target` does not jump — it ANIMATES, and the
+   synchronous read still returns the old value. Proven live: the identical
+   assignment returned 0 with the rule inherited and 696 with the element set to
+   `scroll-behavior: auto`.
+
+   So every programmatic reposition in the feed was a visible one-viewport slide
+   instead of the invisible recycle it was written to be, and while that
+   animation ran it kept emitting scroll events that re-armed the settle timer
+   and fought the viewer's next flick. On a phone, where real momentum is also
+   in play, that is the rail appearing to move on its own.
+
+   components/CategoryTabs.tsx already carries a comment recording the same trap
+   from a previous encounter, which is how a global rule like this claims a
+   second victim. */
+{
+  check(
+    (feedCode.match(/scrollBehavior: "auto"/g) || []).length >= 2,
+    "scroll: the feed inherits the global smooth-scroll rule",
+    "app/globals.css sets scroll-behavior:smooth on *, which turns every scrollTop assignment in this\n" +
+      "      component into an animation. Both the vertical and horizontal branches must opt out.",
+  );
+
+  check(
+    /container\.scrollTo\(\s*horizontal \? \{ left: target, behavior: "instant" \} : \{ top: target, behavior: "instant" \}/.test(feedCode),
+    "scroll: the recycle does not state its behaviour explicitly",
+    "Relying on the container's style alone means the recycle silently starts animating again if that\n" +
+      "      style is lost, reordered or overridden. State instant at the call site.",
+  );
+
+  /* The global rule is still there and still a hazard for the next component
+     that assigns a scroll offset. Name it so the next person measures rather
+     than debugging it from scratch. */
+  check(
+    /scroll-behavior:\s*smooth/.test(read("app/globals.css")),
+    "scroll: the global smooth rule was removed without updating this note",
+    "Not a defect — a signpost. If `* { scroll-behavior: smooth }` is ever deleted from globals.css,\n" +
+      "      the opt-outs above become redundant and this check should be retired with it.",
   );
 }
 
