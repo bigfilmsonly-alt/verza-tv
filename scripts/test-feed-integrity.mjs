@@ -1079,13 +1079,26 @@ check(
       "      speed is the thing testers named as already working, and this is where it comes from.",
   );
 
-  check(
-    /startInstantPlayer/.test(read("components/PlayNowLink.tsx")) &&
-      /<PlayNowLink/.test(read("app/series/[slug]/page.tsx")),
-    "routing: the show page's play button lost its prewarm",
-    "The show page is the landing page for search traffic, so its Play CTA is a real entry into the\n" +
-      "      player and must prewarm exactly as a poster tap does.",
-  );
+  /* Follows the indirection rather than matching a tag name. The show page's
+     CTA is ResumeAwarePlay, which renders PlayNowLink internally so it can swap
+     the destination for a resume without moving or restyling the button. The
+     prewarm must survive that wrapping — asserting on the literal <PlayNowLink>
+     in the page would fail on a refactor that kept the behaviour, and pass on
+     one that kept the tag and dropped the prewarm. */
+  {
+    const showPage = read("app/series/[slug]/page.tsx");
+    const wrapper = /<ResumeAwarePlay/.test(showPage) ? read("components/ResumeAwarePlay.tsx") : showPage;
+    check(
+      /startInstantPlayer/.test(read("components/PlayNowLink.tsx")) &&
+        /<PlayNowLink/.test(wrapper) &&
+        /playbackId=/.test(wrapper),
+      "routing: the show page's play button lost its prewarm",
+      "The show page is the landing page for search traffic, so its Play CTA is a real entry into the\n" +
+        "      player and must prewarm exactly as a poster tap does. A resume deliberately passes no\n" +
+        "      playbackId, because prewarming from 0:00 while playback starts at ?t= wastes the fetch —\n" +
+        "      but the cold path must still carry it.",
+    );
+  }
 
   /* BUG THIS CATCHES: the prewarm needs a playback id, and the obvious way to
      get one is to look it up in MUX_MAP unguarded. The public projection carries
@@ -2505,6 +2518,182 @@ check(
   "Escape < and > before injecting JSON into <script>. It does not change the parsed value and it\n" +
     "      removes the whole class of script-context breakout from every page that emits JSON-LD.",
 );
+
+/* ------------------------------------------------------------------ */
+/*  16. ONE FLICK IS ONE SLIDE — the scroll primitive, not the paywall  */
+/* ------------------------------------------------------------------ */
+
+/* BUG THIS CATCHES: the founder reproduces the counter runaway in RED CARPET,
+   which has no paywall, no locked slides and no freeEpisodes boundary. That is
+   the proof the defect was never in the entitlement bound.
+
+   The active index was derived from IntersectionObserver ratio crossings, and
+   those fire CONTINUOUSLY while momentum is still carrying the container. A
+   hard flick passes through slides in order, so every step it reports is
+   adjacent and legal, and the adjacency guard waves each one through: the index
+   walks forward one accepted step per slide the momentum crosses.
+
+   Bounding the rail by entitlement removed the slides there were to run into on
+   a PAID title. Red Carpet's two titles are wholly free (freeEpisodes ===
+   episodeCount), so their rail is the full 12 and 13 slides and the mechanism
+   is completely exposed. Same defect, different surface, no paywall in sight.
+
+   scrollSnapStop: "always" cannot be the enforcement. It is a hint, and iOS
+   does not honour it through a momentum fling. */
+
+check(
+  /const commitSettledIndex = useCallback\(/.test(feedCode),
+  "scroll: no settle handler owns the active index",
+  "The index must be derived from a position that has stopped moving. Deriving it from observer\n" +
+    "      crossings means a fling reports every slide it passes, and each report is adjacent and legal.",
+);
+
+check(
+  /if \(inFlightRef\.current && !firstSettle\) continue;/.test(feedCode),
+  "scroll: the observer can still move the index mid-flight",
+  "The IntersectionObserver may do visibility work during momentum but must not write the index.\n" +
+    "      Removing this gate restores the runaway on every surface, including ones with no paywall.",
+);
+
+check(
+  /gestureAnchorRef\.current = activeIndexRef\.current/.test(feedCode) &&
+    /anchor !== null && Math\.abs\(idx - anchor\) > 1/.test(feedCode),
+  "scroll: a flick is not clamped to one slide",
+  "The landing index must be measured against where the finger went down, and put back if it\n" +
+    "      overshot. Only a real input opens a gesture, so programmatic scrolls stay unclamped.",
+);
+
+check(
+  (feedCode.match(/overscrollBehavior: "contain"/g) || []).length >= 2,
+  "scroll: the rail does not contain its own fling",
+  "Both the vertical and horizontal branches need overscroll containment, or momentum reaching\n" +
+    "      either end is handed to the page behind the immersive layer.",
+);
+
+/* The clamp, EXECUTED against the real Red Carpet rail lengths rather than
+   grepped. This is the test that would have failed before the fix. */
+{
+  const soon = catalog.catalog.filter((s) => s.status === "live" && s.freeEpisodes >= s.episodeCount);
+  const redCarpet = catalog.catalog.filter((s) => s.slug === "exes-premiere" || s.slug === "love-awards");
+  check(
+    redCarpet.length === 2 && redCarpet.every((s) => s.freeEpisodes >= s.episodeCount),
+    "scroll: the Red Carpet titles are no longer wholly free",
+    `The reproduction surface depends on them having no paywall boundary, so their rail is full\n` +
+      `      length. Got: ${redCarpet.map((s) => `${s.slug} ${s.freeEpisodes}/${s.episodeCount}`).join(", ")}`,
+  );
+
+  // The shipped clamp, lifted verbatim in behaviour.
+  const clamp = (anchor, landing, len) => {
+    let idx = Math.max(0, Math.min(len - 1, landing));
+    if (anchor !== null && Math.abs(idx - anchor) > 1) {
+      idx = Math.max(0, Math.min(len - 1, anchor + Math.sign(idx - anchor)));
+    }
+    return idx;
+  };
+
+  const cases = [];
+  // Only rails long enough for "more than one slide" to mean anything. A
+  // one-episode title cannot demonstrate a runaway.
+  for (const s of redCarpet.concat(soon).filter((x) => x.episodeCount >= 5).slice(0, 6)) {
+    const len = s.episodeCount;
+    // A hard fling from rest that momentum carries to the end of the rail.
+    cases.push([s.slug, clamp(0, len - 1, len), 1]);
+    // A fling backwards from the far end.
+    cases.push([s.slug, clamp(len - 1, 0, len), len - 2]);
+    // A legitimate single step must survive untouched.
+    cases.push([s.slug, clamp(3, 4, len), 4]);
+    // A programmatic scroll (no gesture, anchor null) is never clamped.
+    cases.push([s.slug, clamp(null, len - 1, len), len - 1]);
+  }
+  const bad = cases.filter(([, got, want]) => got !== want);
+  check(
+    bad.length === 0 && cases.length > 0,
+    "scroll: the flick clamp does not bound travel to one slide",
+    `A fling across a full rail must land one slide from the anchor, a single step must pass through\n` +
+      `      untouched, and a programmatic scroll must not be clamped at all. ${bad.length} case(s) wrong.`,
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  17. CONTINUE WATCHING DOES NOT REARRANGE THE CATALOGUE              */
+/* ------------------------------------------------------------------ */
+
+/* BUG THIS CATCHES: stop a Drama title halfway, open Espanol, and that Drama
+   title was sitting at the top of Espanol. The row rendered on every tab except
+   Tubi and Creators, so watch history followed the viewer into sections it had
+   nothing to do with — and on a language tab it read as the wrong language
+   leaking in.
+
+   Precisely what was and was not happening, because the distinction decides the
+   fix: the grid was NEVER reordered. `continueWatching` is not referenced by
+   `filtered` or `gridItems`. What leaked was the ROW, rendered above a grid it
+   did not belong to. */
+{
+  const browse = read("components/BrowsePage.tsx");
+
+  check(
+    /activeTab === HOME_TAB &&/.test(stripComments(browse)),
+    "continue watching: the row is not confined to Home",
+    "It must render on the landing view only. A section page shows that section's catalogue in that\n" +
+      "      section's order and nothing else.",
+  );
+
+  /* The stronger guarantee, and the one that actually protects the founder's
+     layout: watch state must not be an INPUT to grid ordering at all. Proven by
+     scoping — if the ordering memo cannot see the state, no amount of watch
+     history can reorder anything. */
+  const code = stripComments(browse);
+  const filteredMemo = code.match(/const filtered = useMemo\(\(\) => \{[\s\S]*?\n {2}\}, \[[^\]]*\]\);/);
+  check(
+    Boolean(filteredMemo),
+    "continue watching: the grid ordering memo could not be located",
+    "Renamed? Update this check — it is the thing standing between watch history and the layout.",
+  );
+  if (filteredMemo) {
+    check(
+      !/continueWatching|watchProgress|resume/i.test(filteredMemo[0]),
+      "continue watching: watch state reaches the grid ordering",
+      "The founder's section order is not something watch history gets to rearrange. Keep the resume\n" +
+        "      data out of the ordering memo entirely, so reordering is unrepresentable rather than merely\n" +
+        "      absent today.",
+    );
+  }
+
+  const gridItems = code.match(/const gridItems = [^;]+;/);
+  check(
+    Boolean(gridItems) && !/continueWatching/.test(gridItems ? gridItems[0] : "x"),
+    "continue watching: the rendered grid slice consults watch state",
+    "gridItems must be a plain slice of the canonical order.",
+  );
+}
+
+/* BUG THIS CATCHES: resume existed on exactly one surface. Open a
+   partially-watched title from a poster, from search, or from a Google result
+   and the show page offered "Watch Episode 1 Free" as though nothing had been
+   watched — the product remembered the viewer on the browse rail and forgot
+   them everywhere else. */
+{
+  const showPage = read("app/series/[slug]/page.tsx");
+  check(
+    /<ResumeAwarePlay/.test(showPage),
+    "resume: the show page's play button is not resume-aware",
+    "It must offer to resume where the viewer stopped. Same button, same position — only the\n" +
+      "      destination and the label change, and only when there is real progress.",
+  );
+  const cta = read("components/ResumeAwarePlay.tsx");
+  check(
+    /buildResumeUrl\(/.test(cta) && /readGuestProgress\(/.test(cta) && /\/api\/watch-progress/.test(cta),
+    "resume: the show page reads only one progress source",
+    "A signed-out viewer's progress is on the device and a signed-in viewer's is on the account.\n" +
+      "      Reading one of them strands the other population.",
+  );
+  check(
+    /catch \{/.test(cta),
+    "resume: the device read is unguarded",
+    "localStorage THROWS when site data is blocked. An unguarded read here takes down the show page\n" +
+      "      for the same population that check 15 protects in the player.",
+  );
+}
 
 if (failures.length > 0) {
   console.error("Feed integrity contract: FAIL");

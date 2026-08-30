@@ -18,6 +18,7 @@ import { isSeriesPurchasable } from "@/lib/series-purchase";
 import EpisodeDropdown from "@/components/EpisodeDropdown";
 import HideInIOSApp from "@/components/HideInIOSApp";
 import PlayNowLink from "@/components/PlayNowLink";
+import ResumeAwarePlay from "@/components/ResumeAwarePlay";
 import AudioLanguageBadge from "@/components/AudioLanguageBadge";
 import { audioLanguageOf } from "@/lib/audio-language";
 
@@ -327,21 +328,18 @@ export default async function SeriesPage({ params }: Props) {
             that used to hang off the poster tap, so the wait from here into the
             first frame is unchanged. */}
         {series.status === "live" && series.episodeCount > 0 ? (
-          <PlayNowLink
-            href={episodeHref(series, 1)}
+          <ResumeAwarePlay
+            slug={series.slug}
+            fallbackHref={episodeHref(series, 1)}
             playbackId={prewarmPlaybackId}
+            startLabel="Watch Episode 1 Free"
             className="glow-pulse inline-flex items-center gap-2 px-6 py-3 rounded-full text-sm font-bold no-underline transition-transform active:scale-95 mb-6"
             style={{
               background: "linear-gradient(135deg, #E0115F, #8B5CF6)",
               color: "#fff",
               boxShadow: "0 0 20px rgba(224, 17, 95, 0.3)",
             }}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff" stroke="none">
-              <polygon points="6 3 20 12 6 21" />
-            </svg>
-            Watch Episode 1 Free
-          </PlayNowLink>
+          />
         ) : (
           <div
             className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-sm font-bold mb-6"

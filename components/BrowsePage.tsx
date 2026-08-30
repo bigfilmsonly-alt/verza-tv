@@ -95,6 +95,11 @@ const FEATURED_NEW = [
      slot 10+   nothing
    No tile ever carries both. The top row reads as one clean block of New
    rather than a stack of two badges competing in opposite corners. */
+/* The landing view. `/` with no ?tab= opens here, so this is Home, and it is
+   the only browse tab that carries the Continue Watching row. Every other tab
+   is a section and shows its own catalogue in its own order. */
+const HOME_TAB: BrowseCategory = "drama";
+
 const NEW_SLOTS = 6;
 const TRENDING_START = NEW_SLOTS;
 const TRENDING_END = NEW_SLOTS + 3;
@@ -285,7 +290,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
     }
   }, [allSeries]);
 
-  const [activeTab, setActiveTab] = useState<BrowseCategory>("drama");
+  const [activeTab, setActiveTab] = useState<BrowseCategory>(HOME_TAB);
   // Direction of the last tab change (1 = forward/next, -1 = back/prev) so the
   // incoming tab content can slide in from the matching side.
   const [slideDir, setSlideDir] = useState<1 | -1>(1);
@@ -610,9 +615,25 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         <CategoryTabs active={activeTab} onSelect={selectTab} tabs={activeTabs} />
       </div>
 
-      {/* Continue Watching row — hidden on the Tubi tab so the partner panel
-          starts flush under the tabs and fills the fold with no scroll. */}
-      {continueWatching.length > 0 && activeTab !== "tubi" && activeTab !== "creators" && (
+      {/* Continue Watching row — HOME ONLY.
+
+          It used to render on every tab except Tubi and Creators, which meant
+          that stopping a Drama title halfway put that Drama title at the top of
+          Espanol, Bollywood, Reality and every other section. It reads as the
+          catalogue being rearranged by watch history, and on a language tab it
+          reads as the wrong language leaking in.
+
+          To be precise about what was and was not happening: the grid itself
+          was never reordered. `continueWatching` is not referenced by
+          `filtered` or `gridItems` and never has been, so section order was
+          always canonical. What leaked was this ROW, rendered above the grid on
+          a section it has nothing to do with.
+
+          A section shows that section's catalogue in that section's order and
+          nothing else. Resume lives in two places now: here on Home, and on
+          /me/list, which renders the same data through RecentlyWatchedList.
+          Neither promotes a tile out of its home section. */}
+      {continueWatching.length > 0 && activeTab === HOME_TAB && (
         <section className="pb-4 animate-slideUp">
           <h2 className="text-sm font-semibold uppercase tracking-wider mb-3 px-4" style={{ color: "#8A8A9A" }}>Continue Watching</h2>
           <div

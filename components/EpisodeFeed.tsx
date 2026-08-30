@@ -119,6 +119,13 @@ const ADVANCE_COOLDOWN_MS = 700;
    the length of any series in the catalogue. */
 const MAX_UNATTENDED_ADVANCES = 8;
 
+/* How long after the last scroll event the position counts as settled, for
+   browsers without the scrollend event. iOS keeps delivering scroll events well
+   past the finger lift, so this has to outlast the momentum tail without making
+   a deliberate swipe feel late. scrollend fires directly where it exists and
+   this is only the fallback. */
+const SCROLL_SETTLE_MS = 140;
+
 /* Deadline for the entitlement round-trip. Shorter than playback's 12s: this
    one only gates whether the paywall may mount, and a viewer staring at a
    locked black slide should not wait twelve seconds to be told why. On timeout
@@ -1581,6 +1588,17 @@ export default function EpisodeFeed({
   const hasSettledRef = useRef(false);
   activeIndexRef.current = activeIndex;
 
+  /* Scroll-settle machinery. The index is derived from a position that has
+     stopped moving, never from one still under momentum. */
+  const inFlightRef = useRef(false);
+  const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /* Where the index was when the finger went down. A flick may move the feed
+     one slide from here and no further, whatever the platform's momentum does
+     afterwards. Null while no gesture is in progress, which is how a
+     programmatic scroll (auto-advance, deep link, recenter) opts out of the
+     clamp: it already moves exactly one slide and must not be fought. */
+  const gestureAnchorRef = useRef<number | null>(null);
+
   /* Re-engagement / Continue Watching: track the active video's live position
      so the visibilitychange handler can persist the exact resume spot. */
   const activePositionRef = useRef(0);
@@ -1646,6 +1664,99 @@ export default function EpisodeFeed({
   // The window recenters ONLY when scrolling is idle — mounting/unmounting
   // slides and resizing spacers ABOVE the scrollport mid-swipe retargeted the
   // in-flight snap scroll (first happens at the 4th video) and broke playback.
+  /* ---------------------------------------------------------------------
+     SCROLL SETTLE: the index is derived here, from a position that has
+     stopped moving, and the flick is clamped to one slide.
+
+     The IntersectionObserver above reports ratio crossings while momentum is
+     still running. Those crossings are all adjacent and all legal, so a hard
+     flick used to walk the index one accepted step per slide it passed. That
+     walk is the runaway. Bounding the rail by entitlement removed the slides
+     to run into on a paid title and left the mechanism untouched everywhere
+     else — which is exactly why Red Carpet, whose two titles are wholly free
+     and therefore get their full 12 and 13 slide rails, still reproduces it.
+
+     scrollSnapStop: "always" is a hint, not a guarantee. iOS does not honour
+     it through a momentum fling, so it cannot be the thing that enforces one
+     flick equals one slide. This can, because it measures the landing rather
+     than asking the platform to prevent it: if the feed came to rest more than
+     one slide from where the finger went down, it is put back.
+     --------------------------------------------------------------------- */
+  const commitSettledIndex = useCallback(() => {
+    const container = containerRef.current;
+    if (!container || episodes.length === 0) return;
+
+    const span = horizontal ? container.clientWidth : container.clientHeight;
+    if (span <= 0) return;
+    const offset = horizontal ? container.scrollLeft : container.scrollTop;
+
+    let idx = Math.round(offset / span);
+    idx = Math.max(0, Math.min(episodes.length - 1, idx));
+
+    const anchor = gestureAnchorRef.current;
+    if (anchor !== null && Math.abs(idx - anchor) > 1) {
+      // Overshot. Land on the neighbour in the direction travelled and put the
+      // scrollport back there, so the rail agrees with the index.
+      idx = Math.max(0, Math.min(episodes.length - 1, anchor + Math.sign(idx - anchor)));
+      const target = container.querySelector(`[data-index="${idx}"]`);
+      if (target) {
+        target.scrollIntoView({
+          behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+          block: "start",
+          inline: "start",
+        });
+      }
+    }
+
+    gestureAnchorRef.current = null;
+    inFlightRef.current = false;
+
+    if (idx !== activeIndexRef.current) {
+      hasSettledRef.current = true;
+      activeIndexRef.current = idx;
+      setActiveIndex(idx);
+    }
+  }, [episodes.length, horizontal]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const armSettle = () => {
+      if (settleTimer.current) clearTimeout(settleTimer.current);
+      settleTimer.current = setTimeout(commitSettledIndex, SCROLL_SETTLE_MS);
+    };
+    const onScroll = () => {
+      inFlightRef.current = true;
+      armSettle();
+    };
+    const onScrollEnd = () => {
+      if (settleTimer.current) clearTimeout(settleTimer.current);
+      commitSettledIndex();
+    };
+    /* Anchor the flick. Only a real input opens a gesture; a programmatic
+       scroll leaves the anchor null and is therefore never clamped. */
+    const onGestureStart = () => {
+      if (gestureAnchorRef.current === null) gestureAnchorRef.current = activeIndexRef.current;
+    };
+
+    container.addEventListener("scroll", onScroll, { passive: true });
+    container.addEventListener("scrollend", onScrollEnd);
+    container.addEventListener("touchstart", onGestureStart, { passive: true });
+    container.addEventListener("pointerdown", onGestureStart, { passive: true });
+    container.addEventListener("wheel", onGestureStart, { passive: true });
+    container.addEventListener("keydown", onGestureStart);
+    return () => {
+      if (settleTimer.current) clearTimeout(settleTimer.current);
+      container.removeEventListener("scroll", onScroll);
+      container.removeEventListener("scrollend", onScrollEnd);
+      container.removeEventListener("touchstart", onGestureStart);
+      container.removeEventListener("pointerdown", onGestureStart);
+      container.removeEventListener("wheel", onGestureStart);
+      container.removeEventListener("keydown", onGestureStart);
+    };
+  }, [commitSettledIndex]);
+
   const WINDOW = 2;
   const [windowCenter, setWindowCenter] = useState(activeIndex);
   useEffect(() => {
@@ -1790,6 +1901,26 @@ export default function EpisodeFeed({
             const prev = activeIndexRef.current;
             const firstSettle = !hasSettledRef.current;
             if (!firstSettle && prev !== idx && Math.abs(idx - prev) > 1) continue;
+
+            /* THE RUNAWAY LIVED HERE, and the entitlement bound never touched
+               it. This callback fires on ratio crossings, which happen
+               CONTINUOUSLY while momentum is still carrying the container. A
+               hard flick passes through slides in order, so every step it
+               reports is adjacent and legal, and the adjacency guard above
+               waves each one through: the index walks forward one legal step
+               per slide the momentum crosses. That walk is what "the number
+               spinning really fast" is.
+
+               Bounding the rail removed the slides there were to run into on a
+               paid title. It did nothing for a wholly free one — Red Carpet's
+               two titles have freeEpisodes === episodeCount, so their rail is
+               the full 12 and 13 slides and the mechanism is completely
+               exposed. That is why the founder reproduces it there.
+
+               The index is now owned by the settle handler below, which reads a
+               position that has stopped moving. In flight, this callback may
+               still do its visibility work but may NOT move the index. */
+            if (inFlightRef.current && !firstSettle) continue;
             hasSettledRef.current = true;
 
             if (prev !== idx) {
@@ -2087,6 +2218,13 @@ export default function EpisodeFeed({
                 scrollSnapType: "x mandatory",
                 scrollbarWidth: "none",
                 overflowAnchor: "none",
+                /* Contain the fling. Without this a hard flick that reaches
+                   either end hands its remaining momentum to the page behind
+                   the rail, which on iOS is what produces the rubber-band that
+                   drags the whole immersive layer and can pull the viewer out
+                   of the feed entirely. "contain" keeps the scroll chain inside
+                   this element and gives the rail its own bounce at both ends. */
+                overscrollBehavior: "contain",
               }
             : {
                 width: "100%",
@@ -2098,6 +2236,13 @@ export default function EpisodeFeed({
                 // Browser scroll anchoring fights the spacer resizes that keep
                 // the virtual window's geometry stable — disable it.
                 overflowAnchor: "none",
+                /* Contain the fling. Without this a hard flick that reaches
+                   either end hands its remaining momentum to the page behind
+                   the rail, which on iOS is what produces the rubber-band that
+                   drags the whole immersive layer and can pull the viewer out
+                   of the feed entirely. "contain" keeps the scroll chain inside
+                   this element and gives the rail its own bounce at both ends. */
+                overscrollBehavior: "contain",
               }
         }
       >
