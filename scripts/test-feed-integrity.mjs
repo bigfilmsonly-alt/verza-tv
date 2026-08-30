@@ -2883,11 +2883,17 @@ check(
   /* The global rule is still there and still a hazard for the next component
      that assigns a scroll offset. Name it so the next person measures rather
      than debugging it from scratch. */
+  /* The global rule is gone. It must not come back: it caused three separate
+     defects, in CategoryTabs, BrowsePage and EpisodeFeed, each of which had to
+     be found by measuring in a browser because the symptom never looked like a
+     CSS problem. Applying it to `*` also silently overrode every element that
+     explicitly asked for `auto`. */
   check(
-    /scroll-behavior:\s*smooth/.test(read("app/globals.css")),
-    "scroll: the global smooth rule was removed without updating this note",
-    "Not a defect — a signpost. If `* { scroll-behavior: smooth }` is ever deleted from globals.css,\n" +
-      "      the opt-outs above become redundant and this check should be retired with it.",
+    !/^\s*\*\s*\{[^}]*scroll-behavior:\s*smooth/m.test(read("app/globals.css")),
+    "scroll: the global smooth-scroll rule is back",
+    "`* { scroll-behavior: smooth }` turns every scrollTop/scrollLeft assignment in the app into an\n" +
+      "      animation whose synchronous read still returns the old value. Smooth scrolling is a\n" +
+      "      per-interaction decision: state it at the call site, where the reduced-motion check lives.",
   );
 }
 

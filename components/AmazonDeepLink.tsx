@@ -33,7 +33,13 @@ export default function AmazonDeepLink() {
     const t = setTimeout(() => {
       const tile = document.getElementById(productId);
       if (!(tile instanceof HTMLElement)) return;
-      tile.scrollIntoView({ block: "center" });
+      tile.scrollIntoView({
+        block: "center",
+        // Explicit: this used to inherit smooth from a global rule in
+        // globals.css that has since been removed. Deep-linking to a product
+        // should glide to it, not teleport.
+        behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+      });
       tile.click();
     }, 0);
     return () => clearTimeout(t);

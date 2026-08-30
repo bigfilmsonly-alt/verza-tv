@@ -695,10 +695,24 @@ img {
   -webkit-backdrop-filter: blur(20px) saturate(1.5);
 }
 
-/* Smooth scroll behavior globally */
-* {
-  scroll-behavior: smooth;
-}
+/* No global scroll-behavior.
+
+   `* { scroll-behavior: smooth }` used to live here and it caused three
+   separate defects, each found by measuring rather than reading:
+
+   - components/CategoryTabs.tsx — `rail.scrollLeft = 120` did not land for
+     hundreds of milliseconds, and the reduced-motion branch animated exactly
+     like the other one, because "auto" means "defer to the CSS value".
+   - components/BrowsePage.tsx — a bare scrollTo(0,0) on a tab change animated
+     the reset instead of jumping.
+   - components/EpisodeFeed.tsx — the recycle that rebuilds the scroll window
+     around a new slide ANIMATED a full viewport instead of jumping, which made
+     it a visible correction and emitted scroll events that fought the viewer's
+     next flick. On a phone that reads as the rail moving on its own.
+
+   The rule applied to `*`, so it also silently overrode every element that
+   asked for `auto`. Smooth scrolling is a per-interaction decision: state it at
+   the call site, where the reduced-motion check belongs anyway. */
 
 /* ---- Immersive episode player: hide all chrome ---- */
 
