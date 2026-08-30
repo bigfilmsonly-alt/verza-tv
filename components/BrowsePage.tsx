@@ -615,64 +615,6 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         <CategoryTabs active={activeTab} onSelect={selectTab} tabs={activeTabs} />
       </div>
 
-      {/* Continue Watching row — HOME ONLY.
-
-          It used to render on every tab except Tubi and Creators, which meant
-          that stopping a Drama title halfway put that Drama title at the top of
-          Espanol, Bollywood, Reality and every other section. It reads as the
-          catalogue being rearranged by watch history, and on a language tab it
-          reads as the wrong language leaking in.
-
-          To be precise about what was and was not happening: the grid itself
-          was never reordered. `continueWatching` is not referenced by
-          `filtered` or `gridItems` and never has been, so section order was
-          always canonical. What leaked was this ROW, rendered above the grid on
-          a section it has nothing to do with.
-
-          A section shows that section's catalogue in that section's order and
-          nothing else. Resume lives in two places now: here on Home, and on
-          /me/list, which renders the same data through RecentlyWatchedList.
-          Neither promotes a tile out of its home section. */}
-      {continueWatching.length > 0 && activeTab === HOME_TAB && (
-        <section className="pb-4 animate-slideUp">
-          <h2 className="text-sm font-semibold uppercase tracking-wider mb-3 px-4" style={{ color: "#8A8A9A" }}>Continue Watching</h2>
-          <div
-            className="flex gap-1.5 overflow-x-auto no-scrollbar px-3 snap-x snap-mandatory"
-            style={{ WebkitOverflowScrolling: "touch", overscrollBehaviorY: "none", touchAction: "pan-x pinch-zoom" }}
-          >
-            {continueWatching.map((item) => {
-              const durationS = getEpisode(item.seriesSlug, item.episodeNumber)?.durationS;
-              const pct = durationS && durationS > 0 ? Math.min(96, Math.max(4, Math.round((item.progressSeconds / durationS) * 100))) : 8;
-              return (
-              <Link
-                key={`${item.seriesSlug}-${item.episodeNumber}`}
-                href={buildResumeUrl(item.seriesSlug, item.episodeNumber, item.progressSeconds)}
-                className="group block no-underline flex-shrink-0 snap-start"
-                style={{ width: 120 }}
-                onClick={(e) => posterClick(e, item.seriesSlug, item.episodeNumber, item.progressSeconds)}
-              >
-                <div className="relative overflow-hidden rounded-lg" style={{ width: 120, aspectRatio: "2 / 3" }}>
-                  {item.posterUrl && (
-                    <Image src={item.posterUrl} alt={item.seriesTitle} fill sizes="120px" className="object-cover" />
-                  )}
-                  {/* Progress bar */}
-                  <div className="absolute bottom-0 left-0 right-0 h-1" style={{ background: "rgba(0,0,0,0.5)" }}>
-                    <div className="h-full" style={{ width: `${pct}%`, background: "linear-gradient(90deg, #E0115F, #8B5CF6)", boxShadow: "0 0 6px rgba(224,17,95,0.5)" }} />
-                  </div>
-                  {/* Episode badge */}
-                  <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded text-[9px] font-bold" style={{ background: "rgba(0,0,0,0.7)", color: "#fff" }}>
-                    EP {item.episodeNumber}
-                  </div>
-                </div>
-                <div style={{ height: 36 }}>
-                  <p className="mt-1.5 text-[11px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>{item.seriesTitle}</p>
-                </div>
-              </Link>
-              );
-            })}
-          </div>
-        </section>
-      )}
 
       {/* Swappable tab content. The keyed inner remounts on each tab change to
           replay the slide-in animation; slideDir picks which side it enters from. */}
@@ -1126,6 +1068,71 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
             />
           </div>
         </a>
+      )}
+
+      {/* Continue Watching row — HOME ONLY, and BELOW THE HERO.
+
+          It used to sit directly under the category tabs, so the first thing on
+          the page was the viewer's own watch history rather than the catalogue.
+          The founder's showcase leads now: hero first, then this rail, then the
+          grid. Resume stays one tap away without being the thing that greets
+          you.
+
+          It used to render on every tab except Tubi and Creators, which meant
+          that stopping a Drama title halfway put that Drama title at the top of
+          Espanol, Bollywood, Reality and every other section. It reads as the
+          catalogue being rearranged by watch history, and on a language tab it
+          reads as the wrong language leaking in.
+
+          To be precise about what was and was not happening: the grid itself
+          was never reordered. `continueWatching` is not referenced by
+          `filtered` or `gridItems` and never has been, so section order was
+          always canonical. What leaked was this ROW, rendered above the grid on
+          a section it has nothing to do with.
+
+          A section shows that section's catalogue in that section's order and
+          nothing else. Resume lives in two places now: here on Home, and on
+          /me/list, which renders the same data through RecentlyWatchedList.
+          Neither promotes a tile out of its home section. */}
+      {continueWatching.length > 0 && activeTab === HOME_TAB && (
+        <section className="pb-4 animate-slideUp">
+          <h2 className="text-sm font-semibold uppercase tracking-wider mb-3 px-4" style={{ color: "#8A8A9A" }}>Continue Watching</h2>
+          <div
+            className="flex gap-1.5 overflow-x-auto no-scrollbar px-3 snap-x snap-mandatory"
+            style={{ WebkitOverflowScrolling: "touch", overscrollBehaviorY: "none", touchAction: "pan-x pinch-zoom" }}
+          >
+            {continueWatching.map((item) => {
+              const durationS = getEpisode(item.seriesSlug, item.episodeNumber)?.durationS;
+              const pct = durationS && durationS > 0 ? Math.min(96, Math.max(4, Math.round((item.progressSeconds / durationS) * 100))) : 8;
+              return (
+              <Link
+                key={`${item.seriesSlug}-${item.episodeNumber}`}
+                href={buildResumeUrl(item.seriesSlug, item.episodeNumber, item.progressSeconds)}
+                className="group block no-underline flex-shrink-0 snap-start"
+                style={{ width: 120 }}
+                onClick={(e) => posterClick(e, item.seriesSlug, item.episodeNumber, item.progressSeconds)}
+              >
+                <div className="relative overflow-hidden rounded-lg" style={{ width: 120, aspectRatio: "2 / 3" }}>
+                  {item.posterUrl && (
+                    <Image src={item.posterUrl} alt={item.seriesTitle} fill sizes="120px" className="object-cover" />
+                  )}
+                  {/* Progress bar */}
+                  <div className="absolute bottom-0 left-0 right-0 h-1" style={{ background: "rgba(0,0,0,0.5)" }}>
+                    <div className="h-full" style={{ width: `${pct}%`, background: "linear-gradient(90deg, #E0115F, #8B5CF6)", boxShadow: "0 0 6px rgba(224,17,95,0.5)" }} />
+                  </div>
+                  {/* Episode badge */}
+                  <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded text-[9px] font-bold" style={{ background: "rgba(0,0,0,0.7)", color: "#fff" }}>
+                    EP {item.episodeNumber}
+                  </div>
+                </div>
+                <div style={{ height: 36 }}>
+                  <p className="mt-1.5 text-[11px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>{item.seriesTitle}</p>
+                </div>
+              </Link>
+              );
+            })}
+          </div>
+        </section>
       )}
 
       {/* Tab Row — 3-column grid (not on Music/Reality/Red Carpet — they have custom sections) */}
