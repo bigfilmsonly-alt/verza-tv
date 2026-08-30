@@ -3229,6 +3229,59 @@ check(
   );
 }
 
+/* ------------------------------------------------------------------ */
+/*  23. THE SOUND STAYS ON PAST THE FIRST EPISODE                       */
+/* ------------------------------------------------------------------ */
+
+/* BUG THIS CATCHES: sound worked from the poster tap and then switched itself
+   off around the third or fourth video, after which the speaker had to be
+   pressed by hand.
+
+   WebKit grants removeBehaviorRestrictionsAfterFirstUserGesture PER ELEMENT,
+   for that element's lifetime, when play() is called on it during a gesture.
+   lib/instant-player.ts claims it for the element the poster tap creates and
+   EpisodeFeed adopts that exact element, so episode one is audible. Every later
+   slide is a DIFFERENT <video>, created in an effect, holding no such
+   permission — it can only be unmuted inside WebKit's one-second post-ended
+   grace, and the first cold slide to overrun that window is refused. A refused
+   element never arms the grace for the next one, so the chain dies and
+   everything after is silent. Three or four episodes in is where that first
+   miss lands.
+
+   A swipe is a gesture, on the element about to need the permission. */
+
+check(
+  /container\.addEventListener\("touchstart", claimGestureForMountedSlides/.test(feedCode) &&
+    /container\.addEventListener\("pointerdown", claimGestureForMountedSlides/.test(feedCode),
+  "audio: the swipe does not claim the gesture for upcoming slides",
+  "Only the adopted element carries lifetime audio permission. Without claiming it on each touch,\n" +
+    "      every later slide depends on a one-second grace window, and the first one to miss it kills\n" +
+    "      sound for the rest of the session.",
+);
+
+check(
+  /const wasPaused = vid\.paused;[\s\S]{0,220}?if \(wasPaused\) vid\.pause\(\);/.test(feedCode),
+  "audio: the gesture claim leaves neighbour slides playing",
+  "The permission is granted by the play() CALL, not by playing. A neighbour that is not returned to\n" +
+    "      paused would decode and play behind the active slide.",
+);
+
+check(
+  /vid\.dataset\.verzaGestureClaimed === "1"\) continue;/.test(feedCode),
+  "audio: the gesture claim is not idempotent",
+  "Each element needs claiming once for its whole lifetime. Re-calling play() on the active slide on\n" +
+    "      every touch would fight playback.",
+);
+
+check(
+  (feedCode.match(/vid\.dataset\.verzaGestureClaimed === "1"\) unmuteRefusedRef\.current = false/g) || []).length >= 1 &&
+    /else if \(vid\.dataset\.verzaGestureClaimed === "1"\) unmuteRefusedRef\.current = false;/.test(feedCode),
+  "audio: an earlier refusal outlives the element gaining permission",
+  "A refusal only stands while the element lacks permission. Once a swipe has claimed the gesture for\n" +
+    "      it, the reason for the refusal is gone and it must be asked again — otherwise a slide refused\n" +
+    "      once stays silent for the rest of the session even though it could now play sound.",
+);
+
 if (failures.length > 0) {
   console.error("Feed integrity contract: FAIL");
   for (const f of failures) console.error(`  - ${f}`);

@@ -693,6 +693,10 @@ function EpisodeSlide({
 
            The poster crossfade stays in onFirstFrame below, because that
            genuinely does need real pixels. Only the audio moved. */
+        /* A refusal only stands while the element still lacks permission. Once
+           a swipe has claimed the gesture for it, the reason the refusal
+           happened is gone and it is asked again. */
+        if (vid.dataset.verzaGestureClaimed === "1") unmuteRefusedRef.current = false;
         if (!mutedRef.current && !unmuteRefusedRef.current) {
           vid.muted = false;
           /* iOS pauses a muted-autoplayed element when the unmute is refused.
@@ -1059,6 +1063,7 @@ function EpisodeSlide({
     /* true -> false only ever comes from toggleMute, i.e. from a finger.
        That is a fresh gesture, so a previous refusal no longer applies. */
     if (prevMuted) unmuteRefusedRef.current = false;
+    else if (vid.dataset.verzaGestureClaimed === "1") unmuteRefusedRef.current = false;
     else if (unmuteRefusedRef.current) return;
     const wasPlaying = !vid.paused;
     vid.muted = false;
@@ -1892,12 +1897,66 @@ export default function EpisodeFeed({
       commitSettledIndex();
     };
 
+    /* ---------------------------------------------------------------
+       KEEP THE SOUND ON PAST THE FIRST EPISODE.
+
+       Reported: sound works from the poster tap and then switches itself off
+       around the third or fourth video, after which the speaker button has to
+       be pressed by hand.
+
+       That is the tail of the fix that made the tap work at all. WebKit grants
+       removeBehaviorRestrictionsAfterFirstUserGesture PER ELEMENT, for that
+       element's lifetime, when play() is called on it during a user gesture.
+       lib/instant-player.ts claims it for the element the poster tap creates,
+       and EpisodeFeed adopts that exact element — so episode one is audible.
+
+       Every later slide is a different <video>, created in an effect, with no
+       such permission. Those elements can only be unmuted inside WebKit's
+       one-second post-ended grace, and the moment one of them overruns it the
+       unmute is refused; a refused element never arms the grace for the next
+       one, so the chain dies and everything after is silent. Three or four
+       episodes in is exactly where a cold slide first misses the window.
+
+       A swipe IS a user gesture, and it happens on the element that is about
+       to need the permission. So each touch claims it for every video
+       currently mounted — at most three — the same way the poster tap claims
+       it for the first. Non-active slides are returned to paused in the same
+       breath; the permission is granted by the play() CALL, not by playing.
+       Each element is claimed once, which is all its lifetime needs.
+
+       Nothing here unmutes anything. It only removes the reason a later unmute
+       would be refused, so the viewer's sound stays on until they turn it off
+       themselves. */
+    const claimGestureForMountedSlides = () => {
+      for (const vid of Array.from(container.querySelectorAll("video"))) {
+        if (vid.dataset.verzaGestureClaimed === "1") continue;
+        vid.dataset.verzaGestureClaimed = "1";
+        const wasPaused = vid.paused;
+        try {
+          const play = vid.play();
+          if (play) {
+            play
+              .then(() => { if (wasPaused) vid.pause(); })
+              .catch(() => {});
+          }
+        } catch {}
+      }
+      /* The claim is recorded ON THE ELEMENT, which is the one object both the
+         feed and the slide can see. A slide that was refused earlier in the
+         session treats its element gaining permission as superseding that
+         refusal, so it will ask again rather than staying silent forever. */
+    };
+
     container.addEventListener("scroll", onScroll, { passive: true });
     container.addEventListener("scrollend", onScrollEnd);
+    container.addEventListener("touchstart", claimGestureForMountedSlides, { passive: true });
+    container.addEventListener("pointerdown", claimGestureForMountedSlides, { passive: true });
     return () => {
       if (settleTimer.current) clearTimeout(settleTimer.current);
       container.removeEventListener("scroll", onScroll);
       container.removeEventListener("scrollend", onScrollEnd);
+      container.removeEventListener("touchstart", claimGestureForMountedSlides);
+      container.removeEventListener("pointerdown", claimGestureForMountedSlides);
     };
   }, [commitSettledIndex]);
 
