@@ -153,6 +153,148 @@ const ACTIVE_BUFFER_S = 8;
 const ACTIVE_MAX_BUFFER_S = 15;
 const NEXT_SLIDE_PREFETCH_S = 4;
 
+/* ---- Stall recovery ladder -----------------------------------------
+   The failure screen must be unreachable except after a real, attempted,
+   failed recovery, so every rung below is an ACTION and the message is only
+   what is left when all of them have been tried.
+
+   These are thresholds on MEASURED no-progress, not on a `waiting` event.
+   That distinction is the whole fix. Measured against the real stream in
+   Chrome 140 over CDP: calling play() straight after attachMedia — which is
+   exactly what this component does, because sourceReady flips on the line
+   after attachMedia — fires `waiting` at t=16ms at readyState 0 with an empty
+   buffer, on a perfectly healthy 0.16s manifest. The old watchdog armed its
+   20-second terminal countdown there, on every cold start, before one byte of
+   media existed. Nothing about that is a stall.
+
+   The same run showed the opposite failure on the other side: during a genuine
+   19-second freeze (playhead pinned at 9.92s, buffer exhausted at 9.963s)
+   Chrome emitted a `timeupdate` that did not advance currentTime, and the old
+   watchdog treated it as recovery and disarmed everything — no spinner, no
+   message, a frozen picture for the rest of the run. One engine escalated a
+   non-stall, the other silently swallowed a real one, from the same code.
+   Sampling currentTime and the buffered end tells the truth on both. */
+const STALL_TICK_MS = 500;
+/* A brief stall is normal and a spinner for it is noise. */
+const STALL_SPINNER_MS = 1500;
+/* Rung 1: hop a hole in the buffer. Cheap, targeted, and only ever taken when
+   a gap demonstrably exists ahead of the playhead. */
+const STALL_NUDGE_MS = 3000;
+const MAX_STALL_NUDGES = 2;
+/* Rung 2: abort and restart the hls load. Measured: hls.js clears its 10s
+   time-to-first-byte timeout the moment response headers arrive and re-arms to
+   maxLoadTimeMs = 120000, so a fetch whose headers landed and whose body then
+   died — the cell-handoff signature — is something hls.js will sit on for two
+   minutes. Eight seconds with zero bytes appended is enough to call it. */
+const STALL_RELOAD_MS = 8000;
+/* hls.js reporting a stall of its own is direct evidence, so act sooner. */
+const STALL_RELOAD_CORROBORATED_MS = 5000;
+const STALL_SIGNAL_FRESH_MS = 10000;
+const MAX_STALL_RELOADS = 2;
+/* Rung 3: rebuild the pipeline, through the SAME fullReattach the fatal-error
+   handler uses. Sharing one bounded primitive is what stops the two recovery
+   paths fighting each other. */
+const STALL_REBUILD_MS = 20000;
+/* Only after every rung above has been tried and failed. */
+const STALL_TERMINAL_MS = 25000;
+/* Two rungs must never fire on top of each other. */
+const STALL_ACTION_GAP_MS = 2500;
+/* The playhead legitimately stops dead at the end of an episode, which is not
+   a stall. Deliberately this file's own constant rather than a borrowed one:
+   the seek gestures keep a guard band of the same size for a different reason,
+   and the two must be free to move apart. */
+const STALL_TAIL_GUARD_S = 0.25;
+/* A tick this late means the page was frozen or throttled, not that the video
+   stalled. Nothing sampled across such a gap is usable. */
+const FROZEN_TICK_MS = 2000;
+/* hls.js error details that are a stall report rather than a passing hiccup.
+   All of these arrive with fatal:false and were being dropped on the floor. */
+const STALL_SIGNAL_DETAILS = new Set([
+  "bufferStalledError", "bufferNudgeOnStall", "bufferSeekOverHole",
+  "fragLoadTimeOut", "fragLoadError", "levelLoadTimeOut", "audioTrackLoadTimeOut",
+]);
+
+/* Start of the first buffered range that lies AHEAD of the playhead, or null
+   when the playhead is already inside buffered data or nothing is buffered
+   past it. A non-null answer is unambiguous evidence of the one failure a
+   nudge fixes, which is why rung 1 is allowed to be the cheapest and earliest.
+   hls.js has a GapController that does this, but it is inert here: it returns
+   before doing anything while the buffer is empty, and its own stall report
+   arrives fatal:false, which this component drops. */
+function bufferGapAhead(vid: HTMLVideoElement): number | null {
+  const b = vid.buffered;
+  const t = vid.currentTime;
+  for (let i = 0; i < b.length; i++) {
+    const start = b.start(i);
+    if (t >= start - 0.1 && t < b.end(i)) return null;
+    if (start > t) return start;
+  }
+  return null;
+}
+
+/* Furthest buffered instant, or 0. Under MSE this is the INTERSECTION of the
+   source buffers, so on this stream — whose master carries a separate audio
+   rendition — a hung audio fragment pins it even while video keeps arriving.
+   That is a stall the viewer experiences, and sampling it catches it. */
+function bufferedEndOf(vid: HTMLVideoElement): number {
+  const b = vid.buffered;
+  return b.length ? b.end(b.length - 1) : 0;
+}
+
+/* ---- Seek gestures -------------------------------------------------
+   ONE window separates tap, double-tap and hold. handleTap already used 300ms
+   twice — once as the double-tap window, once as the delay before the deferred
+   play/pause — so the hold threshold is that same number rather than a new one.
+   A press shorter than the window is a tap, two of them inside it are a double
+   tap, one held past it is a seek. Three gestures, one boundary, no overlap and
+   nothing for a viewer to learn. */
+const TAP_WINDOW_MS = 300;
+
+/* How far a finger may drift before an ARMED hold is abandoned. Under this a
+   press is stationary enough that the snap scroller will not claim the gesture;
+   over it the viewer is swiping, and a swipe has to stay a swipe. Checked only
+   before the hold engages — once it has, jitter under a resting thumb must not
+   cancel a rewind, and a real swipe produces pointercancel anyway. */
+const HOLD_SLOP_PX = 12;
+
+/* Hold-to-seek travel. The playhead moves at HOLD_SEEK_MIN_RATE times real time
+   the moment the hold engages and ramps to HOLD_SEEK_MAX_RATE across
+   HOLD_SEEK_RAMP_MS, so a short hold nudges and a long one travels. Episodes in
+   this catalogue run from about 29 seconds upward: 4x crosses a short one in a
+   few seconds, 12x keeps a long one reachable without overshooting everything. */
+const HOLD_SEEK_TICK_MS = 200;
+const HOLD_SEEK_MIN_RATE = 4;
+const HOLD_SEEK_MAX_RATE = 12;
+const HOLD_SEEK_RAMP_MS = 2000;
+
+/* Never land the playhead exactly on the duration. `ended` fires there, and
+   `ended` is what auto-advances the feed — so a scrub to the far right of the
+   bar would throw the viewer onto the next slide, which on the last free
+   episode is the paywall. Stopping a quarter-second short means a deliberate
+   scrub to the end still finishes the episode by PLAYING those last frames,
+   exactly as watching it through does, rather than by teleporting past them. */
+const SEEK_END_GUARD_S = 0.25;
+
+/* Throttle for currentTime writes during a drag. Every write here is a real HLS
+   seek — backBufferLength is 0, so a rewind always lands unbuffered and hls.js
+   aborts the in-flight fragment to serve it. The bar still follows the finger
+   at full rate; only the media seek is rate-limited. */
+const SCRUB_WRITE_MS = 100;
+
+/* mm:ss for the scrub and hold readouts. */
+function formatClock(seconds: number): string {
+  const s = Number.isFinite(seconds) && seconds > 0 ? Math.floor(seconds) : 0;
+  const m = Math.floor(s / 60);
+  const rem = s % 60;
+  return `${m}:${rem < 10 ? "0" : ""}${rem}`;
+}
+
+/* Stable no-op for the props the inactive slides get. An inline `() => {}` is a
+   new identity on every parent render, and the slide's timeupdate effect lists
+   these in its dependency array — so the inline form re-registered listeners on
+   every one of the ~4 progress renders a second. */
+const noop = () => {};
+
 function EpisodeSlide({
   episode,
   seriesSlug,
@@ -242,6 +384,37 @@ function EpisodeSlide({
   const [showPause, setShowPause] = useState(false);
   const pauseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastTap = useRef(0);
+  /* The deferred play/pause from handleTap, held so a hold that engages after
+     the tap can cancel it. Without the handle it fired 300ms later and paused
+     the video the viewer was in the middle of rewinding. */
+  const tapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /* X1: a press-and-hold that ends without the finger moving still dispatches
+     `click` on iOS, and `click` is what handleTap listens to. Set when a hold
+     takes the gesture, cleared on the next pointerdown, read at the top of
+     handleTap — otherwise every hold-to-rewind ended by pausing the episode. */
+  const gestureConsumedRef = useRef(false);
+  /* Hold-to-seek state. `null` between gestures; `engaged` flips once the press
+     has outlasted TAP_WINDOW_MS and the seek has actually started. */
+  const holdRef = useRef<{
+    pointerId: number;
+    dir: -1 | 1;
+    x: number;
+    y: number;
+    engaged: boolean;
+    engagedAt: number;
+    /** Was the video playing when the hold took over? Only then does it resume. */
+    resume: boolean;
+  } | null>(null);
+  const holdArmRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const holdTickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const holdAbortRef = useRef<AbortController | null>(null);
+  /* The readout is written straight into the DOM. Driving it through state
+     would re-render this slide five times a second for the length of the hold,
+     on the memory-constrained phones documented in
+     docs/handoff/IOS-CONTENT-PROCESS-CRASH.md. */
+  const holdLabelRef = useRef<HTMLSpanElement>(null);
+  const holdLabelTextRef = useRef("");
+  const [holdSeekDir, setHoldSeekDir] = useState<-1 | 0 | 1>(0);
   const lastSavedRef = useRef(0);
   const resumeSeekedRef = useRef(false);
   // Playback self-healing: bounded recovery for fatal hls errors + a stall
@@ -259,10 +432,35 @@ function EpisodeSlide({
   /* True while the browser says it is stalled and the stall has lasted long
      enough to be worth telling the viewer about. */
   const [buffering, setBuffering] = useState(false);
+  useEffect(() => { sourceErrorRef.current = sourceError; }, [sourceError]);
   const forceSourceRefreshRef = useRef(false);
   const sourceRefreshInFlightRef = useRef(false);
   const protectedRefreshCountRef = useRef(0);
   const refreshResumePositionRef = useRef(0);
+  /* Stall ladder state. All refs on purpose: this samples four times a second
+     and the parent already re-renders on progress, so putting any of it in
+     React state would multiply that across every mounted slide on exactly the
+     memory-constrained phones documented in
+     docs/handoff/IOS-CONTENT-PROCESS-CRASH.md. */
+  const stallSinceRef = useRef(0);
+  const stallSampleRef = useRef({ ct: -1, be: -1 });
+  const stallNudgeCountRef = useRef(0);
+  const stallReloadCountRef = useRef(0);
+  const stallActionAtRef = useRef(0);
+  const stallSignalAtRef = useRef(0);
+  const selfSeekAtRef = useRef(0);
+  const rafBeatRef = useRef(0);
+  /* Mirror of `buffering` so the 2Hz sampler can tell a transition from a
+     repeat and only call setState on the edges. */
+  const bufferingRef = useRef(false);
+  /* Mirror of `sourceError`, so the sampler can see it without being torn down
+     and rebuilt every time it changes. */
+  const sourceErrorRef = useRef<{ status: number; message: string } | null>(null);
+  /* True across a rebuild the ladder itself ordered, so the spinner survives it.
+     The rebuild changes this effect's deps, and the teardown would otherwise
+     clear the spinner and leave a bare black frame until the fresh pipeline
+     stalled long enough to earn it back. */
+  const rebuildingRef = useRef(false);
 
   // Keep refs in sync with props
   useEffect(() => { mutedRef.current = muted; }, [muted]);
@@ -538,8 +736,13 @@ function EpisodeSlide({
            BUFFER_FULL_ERROR and INTERNAL_EXCEPTION, and they were removed from
            the one instance that is also playing uncapped. Scope the removal. */
         if (adopted.onError) ahls.off(AdoptedHls.Events.ERROR, adopted.onError);
-        ahls.on(AdoptedHls.Events.ERROR, (_e: string, data: { type: string; fatal: boolean }) => {
-          if (!data.fatal) return;
+        ahls.on(AdoptedHls.Events.ERROR, (_e: string, data: { type: string; fatal: boolean; details?: string }) => {
+          if (!data.fatal) {
+            if (STALL_SIGNAL_DETAILS.has(data.details ?? "")) {
+              stallSignalAtRef.current = performance.now();
+            }
+            return;
+          }
           const resume = () => {
             const v = videoRef.current;
             if (v && isActiveRef.current && !blockedRef.current) v.play().catch(() => {});
@@ -747,12 +950,33 @@ function EpisodeSlide({
 
   /* Retry the source. Clears the error so the UI leaves the failed state, then
      bumps the nonce the resolution effect depends on, forcing a fresh request
-     that bypasses the cache. */
+     that bypasses the cache.
+
+     The nonce alone was a no-op on precisely the episodes it mattered most for.
+     Only the authorized-source effect reads it, and that effect returns on its
+     first line when `requiresAuthorization` is false — which is every free
+     preview episode, i.e. the first thing every new viewer taps and the exact
+     episode in the founder's screenshot. The button cleared the overlay and
+     changed nothing behind it, so the same frozen pipeline was still there.
+
+     A tap is a human asking for another go, so it also hands the recovery
+     ladder a fresh budget and rebuilds the pipeline for real. That cannot loop:
+     it costs a deliberate press each time. */
   const retrySource = useCallback(() => {
     setSourceError(null);
+    stallSinceRef.current = 0;
+    stallSampleRef.current = { ct: -1, be: -1 };
+    stallNudgeCountRef.current = 0;
+    stallReloadCountRef.current = 0;
+    stallActionAtRef.current = 0;
+    reattachCountRef.current = 0;
+    mediaRecoveriesRef.current = 0;
+    audioSwappedRef.current = false;
+    protectedRefreshCountRef.current = 0;
+    fullReattach();
     forceSourceRefreshRef.current = true;
     setSourceRequestNonce((n) => n + 1);
-  }, []);
+  }, [fullReattach]);
 
   /* Source watchdog. The stall watchdog below cannot help here because it
      requires sourceReady, and the whole failure being guarded is that a source
@@ -768,83 +992,272 @@ function EpisodeSlide({
     return () => clearTimeout(t);
   }, [isActive, blocked, hlsUrl, sourceError]);
 
-  /* Say something while it loads, and give up out loud rather than silently.
-     Twelve people tested this and not one of them saw a spinner, a bar, a
-     message or a retry. The player was styled for the happy path only: the
-     poster holds, which reads as "working" for about a second and as "broken"
-     by five, and nothing ever escalated. Three testers left at this screen.
-     Worse, the error state built for paid episodes could never fire on a FREE
-     one. Both of its triggers sat behind requiresAuthorization, which is false
-     for episodes 1 to 5, so on the first tap of every new viewer there was no
-     message and no retry available at all.
-     The browser already tells us: it fires `waiting` when it stalls and
-     `playing` when it recovers. This listens to that rather than inventing a
-     timer, shows a quiet spinner once a stall lasts long enough to notice, and
-     escalates to the real error screen if the frame never arrives. */
-  useEffect(() => {
-    const vid = videoRef.current;
-    if (!vid || !isActive || blocked) return;
-    let spinTimer: ReturnType<typeof setTimeout> | null = null;
-    let giveUpTimer: ReturnType<typeof setTimeout> | null = null;
-    const clear = () => {
-      if (spinTimer) clearTimeout(spinTimer);
-      if (giveUpTimer) clearTimeout(giveUpTimer);
-      spinTimer = null;
-      giveUpTimer = null;
-    };
-    const onWaiting = () => {
-      clear();
-      /* Never escalate while the tab is in the background. A browser does not
-         decode video for a hidden document, so a viewer who switches apps for
-         half a minute would come back to "this episode will not play" about an
-         app that was working perfectly. Observed exactly that while verifying
-         this on a hidden tab. The spinner is harmless either way, but the
-         error is a claim, and it must only be made about a document the viewer
-         can actually see. */
-      if (typeof document !== "undefined" && document.hidden) return;
-      // A brief stall is normal and a spinner for it is noise.
-      spinTimer = setTimeout(() => setBuffering(true), 1500);
-      giveUpTimer = setTimeout(() => {
-        if (typeof document !== "undefined" && document.hidden) return;
-        setBuffering(false);
-        setSourceError((prev) => prev ?? { status: 0, message: "This episode will not play." });
-      }, 20000);
-    };
-    const onMoving = () => {
-      clear();
-      setBuffering(false);
-    };
-    vid.addEventListener("waiting", onWaiting);
-    vid.addEventListener("stalled", onWaiting);
-    vid.addEventListener("playing", onMoving);
-    vid.addEventListener("timeupdate", onMoving);
-    vid.addEventListener("error", onWaiting);
-    return () => {
-      clear();
-      vid.removeEventListener("waiting", onWaiting);
-      vid.removeEventListener("stalled", onWaiting);
-      vid.removeEventListener("playing", onMoving);
-      vid.removeEventListener("timeupdate", onMoving);
-      vid.removeEventListener("error", onWaiting);
-    };
-  }, [isActive, blocked, sourceReady, attachNonce]);
+  /* ---- Recovery ladder, and only then the failure screen --------------
+     This replaces two effects that used to sit here: an event-armed watchdog
+     that declared failure after 20 seconds, and a separate interval that
+     rebuilt the pipeline. They disagreed, and the one that declared failure
+     won. The rebuild stood itself down the moment ANY data had landed
+     ("data flowing — just slow, not dead") while the failure timer had no such
+     condition and fired anyway, so the exact state the code called "slow, not
+     dead" was the state in which the only thing that ran was the code that
+     declared it dead. One ladder replaces both, and it always ACTS before it
+     ever speaks.
 
-  /* Stall watchdog: if this slide is ACTIVE and a source is attached but no
-     frame has been composited after 10s, the pipeline is silently dead
-     (worker died, native-HLS stall, poisoned element) — rebuild it.
-     Skipped when the user paused it themselves or when data is actually
-     arriving (slow networks must not have an in-progress load destroyed). */
+     WHY THE OLD ONE FIRED ON A HEALTHY EPISODE. It armed on `waiting`, and
+     `waiting` is not a stall. Measured against this exact stream in Chrome over
+     CDP: attachMedia, then play() on the next line — which is what this
+     component does, because sourceReady flips immediately after attachMedia —
+     fires `waiting` at t=16ms at readyState 0 with nothing buffered. The
+     20-second terminal countdown was therefore armed on EVERY cold start
+     before a single byte existed, and its only escape was a composited frame
+     plus a moving playhead inside 20 seconds. Missing that once on a phone
+     that has just changed cell is ordinary; the founder's episode is 76
+     seconds long, so the old deadline was a quarter of the runtime.
+
+     Nothing else could have intervened either. hls.js clears its 10s
+     time-to-first-byte timeout the instant response headers arrive and re-arms
+     to maxLoadTimeMs = 120000, so a fragment whose headers landed and whose
+     body then died is something hls.js sits on for two minutes. Its own stall
+     report arrives fatal:false, and the handler below dropped every non-fatal
+     error on its first line. The escalation always won the race because it was
+     the only runner.
+
+     WHAT IT MEASURES NOW. currentTime and the end of the buffered range,
+     sampled four times a second. That is engine-independent, which matters:
+     the same CDP run showed Chrome emitting a `timeupdate` that did NOT move
+     the playhead in the middle of a real 19-second freeze, which the old
+     watchdog accepted as recovery — no spinner, no message, a frozen picture
+     for the rest of the run. One engine escalated a non-stall, the other
+     swallowed a real one. Sampling progress gets both right.
+
+     WHAT IT DOES BEFORE IT SPEAKS. Nudge the playhead over a demonstrated
+     buffer gap, restart the hls load, rebuild the pipeline — cheapest first,
+     each bounded, with a gap between rungs so two never fire together. The
+     rebuild is the SAME fullReattach the fatal-error handler calls, sharing its
+     two-attempt budget, so the two recovery paths cannot fight or loop. The
+     message is only what is left when every rung has been tried and failed.
+
+     OCCLUSION. document.hidden was not enough. It is false while iOS shows
+     Control Center, Notification Center, the app-switcher card, an incoming
+     call or Siri, and false for a WKWebView whose host app is not fully
+     backgrounded — in all of which WebKit suspends the media pipeline. It is
+     also false at the one moment that matters most for a timer: iOS freezes
+     JS timers for a backgrounded page and runs the overdue ones on resume, so
+     the old 20s timer could be armed, backgrounded, and fire the instant the
+     viewer came back to a working app. Two extra signals close that. A tick
+     that arrives late means timers were frozen. A tick across which no
+     animation frame was served means the page was not being composited, so
+     nobody was looking at it. Either one throws the sample away instead of
+     counting it as a stall. */
   useEffect(() => {
-    if (!isActive || !sourceReady || started || blocked) return;
-    const t = setInterval(() => {
-      const v = videoRef.current;
-      if (!v || v.readyState >= 2) return;
-      if (v.paused && !playing) return; // user paused pre-frame — leave it
-      if (v.buffered.length > 0) return; // data flowing — just slow, not dead
-      fullReattach();
-    }, 10000);
-    return () => clearInterval(t);
-  }, [isActive, sourceReady, started, blocked, playing, fullReattach]);
+    if (!isActive || blocked) return;
+
+    stallSinceRef.current = 0;
+    stallSampleRef.current = { ct: -1, be: -1 };
+    stallNudgeCountRef.current = 0;
+    stallReloadCountRef.current = 0;
+    stallActionAtRef.current = 0;
+    rebuildingRef.current = false;
+
+    /* Liveness beat. Its VALUE is never used — only whether it advanced, which
+       is the difference between "the video stopped" and "the page stopped". */
+    let beatHandle = requestAnimationFrame(function pump() {
+      rafBeatRef.current += 1;
+      beatHandle = requestAnimationFrame(pump);
+    });
+
+    const standDown = () => {
+      stallSinceRef.current = 0;
+      if (bufferingRef.current) { bufferingRef.current = false; setBuffering(false); }
+    };
+    /* Also drop the baseline: a sample taken before a freeze, a seek or a
+       rebuild says nothing about the situation after one. */
+    const restart = () => { standDown(); stallSampleRef.current = { ct: -1, be: -1 }; };
+
+    /* A seek changes the whole situation and deserves a fresh budget — which
+       matters more than it looks, because backBufferLength is 0, so every
+       rewind lands unbuffered by construction. Rung 1 moves the playhead
+       itself, so it must not hand itself a fresh budget and loop. */
+    const onSeeking = () => {
+      if (performance.now() - selfSeekAtRef.current < 500) return;
+      restart();
+    };
+    /* A media-element error used to arm the terminal countdown with no recovery
+       at all on a free episode: the only media-error recovery returns on its
+       first line when requiresAuthorization is false, and after such an error
+       no `playing` or `timeupdate` can ever fire, so the deadline was
+       guaranteed. Now it is only evidence, and evidence makes the ladder act
+       sooner rather than making it give up. */
+    const onMediaError = () => { stallSignalAtRef.current = performance.now(); };
+    const onVisibility = () => { restart(); };
+
+    let lastTickAt = performance.now();
+    let lastBeat = rafBeatRef.current;
+    let blindTicks = 0;
+    let trustFrames = true;
+
+    const timer = setInterval(() => {
+      const now = performance.now();
+      const sinceTick = now - lastTickAt;
+      const framesRan = rafBeatRef.current - lastBeat;
+      lastTickAt = now;
+      lastBeat = rafBeatRef.current;
+
+      const vid = videoRef.current;
+      if (!vid) return;
+
+      /* The failure screen owns the slide once it is up, and "Try again" is the
+         way out — it resets this ladder itself. Measured without this: the tick
+         after the terminal turned the spinner state back on and left it on
+         underneath the overlay forever, and the ladder kept rebuilding a
+         pipeline nobody was watching. */
+      if (sourceErrorRef.current) {
+        if (bufferingRef.current) { bufferingRef.current = false; setBuffering(false); }
+        return;
+      }
+
+      /* Not being watched, or not being measured. Either way this window is
+         not evidence of anything. */
+      const frozenTimers = sinceTick > FROZEN_TICK_MS;
+      const notComposited = trustFrames && framesRan === 0;
+      if (frozenTimers || notComposited || document.hidden) {
+        /* Guard the guard. If frames genuinely never arrive on some engine the
+           ladder would stand down forever and hand the viewer the silent black
+           screen this whole path exists to prevent. Sustained absence while the
+           document reports itself visible is not occlusion, so stop believing
+           the signal and fall back to timers alone. */
+        if (notComposited && !document.hidden && !frozenTimers) {
+          blindTicks += 1;
+          if (blindTicks > 240) trustFrames = false;
+        }
+        restart();
+        return;
+      }
+      blindTicks = 0;
+
+      /* States where a still playhead is correct, not a stall. */
+      if (vid.paused || vid.ended) { restart(); return; }
+      const dur = vid.duration;
+      if (Number.isFinite(dur) && dur > 0 && vid.currentTime >= dur - STALL_TAIL_GUARD_S) {
+        restart();
+        return;
+      }
+
+      const ct = vid.currentTime;
+      const be = bufferedEndOf(vid);
+      const prev = stallSampleRef.current;
+      stallSampleRef.current = { ct, be };
+      /* Either the playhead moved or the buffer changed: something is working.
+         Compared by magnitude, not direction, because a rewind legitimately
+         shrinks the buffered range rather than growing it. */
+      if (prev.ct < 0 || Math.abs(ct - prev.ct) > 0.01 || Math.abs(be - prev.be) > 0.01) {
+        standDown();
+        return;
+      }
+
+      if (!stallSinceRef.current) stallSinceRef.current = now;
+      const stalled = now - stallSinceRef.current;
+
+      if (stalled >= STALL_SPINNER_MS && !bufferingRef.current) {
+        bufferingRef.current = true;
+        setBuffering(true);
+      }
+      if (now - stallActionAtRef.current < STALL_ACTION_GAP_MS) return;
+
+      /* Rung 1 — hop the hole. Only ever taken when one demonstrably exists. */
+      if (stalled >= STALL_NUDGE_MS && stallNudgeCountRef.current < MAX_STALL_NUDGES) {
+        const gap = bufferGapAhead(vid);
+        if (gap !== null) {
+          stallNudgeCountRef.current += 1;
+          stallActionAtRef.current = now;
+          selfSeekAtRef.current = now;
+          try { vid.currentTime = gap + 0.1; } catch {}
+          return;
+        }
+      }
+
+      /* Rung 2 — abort the dead fetch and load again. startLoad() stops the
+         in-flight fragment internally, which is the point: after this long with
+         nothing appended, the request in flight is the problem, not the cure.
+         It resumes from the current position, so nobody loses their place. */
+      const corroborated = now - stallSignalAtRef.current < STALL_SIGNAL_FRESH_MS;
+      const reloadAt = corroborated ? STALL_RELOAD_CORROBORATED_MS : STALL_RELOAD_MS;
+      if (stalled >= reloadAt && stallReloadCountRef.current < MAX_STALL_RELOADS) {
+        stallReloadCountRef.current += 1;
+        stallActionAtRef.current = now;
+        const hls = hlsRef.current;
+        if (hls) {
+          try { hls.startLoad(); } catch {}
+        } else {
+          /* Native HLS (no MSE): load() is the equivalent restart, but it
+             rewinds to zero, so put the viewer back where they were. */
+          const at = vid.currentTime;
+          try { vid.load(); } catch {}
+          if (at > 0.5) {
+            vid.addEventListener(
+              "loadedmetadata",
+              () => { try { vid.currentTime = at; } catch {} },
+              { once: true },
+            );
+          }
+          vid.play().catch(() => {});
+        }
+        return;
+      }
+
+      /* Rung 3 — rebuild. Bounded at 2 inside fullReattach, and that budget is
+         SHARED with the fatal-error handler, so the two paths cannot take four
+         rebuilds between them or take turns forever. */
+      if (stalled >= STALL_REBUILD_MS && reattachCountRef.current < 2) {
+        stallActionAtRef.current = now;
+        /* Keep the viewer's place across the rebuild, through the same ref
+           tryPlay already honours for a token refresh. Without this a rebuild
+           mid-episode would restart from zero — acceptable when the old
+           rebuild only ran before the first frame, not acceptable now that the
+           ladder also runs during a binge. */
+        if (vid.currentTime > 0.5) refreshResumePositionRef.current = vid.currentTime;
+        /* Hold the spinner across the rebuild. Without this the teardown below
+           clears it and the viewer gets a bare black frame for the couple of
+           seconds it takes the new pipeline to stall long enough to show it
+           again — a regression this component has fought before. */
+        rebuildingRef.current = true;
+        if (!bufferingRef.current) { bufferingRef.current = true; setBuffering(true); }
+        fullReattach();
+        return;
+      }
+
+      /* Terminal. Reachable only once every rung above has been ATTEMPTED and
+         the picture is still frozen well past the last of them. */
+      if (
+        reattachCountRef.current >= 2 &&
+        stallReloadCountRef.current >= MAX_STALL_RELOADS &&
+        stalled >= STALL_TERMINAL_MS
+      ) {
+        bufferingRef.current = false;
+        setBuffering(false);
+        setSourceError((existing) => existing ?? { status: 0, message: "This episode will not play." });
+      }
+    }, STALL_TICK_MS);
+
+    const el = videoRef.current;
+    el?.addEventListener("seeking", onSeeking);
+    el?.addEventListener("error", onMediaError);
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("pageshow", onVisibility);
+
+    return () => {
+      clearInterval(timer);
+      cancelAnimationFrame(beatHandle);
+      el?.removeEventListener("seeking", onSeeking);
+      el?.removeEventListener("error", onMediaError);
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("pageshow", onVisibility);
+      if (bufferingRef.current && !rebuildingRef.current) {
+        bufferingRef.current = false;
+        setBuffering(false);
+      }
+    };
+  }, [isActive, blocked, sourceReady, attachNonce, fullReattach]);
 
   /* Attach HLS source AND play immediately if this is the active slide.
      Depends only on shouldLoad (active OR near) — NOT isActive — so swiping
@@ -918,8 +1331,20 @@ function EpisodeSlide({
       if (!cancelled) {
         setSourceReady(true); // the play effect is the single tryPlay caller
       }
-      hls.on(Hls.Events.ERROR, (_e: string, data: { type: string; fatal: boolean }) => {
-        if (!data.fatal || !Hls) return;
+      hls.on(Hls.Events.ERROR, (_e: string, data: { type: string; fatal: boolean; details?: string }) => {
+        /* Non-fatal used to mean "ignored". Measured on this stream with the
+           connection throttled to a crawl: hls.js emitted bufferStalledError
+           and then fragLoadTimeOut every ten seconds for the whole run, all
+           fatal:false, and this line dropped every one of them while the
+           terminal countdown ran underneath. They are the most direct evidence
+           of a stall available, so record them for the ladder above. */
+        if (!data.fatal) {
+          if (STALL_SIGNAL_DETAILS.has(data.details ?? "")) {
+            stallSignalAtRef.current = performance.now();
+          }
+          return;
+        }
+        if (!Hls) return;
         const resume = () => {
           const v = videoRef.current;
           if (v && isActiveRef.current && !blockedRef.current) v.play().catch(() => {});
@@ -1144,12 +1569,207 @@ function EpisodeSlide({
     };
   }, [isActive, seriesSlug, episode.number, onEnded, onProgress, onPosition]);
 
+  /* ------------------------------------------------------------------
+     HOLD LEFT / RIGHT TO SEEK.
+
+     Press and hold the left third of the slide to rewind, the right third to
+     fast-forward, continuously while the finger is down. The middle third is
+     left alone entirely, so the tap and double-tap the player already had keep
+     the whole centre of the screen.
+
+     Everything here is deliberately inside the SLIDE rather than the feed: the
+     slide owns the <video>, so a seek is one assignment to currentTime and can
+     never address the wrong element or the wrong episode. Seeking moves the
+     playhead WITHIN this episode and nothing else — it does not scroll the
+     rail, it does not touch activeIndex, and the clamp below keeps it off the
+     duration so it cannot fire `ended` and advance the feed onto a locked
+     slide.
+
+     NOTHING in this path calls stopPropagation on a pointer or touch event.
+     The feed registers claimGestureForMountedSlides on the scroll container as
+     a passive bubble-phase listener, and that claim is the only reason sound
+     survives past the first few episodes. A press that never reaches the
+     container is a press that never claims the WebKit gesture.
+     ------------------------------------------------------------------ */
+
+  /* Clamp and write. Returns the position actually reached so the caller can
+     paint it without re-reading a value the element may not have applied yet. */
+  const seekTo = useCallback((targetS: number): number => {
+    const vid = videoRef.current;
+    if (!vid) return 0;
+    const dur = vid.duration;
+    if (!Number.isFinite(dur) || dur <= 0) return 0;
+    const clamped = Math.max(0, Math.min(Math.max(0, dur - SEEK_END_GUARD_S), targetS));
+    try {
+      vid.currentTime = clamped;
+    } catch {}
+    return clamped;
+  }, []);
+
+  const paintHoldLabel = useCallback((positionS: number, durationS: number) => {
+    const text = `${formatClock(positionS)} / ${formatClock(durationS)}`;
+    holdLabelTextRef.current = text;
+    if (holdLabelRef.current) holdLabelRef.current.textContent = text;
+  }, []);
+
+  /* The gesture's listeners live on WINDOW, not on the slide: a finger that
+     lifts after drifting off this element still has to end the seek, and a
+     swipe that turns into a scroll delivers pointercancel rather than
+     pointerup. They are registered only while a hold is armed — there is no
+     always-on pointermove listener on this route — and torn down through one
+     AbortController so nothing depends on handler identity. */
+  const endHoldSeek = useCallback(() => {
+    if (holdArmRef.current) {
+      clearTimeout(holdArmRef.current);
+      holdArmRef.current = null;
+    }
+    if (holdTickRef.current) {
+      clearInterval(holdTickRef.current);
+      holdTickRef.current = null;
+    }
+    holdAbortRef.current?.abort();
+    holdAbortRef.current = null;
+    const hold = holdRef.current;
+    holdRef.current = null;
+    if (!hold || !hold.engaged) return;
+    setHoldSeekDir(0);
+    const vid = videoRef.current;
+    /* Resume only what was playing. A hold that began on a paused video leaves
+       it paused, which is what a viewer stepping through a scene expects.
+       pointerup is itself a user gesture, so this play() is one WebKit accepts,
+       and it never touches `muted` — the audio state the viewer chose survives
+       the seek untouched. */
+    if (vid && hold.resume) vid.play().catch(() => {});
+  }, []);
+
+  const onHoldPointerMove = useCallback(
+    (e: PointerEvent) => {
+      const hold = holdRef.current;
+      if (!hold || hold.pointerId !== e.pointerId || hold.engaged) return;
+      if (
+        Math.abs(e.clientX - hold.x) > HOLD_SLOP_PX ||
+        Math.abs(e.clientY - hold.y) > HOLD_SLOP_PX
+      ) {
+        /* Moved before the threshold: this is a swipe, not a hold. Stand down
+           and leave the gesture to the snap scroller. */
+        endHoldSeek();
+      }
+    },
+    [endHoldSeek],
+  );
+
+  function engageHoldSeek() {
+    holdArmRef.current = null;
+    const hold = holdRef.current;
+    const vid = videoRef.current;
+    if (!hold || !vid || !isActiveRef.current || blockedRef.current) {
+      endHoldSeek();
+      return;
+    }
+    const dur = vid.duration;
+    if (!Number.isFinite(dur) || dur <= 0) {
+      endHoldSeek();
+      return;
+    }
+    hold.engaged = true;
+    hold.engagedAt = Date.now();
+    hold.resume = !vid.paused;
+    /* The release of this press must not reach handleTap. */
+    gestureConsumedRef.current = true;
+    if (tapTimer.current) {
+      clearTimeout(tapTimer.current);
+      tapTimer.current = null;
+    }
+    /* A hold is not half of a double tap. Clearing this stops the press that
+       started it from pairing with the viewer's next tap and firing a Like. */
+    lastTap.current = 0;
+    /* Summon the chrome WITHOUT pausing. Until now the only way to bring the
+       progress bar back was a tap, and that same tap toggled playback. */
+    onReveal();
+    haptic();
+    try {
+      vid.pause();
+    } catch {}
+    paintHoldLabel(vid.currentTime, dur);
+    setHoldSeekDir(hold.dir);
+    holdTickRef.current = setInterval(() => {
+      const h = holdRef.current;
+      const v = videoRef.current;
+      if (!h || !h.engaged || !v || !isActiveRef.current || blockedRef.current) {
+        endHoldSeek();
+        return;
+      }
+      const d = v.duration;
+      if (!Number.isFinite(d) || d <= 0) {
+        endHoldSeek();
+        return;
+      }
+      const held = Date.now() - h.engagedAt;
+      const rate =
+        HOLD_SEEK_MIN_RATE +
+        (HOLD_SEEK_MAX_RATE - HOLD_SEEK_MIN_RATE) * Math.min(1, held / HOLD_SEEK_RAMP_MS);
+      const reached = seekTo(v.currentTime + h.dir * rate * (HOLD_SEEK_TICK_MS / 1000));
+      paintHoldLabel(reached, d);
+    }, HOLD_SEEK_TICK_MS);
+  }
+
+  function handleSeekPointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    /* Cleared here, never at the end of a gesture: a hold whose click is
+       swallowed by the browser rather than by us would otherwise leave the flag
+       set and eat the viewer's NEXT tap. */
+    gestureConsumedRef.current = false;
+    endHoldSeek();
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    if (!isActiveRef.current || blocked || sourceError) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    if (rect.width <= 0) return;
+    const rel = (e.clientX - rect.left) / rect.width;
+    const dir: -1 | 0 | 1 = rel < 1 / 3 ? -1 : rel > 2 / 3 ? 1 : 0;
+    if (dir === 0) return; // middle third stays pure tap / double-tap
+    holdRef.current = {
+      pointerId: e.pointerId,
+      dir,
+      x: e.clientX,
+      y: e.clientY,
+      engaged: false,
+      engagedAt: 0,
+      resume: false,
+    };
+    const abort = new AbortController();
+    holdAbortRef.current = abort;
+    window.addEventListener("pointermove", onHoldPointerMove, { passive: true, signal: abort.signal });
+    window.addEventListener("pointerup", endHoldSeek, { signal: abort.signal });
+    window.addEventListener("pointercancel", endHoldSeek, { signal: abort.signal });
+    holdArmRef.current = setTimeout(engageHoldSeek, TAP_WINDOW_MS);
+  }
+
+  /* A slide that stops being active, or becomes paywalled, must not keep
+     seeking under a finger the viewer has already moved on from. */
+  useEffect(() => {
+    if (!isActive || blocked) endHoldSeek();
+  }, [isActive, blocked, endHoldSeek]);
+
+  useEffect(() => {
+    return () => {
+      if (tapTimer.current) clearTimeout(tapTimer.current);
+      if (pauseTimer.current) clearTimeout(pauseTimer.current);
+      if (holdArmRef.current) clearTimeout(holdArmRef.current);
+      if (holdTickRef.current) clearInterval(holdTickRef.current);
+      holdRef.current = null;
+      holdAbortRef.current?.abort();
+      holdAbortRef.current = null;
+    };
+  }, []);
+
   /* Tap handler: single tap = pause, double tap = like */
   function handleTap(e: React.MouseEvent) {
     e.stopPropagation();
+    /* X1. iOS dispatches `click` on the release of a stationary press however
+       long it lasted, so without this every hold-to-seek ended in a pause. */
+    if (gestureConsumedRef.current) return;
     onReveal();
     const now = Date.now();
-    if (now - lastTap.current < 300) {
+    if (now - lastTap.current < TAP_WINDOW_MS) {
       // Double tap
       onDoubleTap();
       lastTap.current = 0;
@@ -1157,11 +1777,14 @@ function EpisodeSlide({
     }
     lastTap.current = now;
 
-    setTimeout(() => {
-      if (lastTap.current === 0) return; // was double tap
+    if (tapTimer.current) clearTimeout(tapTimer.current);
+    tapTimer.current = setTimeout(() => {
+      tapTimer.current = null;
+      if (lastTap.current === 0) return; // was double tap, or a hold took over
       const vid = videoRef.current;
       // Read activeness via ref — the tap-time closure goes stale if the user
-      // swipes within 300ms, and acting on it played/paused the wrong slide.
+      // swipes inside the gesture window, and acting on it played/paused the
+      // wrong slide.
       if (!vid || !isActiveRef.current) return;
 
       if (vid.paused) {
@@ -1181,7 +1804,7 @@ function EpisodeSlide({
       setShowPause(true);
       if (pauseTimer.current) clearTimeout(pauseTimer.current);
       pauseTimer.current = setTimeout(() => setShowPause(false), 800);
-    }, 300);
+    }, TAP_WINDOW_MS);
   }
 
   return (
@@ -1189,6 +1812,11 @@ function EpisodeSlide({
       className="relative w-full select-none overflow-hidden"
       style={{ height: "var(--feed-h, 100dvh)", background: "#000", margin: 0, padding: 0 }}
       onClick={handleTap}
+      /* No touch-action here, on purpose. A `touch-action` on the slide would
+         take the whole video out of the vertical swipe surface, and the swipe
+         IS the feed. Hold-to-seek needs a stationary finger, and a stationary
+         finger never scrolls, so the two gestures do not compete for an axis. */
+      onPointerDown={handleSeekPointerDown}
     >
       {/* Transition poster — the EXACT image the user tapped on the browse
           page (already in the browser cache → paints instantly). Sits at the
@@ -1300,6 +1928,45 @@ function EpisodeSlide({
       )}
 
       {/* No spinner for the normal path: the poster holds until video plays. */}
+
+      {/* Hold-to-seek readout. Mounts only while a hold is engaged, and its
+          clock is written straight into the DOM by paintHoldLabel — putting the
+          position in React state would re-render this slide five times a second
+          for the length of the hold. */}
+      {holdSeekDir !== 0 && (
+        <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
+          <div
+            className="flex items-center gap-2 px-4 py-2 rounded-2xl"
+            style={{
+              background: "rgba(0,0,0,0.5)",
+              backdropFilter: "blur(16px)",
+              border: "1px solid rgba(255,255,255,0.12)",
+              animation: "scaleIn 0.18s cubic-bezier(0.34, 1.56, 0.64, 1)",
+            }}
+            role="status"
+            aria-label={holdSeekDir < 0 ? "Rewinding" : "Fast forwarding"}
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="#fff"
+              stroke="none"
+              style={{ transform: holdSeekDir < 0 ? "scaleX(-1)" : undefined }}
+            >
+              <polygon points="4 5 12 12 4 19" />
+              <polygon points="12 5 20 12 12 19" />
+            </svg>
+            <span
+              ref={holdLabelRef}
+              className="text-[13px] font-bold tabular-nums"
+              style={{ color: "#fff" }}
+            >
+              {holdLabelTextRef.current}
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Pause/Play indicator (animated) */}
       {showPause && (
@@ -1880,24 +2547,7 @@ export default function EpisodeFeed({
     }
   }, [episodes.length, horizontal]);
 
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const armSettle = () => {
-      if (settleTimer.current) clearTimeout(settleTimer.current);
-      settleTimer.current = setTimeout(commitSettledIndex, SCROLL_SETTLE_MS);
-    };
-    const onScroll = () => {
-      inFlightRef.current = true;
-      armSettle();
-    };
-    const onScrollEnd = () => {
-      if (settleTimer.current) clearTimeout(settleTimer.current);
-      commitSettledIndex();
-    };
-
-    /* ---------------------------------------------------------------
+  /* ---------------------------------------------------------------
        KEEP THE SOUND ON PAST THE FIRST EPISODE.
 
        Reported: sound works from the poster tap and then switches itself off
@@ -1926,25 +2576,52 @@ export default function EpisodeFeed({
 
        Nothing here unmutes anything. It only removes the reason a later unmute
        would be refused, so the viewer's sound stays on until they turn it off
-       themselves. */
-    const claimGestureForMountedSlides = () => {
-      for (const vid of Array.from(container.querySelectorAll("video"))) {
-        if (vid.dataset.verzaGestureClaimed === "1") continue;
-        vid.dataset.verzaGestureClaimed = "1";
-        const wasPaused = vid.paused;
-        try {
-          const play = vid.play();
-          if (play) {
-            play
-              .then(() => { if (wasPaused) vid.pause(); })
-              .catch(() => {});
-          }
-        } catch {}
-      }
-      /* The claim is recorded ON THE ELEMENT, which is the one object both the
-         feed and the slide can see. A slide that was refused earlier in the
-         session treats its element gaining permission as superseding that
-         refusal, so it will ask again rather than staying silent forever. */
+       themselves.
+
+       HOISTED out of the scroll effect so the scrubber can call it too. The
+       scrubber's hit strip is a SIBLING of the scroll container, not a
+       descendant, so a press on it never bubbles to the listeners below — a
+       viewer who drove the player from the bar alone would have starved the
+       claim of touches and lost their sound. Calling it from there feeds the
+       claim instead of bypassing it. The registration itself is unchanged:
+       still passive, still on the container, still bubble phase. */
+  const claimGestureForMountedSlides = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    for (const vid of Array.from(container.querySelectorAll("video"))) {
+      if (vid.dataset.verzaGestureClaimed === "1") continue;
+      vid.dataset.verzaGestureClaimed = "1";
+      const wasPaused = vid.paused;
+      try {
+        const play = vid.play();
+        if (play) {
+          play
+            .then(() => { if (wasPaused) vid.pause(); })
+            .catch(() => {});
+        }
+      } catch {}
+    }
+    /* The claim is recorded ON THE ELEMENT, which is the one object both the
+       feed and the slide can see. A slide that was refused earlier in the
+       session treats its element gaining permission as superseding that
+       refusal, so it will ask again rather than staying silent forever. */
+  }, []);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const armSettle = () => {
+      if (settleTimer.current) clearTimeout(settleTimer.current);
+      settleTimer.current = setTimeout(commitSettledIndex, SCROLL_SETTLE_MS);
+    };
+    const onScroll = () => {
+      inFlightRef.current = true;
+      armSettle();
+    };
+    const onScrollEnd = () => {
+      if (settleTimer.current) clearTimeout(settleTimer.current);
+      commitSettledIndex();
     };
 
     container.addEventListener("scroll", onScroll, { passive: true });
@@ -1958,7 +2635,7 @@ export default function EpisodeFeed({
       container.removeEventListener("touchstart", claimGestureForMountedSlides);
       container.removeEventListener("pointerdown", claimGestureForMountedSlides);
     };
-  }, [commitSettledIndex]);
+  }, [commitSettledIndex, claimGestureForMountedSlides]);
 
   /* ---------------------------------------------------------------------
      THE SCROLLPORT IS THE RUNWAY, AND IT IS NOW ONE SLIDE LONG EACH WAY.
@@ -2423,6 +3100,156 @@ export default function EpisodeFeed({
     actionToastTimer.current = setTimeout(() => setActionToast(null), 1800);
   }
 
+  /* ==================================================================
+     THE PROGRESS BAR IS A CONTROL.
+
+     It was a 4px readout with pointer-events:none. It is now a slider: press
+     anywhere along it and the video jumps there, drag and it follows the
+     finger. Three things make that safe on this particular player.
+
+     1. THE HIT AREA IS 44px TALL AND ONLY LIVE WHILE THE CHROME IS. A
+        permanently live strip across the bottom of the screen would eat the
+        band where thumbs start a vertical flick, and the flick is how the feed
+        works. Gating it on showActionRail means the bar is grabbable exactly
+        when it is visible — you can only grab what you can see — and the
+        moment the chrome fades the whole band goes back to being swipe
+        surface. The visual bar stays 4px; the strip around it is transparent.
+
+     2. THE ELEMENT IS FOUND WITH THE TWO-BRANCH LOOKUP. The video for the
+        arrival slide is the ADOPTED instant player, which is a <body> child
+        pinned over the slide rather than a descendant of it — so a lookup that
+        only searched the slide would silently do nothing on the poster-tap
+        path, which is how nearly every viewer starts watching.
+
+     3. IT NEVER LEAVES THE EPISODE. The only thing written is this element's
+        currentTime, clamped into [0, duration - SEEK_END_GUARD_S]. It cannot
+        move the rail, it cannot cross into a locked slide, and it is inert
+        whenever the active episode is behind the paywall.
+     ================================================================== */
+  const scrubTrackRef = useRef<HTMLDivElement>(null);
+  const scrubFillRef = useRef<HTMLDivElement>(null);
+  const scrubbingRef = useRef(false);
+  const [scrubbing, setScrubbing] = useState(false);
+  const scrubResumeRef = useRef(false);
+  const scrubWroteAtRef = useRef(0);
+
+  /* The established way to reach the video the viewer is actually watching.
+     Same two branches as the fullscreen button, auto-advance and the
+     visibility handler. */
+  const getActiveVideo = useCallback((): HTMLVideoElement | null => {
+    const container = containerRef.current;
+    if (!container) return null;
+    const slide = container.querySelector(`[data-index="${activeIndexRef.current}"]`);
+    return (
+      (slide ? slide.querySelector("video") : null) ??
+      document.querySelector<HTMLVideoElement>("video[data-verza-fixed]")
+    );
+  }, []);
+
+  /* While a drag is in flight the playhead must not fight the finger. The
+     video keeps firing timeupdate as each seek lands, and letting those through
+     would snap the bar back to wherever the media happened to be between
+     writes. Suppressing the state update also keeps the drag off React's
+     render path entirely: the fill's width is written straight to the DOM. */
+  const handleProgress = useCallback((pct: number) => {
+    if (scrubbingRef.current) return;
+    setEpProgress(pct);
+  }, []);
+  const handlePosition = useCallback((positionS: number) => {
+    activePositionRef.current = positionS;
+  }, []);
+
+  /* Locked content is not scrubbable. `blocked` slides are held paused on
+     purpose so paid frames never render under the overlay, and the paywall
+     itself sits above this strip at z-[60]. */
+  const scrubDisabled = !activeEp || (!activeEp.isFree && !authFree) || showUnlock;
+
+  const applyScrub = useCallback(
+    (clientX: number, force: boolean) => {
+      const track = scrubTrackRef.current;
+      if (!track) return;
+      const rect = track.getBoundingClientRect();
+      if (rect.width <= 0) return;
+      const pct = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
+      /* Paint first and imperatively, so the bar tracks the finger at the
+         pointer's own rate while the media seek below stays rate-limited. */
+      if (scrubFillRef.current) scrubFillRef.current.style.width = `${pct * 100}%`;
+      const vid = getActiveVideo();
+      if (!vid) return;
+      const dur = vid.duration;
+      if (!Number.isFinite(dur) || dur <= 0) return;
+      const now = Date.now();
+      if (!force && now - scrubWroteAtRef.current < SCRUB_WRITE_MS) return;
+      scrubWroteAtRef.current = now;
+      try {
+        vid.currentTime = Math.max(0, Math.min(Math.max(0, dur - SEEK_END_GUARD_S), pct * dur));
+      } catch {}
+    },
+    [getActiveVideo],
+  );
+
+  const endScrub = useCallback(
+    (commitClientX: number | null) => {
+      if (!scrubbingRef.current) return;
+      if (commitClientX !== null) applyScrub(commitClientX, true);
+      scrubbingRef.current = false;
+      setScrubbing(false);
+      const vid = getActiveVideo();
+      if (!vid) return;
+      const dur = vid.duration;
+      if (Number.isFinite(dur) && dur > 0) {
+        setEpProgress(Math.min(1, Math.max(0, vid.currentTime / dur)));
+      }
+      if (scrubResumeRef.current) {
+        scrubResumeRef.current = false;
+        vid.play().catch(() => {});
+      }
+    },
+    [applyScrub, getActiveVideo],
+  );
+
+  const beginScrub = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (scrubDisabled) return;
+      /* FEED THE AUDIO CLAIM. This strip is outside the scroll container, so
+         the container's own passive listener never sees this press. */
+      claimGestureForMountedSlides();
+      const vid = getActiveVideo();
+      if (!vid) return;
+      const dur = vid.duration;
+      if (!Number.isFinite(dur) || dur <= 0) return;
+      /* Touch gets implicit pointer capture; mouse does not, and without it a
+         drag that leaves the 44px strip stops delivering moves. */
+      try { e.currentTarget.setPointerCapture(e.pointerId); } catch {}
+      scrubbingRef.current = true;
+      setScrubbing(true);
+      scrubResumeRef.current = !vid.paused;
+      try { vid.pause(); } catch {}
+      revealActionRail();
+      haptic();
+      scrubWroteAtRef.current = 0;
+      applyScrub(e.clientX, true);
+    },
+    [scrubDisabled, claimGestureForMountedSlides, getActiveVideo, applyScrub, revealActionRail],
+  );
+
+  /* Belt and braces for a pointer this element never sees the end of: a lift
+     outside the capture, a system gesture, or the app being backgrounded
+     mid-drag. Without this the feed would be left with a paused video and a
+     scrubbingRef stuck true, which also silences every progress update. */
+  useEffect(() => {
+    if (!scrubbing) return;
+    const stop = () => endScrub(null);
+    window.addEventListener("pointerup", stop);
+    window.addEventListener("pointercancel", stop);
+    document.addEventListener("visibilitychange", stop);
+    return () => {
+      window.removeEventListener("pointerup", stop);
+      window.removeEventListener("pointercancel", stop);
+      document.removeEventListener("visibilitychange", stop);
+    };
+  }, [scrubbing, endScrub]);
+
   const shareUrl =
     typeof window !== "undefined"
       ? `${window.location.origin}/series/${seriesSlug}/${activeEp?.number ?? 1}`
@@ -2561,12 +3388,8 @@ export default function EpisodeFeed({
                 resumePositionS={startPositionS}
                 isResumeTarget={ep.number === startEpisode}
                 onEnded={handleEpisodeEnded}
-                onProgress={i === activeIndex ? setEpProgress : () => {}}
-                onPosition={
-                  i === activeIndex
-                    ? (p: number) => { activePositionRef.current = p; }
-                    : () => {}
-                }
+                onProgress={i === activeIndex ? handleProgress : noop}
+                onPosition={i === activeIndex ? handlePosition : noop}
                 onDoubleTap={handleDoubleTap}
                 onReveal={revealActionRail}
                 onFirstPlayGesture={requestPermissionOnce}
@@ -2896,21 +3719,82 @@ export default function EpisodeFeed({
         </div>
       </div>
 
-      {/* Live playback progress bar — very bottom */}
+      {/* Live playback progress bar — very bottom, and a real scrubber.
+          The outer element is the 44px hit strip; the pink bar inside it is
+          the same 4px readout it always was. It sits above the home indicator
+          rather than under it.
+
+          touch-action is `pan-y`, NOT `none`, and the difference is the whole
+          feed. `none` tells the browser to hand us every gesture in this band,
+          including vertical ones — which made a full-width strip across the
+          bottom of the screen stop scrolling to the next episode for as long as
+          the action rail was visible. That is the first ten seconds of every
+          episode and ten seconds after every tap, on the app's primary gesture.
+          Three independent reviewers measured it before it shipped.
+
+          `pan-y` splits the axes, which is exactly the intent: the browser keeps
+          vertical panning, so a swipe up still moves the feed, and we keep the
+          horizontal drag for scrubbing. */}
       <div
-        className="absolute bottom-0 left-0 right-0 z-50 pointer-events-none"
-        style={{ height: 4, opacity: showActionRail ? 1 : 0, transition: showActionRail ? "opacity 0.2s cubic-bezier(0.22, 1, 0.36, 1)" : "opacity 0.6s ease" }}
+        className="absolute bottom-0 left-0 right-0 z-50 flex items-end"
+        style={{
+          height: "calc(44px + env(safe-area-inset-bottom, 0px))",
+          paddingBottom: "env(safe-area-inset-bottom, 0px)",
+          touchAction: "pan-y",
+          opacity: showActionRail || scrubbing ? 1 : 0,
+          pointerEvents: (showActionRail || scrubbing) && !scrubDisabled ? "auto" : "none",
+          transition: showActionRail || scrubbing ? "opacity 0.2s cubic-bezier(0.22, 1, 0.36, 1)" : "opacity 0.6s ease",
+        }}
+        onPointerDown={beginScrub}
+        onPointerMove={(e) => { if (scrubbingRef.current) applyScrub(e.clientX, false); }}
+        onPointerUp={(e) => endScrub(e.clientX)}
+        onPointerCancel={() => endScrub(null)}
+        role="slider"
+        tabIndex={-1}
+        aria-label="Seek"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={Math.round(epProgress * 100)}
       >
         <div
+          ref={scrubTrackRef}
           style={{
-            height: "100%",
-            width: `${epProgress * 100}%`,
-            background: "linear-gradient(90deg, #E0115F, #8B5CF6)",
-            transition: "width 0.25s linear",
-            borderRadius: "0 2px 2px 0",
-            boxShadow: "0 0 8px rgba(224,17,95,0.3)",
+            position: "relative",
+            width: "100%",
+            height: scrubbing ? 6 : 4,
+            background: "rgba(255,255,255,0.16)",
+            transition: "height 0.15s cubic-bezier(0.22, 1, 0.36, 1)",
           }}
-        />
+        >
+          <div
+            ref={scrubFillRef}
+            style={{
+              height: "100%",
+              width: `${epProgress * 100}%`,
+              background: "linear-gradient(90deg, #E0115F, #8B5CF6)",
+              /* No animation under a finger: a 0.25s ease on width reads as the
+                 bar lagging behind the drag by a quarter of a second. */
+              transition: scrubbing ? "none" : "width 0.25s linear",
+              borderRadius: "0 2px 2px 0",
+              boxShadow: "0 0 8px rgba(224,17,95,0.3)",
+            }}
+          >
+            {scrubbing && (
+              <span
+                className="absolute rounded-full"
+                style={{
+                  right: -6,
+                  top: "50%",
+                  width: 12,
+                  height: 12,
+                  marginTop: -6,
+                  background: "#fff",
+                  boxShadow: "0 0 10px rgba(224,17,95,0.7)",
+                }}
+              />
+            )}
+          </div>
+        </div>
       </div>
 
       {/* ---- $1.99 Unlock overlay (first locked episode) ---- */}

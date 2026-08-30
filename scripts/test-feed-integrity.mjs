@@ -3391,6 +3391,338 @@ check(
   }
 }
 
+/* ------------------------------------------------------------------ */
+/*  25. SEEK CONTROLS — the progress bar is a control, not a readout    */
+/*                                                                      */
+/*  Two gestures were added to the player: drag the pink bar to scrub,  */
+/*  and hold the left or right third of the screen to rewind or fast-   */
+/*  forward. They land on a surface that already carries a vertical     */
+/*  snap scroller, a tap, a double-tap, a paywall, and — invisibly —    */
+/*  the touch that keeps audio alive past the first few episodes.       */
+/*  Every check below names the specific defect it prevents.            */
+/* ------------------------------------------------------------------ */
+{
+  /* Brace-matched body of a `function name(` or `const name = useCallback(`.
+     A regex with a bounded {0,900} tail was how earlier checks in this file
+     silently stopped covering a handler once it grew. */
+  const bodyAfter = (src, anchor) => {
+    const at = src.indexOf(anchor);
+    if (at < 0) return null;
+    const open = src.indexOf("{", at + anchor.length - 1);
+    if (open < 0) return null;
+    let depth = 0;
+    for (let i = open; i < src.length; i++) {
+      if (src[i] === "{") depth += 1;
+      else if (src[i] === "}") {
+        depth -= 1;
+        if (depth === 0) return src.slice(open, i + 1);
+      }
+    }
+    return null;
+  };
+
+  const seekTo = bodyAfter(feedCode, "const seekTo = useCallback(");
+  const engage = bodyAfter(feedCode, "function engageHoldSeek(");
+  const holdDown = bodyAfter(feedCode, "function handleSeekPointerDown(");
+  const tap = bodyAfter(feedCode, "function handleTap(");
+  const getActive = bodyAfter(feedCode, "const getActiveVideo = useCallback(");
+  const applyScrub = bodyAfter(feedCode, "const applyScrub = useCallback(");
+  const endScrub = bodyAfter(feedCode, "const endScrub = useCallback(");
+  const beginScrub = bodyAfter(feedCode, "const beginScrub = useCallback(");
+
+  const parts = { seekTo, engage, holdDown, tap, getActive, applyScrub, endScrub, beginScrub };
+  const missing = Object.entries(parts).filter(([, b]) => !b).map(([n]) => n);
+  check(
+    missing.length === 0,
+    "seek: a seek-control handler could not be located",
+    `Missing: ${missing.join(", ") || "(none)"}. These checks anchor on the handler names. If one was\n` +
+      "      renamed, update the anchors — do not delete the check, or the guarantees below stop being tested.",
+  );
+
+  /* --- 25a. THE AUDIO GESTURE CLAIM MUST SURVIVE THE NEW GESTURES ---
+     BUG THIS CATCHES: "sound dies from the third or fourth episode."
+     claimGestureForMountedSlides is registered on the scroll container as a
+     PASSIVE, BUBBLE-PHASE listener, and it is the only reason a <video> created
+     in an effect ever gets WebKit's per-element gesture permission. One
+     stopPropagation on a pointer or touch event anywhere below that container
+     removes the claim from every slide, silently. It fails no build, no lint
+     and no runtime check, and it does not reproduce on a desktop browser. */
+  if (missing.length === 0) {
+    const leaky = Object.entries({ holdDown, engage, beginScrub, applyScrub, endScrub, seekTo })
+      .filter(([, b]) => /stop(Immediate)?Propagation/.test(b))
+      .map(([n]) => n);
+    check(
+      leaky.length === 0,
+      "seek: a seek handler stops propagation and starves the audio gesture claim",
+      `${leaky.join(", ")} calls stopPropagation. The container's claim listener is passive and bubble\n` +
+        "      phase, so anything that stops a pointerdown/touchstart below it takes the WebKit audio\n" +
+        "      permission away from every mounted <video>. Sound then dies from the third or fourth episode.",
+    );
+  }
+  check(
+    !/on(PointerDown|PointerUp|PointerMove|TouchStart|TouchMove)=\{[^}]*stop(Immediate)?Propagation/.test(feedCode),
+    "seek: an inline pointer/touch prop stops propagation",
+    "Same defect as above, written inline in JSX instead of in a named handler.",
+  );
+  check(
+    /container\.addEventListener\("touchstart", claimGestureForMountedSlides, \{ passive: true \}\)/.test(feedCode) &&
+      /container\.addEventListener\("pointerdown", claimGestureForMountedSlides, \{ passive: true \}\)/.test(feedCode),
+    "seek: the audio gesture claim is no longer registered on the scroll container",
+    "Both touchstart and pointerdown must stay registered on the container, passive. This is the whole\n" +
+      "      mechanism that keeps sound on past episode one.",
+  );
+  /* The scrubber's hit strip is a SIBLING of the scroll container, not a
+     descendant, so a press on it never bubbles to the listener above. A viewer
+     who drives the player from the bar alone would starve the claim of
+     touches. It therefore has to call the claim itself. */
+  if (beginScrub) {
+    check(
+      /claimGestureForMountedSlides\(\)/.test(beginScrub),
+      "seek: the scrubber does not feed the audio gesture claim",
+      "The hit strip sits outside the scroll container, so its presses never reach the container's claim\n" +
+        "      listener. beginScrub must call claimGestureForMountedSlides() itself, or a viewer who uses the\n" +
+        "      bar instead of swiping loses sound on every slide after the first.",
+    );
+  }
+
+  /* --- 25b. THE SEEK MUST FIND THE VIDEO THE VIEWER IS WATCHING ---
+     BUG THIS CATCHES: seeking silently does nothing after a poster tap. The
+     arrival slide's element is the ADOPTED instant player, which is a <body>
+     child pinned over the slide rather than a descendant of it, so a lookup
+     that only searches the slide misses it — on the path nearly every viewer
+     takes into the player. */
+  if (getActive) {
+    check(
+      /data-index=/.test(getActive) && /video\[data-verza-fixed\]/.test(getActive),
+      "seek: the active-video lookup lost its adopted-player branch",
+      "It must try the active slide AND document.querySelector('video[data-verza-fixed]'). Without the\n" +
+        "      second branch the scrubber does nothing at all after a poster tap.",
+    );
+  }
+  if (beginScrub && applyScrub) {
+    check(
+      /getActiveVideo\(\)/.test(beginScrub) && /getActiveVideo\(\)/.test(applyScrub),
+      "seek: the scrubber reaches for a video without the two-branch lookup",
+      "Both the press and the drag must resolve the element through getActiveVideo().",
+    );
+  }
+
+  /* --- 25c. A SEEK MAY NEVER LEAVE THE EPISODE ---
+     BUG THIS CATCHES: scrubbing to the far right of the bar fires `ended`,
+     `ended` auto-advances the feed, and on the last free episode the slide it
+     advances onto is the paywall. The viewer is thrown out of the video they
+     were scrubbing. The clamp keeps the playhead short of the duration, so a
+     deliberate scrub to the end still finishes the episode by PLAYING those
+     last frames rather than by teleporting past them. */
+  {
+    const guard = feedCode.match(/const SEEK_END_GUARD_S = ([0-9.]+);/);
+    check(
+      Boolean(guard) && Number(guard[1]) > 0,
+      "seek: the end-of-episode guard is missing or zero",
+      "SEEK_END_GUARD_S must be > 0. At exactly `duration` the element fires `ended`, which auto-advances\n" +
+        "      the feed onto the next slide — the paywall, at the end of a free run.",
+    );
+  }
+  for (const [name, body] of [["seekTo", seekTo], ["applyScrub", applyScrub]]) {
+    if (!body) continue;
+    check(
+      /SEEK_END_GUARD_S/.test(body) && /Math\.min/.test(body) && /Math\.max\(\s*0/.test(body),
+      `seek: ${name} writes currentTime without clamping into [0, duration - guard]`,
+      "Every write must be clamped at both ends. Past the duration it fires `ended` and advances the feed;\n" +
+        "      below zero it throws on some engines.",
+    );
+  }
+  /* Position, never navigation. The seek controls change where the playhead is
+     inside ONE episode; the rail is moved only by a swipe or by auto-advance. */
+  {
+    const navigating = Object.entries({ seekTo, engage, holdDown, applyScrub, endScrub, beginScrub })
+      .filter(([, b]) => b && /scrollIntoView|setActiveIndex\(|activeIndexRef\.current\s*=[^=]/.test(b))
+      .map(([n]) => n);
+    check(
+      navigating.length === 0,
+      "seek: a seek handler moves the feed between episodes",
+      `${navigating.join(", ")} scrolls the rail or writes the active index. Seeking changes position WITHIN\n` +
+        "      an episode and nothing else — anything that moves the rail can cross the entitlement boundary.",
+    );
+  }
+
+  /* --- 25d. THE SEEK CONTROLS ARE INERT BEHIND THE PAYWALL ---
+     BUG THIS CATCHES: paid frames rendered under the unlock overlay. Blocked
+     slides are held PAUSED on purpose so unpurchased content never plays; a
+     live scrubber over one would let a viewer step through the whole episode
+     a frame at a time without buying it. */
+  {
+    const disabled = feedCode.match(/const scrubDisabled = [^;]+;/);
+    check(
+      Boolean(disabled) && /isFree/.test(disabled[0]) && /authFree/.test(disabled[0]) && /showUnlock/.test(disabled[0]),
+      "seek: the scrubber's paywall guard no longer reads entitlement",
+      "scrubDisabled must be derived from the active episode's isFree, the resolved authFree, and showUnlock.\n" +
+        "      Without all three a locked episode is scrubbable behind its own unlock overlay.",
+    );
+  }
+  if (beginScrub) {
+    check(
+      /if \(scrubDisabled\) return;/.test(beginScrub),
+      "seek: the scrubber can start on a locked episode",
+      "pointer-events alone is not a guard — a synthetic or retargeted event still reaches the handler.\n" +
+        "      beginScrub must return on scrubDisabled before it touches the media element.",
+    );
+  }
+  if (holdDown) {
+    check(
+      /blocked/.test(holdDown),
+      "seek: arming a hold does not refuse a paywalled slide",
+      "handleSeekPointerDown must return on `blocked` before it arms anything. It runs during the event, so\n" +
+        "      it can read the prop directly.",
+    );
+  }
+  if (engage) {
+    /* TWO guards, not one, and this check counts them. An earlier version only
+       asked whether the body mentioned blockedRef at all, and a negative
+       control walked straight through it: deleting the ENTRY guard left the
+       per-tick guard behind, the substring still matched, and the check passed
+       while a hold could engage on a paywalled slide. */
+    const guarded = (engage.match(/blockedRef\.current/g) || []).length;
+    check(
+      guarded >= 2,
+      "seek: hold-to-seek does not re-check the paywalled state",
+      `engageHoldSeek refuses a blocked slide in ${guarded} place(s); it needs two. The entry guard covers a\n` +
+        "      slide that became locked during the 300ms arm, and the per-tick guard covers entitlement being\n" +
+        "      revoked mid-hold — a refund or account change flips authFree while the finger is still down.",
+    );
+  }
+
+  /* --- 25e. TAP, DOUBLE-TAP AND HOLD SHARE ONE BOUNDARY ---
+     BUG THIS CATCHES: three gestures on one full-bleed surface with three
+     different thresholds are not distinguishable. If the hold engages inside
+     the double-tap window, two rewind presses become a Like; if it engages
+     later than the deferred play/pause, a hold pauses before it seeks. */
+  check(
+    /const TAP_WINDOW_MS = \d+;/.test(feedCode),
+    "seek: TAP_WINDOW_MS is gone",
+    "One named constant separates tap, double-tap and hold. Three literals drift apart.",
+  );
+  if (tap) {
+    const uses = (tap.match(/TAP_WINDOW_MS/g) || []).length;
+    check(
+      uses >= 2 && !/\b300\b/.test(tap),
+      "seek: handleTap uses a bare 300 instead of the shared gesture window",
+      `handleTap referenced TAP_WINDOW_MS ${uses} time(s). Both the double-tap comparison and the deferred\n` +
+        "      play/pause must use it, or the hold threshold silently stops matching them.",
+    );
+  }
+  if (holdDown) {
+    check(
+      /setTimeout\(engageHoldSeek, TAP_WINDOW_MS\)/.test(holdDown),
+      "seek: the hold threshold is not the shared gesture window",
+      "The hold must engage at exactly TAP_WINDOW_MS. Earlier and it eats the double-tap; later and the\n" +
+        "      deferred tap pauses the video the viewer is trying to rewind.",
+    );
+  }
+
+  /* --- 25f. THE RELEASE OF A HOLD MUST NOT REACH THE TAP HANDLER ---
+     BUG THIS CATCHES: every hold-to-rewind ending in a pause. iOS dispatches
+     `click` on the release of a stationary press however long it lasted, and
+     `click` is what handleTap listens to. This is the collision most likely to
+     ship broken, because with a mouse it never reproduces. */
+  if (tap && engage && holdDown) {
+    const consumedAt = tap.indexOf("gestureConsumedRef.current) return");
+    const firstTapWork = tap.indexOf("lastTap.current");
+    check(
+      consumedAt > -1 && firstTapWork > -1 && consumedAt < firstTapWork,
+      "seek: handleTap acts on the click that ends a hold",
+      "handleTap must return on gestureConsumedRef BEFORE it touches lastTap or schedules the deferred\n" +
+        "      play/pause. Otherwise a two-second hold-to-rewind ends by pausing the episode.",
+    );
+    check(
+      /gestureConsumedRef\.current = true;/.test(engage),
+      "seek: an engaged hold does not claim the gesture",
+      "engageHoldSeek must set gestureConsumedRef so the release is swallowed.",
+    );
+    check(
+      /gestureConsumedRef\.current = false;/.test(holdDown),
+      "seek: the consumed-gesture flag is never cleared on a new press",
+      "It must be cleared on pointerdown, not at the end of a gesture. A hold whose click the browser\n" +
+        "      swallows on its own would otherwise leave the flag set and eat the viewer's NEXT tap.",
+    );
+  }
+
+  /* --- 25g. THE HIT STRIP IS A TARGET, AND IT IS NOT PERMANENTLY LIVE ---
+     TWO BUGS THIS CATCHES. A 4px bar is not something a thumb can land on, so
+     the control has to carry a real hit area. And a hit area that is always
+     live across the bottom of the screen removes the band where thumbs start a
+     vertical flick — and the flick is how the feed works. Gating it on
+     showActionRail means the bar is grabbable exactly while it is visible, and
+     the band goes back to being swipe surface the moment the chrome fades. */
+  {
+    const at = feedCode.indexOf('aria-label="Seek"');
+    check(at > 0, "seek: the scrubber hit strip could not be located", "Expected a role=slider element with aria-label=\"Seek\".");
+    if (at > 0) {
+      const strip = feedCode.slice(Math.max(0, at - 1400), at);
+      const height = strip.match(/height: "calc\((\d+)px/);
+      check(
+        Boolean(height) && Number(height[1]) >= 40,
+        "seek: the scrubber's hit area is back to the height of the bar",
+        "The visual bar is 4px. The touch target must be at least 40px tall, or the control is unhittable\n" +
+          "      on a phone — which is the state the founder reported.",
+      );
+      check(
+        /pointerEvents:[^,\n]*showActionRail/.test(strip),
+        "seek: the scrubber's hit strip is live even when the chrome is hidden",
+        "A permanently live 44px strip across the bottom eats the region where a vertical flick starts, and\n" +
+          "      that flick is the feed. Gate pointerEvents on showActionRail.",
+      );
+      check(
+        /touchAction: "pan-y"/.test(strip),
+        "seek: the scrubber does not own its axis",
+        'It must own the HORIZONTAL axis and leave the vertical one to the browser: touch-action pan-y.\n' +
+          "        This check originally demanded `none`, which owns BOTH axes — and that is exactly the\n" +
+          "        regression three reviewers measured before it shipped: a full-width band across the bottom\n" +
+          "        of the screen that stopped the feed scrolling to the next episode whenever the action rail\n" +
+          "        was up. With no declaration at all the browser can claim a horizontal drag mid-scrub, so\n" +
+          "        the value matters in both directions.",
+      );
+    }
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  26. THE SEEK STRIP DOES NOT SWALLOW THE FEED SWIPE                  */
+/* ------------------------------------------------------------------ */
+
+/* BUG THIS CATCHES, measured by three independent reviewers before it shipped:
+   the scrubber's 44px hit strip spans the full width of the screen, and with
+   `touch-action: none` the browser hands it EVERY gesture in that band —
+   vertical ones included. Swiping to the next episode stopped working across
+   the bottom of the screen for as long as the action rail was visible, which is
+   the first ten seconds of every episode and ten seconds after every tap.
+
+   `pan-y` splits the axes: the browser keeps vertical panning so the feed still
+   scrolls, and the component keeps the horizontal drag for scrubbing. This is
+   the app's primary gesture, and the regression was invisible to every gate. */
+{
+  const strip = feedCode.match(/aria-label="Seek"[\s\S]{0,60}/) ? feedCode : "";
+  check(
+    Boolean(strip),
+    "scrubber: the seek strip could not be located",
+    "Renamed? Update this check — it guards the app's primary gesture.",
+  );
+  // The declaration sits on the same element that carries the pointer handlers.
+  const container = feedCode.match(/height: "calc\(44px \+ env\(safe-area-inset-bottom[\s\S]{0,400}/);
+  check(
+    Boolean(container) && /touchAction: "pan-y"/.test(container ? container[0] : ""),
+    "scrubber: the seek strip claims vertical gestures",
+    'touch-action must be "pan-y", never "none". "none" gives the strip every gesture in a full-width\n' +
+      "      band across the bottom of the screen, which stops the feed scrolling to the next episode\n" +
+      "      whenever the action rail is up. Three reviewers measured that regression independently.",
+  );
+  check(
+    !/touchAction: "none"/.test(container ? container[0] : ""),
+    "scrubber: touch-action none is back on the seek strip",
+    "Same defect, restated: it swallows the swipe.",
+  );
+}
+
 if (failures.length > 0) {
   console.error("Feed integrity contract: FAIL");
   for (const f of failures) console.error(`  - ${f}`);
