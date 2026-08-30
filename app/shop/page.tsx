@@ -35,14 +35,25 @@ export default function ShopPage() {
       </div>
 
       {/* Product Grid */}
-      {merchEnabled && <div className="product-grid grid grid-cols-2 gap-3">
-        {products.map((product) => (
-          <Link
-            key={product.id}
-            href={`/shop/${product.slug}`}
-            className="rounded-xl overflow-hidden no-underline transition-transform active:scale-[0.97] hover:scale-[1.02]"
-            style={{ background: T.surface, border: `1px solid ${T.line}` }}
-          >
+      {/* The merch grid is ALWAYS rendered. MERCH_CHECKOUT_ENABLED used to gate
+          the whole section, so with checkout off the entire Verza TV range
+          simply vanished from the shop and the page presented itself as an
+          Amazon affiliate list. The range exists and is worth showing; what is
+          not ready is the buying.
+
+          So the flag now decides whether a product SELLS, not whether it is
+          seen. With checkout off each product renders as Coming Soon with no
+          price and nothing to tap — visible, honest, and not purchasable. */}
+      <div className="product-grid grid grid-cols-2 gap-3">
+        {products.map((product) => {
+          /* Not a Link when it cannot be bought. A card that navigates to a
+             product page with an Add to Cart button is a promise the shop
+             cannot keep yet, and "tappable and inert" is the exact pattern the
+             audit was called to remove. */
+          const cardClass = `rounded-xl overflow-hidden no-underline${merchEnabled ? " transition-transform active:scale-[0.97] hover:scale-[1.02]" : ""}`;
+          const cardStyle = { background: T.surface, border: `1px solid ${T.line}`, opacity: merchEnabled ? 1 : 0.92 };
+          const body = (
+            <>
             {/* Product Image */}
             <div
               className="w-full relative overflow-hidden"
@@ -82,9 +93,19 @@ export default function ShopPage() {
               >
                 {product.name}
               </p>
-              <p className="text-sm font-bold" style={{ color: T.accent }}>
-                ${product.price % 1 === 0 ? product.price.toFixed(0) : product.price.toFixed(2)}
-              </p>
+              {merchEnabled ? (
+                <p className="text-sm font-bold" style={{ color: T.accent }}>
+                  ${product.price % 1 === 0 ? product.price.toFixed(0) : product.price.toFixed(2)}
+                </p>
+              ) : (
+                /* Where the price goes, so the eye lands on it in the same
+                   place on every card. No price is shown, because quoting one
+                   for something nobody can buy invites the question of whether
+                   it will still be that when it ships. */
+                <p className="text-sm font-bold" style={{ color: T.accent }}>
+                  Coming soon
+                </p>
+              )}
               <p
                 className="text-[10px] mt-1 inline-block px-1.5 py-0.5 rounded font-medium uppercase tracking-wide"
                 style={{ color: T.textMute, background: `${T.text}08` }}
@@ -92,9 +113,19 @@ export default function ShopPage() {
                 {product.category}
               </p>
             </div>
-          </Link>
-        ))}
-      </div>}
+            </>
+          );
+          return merchEnabled ? (
+            <Link key={product.id} href={`/shop/${product.slug}`} className={cardClass} style={cardStyle}>
+              {body}
+            </Link>
+          ) : (
+            <div key={product.id} className={cardClass} style={cardStyle} aria-label={`${product.name} — coming soon`}>
+              {body}
+            </div>
+          );
+        })}
+      </div>
 
       {/* The affiliate shop, alongside the merch above. Kept visibly apart on
           purpose: the merch checks out through our own Stripe cart, while these

@@ -46,7 +46,7 @@ export default function SearchBar({ series }: SearchBarProps) {
           placeholder="Search series, genres..."
           className="w-full pl-10 pr-4 py-3 rounded-xl text-sm outline-none"
           style={{
-            background: "#12121C",
+            background: "var(--t-surface)",
             color: "#F5F4F8",
             border: "1px solid rgba(255,255,255,0.08)",
           }}
@@ -57,7 +57,7 @@ export default function SearchBar({ series }: SearchBarProps) {
         <div
           className="absolute top-full left-0 right-0 mt-2 rounded-xl overflow-hidden z-50"
           style={{
-            background: "#12121C",
+            background: "var(--t-surface)",
             border: "1px solid rgba(255,255,255,0.08)",
           }}
         >
@@ -69,7 +69,7 @@ export default function SearchBar({ series }: SearchBarProps) {
               style={{ color: "#F5F4F8" }}
               onClick={() => setQuery("")}
               onMouseEnter={(e) =>
-                (e.currentTarget.style.background = "#1A1A26")
+                (e.currentTarget.style.background = "var(--t-raised)")
               }
               onMouseLeave={(e) =>
                 (e.currentTarget.style.background = "transparent")
@@ -77,7 +77,7 @@ export default function SearchBar({ series }: SearchBarProps) {
             >
               <div
                 className="w-10 h-14 rounded-md flex-shrink-0 overflow-hidden relative"
-                style={{ background: "#1A1A26" }}
+                style={{ background: "var(--t-raised)" }}
               >
                 {s.posterUrl ? (
                   <Image
@@ -111,7 +111,7 @@ export default function SearchBar({ series }: SearchBarProps) {
         <div
           className="absolute top-full left-0 right-0 mt-2 rounded-xl px-4 py-6 text-center z-50"
           style={{
-            background: "#12121C",
+            background: "var(--t-surface)",
             border: "1px solid rgba(255,255,255,0.08)",
             color: "#6B6B7B",
           }}

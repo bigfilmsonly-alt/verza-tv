@@ -37,7 +37,7 @@ export default function HeroCarousel({ series }: HeroCarouselProps) {
           ) : (
             <div
               className="absolute inset-0 flex items-center justify-center text-lg font-bold"
-              style={{ background: "linear-gradient(135deg, #1A1A26, #12121C)", color: "#6B6B7B" }}
+              style={{ background: "linear-gradient(135deg, var(--t-raised), var(--t-surface))", color: "#6B6B7B" }}
             >
               {current.title}
             </div>
@@ -47,7 +47,7 @@ export default function HeroCarousel({ series }: HeroCarouselProps) {
             className="absolute inset-0"
             style={{
               background:
-                "linear-gradient(to bottom, transparent 40%, rgba(7,7,14,0.7) 75%, #07070E 100%)",
+                "linear-gradient(to bottom, transparent 40%, rgba(7,7,14,0.7) 75%, var(--t-bg) 100%)",
             }}
           />
         </div>

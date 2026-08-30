@@ -184,7 +184,7 @@ export default async function ClipPage({ params }: Props) {
       />
 
       {/* Hero poster */}
-      <div className="relative" style={{ aspectRatio: "9 / 16", background: "#07070E" }}>
+      <div className="relative" style={{ aspectRatio: "9 / 16", background: "var(--t-bg)" }}>
         {thumb && (
           <Image
             src={thumb}

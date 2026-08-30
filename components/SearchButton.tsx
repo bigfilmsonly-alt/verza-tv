@@ -72,11 +72,11 @@ export default function SearchButton() {
         {/* Floating search bar at the top — the page (all the movies) stays fully
             visible behind it, no dim/blank screen. A results grid drops down only
             once you type. */}
-        <div className="flex flex-col w-full" style={{ maxWidth: 440, maxHeight: "100%", background: "#07070E", boxShadow: "0 12px 40px rgba(0,0,0,0.6)" }}>
+        <div className="flex flex-col w-full" style={{ maxWidth: 440, maxHeight: "100%", background: "var(--t-bg)", boxShadow: "0 12px 40px rgba(0,0,0,0.6)" }}>
           {/* Solid search bar — opaque so NOTHING from the page shows through */}
           <div
             className="flex items-center gap-3 px-4 pt-4 pb-3 flex-shrink-0"
-            style={{ background: "#07070E", borderBottom: "1px solid rgba(255,255,255,0.08)" }}
+            style={{ background: "var(--t-bg)", borderBottom: "1px solid rgba(255,255,255,0.08)" }}
           >
             {/* Form so pressing Return/Enter (desktop, tablet, mobile) submits
                 without reloading and dismisses the on-screen keyboard. Results
@@ -112,7 +112,7 @@ export default function SearchButton() {
               just the bar over the dimmed page (no black screen). Its own scroll
               region, capped height, solid background. */}
           {q.length >= 2 && (
-          <div className="overflow-y-auto" style={{ background: "#07070E", maxHeight: "calc(100vh - 76px)" }}>
+          <div className="overflow-y-auto" style={{ background: "var(--t-bg)", maxHeight: "calc(100vh - 76px)" }}>
             {filtered.length > 0 && (
               <>
                 <p className="px-4 pt-3 pb-2 text-[11px] font-semibold uppercase tracking-wider" style={{ color: "#6B6B7B" }}>
@@ -129,7 +129,7 @@ export default function SearchButton() {
                     >
                       <div
                         className="relative overflow-hidden rounded-xl"
-                        style={{ aspectRatio: "2 / 3", background: "#12121C", boxShadow: "0 4px 14px rgba(0,0,0,0.45)" }}
+                        style={{ aspectRatio: "2 / 3", background: "var(--t-surface)", boxShadow: "0 4px 14px rgba(0,0,0,0.45)" }}
                       >
                         {s.posterUrl && (
                           <Image

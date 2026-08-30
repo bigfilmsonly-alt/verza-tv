@@ -121,7 +121,7 @@ export default function CreatorBetaForm() {
           maxLength={120}
           className="verza-beta-input w-full rounded-xl px-4 py-3 text-[15px] outline-none transition-colors"
           style={{
-            background: "#07070E",
+            background: "var(--t-bg)",
             border: "1px solid rgba(224,17,95,0.2)",
             color: "#F5F4F8",
             textAlign: "left",
@@ -148,7 +148,7 @@ export default function CreatorBetaForm() {
           aria-describedby={error ? errId : undefined}
           className="verza-beta-input w-full rounded-xl px-4 py-3 text-[15px] outline-none transition-colors"
           style={{
-            background: "#07070E",
+            background: "var(--t-bg)",
             border: "1px solid rgba(224,17,95,0.2)",
             color: "#F5F4F8",
             textAlign: "left",

@@ -36,7 +36,7 @@ export default function LangDropdown() {
         <div
           className="absolute top-full left-0 mt-2 rounded-xl overflow-hidden z-[100]"
           style={{
-            background: "#12121C",
+            background: "var(--t-surface)",
             border: "1px solid rgba(255,255,255,0.1)",
             width: 180,
             maxHeight: 320,

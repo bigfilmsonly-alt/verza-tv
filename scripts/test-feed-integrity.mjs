@@ -3723,6 +3723,365 @@ check(
   );
 }
 
+/* ------------------------------------------------------------------ */
+/*  27. THEMING                                                         */
+/* ------------------------------------------------------------------ */
+
+/* The app was dark-only, with 1,710 T.* references across 76 files reading hex
+   literals straight into inline styles. Rather than edit 76 files, the tokens
+   became CSS custom properties, so swapping data-theme on the root element
+   re-colours everything and no component knows a theme exists. These checks
+   protect that indirection — a single hex literal put back into lib/theme.ts
+   silently un-themes every surface that reads it. */
+{
+  const theme = read("lib/theme.ts");
+
+  check(
+    !/:\s*"#[0-9A-Fa-f]{6}"/.test(theme.slice(theme.indexOf("export const T ="), theme.indexOf("} as const"))),
+    "theme: a token is a hex literal again",
+    "Every token in T must be var(--t-*). A literal cannot change with the theme, so the surface that\n" +
+      "      reads it stays dark on a white page — and it will look like a one-off bug rather than the\n" +
+      "      systemic thing it is.",
+  );
+
+  const css = read("app/globals.css");
+  check(
+    /:root\s*\{[^}]*--t-bg:/.test(css) && /:root\[data-theme="light"\]\s*\{[^}]*--t-bg:/.test(css),
+    "theme: a palette is missing",
+    "Dark must be defined on bare :root so a document with no attribute — server render, storage\n" +
+      "      blocked, crawler — gets the palette the product has always had. Light is opt-in.",
+  );
+
+  /* Every token the app reads must exist in BOTH palettes, or that surface
+     renders with an empty custom property and falls back to nothing. */
+  const tokens = [...theme.matchAll(/var\((--t-[a-z-]+)\)/g)].map((m) => m[1]);
+  const paletteFor = (sel) => {
+    const at = css.indexOf(sel);
+    if (at === -1) return "";
+    return css.slice(at, css.indexOf("}", at));
+  };
+  const dark = paletteFor(":root {");
+  const light = paletteFor(':root[data-theme="light"]');
+  const missingDark = tokens.filter((t) => !dark.includes(t + ":"));
+  const missingLight = tokens.filter((t) => !light.includes(t + ":"));
+  check(
+    tokens.length >= 13 && missingDark.length === 0 && missingLight.length === 0,
+    "theme: a token is defined in one palette but not the other",
+    `Every token must exist in both, or that surface renders with no value at all.\n` +
+      `      Missing from dark: ${missingDark.join(", ") || "none"}. Missing from light: ${missingLight.join(", ") || "none"}.`,
+  );
+
+  /* The flash-of-wrong-theme guard. Any React lifecycle runs after the server's
+     HTML has painted, so only an inline script in <head> can prevent a
+     full-page flash from black to white on every load. */
+  check(
+    /themeBootScript/.test(read("app/layout.tsx")) &&
+      /dangerouslySetInnerHTML=\{\{ __html: themeBootScript \}\}/.test(read("app/layout.tsx")),
+    "theme: the pre-paint boot script is gone",
+    "Without it the page renders dark, hydrates, and only then discovers a stored light preference —\n" +
+      "      a visible flash on every single load. No effect can do this, not even useLayoutEffect.",
+  );
+
+  /* html and body paint the ground behind every page. Left as a dark literal
+     they frame a white app in black. */
+  const layout = read("app/layout.tsx");
+  check(
+    !/<html[^>]*background: "#07070E"/.test(layout) && !/<body[^>]*background: "#07070E"/.test(layout),
+    "theme: the document ground is a dark literal",
+    "html and body must read var(--t-bg), or light mode renders a white app inside a black frame.",
+  );
+
+  /* The player is the deliberate exception and must NOT follow the theme:
+     video belongs on black at any setting. */
+  check(
+    /background: "#000"/.test(read("components/EpisodeFeed.tsx")),
+    "theme: the player stopped being black",
+    "The immersive player is intentionally black in both themes. Full-bleed video on a white ground\n" +
+      "      is wrong, and this is the one surface that should not follow the setting.",
+  );
+
+  /* The control must actually be a control. It shipped for months rendering the
+     words "Always On" beside a moon icon and doing nothing. */
+  /* Comments stripped: the replacement code explains the "Always On" control it
+     replaced, and matching that would make the check fail on its own prose. */
+  const profile = stripComments(read("components/ProfileDynamic.tsx"));
+  check(
+    /useTheme\(\)/.test(profile) && !/Always On/.test(profile),
+    "theme: the appearance control is inert again",
+    'It used to render "Always On" and do nothing — a control that looked like a control and was not\n' +
+      "      one. It must call setTheme.",
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  28. THE MERCH IS VISIBLE, AND HONEST ABOUT NOT BEING BUYABLE        */
+/* ------------------------------------------------------------------ */
+
+/* MERCH_CHECKOUT_ENABLED used to gate the whole section, so with checkout off
+   the entire Verza TV range vanished and the shop presented itself as an Amazon
+   affiliate list. The flag now decides whether a product SELLS, not whether it
+   is seen. */
+{
+  const shop = read("app/shop/page.tsx");
+  check(
+    !/\{merchEnabled && <div className="product-grid/.test(shop),
+    "shop: the merch grid is gated out of existence again",
+    "The range exists and is worth showing. Gate the BUYING, not the seeing.",
+  );
+  check(
+    /Coming soon/.test(shop),
+    "shop: an unbuyable product shows no coming-soon label",
+    "A product with no price and no explanation reads as broken.",
+  );
+  check(
+    /merchEnabled \? \(\s*<Link/.test(shop) || /return merchEnabled \? \(/.test(shop),
+    "shop: an unbuyable product still links to a purchase page",
+    "A card that navigates to a detail page with an Add to Cart button is a promise the shop cannot\n" +
+      "      keep. Tappable and inert is the exact pattern the audit exists to remove.",
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  29. THE REALITY TAB LEADS WITH A SHOW THAT PLAYS, AND THE THREE     */
+/*      FLYERS SAY SO IN WORDS                                          */
+/*                                                                      */
+/*  The Reality tab is a 2x2 grid of four shows and exactly one of them  */
+/*  — storage-pirates — has footage. The other three are not catalog     */
+/*  rows at all: no SERIES entry, no /series page, no episodes.          */
+/* ------------------------------------------------------------------ */
+{
+  /* Evaluate the REAL ordering rather than pattern-matching the sort call.
+     The literal and its comparator are lifted out of BrowsePage, transpiled
+     and run against the real public Mux map, so this asserts the order the
+     component actually renders — and it keeps working if the comparator is
+     rewritten. */
+  const predicateSrc = (browse.match(/function realityPlayable\([\s\S]*?\n\}/) || [])[0];
+  /* Bounded on both ends. An unbounded `[\s\S]*?` after the closing bracket
+     will happily run to the next semicolon anywhere in the 1,400-line file,
+     which is exactly how the "hand-numbered" check below was blind: it matched
+     a `.sort(` here and a `realityPlayable(` four hundred lines later inside
+     the tile renderer, and passed while the order was hardcoded. Verified by
+     negative control on 2026-08-30 — a comparator that ignores playability
+     entirely was not caught until this was bounded. */
+  const listSrc = (browse.match(/const REALITY_SHOWS = \[[\s\S]*?\n\][\s\S]{0,400}?;\n/) || [])[0];
+  const listCode = (browseCode.match(/const REALITY_SHOWS = \[[\s\S]*?\n\][\s\S]{0,400}?;\n/) || [])[0] || "";
+
+  check(
+    Boolean(predicateSrc && listSrc),
+    "reality: the show list could not be located in BrowsePage",
+    "Expected `function realityPlayable(...)` and `const REALITY_SHOWS = [...]` at module scope in\n" +
+      "      components/BrowsePage.tsx. If they were renamed or moved, update this check — do not\n" +
+      "      delete it: it is the only thing asserting the working show sits at the top of the tab.",
+  );
+
+  let realityShows = null;
+  if (predicateSrc && listSrc) {
+    const js = ts.transpileModule(
+      `${predicateSrc}\n${listSrc}\nmodule.exports = REALITY_SHOWS;`,
+      { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } },
+    ).outputText;
+    const compiled = { exports: {} };
+    try {
+      new Function("module", "exports", "MUX_MAP", js)(compiled, compiled.exports, publicMap.MUX_MAP);
+      realityShows = compiled.exports;
+    } catch (err) {
+      check(false, "reality: the show list could not be evaluated", String(err && err.message));
+    }
+  }
+
+  if (Array.isArray(realityShows) && realityShows.length > 0) {
+    const playable = (slug) => (publicMap.MUX_MAP[slug] ?? []).length > 0;
+    const order = realityShows.map((s) => `${s.slug}${playable(s.slug) ? "" : " (no video)"}`);
+
+    /* BUG THIS CATCHES: Storage Pirates — the only Reality title with any
+       footage — sat at index 3 of the four, which in a 2x2 grid is the
+       BOTTOM-RIGHT tile. The one show a viewer could actually watch was the
+       last one they reached, under two tiles that do nothing when tapped.
+       Founder, 2026-08-30: "Storage Pirates is the only actual show that is
+       working. Let us put that in one of the top two."
+       The assertion is the partition, not an index: every show that plays
+       sorts above every show that does not, so the top of the grid is always
+       watchable and a second real show joins it the day its footage lands. */
+    const firstUnplayable = realityShows.findIndex((s) => !playable(s.slug));
+    const lastPlayable = realityShows.map((s) => playable(s.slug)).lastIndexOf(true);
+    check(
+      firstUnplayable === -1 || lastPlayable < firstUnplayable,
+      "reality: a flyer with no video sorts above a show that plays",
+      `Rendered order: ${order.join(", ")}\n` +
+        "      Every playable Reality show must precede every unplayable one, so slot 1 of the 2x2 grid\n" +
+        "      is always a tile that starts a video. Storage Pirates used to sit in slot 4.",
+    );
+
+    /* The grid is 2x2 and the founder asked for the working show in the top
+       ROW, which is slots 1 and 2 — a partition alone would satisfy that with
+       zero playable shows, so state the real requirement. */
+    check(
+      realityShows.slice(0, 2).some((s) => playable(s.slug)),
+      "reality: neither of the top two tiles plays anything",
+      `Rendered order: ${order.join(", ")}\n` +
+        "      The first row of the Reality grid must contain at least one show with episodes in\n" +
+        "      MUX_MAP. If every Reality title has genuinely lost its footage, this check is the\n" +
+        "      right place to find out.",
+    );
+
+    /* BUG THIS CATCHES: the order being written down instead of worked out.
+       A hardcoded slot ("storage-pirates first") is correct on the day it is
+       typed and silently wrong forever after: when The Vertical Tea's episodes
+       land, nothing fails, nothing warns, and the new real show sits in the
+       bottom row under two flyers until somebody notices by eye. Deriving the
+       order from the same MUX_MAP predicate the tiles use to decide
+       tappability removes the thing that can be forgotten. */
+    check(
+      /\.sort\(/.test(listCode) && /realityPlayable\(/.test(listCode),
+      "reality: the grid order is hand-numbered again",
+      "REALITY_SHOWS must be ordered by a .sort() that calls realityPlayable() — the same MUX_MAP\n" +
+        "      predicate the tiles use for tappability. A hardcoded order goes stale the moment new\n" +
+        "      footage lands and nothing reports it.",
+    );
+
+    /* BUG THIS CATCHES: a tile that says "Coming Soon" and then serves a 404.
+       sugar-babies, buy-sell-miami and the-vertical-tea are in no SERIES row,
+       so getSeriesWithDetail() returns undefined and
+       app/series/[slug]/page.tsx calls notFound(). posterHref() cannot save
+       them either — its zero-episode fallback is /series/<slug>, which is the
+       page that 404s. So an unplayable Reality tile may only become a link
+       once its slug is a real catalog row. */
+    for (const show of realityShows) {
+      if (playable(show.slug)) continue;
+      check(
+        !catalog.catalog.some((s) => s.slug === show.slug),
+        `reality: ${show.slug} has a catalog row but the tile is still inert`,
+        "It now has a real /series page, so the tile should link to it rather than swallow the tap.\n" +
+          "      Update the Reality grid, then update this check to expect the link.",
+      );
+    }
+  }
+
+  /* Everything below asserts the RENDERED tile, scoped to the Reality block so
+     a match somewhere else in BrowsePage cannot satisfy it. */
+  const realityBlock = (browseCode.match(
+    /activeTab === "reality" && \(\(\) => \{[\s\S]*?\n {6}\}\)\(\)\}/,
+  ) || [])[0];
+
+  check(
+    Boolean(realityBlock),
+    "reality: the tab's render block could not be located",
+    'Expected `{activeTab === "reality" && (() => {` ... `})()}` in components/BrowsePage.tsx.',
+  );
+
+  if (realityBlock) {
+    /* BUG THIS CATCHES: nothing on an unplayable Reality tile said it was
+       unplayable. Two of the three flyers carry a launch line inside the
+       ARTWORK and one carries nothing at all, so the tab showed four
+       identical-looking shows of which three did nothing when tapped, and the
+       only explanation was baked into a JPEG at whatever size the poster
+       happened to render. The status has to be TEXT in the title row: it is
+       the only form that stays legible at tile size, gets read aloud, and can
+       be changed without re-exporting artwork.
+       Founder, 2026-08-30: "put Coming Soon not ON the flyer, but under or
+       next to the title — like Sugar Babies Coming Soon". */
+    check(
+      /<Badge type="soon" inline \/>/.test(realityBlock),
+      "reality: the flyers no longer say Coming Soon in the title row",
+      "An unplayable Reality tile must render <Badge type=\"soon\" inline /> beneath its title. Without\n" +
+        "      it the tab shows four shows that look alike and three that do nothing when tapped.",
+    );
+
+    /* The label must be in the TITLE ROW, not painted back over the flyer. The
+       poster art is do-not-touch: it may not be cropped, resized or overlaid,
+       and an absolute-positioned badge on top of it is exactly the overlay the
+       founder asked to remove. `inline` is the placement that renders as a
+       span in normal flow; the default placement is `absolute`. */
+    check(
+      !/<Badge type="soon"(?! inline)/.test(realityBlock),
+      "reality: the Coming Soon badge is overlaying the flyer artwork again",
+      "Only the `inline` placement belongs on a Reality tile. The default Badge is absolutely\n" +
+        "      positioned over the poster, and these flyers are do-not-touch artwork.",
+    );
+
+    /* It has to be the label the rest of the app uses, not a fourth spelling.
+       BADGE_STYLE.soon.label is that word, and the show page title, the browse
+       grid and the empty-state panel all read from it. */
+    check(
+      /soon: \{[^}]*label: "Coming Soon"/.test(browseCode),
+      "reality: the Coming Soon wording drifted out of BADGE_STYLE",
+      "The inline Reality label renders BADGE_STYLE.soon.label. Keep one spelling of the status for\n" +
+        "      the badge, the grid and the empty state.",
+    );
+
+    /* BUG THIS CATCHES: making a Coming Soon tile tappable. This is the
+       source-level half of the catalog check above — the tile must be a plain
+       element with no href in the unplayable arm. A <Link> here is a 404
+       behind a label that promises a launch. */
+    const arms = realityBlock.match(/return playable \? \(([\s\S]*?)\) : \(([\s\S]*?)\);/);
+    check(
+      Boolean(arms) && /<Link/.test(arms[1]),
+      "reality: the playable tile stopped linking to its player",
+      "storage-pirates has episodes and its tile must open them.",
+    );
+    check(
+      Boolean(arms) && !/<Link/.test(arms[2]) && !/href/.test(arms[2]),
+      "reality: a Coming Soon tile navigates somewhere",
+      "The unplayable arm must render a plain element with no href. These three slugs are in no\n" +
+        "      catalog row, so /series/<slug> calls notFound() — the tap would serve a 404 to somebody\n" +
+        "      who just read the words Coming Soon.",
+    );
+
+    /* BUG THIS CATCHES: the fixed 36px title row. The status chip is a few
+       pixels taller than the genre line it replaces (measured 41 vs 36), and a
+       hard height let it bleed through the 10px grid gap into the poster
+       below. Measured in Chrome at the 2-up tile width: 36 -> clipped, 41 with
+       minHeight -> clean, all four tiles 317px tall. */
+    check(
+      /minHeight: 36/.test(realityBlock) && !/style=\{\{ height: 36 \}\}/.test(realityBlock),
+      "reality: the tile title row is a fixed height again",
+      "The Coming Soon chip is taller than the genre line it replaces. Use minHeight so the row can\n" +
+        "      grow instead of bleeding into the row beneath it.",
+    );
+  }
+
+  /* The inline placement itself. It is a second placement of ONE badge
+     vocabulary, not a second vocabulary — same component, same BADGE_STYLE
+     constant, same word. */
+  check(
+    /function Badge\(\{ type, large = false, inline = false \}/.test(browseCode),
+    "reality: the Badge component lost its inline placement",
+    "Badge renders the status over artwork by default and in the title row when `inline` is set.\n" +
+      "      Both placements are the same badge; do not fork a second component to say Coming Soon.",
+  );
+
+  /* BUG THIS CATCHES: a dark hex under the title. The title row used to be
+     "#F5F4F8" on "#6B6B7B" — literals that were correct on the dark ground and
+     invisible on the light one (near-white text on a white page, ~1:1). Every
+     colour in this row now reads a var(--t-*) token, so it switches. Measured
+     in both themes on the mobile ground: title 7.79:1 dark / 8.71:1 light,
+     chip text 6.68:1 dark / 8.16:1 light. */
+  if (browse.includes("REALITY_SHOWS.map")) {
+    /* Scoped to the title row only — the poster box above it legitimately
+       carries the Landscape chip's own stroke colour, which is artwork
+       furniture on a permanently dark ground, not page text. */
+    const titleRow = (browse.match(/style=\{\{ minHeight: 36 \}\}>([\s\S]*?)<Badge type="soon" inline \/>/) || [])[0];
+    /* Fails closed, and says which failure it is: if the row cannot be found
+       the colours cannot be judged, and reporting "hardcodes a hex" for a row
+       that was merely restructured sends the reader hunting for a hex that is
+       not there. */
+    check(
+      Boolean(titleRow),
+      "reality: the tile title row could not be located",
+      "Expected the title row between `style={{ minHeight: 36 }}>` and `<Badge type=\"soon\" inline />`.\n" +
+        "      If the row was restructured, re-scope this check — it is what keeps a dark hex out of it.",
+    );
+    if (titleRow) {
+      check(
+        !/#[0-9A-Fa-f]{6}/.test(titleRow),
+        "reality: the tile title row hardcodes a hex colour",
+        "Use the T tokens (T.text, T.textDim, T.textMute). A literal dark hex does not switch to light\n" +
+          "      mode, and #F5F4F8 on the light theme's white ground is invisible.",
+      );
+    }
+  }
+}
+
 if (failures.length > 0) {
   console.error("Feed integrity contract: FAIL");
   for (const f of failures) console.error(`  - ${f}`);

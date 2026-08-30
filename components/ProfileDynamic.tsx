@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { T } from "@/lib/theme";
+import { useTheme } from "@/components/ThemeProvider";
 import { signOutAction } from "@/app/actions/auth";
 import { readSavedSlugs, clearGuestState } from "@/lib/guest-storage";
 import { readGuestContinueWatching } from "@/lib/continue-watching";
@@ -81,7 +82,77 @@ export function PurchaseCount() {
 }
 
 /* ---- Dark mode toggle ---- */
+/* Declared at module scope, not inside DarkModeToggle. A component created
+   during render is a new type on every render, so React unmounts and remounts
+   it each time and any state inside it resets. Harmless for these two today,
+   and exactly the kind of thing that stops being harmless later. */
+function ThemeSwatch({ mode }: { mode: "dark" | "light" }) {
+  return (
+    <span
+      aria-hidden="true"
+      style={{
+        width: 22,
+        height: 22,
+        borderRadius: 6,
+        flexShrink: 0,
+        /* Literal colours, not tokens: a preview that re-themes with the page
+           stops being a preview. */
+        background: mode === "dark" ? "#07070E" : "#FFFFFF",
+        border: mode === "dark" ? "1px solid rgba(255,255,255,0.22)" : "2px solid #E0115F",
+        boxShadow: mode === "light" ? "0 0 0 3px rgba(224,17,95,0.18)" : "none",
+      }}
+    />
+  );
+}
+
+function ThemeOption({
+  mode,
+  label,
+  active,
+  onSelect,
+}: {
+  mode: "dark" | "light";
+  label: string;
+  active: boolean;
+  onSelect: (m: "dark" | "light") => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(mode)}
+      aria-pressed={active}
+      aria-label={`${label} appearance`}
+      className="flex items-center gap-2 rounded-full transition-transform active:scale-95"
+      style={{
+        padding: "7px 12px",
+        minHeight: 40,
+        background: active ? "rgba(224,17,95,0.14)" : "transparent",
+        border: `1px solid ${active ? T.accent : T.line}`,
+        color: active ? T.text : T.textDim,
+        fontSize: 13,
+        fontWeight: active ? 700 : 500,
+      }}
+    >
+      <ThemeSwatch mode={mode} />
+      {label}
+    </button>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Appearance                                                          */
+/*                                                                      */
+/*  This row used to render the word "Always On" beside a moon and do    */
+/*  nothing — a control that looked like a control and was not one.      */
+/*  It is now the real switch.                                          */
+/*                                                                      */
+/*  Each option previews the palette it selects rather than describing   */
+/*  it: the Light swatch is an actual white card with an actual pink     */
+/*  outline, drawn in literal colours so it looks the same whichever     */
+/*  theme you are currently in. You choose by looking, not by reading.   */
+/* ------------------------------------------------------------------ */
 export function DarkModeToggle() {
+  const { theme, setTheme } = useTheme();
   return (
     <div
       className="flex items-center gap-3 px-4 py-3"
@@ -92,10 +163,11 @@ export function DarkModeToggle() {
           <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
         </svg>
       </span>
-      <span className="flex-1 text-sm font-medium" style={{ color: T.text }}>Dark Mode</span>
-      <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: "rgba(46,204,113,0.15)", color: "#2ecc71" }}>
-        Always On
-      </span>
+      <span className="flex-1 text-sm font-medium" style={{ color: T.text }}>Appearance</span>
+      <div className="flex items-center gap-2">
+        <ThemeOption mode="dark" label="Dark" active={theme === "dark"} onSelect={setTheme} />
+        <ThemeOption mode="light" label="Light" active={theme === "light"} onSelect={setTheme} />
+      </div>
     </div>
   );
 }

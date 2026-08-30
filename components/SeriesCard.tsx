@@ -33,7 +33,7 @@ export default function SeriesCard({ series, dimmed }: SeriesCardProps) {
           <div
             className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-center px-2"
             style={{
-              background: "linear-gradient(135deg, #1A1A26, #12121C)",
+              background: "linear-gradient(135deg, var(--t-raised), var(--t-surface))",
               color: "#6B6B7B",
             }}
           >

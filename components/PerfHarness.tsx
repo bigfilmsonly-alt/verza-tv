@@ -96,7 +96,7 @@ export default function PerfHarness() {
   const clip = SEED_CLIPS[index];
 
   return (
-    <div style={{ minHeight: "100dvh", background: "#07070E", color: "#fff", padding: 16, fontFamily: "system-ui, sans-serif" }}>
+    <div style={{ minHeight: "100dvh", background: "var(--t-bg)", color: "#fff", padding: 16, fontFamily: "system-ui, sans-serif" }}>
       <h1 style={{ fontSize: 18, fontWeight: 700, marginBottom: 12 }}>VERZA Perf Harness</h1>
 
       <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>

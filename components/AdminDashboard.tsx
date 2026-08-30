@@ -4,9 +4,9 @@ import { useEffect, useState, useCallback } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 
 const T = {
-  bg: "#07070E",
-  surface: "#12121C",
-  raised: "#1A1A26",
+  bg: "var(--t-bg)",
+  surface: "var(--t-surface)",
+  raised: "var(--t-raised)",
   line: "rgba(255,255,255,.08)",
   text: "#F5F4F8",
   textDim: "#A0A0B0",

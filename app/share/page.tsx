@@ -46,7 +46,7 @@ export default function SharePage() {
   return (
     <main
       className="flex flex-col items-center justify-center gap-4 px-6 text-center"
-      style={{ minHeight: "70vh", background: "#07070E" }}
+      style={{ minHeight: "70vh", background: "var(--t-bg)" }}
     >
       <ShareRedirect />
       <Image

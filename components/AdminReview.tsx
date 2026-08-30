@@ -10,9 +10,9 @@ import {
 } from "@/lib/creator-client";
 
 const T = {
-  bg: "#07070E",
-  surface: "#12121C",
-  raised: "#1A1A26",
+  bg: "var(--t-bg)",
+  surface: "var(--t-surface)",
+  raised: "var(--t-raised)",
   line: "rgba(255,255,255,.1)",
   text: "#F5F4F8",
   textDim: "rgba(255,255,255,0.5)",

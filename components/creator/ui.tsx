@@ -8,9 +8,9 @@ import { isHttpUrl, MAX_CONTENT_LINKS, STEP_LABELS } from "@/lib/creator-client"
 /*  Superset of lib/theme with the purple/warn tokens the wizard uses. */
 /* ------------------------------------------------------------------ */
 export const T = {
-  bg: "#07070E",
-  surface: "#12121C",
-  raised: "#1A1A26",
+  bg: "var(--t-bg)",
+  surface: "var(--t-surface)",
+  raised: "var(--t-raised)",
   line: "rgba(255,255,255,.1)",
   text: "#F5F4F8",
   textDim: "rgba(255,255,255,0.5)",

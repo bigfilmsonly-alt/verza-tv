@@ -83,7 +83,7 @@ export default function CoinPaywall({
   }
 
   return (
-    <div className="relative mx-4 rounded-2xl overflow-hidden" style={{ backgroundColor: "#07070E" }}>
+    <div className="relative mx-4 rounded-2xl overflow-hidden" style={{ backgroundColor: "var(--t-bg)" }}>
       <div className="relative" style={{ aspectRatio: "9 / 16" }}>
         {posterUrl ? (
           <Image
@@ -96,7 +96,7 @@ export default function CoinPaywall({
             style={{ filter: "brightness(0.25) blur(2px)" }}
           />
         ) : (
-          <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, #1A1A26, #07070E)" }} />
+          <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, var(--t-raised), var(--t-bg))" }} />
         )}
 
         <div

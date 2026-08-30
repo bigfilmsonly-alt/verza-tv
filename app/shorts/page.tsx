@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 export default function ShortsPage() {
   const series = getLiveSeries();
   return (
-    <div style={{ background: "#07070E" }}>
+    <div style={{ background: "var(--t-bg)" }}>
       <JsonLd data={websiteSchema()} />
       <ShortsFeed series={series} />
     </div>

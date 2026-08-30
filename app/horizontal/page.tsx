@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 export default function HorizontalPage() {
   return (
-    <div style={{ background: "#07070E", minHeight: "100dvh" }}>
+    <div style={{ background: "var(--t-bg)", minHeight: "100dvh" }}>
       <JsonLd data={organizationSchema()} />
       <HorizontalBackButton />
       <HorizontalFeed />

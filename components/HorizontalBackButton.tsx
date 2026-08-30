@@ -2,7 +2,7 @@
 
 export default function HorizontalBackButton() {
   return (
-    <div className="sticky top-0 z-30 px-4 pt-3 pb-2" style={{ background: "linear-gradient(to bottom, #07070E 60%, transparent)" }}>
+    <div className="sticky top-0 z-30 px-4 pt-3 pb-2" style={{ background: "linear-gradient(to bottom, var(--t-bg) 60%, transparent)" }}>
       <button
         onClick={() => { window.location.href = "/?tab=reality"; }}
         className="flex items-center gap-2 border-0 bg-transparent cursor-pointer p-0"

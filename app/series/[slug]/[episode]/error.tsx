@@ -39,7 +39,7 @@ export default function EpisodeError({
   return (
     <div
       className="flex flex-col items-center justify-center text-center px-6"
-      style={{ minHeight: "100dvh", background: "#07070E", color: "#F5F4F8" }}
+      style={{ minHeight: "100dvh", background: "var(--t-bg)", color: "#F5F4F8" }}
     >
       <div
         className="flex items-center justify-center rounded-full mb-5"

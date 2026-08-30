@@ -8,6 +8,7 @@ import Header from "@/components/Header";
 import { CartProvider } from "@/lib/cart";
 import CartDrawer from "@/components/CartDrawer";
 import { AmazonBagProvider } from "@/lib/amazon-bag";
+import ThemeProvider, { themeBootScript } from "@/components/ThemeProvider";
 import AmazonBag from "@/components/AmazonBag";
 import { LangProvider } from "@/components/LangProvider";
 import ServiceWorker from "@/components/ServiceWorker";
@@ -95,7 +96,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   viewportFit: "cover",
-  themeColor: "#07070E",
+  themeColor: "var(--t-bg)",
 };
 
 export default function RootLayout({
@@ -104,8 +105,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} h-full antialiased`} style={{ background: "#07070E" }}>
+    <html lang="en" className={`${inter.variable} h-full antialiased`} style={{ background: "var(--t-bg)" }}>
       <head>
+        {/* Applies a stored light preference BEFORE first paint. Without it the
+            page renders dark, hydrates, and only then discovers the choice — a
+            full-page flash from black to white on every load. No React lifecycle
+            can do this; even useLayoutEffect runs after the server's HTML has
+            painted. */}
+        <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
         {/* Connection warming — pay down DNS+TLS to Mux before anyone taps play */}
         <link rel="preconnect" href="https://stream.mux.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://image.mux.com" crossOrigin="anonymous" />
@@ -117,7 +124,7 @@ export default function RootLayout({
             the iOS app so no ad-tracking runs there (App Tracking Transparency
             would otherwise be required). Web behavior is unchanged. */}
       </head>
-      <body className="min-h-full flex flex-col" style={{ background: "#07070E" }}>
+      <body className="min-h-full flex flex-col" style={{ background: "var(--t-bg)" }}>
         <ThirdPartyScripts />
         {/* Google Tag Manager (noscript) — fallback for JS-disabled clients */}
         <noscript>
@@ -141,6 +148,7 @@ export default function RootLayout({
             back. AmazonBagProvider is also read by the product tiles on /shop
             and /amazon. Neither renders anything on its own. */}
         <CartProvider>
+        <ThemeProvider>
         <AmazonBagProvider>
         <LangProvider>
           <ContentTranslator />
@@ -176,6 +184,7 @@ export default function RootLayout({
           </div>
         </LangProvider>
         </AmazonBagProvider>
+        </ThemeProvider>
         </CartProvider>
         <Analytics />
         <SpeedInsights />

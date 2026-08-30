@@ -1,5 +1,77 @@
 @import "tailwindcss";
 
+/* ------------------------------------------------------------------ */
+/*  Theme palettes                                                      */
+/*                                                                      */
+/*  lib/theme.ts exports every token as var(--t-*), and 1,710 call sites */
+/*  read those straight into inline styles. So these two blocks are the  */
+/*  entire theming system: swapping data-theme on <html> re-colours the  */
+/*  whole app, and no component knows a theme exists.                    */
+/*                                                                      */
+/*  DARK IS THE DEFAULT and is defined on bare :root, so a document with */
+/*  no data-theme attribute — a server render, a browser with storage    */
+/*  blocked, a crawler — gets the palette the product has always had.    */
+/*  Light is opt-in only. This app is a video player: the dark ground is */
+/*  the correct default behind full-bleed video, and switching on the    */
+/*  OS preference would flip it for people who never asked.              */
+/* ------------------------------------------------------------------ */
+
+:root {
+  --t-bg: #07070E;
+  --t-surface: #12121C;
+  --t-raised: #1A1A26;
+  --t-line: rgba(255, 255, 255, 0.08);
+  --t-text: #F5F4F8;
+  --t-text-dim: #A0A0B0;
+  --t-text-mute: #6B6B7B;
+  --t-accent: #E0115F;
+  --t-gold: #F6C800;
+  --t-deep-gold: #946312;
+  --t-success: #2ECC71;
+  --t-live: #FF3B5C;
+  --t-coin: #FFC83D;
+}
+
+/* LIGHT — white ground, pink outline, and it has to pop.
+
+   The brief was "a white background with a pink outline". The obvious version
+   of that is a white page with hairline pink borders, and it looks weak,
+   because the dark theme's separators are white at 8% alpha: a rule that reads
+   as a whisper against near-black reads as nothing at all against white.
+
+   So the outline carries real weight here. --t-line is the brand pink at 34%,
+   not a grey at 8%, which is what makes a card read as outlined rather than as
+   an empty rectangle. Surfaces stay pure white so the outline is the thing that
+   defines the shape — that is where the pop comes from, and it is why surface
+   and raised are both white rather than the usual light-grey ladder.
+
+   Text is near-black, never pink. #E0115F on white is about 4.9:1, which is
+   fine for a heading or a button and not fine for body copy, so the accent
+   stays on outlines, fills and emphasis and the reading text is #14141C at
+   roughly 15:1. textMute is darkened well past the dark theme's value for the
+   same reason: #6B6B7B on white is 4.6:1 and legal, but it is a grey mush next
+   to a pink outline, so it is darkened until it holds its own beside one.
+
+   gold and coin are darkened too. #F6C800 on white is 1.6:1 — effectively
+   invisible — so the light palette uses a deeper gold that still reads as gold.
+   live and success get the same treatment for the same reason. */
+:root[data-theme="light"] {
+  --t-bg: #FFFFFF;
+  --t-surface: #FFFFFF;
+  --t-raised: #FFF5F9;
+  --t-line: rgba(224, 17, 95, 0.34);
+  --t-text: #14141C;
+  --t-text-dim: #4A4A58;
+  --t-text-mute: #6E6E7E;
+  --t-accent: #E0115F;
+  --t-gold: #8A6D00;
+  --t-deep-gold: #6B4A0C;
+  --t-success: #157F45;
+  --t-live: #C81038;
+  --t-coin: #8A6D00;
+}
+
+
 @theme inline {
   --color-bg: #07070E;
   --color-bg-card: #111118;
