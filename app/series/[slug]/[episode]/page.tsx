@@ -122,7 +122,17 @@ export default async function EpisodePage({ params }: Props) {
 
   // Horizontal swipe is only for WIDESCREEN (16:9) content. Red carpet clips
   // are vertical 9:16 — they play in the standard vertical feed like dramas.
-  const isHorizontalSwipe = slug === "storage-pirates";
+  /* Storage Pirates is shot landscape, so its video is letterboxed. That is a
+     PRESENTATION decision and it used to drag the SWIPE AXIS along with it: the
+     title rendered as a horizontal rail, and the founder could only reach the
+     next episode by turning the phone sideways. Every other section swipes up.
+
+     The two are separate concerns and are now separate props. The feed is
+     vertical here like everywhere else — same scrollport bound, same settle
+     handler, same entitlement bound, same audio gesture claim, same scrubber,
+     same auto-advance — and only the video letterboxes. */
+  const isHorizontalSwipe = false;
+  const isWidescreen = slug === "storage-pirates";
   // Derived from the shared list rather than a hand-written chain, so a title
   // on a language tab returns to that tab instead of to "/" — which is Drama,
   // and Drama excludes every tab-exclusive category by construction.
@@ -178,6 +188,7 @@ export default async function EpisodePage({ params }: Props) {
         freeEpisodes={series.freeEpisodes}
         totalEpisodes={series.episodeCount}
         horizontal={isHorizontalSwipe}
+        widescreen={isWidescreen}
         backHref={backTab ? `/?tab=${backTab}` : "/"}
       />
     </>

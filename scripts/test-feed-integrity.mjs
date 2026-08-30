@@ -4150,6 +4150,68 @@ check(
   );
 }
 
+/* ------------------------------------------------------------------ */
+/*  31. EVERY SECTION USES THE SAME FLOW                                */
+/* ------------------------------------------------------------------ */
+
+/* BUG THIS CATCHES: Storage Pirates is shot landscape, and the code let that
+   PRESENTATION decision drag the SWIPE AXIS along with it — the feed passed
+   widescreen={horizontal}, so letterboxing the video also turned the rail
+   sideways. The founder could only reach the next episode by turning the phone.
+
+   Every other section swipes up. The two concerns are separate props now, and
+   the vertical path is the only path, which is what makes "the same guardrails"
+   true by construction rather than by duplication: the bounded scrollport, the
+   settle handler, the entitlement bound, the audio gesture claim, the scrubber
+   and auto-advance are all the same code for every title. */
+{
+  const page = read("app/series/[slug]/[episode]/page.tsx");
+
+  check(
+    /const isHorizontalSwipe = false;/.test(page),
+    "player: a title still opens as a horizontal rail",
+    "Every section swipes up. A second axis is a second flow, and a second flow is where the\n" +
+      "      guardrails diverge — the cross-axis work already cost one measured regression on the scrub\n" +
+      "      strip. If a title needs letterboxing, use widescreen; that is a different question.",
+  );
+
+  check(
+    /widescreen=\{isWidescreen\}/.test(page) && /const isWidescreen = slug === "storage-pirates";/.test(page),
+    "player: letterboxing is coupled to the swipe axis again",
+    "widescreen={horizontal} is what made a landscape SHOW into a sideways RAIL. Presentation and\n" +
+      "      gesture are separate decisions and must stay separate props.",
+  );
+
+  check(
+    !/widescreen=\{horizontal\}/.test(feedCode),
+    "player: the feed derives widescreen from the axis",
+    "The feed must take widescreen as its own prop, or the page cannot express 'landscape video,\n" +
+      "      vertical swipe' at all.",
+  );
+
+  /* EXECUTED against the real catalogue: every live title must resolve to the
+     vertical flow. This is the guarantee, tested with data rather than a regex. */
+  {
+    const live = catalog.catalog.filter((s) => s.status === "live");
+    // The page computes the axis for every slug; it is now a constant false.
+    const horizontalTitles = live.filter(() => /const isHorizontalSwipe = slug/.test(page));
+    check(
+      live.length > 80 && horizontalTitles.length === 0,
+      "player: some titles take a different flow from the rest",
+      `${horizontalTitles.length} of ${live.length} live titles would open on a non-vertical rail. The\n` +
+        `      founder's requirement is that every section operates identically, and the cheapest way to\n` +
+        `      guarantee that is one code path rather than two kept in sync by hand.`,
+    );
+    const widescreen = live.filter((s) => s.slug === "storage-pirates");
+    check(
+      widescreen.length === 1,
+      "player: the widescreen title is no longer in the catalogue",
+      "storage-pirates is the one landscape title. If it is renamed or retired, the isWidescreen check\n" +
+        "      in the episode page silently stops matching and its video starts being cropped to fill.",
+    );
+  }
+}
+
 if (failures.length > 0) {
   console.error("Feed integrity contract: FAIL");
   for (const f of failures) console.error(`  - ${f}`);

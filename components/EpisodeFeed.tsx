@@ -112,6 +112,9 @@ interface EpisodeFeedProps {
   totalEpisodes: number;
   /** Horizontal left/right swipe instead of vertical (used for red carpet events) */
   horizontal?: boolean;
+  /** Letterbox the video (object-contain) for landscape footage. Independent of
+      the swipe axis: a title can be widescreen AND swipe vertically. */
+  widescreen?: boolean;
   /** Where the back button navigates (defaults to home) */
   backHref?: string;
 }
@@ -2103,6 +2106,7 @@ export default function EpisodeFeed({
   freeEpisodes,
   totalEpisodes,
   horizontal = false,
+  widescreen = false,
   backHref = "/",
 }: EpisodeFeedProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -3717,7 +3721,7 @@ export default function EpisodeFeed({
                 onDoubleTap={handleDoubleTap}
                 onReveal={revealActionRail}
                 onFirstPlayGesture={requestPermissionOnce}
-                widescreen={horizontal}
+                widescreen={widescreen}
                 transitionPoster={ep.number === startEpisode ? transitionPoster ?? undefined : undefined}
                 blocked={!ep.isFree && !authFree}
                 onAccessDenied={handlePlaybackAccessDenied}
