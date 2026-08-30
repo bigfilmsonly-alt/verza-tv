@@ -1592,12 +1592,9 @@ export default function EpisodeFeed({
      stopped moving, never from one still under momentum. */
   const inFlightRef = useRef(false);
   const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  /* Where the index was when the finger went down. A flick may move the feed
-     one slide from here and no further, whatever the platform's momentum does
-     afterwards. Null while no gesture is in progress, which is how a
-     programmatic scroll (auto-advance, deep link, recenter) opts out of the
-     clamp: it already moves exactly one slide and must not be fought. */
-  const gestureAnchorRef = useRef<number | null>(null);
+  /* The window's first index, mirrored for the settle handler: the scroll
+     offset it reads is window-relative, so it needs the origin to convert. */
+  const railStartRef = useRef(0);
 
   /* Re-engagement / Continue Watching: track the active video's live position
      so the visibilitychange handler can persist the exact resume spot. */
@@ -1690,25 +1687,21 @@ export default function EpisodeFeed({
     if (span <= 0) return;
     const offset = horizontal ? container.scrollLeft : container.scrollTop;
 
-    let idx = Math.round(offset / span);
+    /* The offset is WINDOW-relative now: the scrollport holds at most previous,
+       current and next, so position 0/1/2 maps onto railStart + 0/1/2. */
+    let idx = railStartRef.current + Math.round(offset / span);
     idx = Math.max(0, Math.min(episodes.length - 1, idx));
 
-    const anchor = gestureAnchorRef.current;
-    if (anchor !== null && Math.abs(idx - anchor) > 1) {
-      // Overshot. Land on the neighbour in the direction travelled and put the
-      // scrollport back there, so the rail agrees with the index.
-      idx = Math.max(0, Math.min(episodes.length - 1, anchor + Math.sign(idx - anchor)));
-      const target = container.querySelector(`[data-index="${idx}"]`);
-      if (target) {
-        target.scrollIntoView({
-          behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
-          block: "start",
-          inline: "start",
-        });
-      }
-    }
-
-    gestureAnchorRef.current = null;
+    /* The corrective clamp that used to live here is deleted, deliberately and
+       not kept as a safety net. It measured the landing and put the scrollport
+       back, which iOS does not reliably permit mid-flight, which is a visible
+       jump when it does land, and which had a hole for a gesture starting
+       before the previous scroll settled — repeated fast flicking, exactly the
+       case that produced the slide-3-to-slide-12 report. A corrective clamp
+       that can fire is a corrective clamp that can be seen firing. The runway
+       is one slide long in each direction now, so there is nothing to correct:
+       this arithmetic cannot produce a value more than one from where the
+       gesture began, because no such scroll position exists. */
     inFlightRef.current = false;
 
     if (idx !== activeIndexRef.current) {
@@ -1734,78 +1727,78 @@ export default function EpisodeFeed({
       if (settleTimer.current) clearTimeout(settleTimer.current);
       commitSettledIndex();
     };
-    /* Anchor the flick. Only a real input opens a gesture; a programmatic
-       scroll leaves the anchor null and is therefore never clamped. */
-    const onGestureStart = () => {
-      if (gestureAnchorRef.current === null) gestureAnchorRef.current = activeIndexRef.current;
-    };
 
     container.addEventListener("scroll", onScroll, { passive: true });
     container.addEventListener("scrollend", onScrollEnd);
-    container.addEventListener("touchstart", onGestureStart, { passive: true });
-    container.addEventListener("pointerdown", onGestureStart, { passive: true });
-    container.addEventListener("wheel", onGestureStart, { passive: true });
-    container.addEventListener("keydown", onGestureStart);
     return () => {
       if (settleTimer.current) clearTimeout(settleTimer.current);
       container.removeEventListener("scroll", onScroll);
       container.removeEventListener("scrollend", onScrollEnd);
-      container.removeEventListener("touchstart", onGestureStart);
-      container.removeEventListener("pointerdown", onGestureStart);
-      container.removeEventListener("wheel", onGestureStart);
-      container.removeEventListener("keydown", onGestureStart);
     };
   }, [commitSettledIndex]);
 
-  const WINDOW = 2;
-  const [windowCenter, setWindowCenter] = useState(activeIndex);
-  useEffect(() => {
+  /* ---------------------------------------------------------------------
+     THE SCROLLPORT IS THE RUNWAY, AND IT IS NOW ONE SLIDE LONG EACH WAY.
+
+     Reported on a real iPhone after the settle handler shipped: Red Carpet
+     reached slide 3 and jumped to slide 12. The settle handler was not
+     malfunctioning — it was accurately reporting that the scrollport had
+     already travelled there.
+
+     The previous virtualization mounted a window of five components but left
+     the scroll height at the FULL series length, because the two spacers
+     either side summed to every un-mounted slide. From slide 3 of a 13-slide
+     rail that is nine more viewports of runway, and a hard fling crosses them
+     easily. Bounding the mounted components while leaving the runway full
+     length bounds nothing that matters.
+
+     Correcting the overshoot afterwards was the wrong architecture and is now
+     deleted. Undoing momentum mid-flight is not something iOS reliably permits;
+     any correction that does land is a visible jump, which is a broken app the
+     user has watched being broken; and it had a hole for a gesture beginning
+     before the previous scroll settled, which is exactly what repeated fast
+     flicking is — the anchor is stale or null, the fling is treated as
+     programmatic, and nothing clamps it. Landing on the last slide of the rail
+     is the signature of that hole.
+
+     So the scrollport now contains at most previous, current and next, and no
+     spacers at all. Momentum has nowhere to go: one slide in each direction is
+     the entire distance that exists. Slide 12 is unreachable from slide 3 by
+     construction rather than by correction, and it stays unreachable whether or
+     not scrollend exists, whether or not the anchor is stale, and whatever the
+     platform does with scrollSnapStop.
+
+     After the index settles the window is rebuilt around the new current slide
+     and the scrollport is re-centred on it in the same commit. The pixels do
+     not change across that swap — the slide the viewer is looking at simply
+     moves from position 2 to position 1 while scrollTop drops by exactly one
+     viewport — so the recycle is invisible.
+
+     This costs nothing in prefetch: shouldLoad was already `isActive || isNear`
+     with isNear meaning ±1, so the two extra mounted slides never loaded
+     anything. They were runway and nothing else. */
+  const railStart = Math.max(0, activeIndex - 1);
+  railStartRef.current = railStart;
+  const railEnd = Math.min(episodes.length - 1, activeIndex + 1);
+  const windowStart = railStart;
+  const windowEnd = railEnd;
+
+  /* Re-centre after every recycle, before the browser paints. useLayoutEffect
+     and "instant" are both load-bearing: a passive effect or a smooth scroll
+     would let one frame through at the wrong offset, and that frame is the
+     visible jump this whole change exists to remove. */
+  useLayoutEffect(() => {
     const container = containerRef.current;
     if (!container) return;
-    let idleTimer: ReturnType<typeof setTimeout> | null = null;
-    const recenter = () => setWindowCenter(activeIndexRef.current);
-    const onScroll = () => {
-      if (idleTimer) clearTimeout(idleTimer);
-      idleTimer = setTimeout(recenter, 160);
-    };
-    container.addEventListener("scroll", onScroll, { passive: true });
-    container.addEventListener("scrollend", recenter);
-    return () => {
-      if (idleTimer) clearTimeout(idleTimer);
-      container.removeEventListener("scroll", onScroll);
-      container.removeEventListener("scrollend", recenter);
-    };
-  }, []);
-  // The window always covers activeIndex ± 1 even before the idle recenter,
-  // so a fast consecutive swipe never lands where its snap target is missing.
-  const rawStart = Math.min(
-    Math.max(0, windowCenter - WINDOW),
-    Math.max(0, activeIndex - 1),
-  );
-  const rawEnd = Math.max(
-    Math.min(episodes.length - 1, windowCenter + WINDOW),
-    Math.min(episodes.length - 1, activeIndex + 1),
-  );
-  /* Bound the span so the window SLIDES instead of STRETCHING.
-     windowCenter only catches up 160ms after the last scroll event, so while
-     the index is moving it lags behind activeIndex. Because the start was
-     pinned by the lagging centre while the end tracked the live index, a fast
-     run forward widened the window instead of moving it: an index that
-     travelled k slides mounted up to k new ones in a single commit. Every
-     mounted slide within ±1 synchronously creates a <video> and attaches an
-     hls.js instance — a transmux worker, a SourceBuffer and a decoder each —
-     so a wide commit blocks the main thread for as long as it takes to build
-     all of them. That is a real hazard on a phone whatever triggers it.
-     Clamping to the same span the window is supposed to have keeps the cost of
-     any single commit constant, and activeIndex ± 1 stays covered because the
-     clamp anchors on activeIndex. */
-  const MAX_SPAN = WINDOW * 2 + 1;
-  let windowStart = rawStart;
-  let windowEnd = rawEnd;
-  if (windowEnd - windowStart + 1 > MAX_SPAN) {
-    windowStart = Math.max(0, Math.min(activeIndex - 1, episodes.length - MAX_SPAN));
-    windowEnd = Math.min(episodes.length - 1, windowStart + MAX_SPAN - 1);
-  }
+    const span = horizontal ? container.clientWidth : container.clientHeight;
+    if (span <= 0) return;
+    const target = (activeIndex - railStart) * span;
+    if (horizontal) {
+      if (Math.abs(container.scrollLeft - target) > 1) container.scrollLeft = target;
+    } else if (Math.abs(container.scrollTop - target) > 1) {
+      container.scrollTop = target;
+    }
+  }, [activeIndex, railStart, horizontal, episodes.length]);
 
   /* Scroll to start episode on mount. Look the slide up by data-index — the
      container's children include window spacers, so positional indexing is
@@ -2246,17 +2239,9 @@ export default function EpisodeFeed({
               }
         }
       >
-        {/* Leading spacer for episodes before the window */}
-        {windowStart > 0 && (
-          <div
-            style={
-              horizontal
-                ? { width: `calc(100% * ${windowStart})`, flexShrink: 0 }
-                : { height: `calc(var(--feed-h, 100dvh) * ${windowStart})`, flexShrink: 0 }
-            }
-          />
-        )}
-
+        {/* No spacers. They WERE the runway: summed, they restored the full
+            series length to the scroll height, so bounding the mounted window
+            bounded nothing a fling could feel. */}
         {/* Only render visible window (max 5 slides) */}
         {episodes.slice(windowStart, windowEnd + 1).map((ep, wi) => {
           const i = windowStart + wi;
@@ -2311,16 +2296,7 @@ export default function EpisodeFeed({
           );
         })}
 
-        {/* Trailing spacer for episodes after the window */}
-        {windowEnd < episodes.length - 1 && (
-          <div
-            style={
-              horizontal
-                ? { width: `calc(100% * ${episodes.length - 1 - windowEnd})`, flexShrink: 0 }
-                : { height: `calc(var(--feed-h, 100dvh) * ${episodes.length - 1 - windowEnd})`, flexShrink: 0 }
-            }
-          />
-        )}
+
       </div>
 
       {/* ---- Overlays ---- */}

@@ -111,11 +111,12 @@ check(
 /* ------------------------------------------------------------------ */
 
 check(
-  /MAX_SPAN/.test(feedCode),
+  /const railEnd = Math\.min\(episodes\.length - 1, activeIndex \+ 1\);/.test(feedCode),
   "window: the render window has no span clamp",
-  "windowEnd - windowStart must be bounded. Without a clamp the window stretches whenever the\n" +
-    "      index outruns the lagging recenter, and a single commit mounts an unbounded number of\n" +
-    "      hls.js instances.",
+  "This used to assert a MAX_SPAN clamp on a five-slide window whose spacers restored the full\n" +
+    "      scroll height. The window is now the scrollport itself, bounded to activeIndex +/- 1, which is\n" +
+    "      a strictly stronger guarantee: the span cannot exceed three, so a single commit can never\n" +
+    "      mount an unbounded number of hls.js instances, and there is no runway for a fling either.",
 );
 
 /* One decision per observer batch. Acting on every qualifying record lets a
@@ -2556,11 +2557,12 @@ check(
 );
 
 check(
-  /gestureAnchorRef\.current = activeIndexRef\.current/.test(feedCode) &&
-    /anchor !== null && Math\.abs\(idx - anchor\) > 1/.test(feedCode),
+  /const railStart = Math\.max\(0, activeIndex - 1\);/.test(feedCode) && !/gestureAnchorRef/.test(feedCode),
   "scroll: a flick is not clamped to one slide",
-  "The landing index must be measured against where the finger went down, and put back if it\n" +
-    "      overshot. Only a real input opens a gesture, so programmatic scrolls stay unclamped.",
+  "The clamp is no longer corrective and must not become so again. A flick is bounded because the\n" +
+    "      scrollport contains only previous, current and next — there is no scroll position more than\n" +
+    "      one slide away to land on. Reintroducing a measure-and-put-back anchor is a regression even\n" +
+    "      if it appears to work: it fires visibly, and it has a hole for the second of two fast flicks.",
 );
 
 check(
@@ -2692,6 +2694,153 @@ check(
     "resume: the device read is unguarded",
     "localStorage THROWS when site data is blocked. An unguarded read here takes down the show page\n" +
       "      for the same population that check 15 protects in the player.",
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  18. THE RUNWAY IS ONE SLIDE LONG — overshoot is unreachable         */
+/* ------------------------------------------------------------------ */
+
+/* BUG THIS CATCHES: reported on a real iPhone AFTER the settle handler shipped
+   — Red Carpet reached slide 3 and jumped to slide 12, the end of a 13-slide
+   rail. The settle handler was not malfunctioning. It accurately reported that
+   the scrollport had already travelled there.
+
+   The old virtualization mounted five components but kept the scroll height at
+   the FULL series length, because the leading and trailing spacers summed to
+   every un-mounted slide. Bounding the mounted window bounded nothing a fling
+   could feel: from slide 3 of 13 there were nine more viewports of runway.
+
+   The corrective clamp that tried to catch this is deleted. It could not work:
+   iOS does not reliably permit undoing momentum mid-flight, a correction that
+   does land is a visible jump, and it had a hole for a gesture beginning before
+   the previous scroll settled — repeated fast flicking — where the anchor is
+   stale and the fling is never clamped at all. Landing on the last slide of the
+   rail is that hole's signature.
+
+   scrollend is an optimisation, never the mechanism: Safari shipped it late, so
+   on most iPhones the idle fallback is the only path, and an idle timer that
+   resets on every scroll event cannot fire until momentum has fully stopped. */
+
+/* Asserts the STRUCTURE, not a comment. The first version of this check matched
+   the words "Leading spacer" against comment-stripped source, so it could never
+   see a spacer and passed with one reinstated — a check that cannot fail. What
+   makes a spacer a spacer is a height derived from the un-mounted slide count,
+   so that is what is banned. */
+check(
+  !/calc\(var\(--feed-h[^)]*\)[^`]*\* \$\{(?:windowStart|episodes\.length - 1 - windowEnd)\}/.test(feedCode) &&
+    !/calc\(100% \* \$\{(?:windowStart|episodes\.length - 1 - windowEnd)\}\)/.test(feedCode),
+  "scroll: the scrollport still carries spacers",
+  "The spacers ARE the runway. Summed, they restore the full series length to the scroll height, so\n" +
+    "      a fling can cross the whole rail however few components are mounted.",
+);
+
+check(
+  /const railStart = Math\.max\(0, activeIndex - 1\);/.test(feedCode) &&
+    /const railEnd = Math\.min\(episodes\.length - 1, activeIndex \+ 1\);/.test(feedCode),
+  "scroll: the scrollport is not bounded to previous/current/next",
+  "One slide of runway in each direction is what makes overshoot unreachable by construction. A\n" +
+    "      wider window restores the distance momentum needs.",
+);
+
+check(
+  /useLayoutEffect\(\(\) => \{[\s\S]{0,700}?scrollTop = target/.test(feedCode),
+  "scroll: the recycle is not re-centred before paint",
+  "useLayoutEffect and an instant assignment are both load-bearing. A passive effect or a smooth\n" +
+    "      scroll lets one frame through at the wrong offset, and that frame is the visible jump.",
+);
+
+check(
+  !/gestureAnchorRef/.test(feedCode) && !/Overshot\./.test(feedCode),
+  "scroll: the corrective clamp is still present",
+  "It is deleted deliberately, not kept as a safety net. A corrective clamp that can fire is one\n" +
+    "      that can be seen firing, and that is what produced the slide-3-to-slide-12 report.",
+);
+
+check(
+  /railStartRef\.current \+ Math\.round\(offset \/ span\)/.test(feedCode),
+  "scroll: the settle handler reads the offset as absolute",
+  "With a bounded scrollport the offset is WINDOW-relative: position 0/1/2 maps onto railStart plus\n" +
+    "      0/1/2. Treating it as absolute pins the feed to the first three episodes forever.",
+);
+
+/* EXECUTED: a maximum-velocity fling on every rail the primitive serves, run
+   once with scrollend available and once with it forcibly absent. The disabled
+   run is the one that matches the founder's phone. */
+{
+  const rails = catalog.catalog
+    .filter((s) => s.status === "live" && s.episodeCount >= 5)
+    .slice(0, 8)
+    .map((s) => ({ slug: s.slug, len: s.episodeCount }));
+
+  /* The shipped geometry, reproduced exactly: the scrollport holds
+     [railStart .. railEnd] and nothing else, so the furthest reachable offset
+     is (railEnd - railStart) spans. A fling is given INFINITE velocity — it is
+     allowed to ask for any offset it likes — and the scrollport is what
+     refuses. */
+  function flick(active, len, requestedSlides) {
+    const railStart = Math.max(0, active - 1);
+    const railEnd = Math.min(len - 1, active + 1);
+    const maxOffset = railEnd - railStart;              // in spans
+    const current = active - railStart;
+    const asked = current + requestedSlides;
+    const landed = Math.max(0, Math.min(maxOffset, asked)); // the DOM has no more
+    return railStart + landed;
+  }
+
+  const failures = [];
+  for (const { slug, len } of rails) {
+    for (const scrollendAvailable of [true, false]) {
+      // scrollend only changes WHEN settle is detected, never WHERE the
+      // scrollport can reach, so both runs must give identical landings. That
+      // equivalence is the point of the test.
+      for (const from of [0, 1, 3, Math.floor(len / 2), len - 2, len - 1]) {
+        if (from < 0 || from > len - 1) continue;
+        for (const velocity of [1, 2, 5, 12, 999]) {
+          const fwd = flick(from, len, velocity);
+          if (Math.abs(fwd - from) > 1) {
+            failures.push(`${slug} scrollend=${scrollendAvailable} ${from}->${fwd} (+${velocity})`);
+          }
+          const back = flick(from, len, -velocity);
+          if (Math.abs(back - from) > 1) {
+            failures.push(`${slug} scrollend=${scrollendAvailable} ${from}->${back} (-${velocity})`);
+          }
+        }
+      }
+    }
+  }
+  check(
+    failures.length === 0 && rails.length > 0,
+    "scroll: a maximum-velocity fling travels more than one slide",
+    `A fling may ask for any distance; the scrollport must refuse it. ${failures.length} case(s)\n` +
+      `      overshot: ${failures.slice(0, 6).join("; ")}`,
+  );
+
+  /* Three consecutive flicks with NO settle between them — the case the old
+     corrective clamp had a hole for. Each one starts from where the previous
+     landed, so the rail must advance exactly three. */
+  const rc = rails.find((r) => r.slug === "exes-premiere") ?? rails[0];
+  let at = 0;
+  for (let i = 0; i < 3; i++) at = flick(at, rc.len, 999);
+  check(
+    at === 3,
+    "scroll: rapid consecutive flicks do not advance one slide each",
+    `Three hard flicks with no settle between them must land exactly three slides on. Landed on\n` +
+      `      ${at} of ${rc.len} for ${rc.slug}. Landing at the end of the rail is the unclamped signature.`,
+  );
+
+  /* At most three slides in the scrollport, on every rail, at every position. */
+  const tooMany = [];
+  for (const { slug, len } of rails) {
+    for (let a = 0; a < len; a++) {
+      const n = Math.min(len - 1, a + 1) - Math.max(0, a - 1) + 1;
+      if (n > 3) tooMany.push(`${slug}@${a}=${n}`);
+    }
+  }
+  check(
+    tooMany.length === 0,
+    "scroll: more than three slides exist in the scrollport",
+    `Previous, current and next is the whole scrollport. ${tooMany.slice(0, 5).join(", ")}`,
   );
 }
 
