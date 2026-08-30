@@ -136,6 +136,44 @@ const MAX_UNATTENDED_ADVANCES = 8;
    this is only the fallback. */
 const SCROLL_SETTLE_MS = 140;
 
+/* ---- Cross-axis advance (horizontal rails only) ---------------------
+   A swipe that clears CROSS_AXIS_ADVANCE_PX advances however slowly it was
+   made; a shorter one advances only if it was thrown, which is what makes a
+   quick flick feel like the vertical feed's flick rather than like a drag that
+   has to be completed. Both are measured against the OTHER axis first:
+   CROSS_AXIS_DOMINANCE demands the vertical component be half again the
+   horizontal one, so a swipe the native x scroller has already served can
+   never also arrive here as an advance.
+
+   CROSS_AXIS_NATIVE_SCROLL_PX is the slack in that same rule expressed in
+   pixels: if the rail's own axis actually moved during the gesture, the
+   browser handled it and this stands down whatever the numbers say. A thumb
+   resting on a moving rail drifts a few pixels, so it is not zero.
+
+   CROSS_AXIS_LOCK_MS is the same idea as ADVANCE_COOLDOWN_MS, kept separate on
+   purpose: an automatic advance and a viewer's swipe must not be able to
+   silence each other. */
+const CROSS_AXIS_ADVANCE_PX = 48;
+const CROSS_AXIS_FLICK_PX = 24;
+/** px per ms — a 24px throw inside ~70ms counts, a 24px drag over 300ms does not. */
+const CROSS_AXIS_FLICK_VELOCITY = 0.35;
+const CROSS_AXIS_DOMINANCE = 1.5;
+const CROSS_AXIS_NATIVE_SCROLL_PX = 8;
+const CROSS_AXIS_LOCK_MS = 320;
+
+/* How far a finger must travel on the scrub strip before its axis is judged.
+   Below this a press is just a press: a stationary finger must never start
+   seeking, and the question of which way the gesture is going has no answer
+   yet. */
+const SCRUB_AXIS_SLOP = 6;
+/* Wheel/trackpad. One inertial flick is dozens of wheel events, so the burst is
+   latched: the deltas accumulate, ONE step is taken when they cross
+   WHEEL_STEP_PX, and the accumulator only resets after the burst has been quiet
+   for WHEEL_BURST_QUIET_MS. Without the latch a single two-finger flick would
+   walk the rail — the same runaway the settle handler exists to prevent. */
+const WHEEL_STEP_PX = 90;
+const WHEEL_BURST_QUIET_MS = 220;
+
 /* Deadline for the entitlement round-trip. Shorter than playback's 12s: this
    one only gates whether the paywall may mount, and a viewer staring at a
    locked black slide should not wait twelve seconds to be told why. On timeout
@@ -1815,7 +1853,11 @@ function EpisodeSlide({
       /* No touch-action here, on purpose. A `touch-action` on the slide would
          take the whole video out of the vertical swipe surface, and the swipe
          IS the feed. Hold-to-seek needs a stationary finger, and a stationary
-         finger never scrolls, so the two gestures do not compete for an axis. */
+         finger never scrolls, so the two gestures do not compete for an axis.
+         The horizontal rail declares `pan-x pinch-zoom` on the SCROLL
+         CONTAINER, which is not a contradiction: there the feed's swipe is x,
+         and that value is what keeps it the browser's to run. Nothing is ever
+         declared on the slide, in either mode. */
       onPointerDown={handleSeekPointerDown}
     >
       {/* Transition poster — the EXACT image the user tapped on the browse
@@ -2064,6 +2106,13 @@ export default function EpisodeFeed({
   backHref = "/",
 }: EpisodeFeedProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  /* The scrubber's 44px hit strip. It is a SIBLING of the scroll container, so
+     nothing that happens on it bubbles into the rail — which is why the audio
+     claim had to be called from it by hand, and why the cross-axis advance
+     below has to be registered on it by hand too. Declared up here with the
+     container because both of those registrations happen long before the
+     scrubber's own block. */
+  const scrubStripRef = useRef<HTMLDivElement>(null);
 
   // Poster the user tapped on the browse page (stored in sessionStorage at
   // click time). It's already in the browser cache, so painting it here is
@@ -2638,6 +2687,211 @@ export default function EpisodeFeed({
   }, [commitSettledIndex, claimGestureForMountedSlides]);
 
   /* ---------------------------------------------------------------------
+     CROSS-AXIS ADVANCE — the horizontal rail gets the other axis back.
+
+     MEASURED, not reasoned. Storage Pirates, Chrome, the live component at
+     both phone aspect ratios:
+
+       390 x 844 (portrait)   overflow-y hidden  scrollHeight 844  clientHeight 844  → y extent 0
+                              overflow-x auto    scrollWidth 780   clientWidth 390   → x extent 390
+       844 x 390 (landscape)  overflow-y hidden  scrollHeight 390  clientHeight 390  → y extent 0
+                              overflow-x auto    scrollWidth 1688  clientWidth 844   → x extent 844
+
+     The rail exposes exactly ONE axis and it is x. There is no vertical scroll
+     extent to reach in EITHER orientation, so a swipe up on this title has
+     nowhere to go whichever way the phone is held. Rotating the phone does not
+     change the geometry — it changes which gesture a person makes. Held
+     upright they swipe up, because that is how every other title in this app
+     advances, and nothing happens. Held sideways they swipe across, and the
+     one axis that exists takes it. "You can only skip to the next show if the
+     phone is horizontal" is an exact description of a rail that was never
+     broken, only half built.
+
+     So the rail is NOT moved onto the other axis. The native x scroll is the
+     gesture that works today and it survives untouched — momentum, snap,
+     recycle and all, in both orientations — and the missing axis is added
+     alongside it. A vertical swipe steps the rail by exactly one slide through
+     the same `[data-index]` + scrollIntoView("smooth") call auto-advance
+     already makes, so this file still has ONE advance mechanism rather than
+     two that can disagree.
+
+     Everything below exists to make a double step impossible:
+       - registered only when `horizontal`; the vertical feed never sees it;
+       - the vertical component must dominate, so a diagonal the native
+         scroller already served cannot also arrive here;
+       - scrollLeft is re-read at the end of the gesture: if the browser moved
+         the rail on its own axis, the browser wins and this stands down;
+       - the step is taken from activeIndexRef, which only moves after the
+         settle, so a second swipe arriving mid-scroll re-targets the SAME
+         slide instead of stepping past it;
+       - the target is clamped to `episodes`, the entitlement-bounded array, so
+         this can no more cross the paywall than a native swipe can.
+     --------------------------------------------------------------------- */
+  const crossAxisRef = useRef<{ id: number; x: number; y: number; t: number; scroll: number } | null>(null);
+  const crossAxisAdvancedAt = useRef(0);
+  const wheelBurstRef = useRef<{ accum: number; scroll: number; timer: ReturnType<typeof setTimeout> | null }>({
+    accum: 0,
+    scroll: 0,
+    timer: null,
+  });
+
+  /* One slide, one direction, through the same call auto-advance makes.
+     Returns whether it actually moved, so callers only arm their cooldown on a
+     step that happened. */
+  const stepRail = useCallback(
+    (dir: -1 | 1): boolean => {
+      const container = containerRef.current;
+      if (!container) return false;
+      const target = activeIndexRef.current + dir;
+      if (target < 0 || target >= episodes.length) return false;
+      const el = container.querySelector(`[data-index="${target}"]`) as HTMLElement | null;
+      if (!el) return false;
+      el.scrollIntoView({ behavior: "smooth" });
+      return true;
+    },
+    [episodes.length],
+  );
+
+  /* A vertical drag on this rail scrolls nothing natively, and a gesture that
+     scrolls nothing is exactly the one a browser may still finish as a `click`
+     — which on a slide is play/pause. Kill the next click in the CAPTURE phase
+     on the container, which is an ancestor of every slide and of React's own
+     delegated listener, so the slide's onClick never runs. Self-removing, and
+     timed out so a swipe that produces no click cannot leave a trap armed for
+     the viewer's next real tap. */
+  const swallowNextClick = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const kill = (e: Event) => {
+      e.stopPropagation();
+      e.preventDefault();
+      container.removeEventListener("click", kill, true);
+      if (timer) clearTimeout(timer);
+    };
+    container.addEventListener("click", kill, true);
+    timer = setTimeout(() => container.removeEventListener("click", kill, true), 500);
+  }, []);
+
+  useEffect(() => {
+    if (!horizontal) return;
+    const container = containerRef.current;
+    if (!container) return;
+    const strip = scrubStripRef.current;
+    /* Captured once. The object behind this ref is never replaced — only its
+       fields are written — so the local and the ref are the same latch, and
+       the cleanup below is guaranteed to clear the timer it actually armed. */
+    const burst = wheelBurstRef.current;
+
+    /* `strict` drops the flick shortcut. touchend is the normal terminator;
+       touchcancel is what a browser sends when it takes the gesture over, and
+       accepting a cancel on distance alone keeps the advance working on a
+       platform that claims vertical pans anyway, without letting a short
+       system grab count as a swipe. */
+    const attempt = (dy: number, dx: number, dt: number, startScroll: number, strict: boolean) => {
+      const el = containerRef.current;
+      if (!el) return;
+      if (Math.abs(el.scrollLeft - startScroll) > CROSS_AXIS_NATIVE_SCROLL_PX) return;
+      if (Math.abs(dy) <= Math.abs(dx) * CROSS_AXIS_DOMINANCE) return;
+      const far = Math.abs(dy) >= CROSS_AXIS_ADVANCE_PX;
+      const flick =
+        !strict &&
+        Math.abs(dy) >= CROSS_AXIS_FLICK_PX &&
+        dt > 0 &&
+        Math.abs(dy) / dt >= CROSS_AXIS_FLICK_VELOCITY;
+      if (!far && !flick) return;
+      const now = Date.now();
+      if (now - crossAxisAdvancedAt.current < CROSS_AXIS_LOCK_MS) return;
+      /* Up is forward, exactly as in the vertical feed: the content the viewer
+         is pushing off the top is the one they are finishing. */
+      if (!stepRail(dy < 0 ? 1 : -1)) return;
+      crossAxisAdvancedAt.current = now;
+      swallowNextClick();
+    };
+
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length !== 1) {
+        crossAxisRef.current = null;
+        return;
+      }
+      const t = e.touches[0];
+      crossAxisRef.current = {
+        id: t.identifier,
+        x: t.clientX,
+        y: t.clientY,
+        t: performance.now(),
+        scroll: container.scrollLeft,
+      };
+    };
+
+    const finish = (e: TouchEvent, strict: boolean) => {
+      const start = crossAxisRef.current;
+      crossAxisRef.current = null;
+      if (!start) return;
+      let end: Touch | null = null;
+      for (const t of Array.from(e.changedTouches)) if (t.identifier === start.id) end = t;
+      if (!end) return;
+      attempt(end.clientY - start.y, end.clientX - start.x, performance.now() - start.t, start.scroll, strict);
+    };
+    const onTouchEnd = (e: TouchEvent) => finish(e, false);
+    const onTouchCancel = (e: TouchEvent) => finish(e, true);
+
+    /* Trackpad and mouse wheel. The rail only scrolls on x, so a two-finger
+       vertical scroll — the way every other title advances on a laptop — has
+       nowhere to go here either. Latched to one step per burst, and it stands
+       down entirely if the browser turned the same wheel into a horizontal
+       scroll of the rail, which some do. */
+    const settleWheel = () => {
+      burst.accum = 0;
+      burst.timer = null;
+    };
+    const onWheel = (e: WheelEvent) => {
+      const b = burst;
+      if (b.timer) clearTimeout(b.timer);
+      else {
+        b.accum = 0;
+        b.scroll = container.scrollLeft;
+      }
+      b.timer = setTimeout(settleWheel, WHEEL_BURST_QUIET_MS);
+      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX) * CROSS_AXIS_DOMINANCE) return;
+      if (Math.abs(container.scrollLeft - b.scroll) > CROSS_AXIS_NATIVE_SCROLL_PX) return;
+      b.accum += e.deltaY;
+      if (Math.abs(b.accum) < WHEEL_STEP_PX) return;
+      const dir: -1 | 1 = b.accum > 0 ? 1 : -1;
+      b.accum = 0;
+      const now = Date.now();
+      if (now - crossAxisAdvancedAt.current < CROSS_AXIS_LOCK_MS) return;
+      if (stepRail(dir)) crossAxisAdvancedAt.current = now;
+    };
+
+    /* Passive, every one of them. Nothing here may preventDefault: the native
+       horizontal scroll is the gesture that already works and it must stay the
+       browser's to run. */
+    const opts = { passive: true } as AddEventListenerOptions;
+    const surfaces: HTMLElement[] = strip ? [container, strip] : [container];
+    for (const el of surfaces) {
+      el.addEventListener("touchstart", onTouchStart, opts);
+      el.addEventListener("touchend", onTouchEnd, opts);
+      el.addEventListener("touchcancel", onTouchCancel, opts);
+    }
+    /* The strip is a scrub surface, not a wheel surface — a wheel over the bar
+       belongs to the rail underneath it, which already receives this. */
+    container.addEventListener("wheel", onWheel, opts);
+    return () => {
+      for (const el of surfaces) {
+        el.removeEventListener("touchstart", onTouchStart);
+        el.removeEventListener("touchend", onTouchEnd);
+        el.removeEventListener("touchcancel", onTouchCancel);
+      }
+      container.removeEventListener("wheel", onWheel);
+      if (burst.timer) clearTimeout(burst.timer);
+      burst.timer = null;
+      burst.accum = 0;
+      crossAxisRef.current = null;
+    };
+  }, [horizontal, stepRail, swallowNextClick]);
+
+  /* ---------------------------------------------------------------------
      THE SCROLLPORT IS THE RUNWAY, AND IT IS NOW ONE SLIDE LONG EACH WAY.
 
      Reported on a real iPhone after the settle handler shipped: Red Carpet
@@ -3129,6 +3383,9 @@ export default function EpisodeFeed({
   const scrubTrackRef = useRef<HTMLDivElement>(null);
   const scrubFillRef = useRef<HTMLDivElement>(null);
   const scrubbingRef = useRef(false);
+  /* An armed but undecided press on the scrub strip: where it started and which
+     pointer it belongs to. Null once the gesture resolves either way. */
+  const scrubArmRef = useRef<{ x: number; y: number; id: number } | null>(null);
   const [scrubbing, setScrubbing] = useState(false);
   const scrubResumeRef = useRef(false);
   const scrubWroteAtRef = useRef(0);
@@ -3221,16 +3478,62 @@ export default function EpisodeFeed({
       /* Touch gets implicit pointer capture; mouse does not, and without it a
          drag that leaves the 44px strip stops delivering moves. */
       try { e.currentTarget.setPointerCapture(e.pointerId); } catch {}
+
+      /* ARM, DO NOT COMMIT. This used to start scrubbing on the press itself,
+         before anything was known about which way the finger was going to
+         travel — so a vertical swipe that happened to begin inside the 44px
+         strip fired the advance AND a full scrub in one gesture, seeking the
+         episode the viewer was leaving. Measured by two reviewers before it
+         shipped.
+
+         The axis decides instead, on the first movement that means anything:
+         horizontal dominance commits to a scrub, vertical dominance abandons it
+         and leaves the swipe to the feed. Nothing is written to the video until
+         that choice is made, so an abandoned press has no effect at all. */
+      scrubArmRef.current = { x: e.clientX, y: e.clientY, id: e.pointerId };
+      scrubResumeRef.current = !vid.paused;
+    },
+    [scrubDisabled, claimGestureForMountedSlides, getActiveVideo],
+  );
+
+  /* Resolve an armed press into a scrub, or let it go.
+
+     SCRUB_AXIS_SLOP is the distance before the question is even asked: below it
+     a press is a press, and a stationary finger must not start seeking. The
+     dominance test is the same shape as the cross-axis advance rule, so the two
+     gestures agree about what counts as horizontal rather than each deciding
+     for itself. */
+  const moveScrub = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (scrubbingRef.current) {
+        applyScrub(e.clientX, false);
+        return;
+      }
+      const arm = scrubArmRef.current;
+      if (!arm || arm.id !== e.pointerId) return;
+
+      const dx = Math.abs(e.clientX - arm.x);
+      const dy = Math.abs(e.clientY - arm.y);
+      if (dx < SCRUB_AXIS_SLOP && dy < SCRUB_AXIS_SLOP) return;
+
+      if (dy > dx) {
+        // Vertical won. Hand the gesture to the feed and never touch the video.
+        scrubArmRef.current = null;
+        return;
+      }
+
+      const vid = getActiveVideo();
+      if (!vid) { scrubArmRef.current = null; return; }
+      scrubArmRef.current = null;
       scrubbingRef.current = true;
       setScrubbing(true);
-      scrubResumeRef.current = !vid.paused;
       try { vid.pause(); } catch {}
       revealActionRail();
       haptic();
       scrubWroteAtRef.current = 0;
       applyScrub(e.clientX, true);
     },
-    [scrubDisabled, claimGestureForMountedSlides, getActiveVideo, applyScrub, revealActionRail],
+    [applyScrub, getActiveVideo, revealActionRail],
   );
 
   /* Belt and braces for a pointer this element never sees the end of: a lift
@@ -3297,6 +3600,27 @@ export default function EpisodeFeed({
                 scrollSnapType: "x mandatory",
                 scrollbarWidth: "none",
                 overflowAnchor: "none",
+                /* THE AXIS DECLARATION, and it is stated only on this branch.
+                   The vertical feed leaves this at `auto` on purpose: there the
+                   browser owns the advance axis and must keep it.
+
+                   Here the browser owns x — the native rail scroll, unchanged —
+                   and it will never own y, because there is no vertical scroll
+                   extent for it to reach (measured: scrollHeight === clientHeight
+                   in both orientations). Saying so is not cosmetic. Left at
+                   `auto` a browser is entitled to CLAIM a vertical drag as a pan
+                   it might handle, and claiming it means cancelling the touch
+                   sequence — which is the sequence the cross-axis advance above
+                   reads. `pan-x` tells it not to bother, so a vertical swipe
+                   arrives as a clean touchend.
+
+                   `pinch-zoom` is kept alongside it deliberately: `pan-x` on its
+                   own would withdraw two-finger zoom from the whole player, and
+                   iOS grants that for accessibility whatever maximum-scale says.
+                   A browser that does not understand the pair drops the whole
+                   declaration back to `auto`, which is exactly today's
+                   behaviour — the touchcancel path above covers that case. */
+                touchAction: "pan-x pinch-zoom",
                 /* Opt OUT of the global `scroll-behavior: smooth` in
                    app/globals.css. Measured in a real browser on production:
                    with smooth inherited, `container.scrollTop = target` does not
@@ -3734,8 +4058,28 @@ export default function EpisodeFeed({
 
           `pan-y` splits the axes, which is exactly the intent: the browser keeps
           vertical panning, so a swipe up still moves the feed, and we keep the
-          horizontal drag for scrubbing. */}
+          horizontal drag for scrubbing.
+
+          IT STAYS `pan-y` ON A HORIZONTAL RAIL TOO, and that is a decision, not
+          an oversight. There the two axes collide: the feed's native advance is
+          x and the scrub is also x, so whichever one the declaration hands to
+          the browser, the other loses. Measured on Storage Pirates at 390x844,
+          `pan-y` blocks pan-x for every touch that starts in this band, so the
+          native advance is unavailable inside it. The alternative, `pan-x`,
+          would hand the browser the drag and leave the scrub needing a VERTICAL
+          swipe on a horizontal bar, which is not a control anyone can use. So
+          the strip keeps x, because scrubbing is the only reason it exists and
+          a horizontal bar you drag sideways is the affordance it is drawn as.
+
+          What makes that affordable is that the advance no longer depends on
+          the browser owning an axis here. The cross-axis handler above is
+          registered ON THIS ELEMENT as well as on the rail — passive listeners
+          receive touches whatever touch-action says — so a vertical swipe
+          starting on the bar advances exactly as it does on the vertical feed,
+          while a horizontal drag still scrubs. The band is a dead zone for
+          neither gesture. */}
       <div
+        ref={scrubStripRef}
         className="absolute bottom-0 left-0 right-0 z-50 flex items-end"
         style={{
           height: "calc(44px + env(safe-area-inset-bottom, 0px))",
@@ -3746,9 +4090,23 @@ export default function EpisodeFeed({
           transition: showActionRail || scrubbing ? "opacity 0.2s cubic-bezier(0.22, 1, 0.36, 1)" : "opacity 0.6s ease",
         }}
         onPointerDown={beginScrub}
-        onPointerMove={(e) => { if (scrubbingRef.current) applyScrub(e.clientX, false); }}
-        onPointerUp={(e) => endScrub(e.clientX)}
-        onPointerCancel={() => endScrub(null)}
+        onPointerMove={moveScrub}
+        onPointerUp={(e) => {
+          /* A tap that never moved is still a seek — that is how a progress bar
+             has always worked. It resolves here rather than on the press so it
+             cannot pre-empt a swipe that simply started on the bar. */
+          if (!scrubbingRef.current && scrubArmRef.current?.id === e.pointerId) {
+            scrubArmRef.current = null;
+            const vid = getActiveVideo();
+            const dur = vid?.duration;
+            if (vid && Number.isFinite(dur) && (dur as number) > 0) {
+              scrubbingRef.current = true;
+              applyScrub(e.clientX, true);
+            }
+          }
+          endScrub(e.clientX);
+        }}
+        onPointerCancel={() => { scrubArmRef.current = null; endScrub(null); }}
         role="slider"
         tabIndex={-1}
         aria-label="Seek"

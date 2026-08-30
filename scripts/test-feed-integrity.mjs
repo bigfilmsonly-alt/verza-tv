@@ -3800,6 +3800,30 @@ check(
       "      is wrong, and this is the one surface that should not follow the setting.",
   );
 
+  /* ONE PALETTE, NOT TWO.
+
+     app/globals.css also carries a Tailwind @theme block, and it used to hold
+     its own hex literals — a second, invisible palette that did not follow the
+     theme. The most visible casualty was .device-frame, the desktop phone
+     preview, which painted a #07070E ground under near-black light-mode text at
+     about 1.08:1: choosing Light on a laptop made the entire app unreadable. A
+     reviewer found it, not a gate.
+
+     The @theme colour tokens must reference the theme tokens, so there is one
+     palette and utilities and direct consumers cannot disagree with it. */
+  {
+    const at = css.indexOf("@theme inline");
+    const themeBlock = at === -1 ? "" : css.slice(at, css.indexOf("}", at));
+    const literals = [...themeBlock.matchAll(/(--color-(?:bg|bg-card|bg-glass|ink|muted|accent))\s*:\s*(#[0-9A-Fa-f]{3,8}|rgba?\()/g)].map((m) => m[1]);
+    check(
+      at !== -1 && literals.length === 0,
+      "theme: the Tailwind palette has its own hex literals again",
+      `A second palette that does not follow data-theme. Every ground and text colour in @theme must\n` +
+        `      reference a --t-* token, or light mode paints dark surfaces under dark text.\n` +
+        `      Literals found: ${literals.join(", ") || "(the @theme block itself is missing)"}`,
+    );
+  }
+
   /* The control must actually be a control. It shipped for months rendering the
      words "Always On" beside a moon icon and doing nothing. */
   /* Comments stripped: the replacement code explains the "Always On" control it
@@ -4080,6 +4104,50 @@ check(
       );
     }
   }
+}
+
+/* ------------------------------------------------------------------ */
+/*  30. THE SCRUB STRIP DOES NOT STEAL A SWIPE                          */
+/* ------------------------------------------------------------------ */
+
+/* BUG THIS CATCHES, measured by two reviewers before it shipped: the scrubber
+   committed on pointerdown, before anything was known about which way the
+   finger would travel. A vertical swipe that happened to begin inside the 44px
+   strip therefore fired the episode advance AND a full scrub in one gesture —
+   seeking the episode the viewer was in the act of leaving.
+
+   The axis decides now, on the first movement large enough to mean anything.
+   Nothing is written to the video until that choice is made, so an abandoned
+   press has no effect at all. */
+{
+  const code = feedCode;
+  check(
+    /scrubArmRef\.current = \{ x: e\.clientX, y: e\.clientY, id: e\.pointerId \}/.test(code),
+    "scrubber: the press commits before the axis is known",
+    "beginScrub must ARM, not commit. Starting a scrub on pointerdown means any gesture that begins\n" +
+      "      on the bar is a scrub, including the swipe to the next episode.",
+  );
+  check(
+    /if \(dy > dx\) \{[\s\S]{0,180}?scrubArmRef\.current = null;[\s\S]{0,80}?return;/.test(code),
+    "scrubber: a vertical gesture is not handed back to the feed",
+    "When the vertical component wins, the scrub must abandon and touch nothing. Otherwise the swipe\n" +
+      "      and the seek both run.",
+  );
+  check(
+    /if \(dx < SCRUB_AXIS_SLOP && dy < SCRUB_AXIS_SLOP\) return;/.test(code),
+    "scrubber: the axis is judged before there is movement to judge",
+    "A stationary finger has no axis. Below the slop the question has no answer and nothing should\n" +
+      "      happen — least of all a seek.",
+  );
+  /* A tap with no movement must still seek: that is what a progress bar does.
+     It resolves on release so it cannot pre-empt a swipe that merely began
+     on the bar. */
+  check(
+    /if \(!scrubbingRef\.current && scrubArmRef\.current\?\.id === e\.pointerId\)/.test(code),
+    "scrubber: tapping the bar no longer seeks",
+    "Arming without committing must not cost the tap-to-seek that a progress bar has always had.\n" +
+      "      Resolve it on release, where it cannot beat a swipe to the gesture.",
+  );
 }
 
 if (failures.length > 0) {

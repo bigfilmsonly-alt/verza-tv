@@ -73,12 +73,22 @@
 
 
 @theme inline {
-  --color-bg: #07070E;
-  --color-bg-card: #111118;
-  --color-bg-glass: rgba(17, 17, 24, 0.72);
-  --color-ink: #F5F4F8;
-  --color-muted: #6B6B7B;
-  --color-accent: #E0115F;
+  /* These are Tailwind's tokens and they feed both utility classes and a few
+     direct consumers below. They used to be their own set of hex literals,
+     which meant a second, invisible palette that did not follow the theme —
+     and the most visible casualty was .device-frame, the desktop phone
+     preview: in light mode it painted a #07070E ground under near-black text
+     at about 1.08:1, so the whole app became unreadable on a laptop the moment
+     anyone chose Light.
+     Pointing them at the theme tokens collapses the two palettes into one.
+     `inline` emits the value rather than wrapping it, which is what makes a
+     var-to-var reference resolve here. */
+  --color-bg: var(--t-bg);
+  --color-bg-card: var(--t-surface);
+  --color-bg-glass: var(--t-surface);
+  --color-ink: var(--t-text);
+  --color-muted: var(--t-text-mute);
+  --color-accent: var(--t-accent);
   --color-accent-soft: rgba(224, 17, 95, 0.15);
   --color-accent-glow: rgba(224, 17, 95, 0.12);
   --color-purple: #8B5CF6;

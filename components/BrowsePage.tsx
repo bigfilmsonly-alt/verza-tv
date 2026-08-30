@@ -18,6 +18,7 @@ import TubiHeroCarousel from "@/components/TubiHeroCarousel";
 import CreatorsLanding from "@/components/CreatorsLanding";
 import { MUX_MAP } from "@/lib/mux-public-map";
 import { startInstantPlayer } from "@/lib/instant-player";
+import { T } from "@/lib/theme";
 
 // Eagerly preload hls.js so it's cached before user taps a video.
 // Deferred via setTimeout: a dynamic import() fired DURING module evaluation
@@ -138,6 +139,42 @@ const CUSTOM_SECTION_TABS = new Set<BrowseCategory>([
    renders clean. */
 const MIN_PLAYABLE_FOR_BADGES = 4;
 
+/* ------------------------------------------------------------------ */
+/*  Reality — four flyers, and the order is DERIVED, never numbered.    */
+/*                                                                      */
+/*  Storage Pirates is the only one of the four with footage, and it     */
+/*  used to sit last: bottom-right of a 2x2 grid, beneath two shows      */
+/*  nobody can watch. The one tile that can actually start a video is    */
+/*  the one that has to be seen first, so playable titles sort to the    */
+/*  top of the grid — and to the front of the hero rotation, which reads */
+/*  the same array, so the dots and the tiles can never disagree.        */
+/*                                                                      */
+/*  The predicate is MUX_MAP length, the same one the tiles already use  */
+/*  to decide whether a tile is tappable. That is the whole point: the   */
+/*  day The Vertical Tea's episodes land in the map, its tile rises into */
+/*  the top row by itself. A hardcoded slot — "storage-pirates goes at   */
+/*  index 0" — would have to be remembered and renumbered by hand at the */
+/*  exact moment everyone is busy shipping footage, and a stale order is */
+/*  silent: nothing fails, the working show just sits under two flyers   */
+/*  again. Deriving it removes the thing that can be forgotten.          */
+/*                                                                      */
+/*  Array.prototype.sort is stable (ES2019 requires it), so the          */
+/*  editorial order below survives inside each group.                    */
+/*                                                                      */
+/*  MUX_MAP is a static import, so this resolves once at module scope    */
+/*  and is a constant for the life of the bundle — not per render.       */
+/* ------------------------------------------------------------------ */
+function realityPlayable(slug: string): boolean {
+  return (MUX_MAP[slug]?.length ?? 0) > 0;
+}
+
+const REALITY_SHOWS = [
+  { title: "Sugar Babies", slug: "sugar-babies", poster: "/posters/sugar-babies.jpg" },
+  { title: "Buy/Sell Miami", slug: "buy-sell-miami", poster: "/posters/buy-sell-miami.png" },
+  { title: "The Vertical Tea", slug: "the-vertical-tea", poster: "/posters/the-vertical-tea.png" },
+  { title: "Storage Pirates", slug: "storage-pirates", poster: "/posters/storage-pirates.jpg" },
+].sort((a, b) => Number(realityPlayable(b.slug)) - Number(realityPlayable(a.slug)));
+
 /* One corner, always: top-left, on every badge and every surface. The shelves
    are mutually exclusive, so no tile can carry two badges and there is nothing
    to route around — and a badge that sits in a different corner depending on
@@ -150,8 +187,34 @@ const BADGE_STYLE = {
   soon: { bg: "rgba(12,12,20,0.82)", label: "Coming Soon" },
 } as const;
 
-function Badge({ type, large = false }: { type: keyof typeof BADGE_STYLE; large?: boolean }) {
+/* Two PLACEMENTS, one vocabulary — same constant, same word, same neutral
+   read. The default sits over poster art in the top-left corner. `inline` sits
+   in the title row instead, which is the founder's call for the Reality
+   flyers: "put Coming Soon not ON the flyer, but under or next to the title".
+   The artwork is untouched — nothing is drawn on it, nothing is cropped.
+
+   The inline ground is themed rather than the overlay's fixed near-black.
+   Over a poster the ground is always dark art, so a #0C0C14 chip with a white
+   hairline is right; under the title the ground is the PAGE, and that same
+   chip is a black slab on the light theme's white. T.raised over T.line keeps
+   it neutral — deliberately not brand pink or violet, because Trending and New
+   invite a tap and this one is telling you there is nothing to tap yet. */
+function Badge({ type, large = false, inline = false }: { type: keyof typeof BADGE_STYLE; large?: boolean; inline?: boolean }) {
   const { bg, label } = BADGE_STYLE[type];
+  if (inline) {
+    return (
+      <span
+        className="inline-flex items-center rounded px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider"
+        style={
+          type === "soon"
+            ? { background: T.raised, color: T.textDim, border: `1px solid ${T.line}` }
+            : { background: bg, color: "#fff" }
+        }
+      >
+        {label}
+      </span>
+    );
+  }
   const pos = large
     ? "top-2 left-2 px-2 py-1 text-[10px]"
     : "top-1.5 left-1.5 px-1.5 py-0.5 text-[8px]";
@@ -205,7 +268,7 @@ function Poster({ src, alt, sizes = "(max-width: 440px) 33vw, 146px" }: { src: s
     return (
       <div
         className="absolute inset-0 flex items-center justify-center text-[10px] font-semibold text-center px-1"
-        style={{ background: "linear-gradient(135deg, #1A1A26, #12121C)", color: "#6B6B7B" }}
+        style={{ background: "linear-gradient(135deg, var(--t-raised), var(--t-surface))", color: "#6B6B7B" }}
       >
         {alt.split(" ").slice(0, 3).join(" ")}
       </div>
@@ -450,14 +513,6 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
 
   // No splash on Red Carpet — poster shows instantly
 
-  // Reality show data (posters may not exist yet — uses styled placeholders)
-  const realityShows = [
-    { title: "Sugar Babies", slug: "sugar-babies", poster: "/posters/sugar-babies.jpg" },
-    { title: "Buy/Sell Miami", slug: "buy-sell-miami", poster: "/posters/buy-sell-miami.png" },
-    { title: "The Vertical Tea", slug: "the-vertical-tea", poster: "/posters/the-vertical-tea.png" },
-    { title: "Storage Pirates", slug: "storage-pirates", poster: "/posters/storage-pirates.jpg" },
-  ];
-
   /* Fetch continue watching data.
      The account answers first; when it has nothing to say — which is EVERY
      signed-out viewer, since GET /api/watch-progress returns {items: []} for a
@@ -481,7 +536,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
   }, []);
 
   // Auto-rotate hero slideshow (works for Drama/New/Hot AND Reality)
-  const slideCount = activeTab === "reality" ? realityShows.length : heroSlides.length;
+  const slideCount = activeTab === "reality" ? REALITY_SHOWS.length : heroSlides.length;
 
   // Keep the shared hero index inside the active tab's range at all times. The
   // same heroIdx drives the poster hero (Drama/New/Hot) and the Reality hero,
@@ -836,8 +891,8 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
           in one file. The old inline hero and apply card live inside it. */}
       {activeTab === "creators" && <CreatorsLanding />}
       {activeTab === "reality" && (() => {
-        const realityIdx = heroIdx % realityShows.length;
-        const currentShow = realityShows[realityIdx];
+        const realityIdx = heroIdx % REALITY_SHOWS.length;
+        const currentShow = REALITY_SHOWS[realityIdx];
         return (
           <div>
             {/* A centered, WIDTH-capped card (not edge-to-edge). Capping the width
@@ -859,7 +914,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
 
             {/* Dot indicators */}
             <div className="flex items-center justify-center gap-1.5 py-2">
-              {realityShows.map((_, i) => (
+              {REALITY_SHOWS.map((_, i) => (
                 <button key={i} onClick={() => setHeroIdx(i)} className="p-0 border-0 cursor-pointer" style={{ background: "none" }} aria-label={`Slide ${i + 1}`}>
                   <div className="rounded-full" style={{
                     width: i === realityIdx ? 20 : 6,
@@ -871,13 +926,24 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               ))}
             </div>
 
-            {/* All Reality posters — 2×2 grid for bigger flyers.
-                Only shows with real episodes are tappable; the rest are
-                static flyers (their /series pages would 404). */}
+            {/* All Reality posters — 2×2 grid for bigger flyers, playable
+                first (see REALITY_SHOWS), so slot 1 is always a show that
+                actually starts a video.
+
+                Only shows with real episodes are tappable. The other three are
+                not catalog rows at all — sugar-babies, buy-sell-miami and
+                the-vertical-tea appear in no SERIES entry, so
+                getSeriesWithDetail() returns undefined and
+                app/series/[slug]/page.tsx calls notFound(). A <Link> here
+                would be a tile that says "Coming Soon" and then serves a 404,
+                which is the one thing a Coming Soon tile must never do. They
+                render as a plain <div> with no href: the tap does nothing and
+                the label is the whole answer. Give one of them a href only
+                after it has a catalog row. */}
             <section className="mt-2 pb-4 px-3">
               <div className="grid grid-cols-2 gap-2.5">
-                {realityShows.map((show) => {
-                  const playable = (MUX_MAP[show.slug]?.length ?? 0) > 0;
+                {REALITY_SHOWS.map((show) => {
+                  const playable = realityPlayable(show.slug);
                   const card = (
                     <>
                       <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: "2 / 3" }}>
@@ -891,9 +957,37 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                           </div>
                         )}
                       </div>
-                      <div style={{ height: 36 }}>
-                        <p className="mt-1.5 text-[12px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>{show.title}</p>
-                        <p className="text-[10px] mt-0.5" style={{ color: "#6B6B7B" }}>Reality</p>
+                      {/* minHeight, not a fixed height: the status chip is a
+                          couple of pixels taller than the genre line it
+                          replaces, and a fixed 36 let it bleed into the row
+                          gap under the poster below. */}
+                      <div style={{ minHeight: 36 }}>
+                        <p
+                          className="mt-1.5 text-[12px] font-semibold leading-tight line-clamp-2"
+                          style={{ color: playable ? T.text : T.textDim }}
+                        >
+                          {show.title}
+                        </p>
+                        {playable ? (
+                          <p className="text-[10px] mt-0.5" style={{ color: T.textMute }}>Reality</p>
+                        ) : (
+                          /* "Coming Soon" UNDER THE TITLE, in the line the
+                             genre normally occupies — not painted over the
+                             flyer. The founder asked for it beside the title
+                             ("Sugar Babies Coming Soon") and the artwork is
+                             do-not-touch, so it cannot be burned in or
+                             overlaid: the status has to be text in the title
+                             row, where it is also selectable, translatable and
+                             read aloud by a screen reader as part of the tile.
+
+                             It takes the genre line rather than joining it.
+                             This is the Reality tab, so the word "Reality" on
+                             a Reality tile is the one thing the viewer already
+                             knows; the status is the thing they do not. */
+                          <div className="mt-0.5">
+                            <Badge type="soon" inline />
+                          </div>
+                        )}
                       </div>
                     </>
                   );
@@ -1001,7 +1095,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                   aspectRatio: "2 / 3",
                   width: "100%",
                   maxWidth: "min(320px, 80vw)",
-                  background: "#07070E",
+                  background: "var(--t-bg)",
                 }}
               >
                 {current.posterUrl ? (
@@ -1023,7 +1117,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                        unmounted it in the same commit that started the incoming
                        layer's 0 -> 1 ramp, so for the whole 500ms there was no
                        layer at full opacity and the incoming poster faded in
-                       over the card's own #07070E. Measured on production with a
+                       over the card's own var(--t-bg). Measured on production with a
                        MutationObserver: one commit removed the outgoing image,
                        set the incoming to opacity 1, and added the next preload
                        at 0. The first screen of the app pulsed dark every four
@@ -1051,7 +1145,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                 ) : (
                   <div
                     className="absolute inset-0 flex items-center justify-center text-lg font-bold"
-                    style={{ background: "linear-gradient(135deg, #1A1A26, #12121C)", color: "#6B6B7B" }}
+                    style={{ background: "linear-gradient(135deg, var(--t-raised), var(--t-surface))", color: "#6B6B7B" }}
                   >
                     {current.title}
                   </div>
@@ -1276,7 +1370,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                     className="group block no-underline"
                     onClick={(e) => posterClick(e, item.seriesSlug, item.episodeNumber, item.progressSeconds)}
                   >
-                    <div className="relative rounded-lg overflow-hidden" style={{ aspectRatio: "2/3", background: "#1A1A24" }}>
+                    <div className="relative rounded-lg overflow-hidden" style={{ aspectRatio: "2/3", background: "var(--t-raised)" }}>
                       <Image
                         src={item.posterUrl}
                         alt={item.seriesTitle}
