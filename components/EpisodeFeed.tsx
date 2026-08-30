@@ -150,6 +150,7 @@ function EpisodeSlide({
   isActive,
   isNear,
   isNext,
+  onUnmuteRefused,
   muted,
   resumePositionS,
   isResumeTarget,
@@ -172,6 +173,8 @@ function EpisodeSlide({
   isNear: boolean;
   /** The slide one swipe ahead. It prefetches so the swipe starts instantly. */
   isNext: boolean;
+  /** Called when WebKit refuses an unmute, so the feed's state can tell the truth. */
+  onUnmuteRefused: () => void;
   muted: boolean;
   /** Seconds to seek to on the starting episode's first activation (resume). */
   resumePositionS: number;
@@ -593,21 +596,62 @@ function EpisodeSlide({
     if (p) {
       p.then(() => {
         setPlaying(true);
+
+        /* UNMUTE HERE, NOT IN THE FRAME CALLBACK. This one line of placement is
+           the difference between sound and silence for most of a session.
+
+           Autoplay must start muted, so every slide has to unmute afterwards,
+           and WebKit only permits that without a fresh tap inside a grace
+           window: one second of wall clock, armed by the previous episode's
+           `ended` event, tested as
+           `m_userActivatedMediaFinishedPlayingTimestamp + 1_s >= now()`.
+
+           The unmute used to sit inside onFirstFrame, so it spent that entire
+           budget waiting for requestVideoFrameCallback. Measured on an iOS 26.3
+           simulator against the real stream: `ended` to the observer firing on
+           the next slide is 202ms and the scroll settles at 395ms; a cold slide
+           then costs a React commit (~33ms), the play() resolve (~453ms) and
+           the frame callback (~506ms), reaching the unmute at ~1194ms. That is
+           194ms past the wall. WebKit refuses, pauses the element
+           synchronously, and the fallback below re-mutes it. Worse, an element
+           whose unmute was refused never arms the grace for the NEXT episode,
+           so one overrun kills the chain and every later episode plays silent.
+
+           Removing the frame-callback wait puts the same cold slide at ~688ms,
+           with 312ms of margin. A prefetched slide goes from ~300ms to ~240ms.
+           That is exactly the reported shape: sound on the first few, silence
+           from the first cold slide onward.
+
+           This is also what every other player on the site already does.
+           ShortsFeed unmutes inside its play() promise, CreatorWatch on the
+           statement after `await vid.play()`, HorizontalFeed never mutes at
+           all. EpisodeFeed was the only player gating AUDIO on a composited
+           frame, and the only one with this bug.
+
+           The poster crossfade stays in onFirstFrame below, because that
+           genuinely does need real pixels. Only the audio moved. */
+        if (!mutedRef.current) {
+          vid.muted = false;
+          /* iOS pauses a muted-autoplayed element when the unmute is refused.
+             Keep the picture by restoring muted playback — but tell React the
+             truth as well. The old fallback left `muted` state false while the
+             element was muted, so the speaker icon showed sound over silence
+             and the viewer's first tap MUTED an already-silent video instead of
+             restoring it. Syncing the state means one tap fixes it, and the tap
+             itself is a fresh user gesture, which is the one thing WebKit
+             always accepts. */
+          if (vid.paused) {
+            vid.muted = true;
+            onUnmuteRefused();
+            vid.play().catch(() => {});
+          }
+        }
+
         // Don't set started yet — wait for the first actual frame to be
         // composited so the poster stays visible until real pixels are ready.
         onFirstFrame(vid, () => {
           startedRef.current = true;
           setStarted(true);
-          if (!mutedRef.current) {
-            vid.muted = false;
-            // iOS pauses a muted-autoplayed video when unmuted outside a user
-            // gesture — if that happened, fall back to muted playback instead
-            // of freezing on a paused frame.
-            if (vid.paused) {
-              vid.muted = true;
-              vid.play().catch(() => {});
-            }
-          }
         });
         trackEpisodeStart(seriesSlug, episode.number);
       }).catch(() => {});
@@ -1429,6 +1473,16 @@ export default function EpisodeFeed({
     const bound = Math.max(freeEpisodes + 1, startIdx + 1);
     return bound >= allEpisodes.length ? allEpisodes : allEpisodes.slice(0, bound);
   }, [allEpisodes, authFree, freeEpisodes, startEpisode]);
+
+  /* WebKit refused an unmute on a slide. Bring the feed's state into line with
+     the element so the speaker icon stops claiming sound over silence, and so
+     the viewer's next tap RESTORES audio instead of muting an already-silent
+     video. That tap is itself a fresh user gesture, which WebKit always
+     honours, so it is the reliable way back. */
+  const handleUnmuteRefused = useCallback(() => {
+    setMuted(true);
+    try { localStorage.setItem("verza-muted", "true"); } catch {}
+  }, []);
 
   const [activeIndex, setActiveIndex] = useState(() => {
     const idx = episodes.findIndex((e) => e.number === startEpisode);
@@ -2304,6 +2358,7 @@ export default function EpisodeFeed({
                 isNear={Math.abs(i - activeIndex) <= 1}
                 isNext={i === activeIndex + 1}
                 muted={muted}
+                onUnmuteRefused={handleUnmuteRefused}
                 resumePositionS={startPositionS}
                 isResumeTarget={ep.number === startEpisode}
                 onEnded={handleEpisodeEnded}

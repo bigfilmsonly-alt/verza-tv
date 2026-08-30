@@ -2897,6 +2897,87 @@ check(
   );
 }
 
+/* ------------------------------------------------------------------ */
+/*  20. AUDIO IS NOT GATED ON A COMPOSITED FRAME                        */
+/* ------------------------------------------------------------------ */
+
+/* BUG THIS CATCHES, reported on a real iPhone and root-caused on an iOS 26.3
+   simulator against the real stream: sound worked for the first few episodes of
+   a title and then stopped for every episode after, with the picture fine
+   throughout.
+
+   Autoplay must start muted, so every slide unmutes afterwards, and WebKit only
+   permits that without a fresh tap inside a grace window — one second of wall
+   clock, armed by the previous episode's `ended` event, tested as
+   `m_userActivatedMediaFinishedPlayingTimestamp + 1_s >= now()`.
+
+   The unmute used to sit inside onFirstFrame, spending that entire budget
+   waiting for requestVideoFrameCallback. Measured: `ended` to the observer
+   firing is 202ms, scroll settles at 395ms, then a cold slide costs a React
+   commit (~33ms), the play() resolve (~453ms) and the frame callback (~506ms) —
+   reaching the unmute at ~1194ms, 194ms past the wall. WebKit refuses, pauses
+   the element synchronously, and the fallback re-mutes it. An element whose
+   unmute was refused never arms the grace for the NEXT episode, so a single
+   overrun kills the chain and everything after plays silent.
+
+   Every other player already does it correctly, which is why the founder said
+   it should work "just like the rest of the site". */
+{
+  const feedSrc = read("components/EpisodeFeed.tsx");
+
+  /* The unmute must not be inside the frame callback. Checked structurally:
+     take the onFirstFrame call inside tryPlay and assert the audio write is not
+     within its callback body. */
+  const inTryPlay = feedSrc.match(/const p = vid\.play\(\);[\s\S]*?trackEpisodeStart/);
+  check(
+    Boolean(inTryPlay),
+    "audio: tryPlay's play() block could not be located",
+    "Renamed or restructured? Update this check — it guards the one line of placement that decides\n" +
+      "      whether most of a session has sound.",
+  );
+  if (inTryPlay) {
+    const body = inTryPlay[0];
+    const cbStart = body.indexOf("onFirstFrame(vid, () => {");
+    const unmuteAt = body.indexOf("vid.muted = false");
+    check(
+      unmuteAt !== -1 && cbStart !== -1 && unmuteAt < cbStart,
+      "audio: the unmute is gated on a composited frame again",
+      "requestVideoFrameCallback costs ~500ms on a cold slide, and WebKit's post-`ended` grace for an\n" +
+        "      unmute without a fresh gesture is 1000ms of wall clock. Waiting for a frame spends the\n" +
+        "      budget and the unmute is refused — permanently, because a refused element never arms the\n" +
+        "      grace for the next episode. Unmute in the play() promise; keep the POSTER crossfade in the\n" +
+        "      frame callback, which genuinely needs real pixels.",
+    );
+  }
+
+  check(
+    /onUnmuteRefused\(\)/.test(feedSrc) && /const handleUnmuteRefused/.test(feedSrc),
+    "audio: a refused unmute leaves the UI lying about the mute state",
+    "When WebKit refuses, the element is muted but the feed's state still said unmuted, so the speaker\n" +
+      "      icon showed sound over silence and the viewer's first tap MUTED an already-silent video. Sync\n" +
+      "      the state: then one tap restores audio, and that tap is a fresh gesture WebKit always honours.",
+  );
+
+  /* The feed must not be the odd one out again. */
+  const players = [
+    ["components/ShortsFeed.tsx", "unmutes inside its play() promise"],
+    ["components/HorizontalFeed.tsx", "never mutes-then-unmutes"],
+  ];
+  const gated = players.filter(([f]) => {
+    if (!existsSync(resolve(ROOT, f))) return false;
+    const src = read(f);
+    const cb = src.indexOf("requestVideoFrameCallback");
+    const un = src.indexOf("muted = false");
+    return cb !== -1 && un !== -1 && un > cb;
+  });
+  check(
+    gated.length === 0,
+    "audio: another player now gates its unmute on a composited frame",
+    `EpisodeFeed was the only player with this bug and the others are the reference. Offenders:\n` +
+      `      ${gated.map(([f, why]) => `${f} (was: ${why})`).join(", ")}`,
+  );
+}
+
 if (failures.length > 0) {
   console.error("Feed integrity contract: FAIL");
   for (const f of failures) console.error(`  - ${f}`);
