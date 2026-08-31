@@ -1,5 +1,6 @@
 import type { Series } from "@/lib/catalog";
 import SeriesCard from "@/components/SeriesCard";
+import { T } from "@/lib/theme";
 
 interface ChannelRowProps {
   title: string;
@@ -14,7 +15,7 @@ export default function ChannelRow({ title, series, dimmed }: ChannelRowProps) {
     <section className="mt-8">
       {/* Section header */}
       <div className="flex items-center justify-between px-4 mb-3">
-        <h2 className="text-base font-bold" style={{ color: "#F5F4F8" }}>
+        <h2 className="text-base font-bold" style={{ color: T.text }}>
           {title}
         </h2>
         <span

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { T } from "@/lib/theme";
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -225,7 +226,7 @@ export default function AskVerza() {
                 </div>
                 <span
                   style={{
-                    color: "#F5F4F8",
+                    color: T.text,
                     fontWeight: 700,
                     fontSize: 16,
                   }}
@@ -243,7 +244,7 @@ export default function AskVerza() {
                   border: "none",
                   cursor: "pointer",
                   background: "rgba(255, 255, 255, 0.08)",
-                  color: "#F5F4F8",
+                  color: T.text,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -323,7 +324,7 @@ export default function AskVerza() {
                         msg.role === "user"
                           ? "#E0115F"
                           : "rgba(255, 255, 255, 0.07)",
-                      color: "#F5F4F8",
+                      color: T.text,
                       fontSize: 14,
                       lineHeight: 1.5,
                       wordBreak: "break-word",
@@ -427,7 +428,7 @@ export default function AskVerza() {
                   borderRadius: 24,
                   border: "1px solid rgba(255, 255, 255, 0.1)",
                   background: "rgba(255, 255, 255, 0.06)",
-                  color: "#F5F4F8",
+                  color: T.text,
                   fontSize: 14,
                   outline: "none",
                   fontFamily: "inherit",

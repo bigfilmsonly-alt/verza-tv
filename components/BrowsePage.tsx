@@ -774,7 +774,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                 <polyline points="12 6 12 12 16 14" />
               </svg>
             </div>
-            <p className="text-base font-bold mb-1.5" style={{ color: "#F5F4F8" }}>
+            <p className="text-base font-bold mb-1.5" style={{ color: T.text }}>
               {activeTabLabel} is coming soon
             </p>
             <p className="text-xs leading-relaxed" style={{ color: "#8A8A9A" }}>
@@ -849,7 +849,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
 
           {/* 3. Combined value statement — sits under the hero carousel. */}
           <div className="tubi-rise w-full max-w-[380px] shrink-0" style={{ animationDelay: "200ms", containerType: "inline-size" }}>
-            <p className="font-bold leading-snug" style={{ color: "#F5F4F8", fontSize: "clamp(13px, 3.9cqi, 17px)" }}>
+            <p className="font-bold leading-snug" style={{ color: T.text, fontSize: "clamp(13px, 3.9cqi, 17px)" }}>
               Thousands of movies and shows, <span style={{ color: "#FFFF12" }}>free</span> to stream right now. No card, no account.
             </p>
           </div>
@@ -1057,7 +1057,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                   <Image src={event.poster} alt={event.title} fill sizes="(max-width: 440px) 50vw, 220px" className="object-cover" />
                 </div>
                 <div style={{ height: 36 }}>
-                  <p className="mt-1.5 text-[12px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>{event.title}</p>
+                  <p className="mt-1.5 text-[12px] font-semibold leading-tight line-clamp-2" style={{ color: T.text }}>{event.title}</p>
                   <p className="text-[10px] mt-0.5" style={{ color: "#6B6B7B" }}>Red Carpet</p>
                 </div>
               </Link>
@@ -1386,7 +1386,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                       </div>
                     </div>
                     <div style={{ height: 36 }}>
-                      <p className="mt-1.5 text-[11px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>{item.seriesTitle}</p>
+                      <p className="mt-1.5 text-[11px] font-semibold leading-tight line-clamp-2" style={{ color: T.text }}>{item.seriesTitle}</p>
                     </div>
                   </Link>
                   {/* The X. Outside the Link so removing never navigates, and
@@ -1401,7 +1401,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                   >
                     <span
                       className="flex items-center justify-center rounded-full"
-                      style={{ width: 22, height: 22, background: "rgba(0,0,0,0.72)", border: "1px solid rgba(255,255,255,0.22)", color: "#F5F4F8", fontSize: 13, lineHeight: 1 }}
+                      style={{ width: 22, height: 22, background: "rgba(0,0,0,0.72)", border: "1px solid rgba(255,255,255,0.22)", color: T.text, fontSize: 13, lineHeight: 1 }}
                     >
                       ×
                     </span>

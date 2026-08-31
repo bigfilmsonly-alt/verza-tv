@@ -6,6 +6,7 @@ import Image from "next/image";
 import type { Series } from "@/lib/catalog";
 import { posterHref } from "@/lib/series-href";
 import { seriesMatchesQuery } from "@/lib/search-index";
+import { T } from "@/lib/theme";
 
 interface SearchBarProps {
   series: Series[];
@@ -47,7 +48,7 @@ export default function SearchBar({ series }: SearchBarProps) {
           className="w-full pl-10 pr-4 py-3 rounded-xl text-sm outline-none"
           style={{
             background: "var(--t-surface)",
-            color: "#F5F4F8",
+            color: T.text,
             border: "1px solid rgba(255,255,255,0.08)",
           }}
         />
@@ -66,7 +67,7 @@ export default function SearchBar({ series }: SearchBarProps) {
               key={s.slug}
               href={posterHref(s)}
               className="flex items-center gap-3 px-4 py-3 no-underline transition-colors"
-              style={{ color: "#F5F4F8" }}
+              style={{ color: T.text }}
               onClick={() => setQuery("")}
               onMouseEnter={(e) =>
                 (e.currentTarget.style.background = "var(--t-raised)")

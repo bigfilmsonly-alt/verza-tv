@@ -4212,6 +4212,64 @@ check(
   }
 }
 
+/* ------------------------------------------------------------------ */
+/*  32. NO WHITE TEXT ON A WHITE PAGE                                   */
+/* ------------------------------------------------------------------ */
+
+/* BUG THIS CATCHES: the light theme shipped with 46 hardcoded #F5F4F8 text
+   colours still in the tree. That hex IS the dark theme's text token, so every
+   one of them was body text written for a near-black ground — and on the new
+   white page each would have rendered white on white: invisible, and invisible
+   in a way that reads as a broken page rather than a styling choice.
+
+   #fff is deliberately NOT banned. It is correct on the pink and gradient
+   buttons, where it sits on a coloured ground in both themes, and blanket-
+   replacing it would have made those labels unreadable. The distinction is the
+   whole point: #F5F4F8 means "the text colour of the dark theme", #fff means
+   "on top of something coloured". */
+{
+  const OFFENDERS = [];
+  const walk = (dir) => {
+    for (const entry of readdirSync(resolve(ROOT, dir), { withFileTypes: true })) {
+      const rel = `${dir}/${entry.name}`;
+      if (entry.isDirectory()) walk(rel);
+      else if (entry.name.endsWith(".tsx")) {
+        /* The player is deliberately black in BOTH themes — video on a white
+           ground is wrong — so its light text is correct and stays. */
+        if (/EpisodeFeed|ShortsFeed|HorizontalFeed|Player|CreatorWatch/.test(rel)) continue;
+        if (/color: "#F5F4F8"/.test(read(rel))) OFFENDERS.push(rel);
+      }
+    }
+  };
+  walk("components");
+  walk("app");
+
+  check(
+    OFFENDERS.length === 0,
+    "theme: dark-theme text colour is hardcoded outside the player",
+    `#F5F4F8 is the DARK theme's text token. On the light page it is white on white. Use T.text so it\n` +
+      `      follows the theme. Offenders: ${OFFENDERS.join(", ")}`,
+  );
+
+  /* Guard the walk itself: a scan that finds nothing to scan passes vacuously
+     and the regression it protects ships unnoticed. */
+  let scanned = 0;
+  const count = (dir) => {
+    for (const entry of readdirSync(resolve(ROOT, dir), { withFileTypes: true })) {
+      const rel = `${dir}/${entry.name}`;
+      if (entry.isDirectory()) count(rel);
+      else if (entry.name.endsWith(".tsx")) scanned++;
+    }
+  };
+  count("components");
+  count("app");
+  check(
+    scanned > 60,
+    "theme: the white-on-white scan found almost nothing to scan",
+    `Walked ${scanned} .tsx files. If the walk breaks, the check above passes vacuously.`,
+  );
+}
+
 if (failures.length > 0) {
   console.error("Feed integrity contract: FAIL");
   for (const f of failures) console.error(`  - ${f}`);

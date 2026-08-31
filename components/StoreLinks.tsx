@@ -1,5 +1,6 @@
 import { STORE_LISTINGS } from "@/lib/app-store";
 import HideInIOSApp from "@/components/HideInIOSApp";
+import { T } from "@/lib/theme";
 
 /**
  * The real store listings, as tappable links. Today there is exactly one — the
@@ -78,7 +79,7 @@ export default function StoreLinks({
                 <path d="M4.5 17.5v1.5a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-1.5" />
               </svg>
               <span className="flex flex-col items-start leading-tight">
-                <span className="text-[13px] font-bold" style={{ color: "#F5F4F8" }}>
+                <span className="text-[13px] font-bold" style={{ color: T.text }}>
                   {store.label}
                 </span>
                 <span className="text-[10px]" style={{ color: "#8A8A9A" }}>

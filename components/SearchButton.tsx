@@ -8,6 +8,7 @@ import { trackSearch } from "@/lib/track";
 import { getLiveSeries } from "@/lib/catalog";
 import { posterHref } from "@/lib/series-href";
 import { seriesMatchesQuery } from "@/lib/search-index";
+import { T } from "@/lib/theme";
 
 export default function SearchButton() {
   const [open, setOpen] = useState(false);
@@ -100,7 +101,7 @@ export default function SearchButton() {
                 onChange={(e) => { setQuery(e.target.value); if (e.target.value.trim().length >= 2) trackSearch(e.target.value, filtered.length); }}
                 placeholder="Search by show, genre, or keyword..."
                 className="w-full pl-10 pr-4 py-3 rounded-xl text-sm outline-none"
-                style={{ background: "rgba(255,255,255,0.08)", color: "#F5F4F8", border: "1px solid rgba(255,255,255,0.15)" }}
+                style={{ background: "rgba(255,255,255,0.08)", color: T.text, border: "1px solid rgba(255,255,255,0.15)" }}
               />
             </form>
             <button onClick={() => setOpen(false)} className="text-sm font-semibold" style={{ background: "none", border: "none", color: "#E0115F", cursor: "pointer" }}>
@@ -124,7 +125,7 @@ export default function SearchButton() {
                       key={s.slug}
                       href={posterHref(s)}
                       className="block no-underline min-w-0 transition-transform active:scale-[0.97]"
-                      style={{ color: "#F5F4F8" }}
+                      style={{ color: T.text }}
                       onClick={() => setOpen(false)}
                     >
                       <div

@@ -22,6 +22,7 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
+import { T } from "@/lib/theme";
 
 export default function EpisodeError({
   error,
@@ -39,7 +40,7 @@ export default function EpisodeError({
   return (
     <div
       className="flex flex-col items-center justify-center text-center px-6"
-      style={{ minHeight: "100dvh", background: "var(--t-bg)", color: "#F5F4F8" }}
+      style={{ minHeight: "100dvh", background: "var(--t-bg)", color: T.text }}
     >
       <div
         className="flex items-center justify-center rounded-full mb-5"
@@ -68,7 +69,7 @@ export default function EpisodeError({
         <Link
           href="/"
           className="px-5 py-2.5 rounded-full text-sm font-semibold no-underline"
-          style={{ background: "rgba(255,255,255,0.08)", color: "#F5F4F8" }}
+          style={{ background: "rgba(255,255,255,0.08)", color: T.text }}
         >
           Back to browse
         </Link>

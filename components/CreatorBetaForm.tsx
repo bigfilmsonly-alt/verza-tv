@@ -2,6 +2,7 @@
 
 import { useId, useState } from "react";
 import Link from "next/link";
+import { T } from "@/lib/theme";
 
 type Status = "idle" | "submitting" | "done" | "error";
 
@@ -81,7 +82,7 @@ export default function CreatorBetaForm() {
             <polyline points="20 6 9 17 4 12" />
           </svg>
         </span>
-        <p className="text-base font-bold" style={{ color: "#F5F4F8" }}>
+        <p className="text-base font-bold" style={{ color: T.text }}>
           You are on the list
         </p>
         <p className="text-sm leading-relaxed" style={{ color: "#A0A0B0" }}>
@@ -123,7 +124,7 @@ export default function CreatorBetaForm() {
           style={{
             background: "var(--t-bg)",
             border: "1px solid rgba(224,17,95,0.2)",
-            color: "#F5F4F8",
+            color: T.text,
             textAlign: "left",
           }}
         />
@@ -150,7 +151,7 @@ export default function CreatorBetaForm() {
           style={{
             background: "var(--t-bg)",
             border: "1px solid rgba(224,17,95,0.2)",
-            color: "#F5F4F8",
+            color: T.text,
             textAlign: "left",
           }}
         />

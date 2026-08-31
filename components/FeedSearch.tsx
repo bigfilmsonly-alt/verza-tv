@@ -6,6 +6,7 @@ import Image from "next/image";
 import type { Series } from "@/lib/catalog";
 import { seriesMatchesQuery } from "@/lib/search-index";
 import { posterHref } from "@/lib/series-href";
+import { T } from "@/lib/theme";
 
 interface FeedSearchProps {
   series: Series[];
@@ -87,7 +88,7 @@ export default function FeedSearch({ series }: FeedSearchProps) {
                 className="w-full pl-10 pr-4 py-3 rounded-xl text-sm outline-none"
                 style={{
                   background: "rgba(255,255,255,0.08)",
-                  color: "#F5F4F8",
+                  color: T.text,
                   border: "1px solid rgba(255,255,255,0.15)",
                 }}
               />
@@ -110,7 +111,7 @@ export default function FeedSearch({ series }: FeedSearchProps) {
                     key={s.slug}
                     href={posterHref(s)}
                     className="flex items-center gap-3 px-4 py-3 no-underline"
-                    style={{ color: "#F5F4F8", borderBottom: "1px solid rgba(255,255,255,0.05)" }}
+                    style={{ color: T.text, borderBottom: "1px solid rgba(255,255,255,0.05)" }}
                     onClick={() => setOpen(false)}
                   >
                     {s.posterUrl && (

@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Series } from "@/lib/catalog";
 import { posterHref } from "@/lib/series-href";
+import { T } from "@/lib/theme";
 
 interface HeroCarouselProps {
   series: Series[];
@@ -61,7 +62,7 @@ export default function HeroCarousel({ series }: HeroCarouselProps) {
         >
           <h2
             className="text-[22px] font-extrabold leading-tight uppercase tracking-wide"
-            style={{ color: "#F5F4F8" }}
+            style={{ color: T.text }}
           >
             {current.title}
           </h2>

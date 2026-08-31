@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import type { Series } from "@/lib/catalog";
 import { posterHref } from "@/lib/series-href";
+import { T } from "@/lib/theme";
 
 interface SeriesCardProps {
   series: Series;
@@ -46,7 +47,7 @@ export default function SeriesCard({ series, dimmed }: SeriesCardProps) {
           className="absolute top-2 right-2 text-xs font-semibold px-1.5 py-0.5 rounded"
           style={{
             background: "rgba(7, 7, 14, 0.75)",
-            color: "#F5F4F8",
+            color: T.text,
             backdropFilter: "blur(4px)",
           }}
         >
@@ -59,7 +60,7 @@ export default function SeriesCard({ series, dimmed }: SeriesCardProps) {
             className="absolute bottom-2 left-2 text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
             style={{
               background: "#E0115F",
-              color: "#F5F4F8",
+              color: T.text,
             }}
           >
             Soon
@@ -70,7 +71,7 @@ export default function SeriesCard({ series, dimmed }: SeriesCardProps) {
       {/* Title */}
       <p
         className="mt-2 text-xs font-medium leading-tight line-clamp-2"
-        style={{ color: "#F5F4F8" }}
+        style={{ color: T.text }}
       >
         {series.title}
       </p>

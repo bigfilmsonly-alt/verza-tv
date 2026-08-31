@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { productImage, productSrcSet, isCartable, type AmazonProduct, type AmazonIcon } from "@/lib/amazon-sponsors";
 import { useAmazonBag } from "@/lib/amazon-bag";
+import { T } from "@/lib/theme";
 
 /* ------------------------------------------------------------------ */
 /*  Amazon sponsored tile + in-app product modal                       */
@@ -224,7 +225,7 @@ export default function AmazonTile({ product: p }: { product: AmazonProduct }) {
         {/* Caption. Each tile carries its own ad disclosure, so the
             disclosure travels with the product wherever the tile is used. */}
         <div style={{ height: 52 }}>
-          <p className="mt-1.5 text-[11px] font-semibold leading-tight line-clamp-2" style={{ color: "#F5F4F8" }}>
+          <p className="mt-1.5 text-[11px] font-semibold leading-tight line-clamp-2" style={{ color: T.text }}>
             {p.title}
           </p>
           <p className="text-[10px] mt-0.5 line-clamp-1 font-semibold" style={{ color: "#FF9900" }}>
@@ -322,7 +323,7 @@ function AmazonProductModal({ product: p, onClose }: { product: AmazonProduct; o
               {p.badge}
             </span>
           )}
-          <h2 className="text-lg font-bold leading-tight" style={{ color: "#F5F4F8" }}>
+          <h2 className="text-lg font-bold leading-tight" style={{ color: T.text }}>
             {p.title}
           </h2>
           {p.description && (
@@ -356,7 +357,7 @@ function AmazonProductModal({ product: p, onClose }: { product: AmazonProduct; o
                 target="_blank"
                 rel="noopener noreferrer sponsored"
                 className="mt-2.5 w-full flex items-center justify-center gap-2 no-underline rounded-2xl py-3 text-sm font-semibold transition-transform active:scale-[0.98]"
-                style={{ background: "rgba(255,255,255,0.07)", color: "#F5F4F8", border: "1px solid rgba(255,255,255,0.12)" }}
+                style={{ background: "rgba(255,255,255,0.07)", color: T.text, border: "1px solid rgba(255,255,255,0.12)" }}
               >
                 View on Amazon
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

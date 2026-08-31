@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { T } from "@/lib/theme";
 
 /**
  * The one empty state.
@@ -81,7 +82,7 @@ export default function EmptyState({
             </svg>
           )}
         </div>
-        <p className="text-base font-bold mb-1.5" style={{ color: "#F5F4F8" }}>
+        <p className="text-base font-bold mb-1.5" style={{ color: T.text }}>
           {title}
         </p>
         <p className="text-xs leading-relaxed m-0" style={{ color: "#8A8A9A" }}>

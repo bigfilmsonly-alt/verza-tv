@@ -3,6 +3,7 @@ import { catalog, getLiveSeries, getBrowseSeriesByCategory, BROWSE_TABS } from "
 import { organizationSchema, webSiteSchema, mobileAppSchema } from "@/lib/schemas";
 import JsonLd from "@/components/JsonLd";
 import BrowsePage from "@/components/BrowsePage";
+import { T } from "@/lib/theme";
 
 export const metadata: Metadata = {
   title: "VERZA TV — Microdramas, Reality & More",
@@ -31,12 +32,12 @@ export default function HomePage() {
       {/* SSR: render all series titles as real text for crawlers */}
       <noscript>
         <section className="px-4 py-6">
-          <h1 className="text-2xl font-bold mb-4" style={{ color: "#F5F4F8" }}>
+          <h1 className="text-2xl font-bold mb-4" style={{ color: T.text }}>
             VERZA TV — {live.length} Live Series
           </h1>
           {activeTabs.map((tab) => (
             <div key={tab.key} className="mb-6">
-              <h2 className="text-lg font-bold mb-2" style={{ color: "#F5F4F8" }}>
+              <h2 className="text-lg font-bold mb-2" style={{ color: T.text }}>
                 {tab.label}
               </h2>
               <ul>
