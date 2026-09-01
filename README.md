@@ -29,7 +29,7 @@ server-verified Apple StoreKit non-consumables on iOS.
 | Surface | Current launch behavior |
 | --- | --- |
 | Catalog | 80 titles: 79 live and one coming soon; 74 paid-live, five wholly free |
-| Web browse | Drama, Hot, Tubi, Anime, Español, Bollywood, Creators, Reality, Red Carpet, Music. New is folded into Hot; Anime/Español/Bollywood are placeholders; Storage Pirates is Reality-only. Hero arrows were removed in favor of automatic rotation, dots, and tab/swipe navigation. |
+| Web browse | Drama, Tubi, Anime, Español, Bollywood, Reality, Creators, Red Carpet, Music. Hot is folded into Drama (as New was folded into Hot before it) — every Hot title was already in the Drama grid, which is built from the whole live library rather than a `drama` tag; Anime/Creators are placeholders; Storage Pirates is Reality-only. Hero arrows were removed in favor of automatic rotation, dots, and tab/swipe navigation. |
 | Tubi partner | Authorized web partner logo/hero panel and outbound `tubitv.com` CTA; browser policy prevents an ordinary embed. This web surface does not enter the iOS 2.0 client. |
 | Series access | One-time full-series unlock: canonical $1.99 USD Stripe Checkout on web/eligible Android; Apple non-consumable with $1.99 US base and StoreKit-localized price on iOS |
 | iOS | Apple StoreKit is the only purchase path; no Stripe/web checkout or external-purchase direction, Tubi partner promotion, ads/affiliate placement, or creator surface |

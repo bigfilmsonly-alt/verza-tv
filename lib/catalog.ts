@@ -19,7 +19,18 @@ export type BrowseCategory =
 
 export const BROWSE_TABS: { key: BrowseCategory; label: string }[] = [
   { key: "drama", label: "Drama" },
-  { key: "popular", label: "Hot" },
+  // No Hot tab. Hot was folded into Drama the same way New was folded into Hot
+  // before it: every title Hot ranked is a Drama title, and the Drama grid is
+  // built from the whole live library (BrowsePage's `base`), not from
+  // categories.includes("drama"), so all 20 of them already rendered there.
+  // Removing the tab therefore drops no content — it drops a second, ranked
+  // view of content Drama already carries.
+  //
+  // "popular" SURVIVES as a category on those titles and in BrowseCategory. It
+  // is no longer a tab, but it is still read by the AI host's trending replies
+  // (app/api/ai-host/route.ts), the search haystack (lib/search-index.ts), and
+  // /discover/popular. Stripping the tag to "clean up" would silently empty all
+  // three. popularRank likewise still pins Drama's Trending shelf below.
   // Tubi — authorized partner (signed contract). The web tab renders the Tubi
   // logo and a sponsored outbound partner spotlight; it does not expose Tubi
   // playback capabilities inside Verza.
@@ -520,7 +531,7 @@ export const catalog: Series[] = [
   },
 
   /* ================================================================ */
-  /*  NEW TAB                                                          */
+  /*  NEWEST DROPS — no longer a tab of their own; these render in Drama */
   /* ================================================================ */
   {
     slug: "lost-and-found",
@@ -528,7 +539,7 @@ export const catalog: Series[] = [
     logline: "A widow finds love letters in her late husband's attic — addressed to someone he never stopped loving.",
     genre: "Emotional drama",
     channel: "VERZA Originals",
-    categories: ["new"],
+    categories: ["drama", "new"],
     episodeCount: 48,
     posterUrl: "/posters/lost-and-found.png",
     freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(48), status: "live",
@@ -539,7 +550,7 @@ export const catalog: Series[] = [
     logline: "Her new boss humiliates her daily — but every night he secretly pays her mother's hospital bills.",
     genre: "Romance \u00b7 Comedy",
     channel: "VERZA Originals",
-    categories: ["new"],
+    categories: ["drama", "new"],
     episodeCount: 65,
     posterUrl: "/posters/help-im-falling-in-love-with-my-rude-ceo.png",
     freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(65), status: "live",
@@ -645,7 +656,8 @@ export const catalog: Series[] = [
   },
 
   /* ================================================================ */
-  /*  POPULAR TAB (ranked 1-6)                                         */
+  /*  EDITORIAL PICKS (popularRank) — no longer a tab; these render in   */
+  /*  Drama, pinned into its Trending shelf by popularRank              */
   /* ================================================================ */
   /* The Mistress Trap moved to top of catalog — see first entry */
   /* The Blackthornes (rank 2), Destined to Be (rank 3), Do Not Deceive Me (rank 4), Undercovered Heart (rank 5), The Dumb Billionaire Heiress (rank 6) are in Drama above */
@@ -825,7 +837,7 @@ export const catalog: Series[] = [
     logline: "A red thread connects them across lifetimes. In this one, he's the detective investigating her disappearance.",
     genre: "Supernatural romance",
     channel: "VERZA Originals",
-    categories: ["new"],
+    categories: ["drama", "new"],
     episodeCount: 54,
     posterUrl: "/posters/tied-by-fate.png",
     freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(54), status: "live",
@@ -892,7 +904,7 @@ export const catalog: Series[] = [
     logline: "She wakes up ten years in the past — married to the man who will one day destroy her family.",
     genre: "Sci-fi \u00b7 Romance",
     channel: "VERZA Originals",
-    categories: ["new"],
+    categories: ["drama", "new"],
     episodeCount: 56,
     posterUrl: "/posters/twist-of-time.png",
     freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(56), status: "live",

@@ -92,7 +92,7 @@ PLATFORM BASICS:
 - Founded by Alan Mruvka, co-founder of E! Entertainment Television
 - ${LIVE_SERIES.length} live series and ${TOTAL_LIVE_EPISODES.toLocaleString("en-US")} live episodes in the current catalog
 - Content includes vertical micro-dramas, reality, music, podcasts, and red-carpet programming; episode counts and formats vary by title
-- Categories: Drama, New, Hot, Music, Reality, Red Carpet
+- Browse tabs: Drama, Tubi, Anime, Espanol, Bollywood, Reality, Creators, Red Carpet, Music (Anime and Creators are marked coming soon). There is no Hot tab: its titles are Drama titles and the "popular" tag on them now only marks editorial picks.
 
 PRICING:
 - ${PAID_SERIES.length} live paid-access series currently include the free episode count stated in the catalog below

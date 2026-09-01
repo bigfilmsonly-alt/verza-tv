@@ -60,8 +60,9 @@ const TAB_EXCLUSIVE: BrowseCategory[] = ["espanol", "bollywood", "reality", "red
    sank into the grid and the hero showed whatever landed first.
    Order here IS display order — reorder this array to reorder the shelf, and
    it drives both the badged top shelf and the hero, so the two always agree.
-   Every entry must be live, Drama-visible and carry categories ["new"].
-   Kept out: the-crown, which has popularRank 4 and is promoted through Hot. */
+   Every entry must be live, Drama-visible and carry categories ["drama","new"].
+   Kept out: the-crown, which carries popularRank 4 and so is already pinned by
+   the Trending shelf below — listing it here would pin the same title twice. */
 const FEATURED_NEW = [
   "lost-and-found",
   "help-im-falling-in-love-with-my-rude-ceo",
@@ -108,18 +109,14 @@ const HOME_TAB: BrowseCategory = "drama";
 const NEW_SLOTS = 6;
 const TRENDING_START = NEW_SLOTS;
 const TRENDING_END = NEW_SLOTS + 3;
-/* Hot is the exception, and it is not a curated shelf — it is a rank order. Its
-   slot 1 genuinely is the most-watched title, so Trending belongs at the TOP
-   there, not on row three, and New never applies. */
-const HOT_TRENDING_SLOTS = 3;
 /* New is an editorial claim about a curated shelf, so it only applies where the
-   head IS hand-picked: Drama's featured six and the two language drops. Hot is
-   excluded because its order is popularRank — position 1 there means "most
-   watched", not "newest". Badging Hot positionally put NEW on the six
-   highest-ranked titles in the catalogue while the titles actually tagged
-   new sat unbadged further down, which is the label pointing at exactly the
-   wrong thing. Hot still shows Trending, because on a popularity chart the top
-   three genuinely are. */
+   head IS hand-picked: Drama's featured six and the two language drops. The
+   retired Hot tab was excluded because its order was popularRank — position 1
+   there meant "most watched", not "newest". Badging it positionally put NEW on
+   the six highest-ranked titles in the catalogue while the titles actually
+   tagged new sat unbadged further down, which is the label pointing at exactly
+   the wrong thing. That reasoning is why Drama's own Trending shelf is pinned
+   by popularRank rather than left to the shuffle. */
 const NEW_BADGE_TABS = new Set<BrowseCategory>(["drama", "espanol", "bollywood"]);
 
 /* Tabs that render their own section instead of the shared poster grid. They
@@ -383,8 +380,8 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
     queueMicrotask(() => setShuffleSeed(seed));
   }, []);
 
-  // Drama shows the whole library; other tabs show their own set. Hot stays
-  // ranked, everything else is shuffled fresh each load for variety.
+  // Drama shows the whole library; other tabs show their own set. Drama pins a
+  // deterministic head and shuffles only the tail, fresh each load for variety.
   const filtered = useMemo(() => {
     // Drama shows the whole library EXCEPT tab-exclusive titles: Too Much Junk
     // (Music tab), red-carpet events (Red Carpet tab only), and reality titles
@@ -405,9 +402,6 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
       ...list.filter((s) => s.status === "live"),
       ...list.filter((s) => s.status !== "live"),
     ];
-
-    // Hot is a ranked chart; its order IS the content, so it never shuffles.
-    if (activeTab === "popular") return playableFirst(base);
 
     // A curated tab is small enough to read as one deliberate shelf, so it
     // renders in catalogue order every time. Shuffling six Espanol titles does
@@ -430,8 +424,9 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
     // shuffle dropped there, so the Trending row named three different titles on
     // every reload — the badge was fixed but its subjects were not, which is the
     // same randomness one level down. Pinning by popularRank also makes the
-    // label true, and makes Drama name the same three titles Hot ranks 1-3
-    // instead of the two tabs contradicting each other.
+    // label true, and it is now the ONLY ranked surface in the product: with
+    // the Hot tab folded into Drama, this shelf is where the top-ranked titles
+    // are promoted, so it must stay pinned rather than drift into the shuffle.
     const head =
       activeTab === "drama"
         ? [
@@ -535,11 +530,11 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
     return () => { cancelled = true; };
   }, []);
 
-  // Auto-rotate hero slideshow (works for Drama/New/Hot AND Reality)
+  // Auto-rotate hero slideshow (works for the poster tabs AND Reality)
   const slideCount = activeTab === "reality" ? REALITY_SHOWS.length : heroSlides.length;
 
   // Keep the shared hero index inside the active tab's range at all times. The
-  // same heroIdx drives the poster hero (Drama/New/Hot) and the Reality hero,
+  // same heroIdx drives the poster hero and the Reality hero,
   // whose slide counts can differ — clamping here guarantees the arrows always
   // land on a valid poster and never on a stale/out-of-range slide.
   useEffect(() => {
@@ -1066,7 +1061,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </section>
       )}
 
-      {/* Hero Slideshow — shows on Drama/New/Hot (not Reality/Red Carpet/Music) */}
+      {/* Hero Slideshow — shows on Drama (not Reality/Red Carpet/Music) */}
       {/* Espanol and Bollywood show ONLY their title grid: no hero, no
          slideshow above it. The homepage hero is untouched and still
          rotates the pinned FEATURED_NEW six on Drama. */}
@@ -1183,8 +1178,11 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
         </div>
       )}
 
-      {/* Sponsored Ad Ribbon #1 — only on Drama, New, Hot */}
-      {(activeTab === "drama" || activeTab === "new" || activeTab === "popular") && (
+      {/* Sponsored Ad Ribbon #1 — Drama only. It used to also name "new" and
+          "popular"; neither is a tab any more, so both arms were unreachable
+          and the condition read as if the ribbon had three homes when it had
+          one. StorageBlue is the original sponsor — this placement stays. */}
+      {activeTab === "drama" && (
         <a
           href="https://www.storageblue.com"
           target="_blank"
@@ -1237,12 +1235,13 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
               // "Trending" badge on something with no video.
               const curated = NEW_BADGE_TABS.has(activeTab);
               const isNew = badgesApply && !soon && curated && i < NEW_SLOTS;
+              /* One rule now, not two. Hot used to badge its first three tiles
+                 Trending because its order was a rank chart; with Hot folded
+                 into Drama that arm is unreachable, and Drama's own Trending
+                 shelf (slots 7-9, pinned by popularRank in `head` above) is
+                 where those same top-ranked titles are badged. */
               const trending =
-                badgesApply &&
-                !soon &&
-                (curated
-                  ? i >= TRENDING_START && i < TRENDING_END
-                  : activeTab === "popular" && i < HOT_TRENDING_SLOTS);
+                badgesApply && !soon && curated && i >= TRENDING_START && i < TRENDING_END;
               const tileLanguage = audioLanguageOf(s);
               const art = (
                 <>
@@ -1324,7 +1323,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
              open with; the catalogue is. It sits after the grid, so a viewer
              who wants to carry on scrolls to it deliberately.
           2. It shows only titles that BELONG TO THIS SECTION. Drama's row lists
-             Drama, Hot's lists Hot, Espanol stays in Espanol and Bollywood in
+             Drama, Espanol stays in Espanol and Bollywood stays in
              Bollywood. Membership is computed from the same data the grid is
              built from, so the row cannot disagree with the section it sits in
              and a title can never surface under a language it is not in.

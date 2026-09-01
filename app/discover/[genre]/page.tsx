@@ -17,7 +17,7 @@ const GENRE_DESCRIPTIONS: Record<string, string> = {
   new:
     "Micro-dramas currently assigned to VERZA TV's New catalog category.",
   popular:
-    "An editorially ranked selection from the current VERZA TV catalog; this is not a real-time viewing chart.",
+    "An editorially ranked selection from the current VERZA TV catalog; this is not a real-time viewing chart. These titles browse under Drama.",
   music:
     "Music and entertainment-themed shows on VERZA TV, from reality formats to behind-the-scenes content.",
   reality:
@@ -55,12 +55,14 @@ const GENRE_DESCRIPTIONS: Record<string, string> = {
 /* Display-label overrides where the URL slug can't carry the real label.
    The slug stays ASCII for clean URLs (/discover/espanol) while the page shows
    the accented brand label ("Español") everywhere it appears.
-   "popular" is the internal key for the tab the product calls HOT — everywhere,
-   and in every language, because it is a brand name and not a description.
-   Without this entry the generic title-case fallback opened the page with an H1
-   reading "Popular Micro-Dramas" under a tile labelled Hot, and shipped that
-   same word in the title, og:title and breadcrumb. "red-carpet" would likewise
-   have leaked its raw slug as "Red-carpet". */
+   "popular" was the internal key for the tab the product called HOT. That tab
+   is retired (its titles browse under Drama), but this page is indexed and
+   sitemapped, so the slug lives on in EDITORIAL_DISCOVER_CATEGORY_SLUGS and
+   keeps the Hot label it was indexed under — renaming it now would change the
+   H1, title, og:title and breadcrumb of a URL Google already holds. Without
+   this entry the generic title-case fallback would open the page with an H1
+   reading "Popular Micro-Dramas". "red-carpet" would likewise have leaked its
+   raw slug as "Red-carpet". */
 const CATEGORY_LABELS: Record<string, string> = {
   espanol: "Español",
   popular: "Hot",

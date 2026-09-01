@@ -286,7 +286,9 @@ check("language/section tabs do not leak into the Drama grid", () => {
 check("browse tab order matches the owner-specified sequence", () => {
   // This drifted once: a rebase onto a base that still had Creators before
   // Reality silently reverted the owner's ordering, and it shipped.
-  const EXPECTED = ["Drama", "Hot", "Tubi", "Anime", "Español", "Bollywood",
+  // Hot removed: it was folded into Drama, whose grid already contained all 20
+  // of its titles. Drama stays first.
+  const EXPECTED = ["Drama", "Tubi", "Anime", "Español", "Bollywood",
                     "Reality", "Creators", "Red Carpet", "Music"];
   const src = read("lib/catalog.ts");
   const block = src.match(/export const BROWSE_TABS[\s\S]*?\n\];/);
