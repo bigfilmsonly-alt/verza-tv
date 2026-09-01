@@ -1090,7 +1090,17 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                   aspectRatio: "2 / 3",
                   width: "100%",
                   maxWidth: "min(320px, 80vw)",
-                  background: "var(--t-bg)",
+                  /* BLACK IN BOTH THEMES, never var(--t-bg). The poster is
+                     object-contain inside a fixed 2:3 box, so whenever its
+                     aspect does not match exactly, this colour IS the bars
+                     down the sides of the artwork. On the light theme the
+                     token resolves to white, which framed every hero poster in
+                     a white border and lit the whole slideshow white on
+                     desktop. Art gets a black surround, the same reason the
+                     player components stayed black when the light theme
+                     landed, and the same literal the Music (line ~730) and
+                     Reality (line ~902) heroes already use. */
+                  background: "#000",
                 }}
               >
                 {current.posterUrl ? (
@@ -1112,7 +1122,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                        unmounted it in the same commit that started the incoming
                        layer's 0 -> 1 ramp, so for the whole 500ms there was no
                        layer at full opacity and the incoming poster faded in
-                       over the card's own var(--t-bg). Measured on production with a
+                       over the card's own black ground. Measured on production with a
                        MutationObserver: one commit removed the outgoing image,
                        set the incoming to opacity 1, and added the next preload
                        at 0. The first screen of the app pulsed dark every four

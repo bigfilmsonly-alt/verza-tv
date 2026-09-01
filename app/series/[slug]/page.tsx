@@ -124,7 +124,11 @@ export default async function SeriesPage({ params }: Props) {
       />
 
       {/* ---- Hero Poster ---- */}
-      <section className="series-hero relative w-full" style={{ aspectRatio: "2 / 3", background: "var(--t-bg)" }}>
+      {/* Black ground, not var(--t-bg): the poster is object-contain in a
+          fixed 2:3 box, so this colour is the bars beside the artwork. The
+          light theme resolved the token to white and framed every series
+          poster in a white border. */}
+      <section className="series-hero relative w-full" style={{ aspectRatio: "2 / 3", background: "#000" }}>
         {series.posterUrl ? (
           <Image
             src={series.posterUrl}

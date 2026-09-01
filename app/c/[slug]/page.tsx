@@ -184,7 +184,9 @@ export default async function ClipPage({ params }: Props) {
       />
 
       {/* Hero poster */}
-      <div className="relative" style={{ aspectRatio: "9 / 16", background: "var(--t-bg)" }}>
+      {/* Black ground, not var(--t-bg) — see the series hero: art and video
+          get a black surround in both themes. */}
+      <div className="relative" style={{ aspectRatio: "9 / 16", background: "#000" }}>
         {thumb && (
           <Image
             src={thumb}
