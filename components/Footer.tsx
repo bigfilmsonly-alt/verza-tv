@@ -1,7 +1,46 @@
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { T } from "@/lib/theme";
 import FooterSitemap from "@/components/FooterSitemap";
 import StoreLinks from "@/components/StoreLinks";
+
+/* The footer is a BLACK SLAB IN BOTH THEMES, so it re-declares the palette for
+   its own subtree rather than recolouring its children one by one.
+
+   Why the tokens and not a pile of literals: the footer renders StoreLinks,
+   which /press and /about ALSO render on an ordinary themed page. Hard-coding
+   light-on-dark inside that component would fix the footer and make those two
+   pages illegible. Redefining the custom properties here keeps the override
+   scoped to this element's descendants — StoreLinks and FooterSitemap need no
+   changes at all and stay correct everywhere else.
+
+   The values are the dark theme's own (globals.css :root), so the footer looks
+   exactly as it always has for dark-theme viewers; only the light theme
+   changes. background is #000 rather than --t-surface's #12121C because the
+   ask was a black backdrop specifically.
+
+   Do NOT "simplify" this to `background: #000` alone: on the light theme
+   --t-text is #14141C, so the social row and the StoreLinks chip label would
+   be near-black text on black — invisible, the exact mirror of the
+   white-on-white bug the light theme shipped to fix.
+
+   (Naming the storefronts in this file is also a test failure, not just a
+   style nit: test-seo-contract.mjs asserts Footer.tsx never matches their
+   names, so that store claims live only in StoreLinks.) */
+const DARK_ISLAND = {
+  "--t-bg": "#07070E",
+  "--t-surface": "#12121C",
+  "--t-raised": "#1A1A26",
+  "--t-line": "rgba(255, 255, 255, 0.08)",
+  "--t-text": "#F5F4F8",
+  "--t-text-dim": "#A0A0B0",
+  "--t-text-mute": "#6B6B7B",
+  "--t-gold": "#F6C800",
+  "--t-deep-gold": "#946312",
+  "--t-success": "#2ECC71",
+  "--t-live": "#FF3B5C",
+  "--t-coin": "#FFC83D",
+} as CSSProperties;
 
 const socialLinks = [
   {
@@ -68,7 +107,8 @@ export default function Footer() {
   return (
     <footer
       style={{
-        background: T.surface,
+        ...DARK_ISLAND,
+        background: "#000",
         borderTop: `1px solid ${T.line}`,
         color: T.textMute,
         fontSize: 13,
