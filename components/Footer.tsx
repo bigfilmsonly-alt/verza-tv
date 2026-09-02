@@ -14,10 +14,17 @@ import StoreLinks from "@/components/StoreLinks";
    scoped to this element's descendants — StoreLinks and FooterSitemap need no
    changes at all and stay correct everywhere else.
 
-   The values are the dark theme's own (globals.css :root), so the footer looks
-   exactly as it always has for dark-theme viewers; only the light theme
-   changes. background is #000 rather than --t-surface's #12121C because the
-   ask was a black backdrop specifically.
+   The values are the dark theme's own (globals.css :root) with two deliberate
+   departures, so the footer looks essentially as it always has for dark-theme
+   viewers:
+     - background is #000, not --t-surface's #12121C: the ask was a black
+       backdrop specifically.
+     - --t-text-mute is #8A8A9A, not #6B6B7B. That token carries the smallest
+       type in the footer — the legal row and the copyright line — and the dark
+       value lands at 4.01:1 on black, under the 4.5:1 WCAG AA floor for normal
+       text. #8A8A9A is 6.18:1, and is already the tone StoreLinks uses for its
+       own sub-label, so the footer gains no new colour. Anything raising this
+       token must keep it >= 4.5:1 against #000.
 
    Do NOT "simplify" this to `background: #000` alone: on the light theme
    --t-text is #14141C, so the social row and the StoreLinks chip label would
@@ -34,7 +41,7 @@ const DARK_ISLAND = {
   "--t-line": "rgba(255, 255, 255, 0.08)",
   "--t-text": "#F5F4F8",
   "--t-text-dim": "#A0A0B0",
-  "--t-text-mute": "#6B6B7B",
+  "--t-text-mute": "#8A8A9A",
   "--t-gold": "#F6C800",
   "--t-deep-gold": "#946312",
   "--t-success": "#2ECC71",
