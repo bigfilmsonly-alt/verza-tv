@@ -2,12 +2,29 @@
 
 Last reconciled: **2026-08-05**.
 
-The current production database has migrations `009`–`014` applied and
-independently read back. Migration 015 is also applied; structural, RLS, RPC,
-privilege, and independent-source preservation readbacks passed. Do not rerun
-or edit an applied migration merely
-because an older guide says “apply once.” A fresh environment applies the full
-ordered migration history through the approved Supabase workflow.
+The current production database (`mmvbmrrwgludfmfalfcm`) has migrations `009`–`015`
+applied and read back on **2026-09-07**: 22 structural objects confirmed present,
+`purchases` and `entitlements` both still empty. Do not rerun or edit an applied
+migration merely because an older guide says “apply once.” A fresh environment
+applies the full ordered migration history through the approved Supabase workflow.
+
+**Read this before trusting any sentence above.** The paragraph this replaces said
+009–015 were applied and read back, and it was accurate when written — about a
+DIFFERENT database. On 2026-09-07 the split-brain fix repointed production at the
+canonical project, which had only ever received 001–008, and that claim silently
+became a description of the database production had just stopped using. Checkout
+500'd on every tap for the ~20 minutes it took to find it, and the missing
+`claim_stripe_webhook_event` meant a payment would have been taken and no
+entitlement written.
+
+So: **a migration readback is evidence about a database, not about a deployment.**
+Re-verify against the project the running app actually holds, and note which one.
+`/api/health` now returns `schemaReady` for exactly this, so the cheapest possible
+check is a single curl rather than a reading of this file.
+
+`supabase db push` is the WRONG tool here. This project's base schema was applied
+outside the CLI, so `supabase_migrations.schema_migrations` does not exist and push
+would try to replay `001` onward. Apply the specific pending files instead.
 
 ## Current payment-critical order
 

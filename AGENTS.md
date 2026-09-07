@@ -30,6 +30,17 @@ playback, legal copy, catalog data, or release configuration. `CLAUDE.md` and
 
 ## Rules that outrank everything
 
+0. **Readback evidence names a database, not a deployment.** On 2026-09-07 every
+   payment claim in rule 1 below was still literally true and had stopped
+   describing production: the split-brain fix repointed the app at the canonical
+   Supabase project, which carried only migrations 001–008, so the 009–015
+   readbacks described the database production had just abandoned. Checkout
+   returned 500 on every tap while `/api/health` reported `ok:true`. Migrations
+   009–015 were applied to `mmvbmrrwgludfmfalfcm` and read back that day (22
+   objects; `purchases`/`entitlements` still empty). Before trusting any
+   readback sentence in this file, `curl https://www.verzatv.com/api/health` and
+   confirm `schemaReady` — it probes the schema rather than the project name,
+   which is the check whose absence made this invisible.
 1. **Production is not the working tree.** As of the latest 2026-08-03 readback,
    August 3 legal/support, authenticated payment capabilities in compatibility
    mode, signed paid playback, the exact 19-event Stripe webhook, and the
