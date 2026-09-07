@@ -24,7 +24,7 @@ curl -s https://www.verzatv.com/api/health | python3 -m json.tool
 Expected:
 
 ```json
-{ "ok": true, "checks": { "configured": true, "projectsMatch": true, "canRead": true } }
+{ "ok": true, "checks": { "configured": true, "projectsMatch": true, "canRead": true, "schemaReady": true } }
 ```
 
 `projectsMatch: false` is the exact failure this endpoint was built for: the
@@ -117,6 +117,11 @@ Stripe's "Resend" on that event.
 This is the split-brain signature. Re-run `/api/health` first.
 
 - `projectsMatch: false` → the webhook wrote to a different Supabase project.
+- `schemaReady: false` → the project is the right one but is missing the payment
+  schema. This is the 2026-09-07 failure: migrations 009–015 were live on the
+  database production had just been repointed AWAY from, so checkout 500'd and
+  the webhook could not have written an entitlement even if it had not. Do not
+  pay while this is false; the charge would succeed and grant nothing.
   Fix `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` in Vercel Production, redeploy,
   then use Stripe's "Resend" on the event. **Do not re-pay** — resending
   replays the same event and the write is idempotent.

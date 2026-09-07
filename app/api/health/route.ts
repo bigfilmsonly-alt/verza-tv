@@ -90,7 +90,50 @@ export async function GET() {
     dbError = "server Supabase configuration is incomplete";
   }
 
-  const ok = configured && projectsMatch && canRead;
+  /* Reaching the right project is not the same as reaching a USABLE one.
+     On 2026-09-07 this endpoint returned ok:true while every payment table was
+     missing: repointing SUPABASE_URL at the canonical project fixed the split
+     brain, but that project had only ever received migrations 001–008, so
+     migrations 009–015 were live on the database production had just stopped
+     using. `canRead` stayed green because `entitlements` exists in the base
+     schema, and /api/unlock returned 500 on every tap.
+
+     So probe the two objects whose absence breaks the money path, chosen
+     because they fail at the two DIFFERENT points a payment can die:
+
+       profiles.deletion_requested_at (migration 010)
+         /api/unlock selects it before creating a Checkout Session, and
+         ensureStripeCustomer selects it again. Missing => 500 before Stripe is
+         ever called. Loud, and nobody can pay.
+
+       stripe_webhook_events (migration 010)
+         The webhook calls claim_stripe_webhook_event before fulfilling.
+         Missing => the payment succeeds and the entitlement is never written.
+         SILENT, and the customer is charged for content that stays locked.
+
+     The second is the reason this check exists at all. The first announces
+     itself; the second takes money and looks fine. */
+  let schemaReady = false;
+  let schemaError: string | null = null;
+  if (canRead) {
+    try {
+      const db = getServiceClient();
+      const [profileColumn, webhookLedger] = await Promise.all([
+        db.from("profiles").select("deletion_requested_at", { count: "exact", head: true }),
+        db.from("stripe_webhook_events").select("event_id", { count: "exact", head: true }),
+      ]);
+      const failure = profileColumn.error ?? webhookLedger.error;
+      if (failure) {
+        schemaError = failure.message.slice(0, 160);
+      } else {
+        schemaReady = true;
+      }
+    } catch (err) {
+      schemaError = (err instanceof Error ? err.message : String(err)).slice(0, 160);
+    }
+  }
+
+  const ok = configured && projectsMatch && canRead && schemaReady;
 
   return privateJson(
     {
@@ -102,8 +145,11 @@ export async function GET() {
         projectsMatch,
         /* The service client — the one the Stripe webhook uses — can reach it. */
         canRead,
+        /* That project actually carries the payment schema, not just a name. */
+        schemaReady,
       },
       dbError,
+      schemaError,
       latencyMs: Date.now() - startedAt,
       checkedAt: new Date().toISOString(),
     },
