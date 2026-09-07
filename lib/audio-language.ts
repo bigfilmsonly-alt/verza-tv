@@ -73,6 +73,26 @@ const LANGUAGE_BY_CATEGORY: Partial<Record<BrowseCategory, SpokenLanguage>> = {
 };
 
 /**
+ * The browse tabs that denote a spoken language, derived from the map above so
+ * a new language tab is covered the day it is added.
+ *
+ * Genre hubs read this. A language tab's titles carry genre strings written IN
+ * that language ("Drama · Pasión", "Romance · Traición"), so matching an
+ * English hub slug against the genre text can never find them — which is why
+ * /discover/espanol and /discover/bollywood both listed zero titles while five
+ * Spanish and six Hindi titles were live. For these hubs the category IS the
+ * membership. See lib/genre-hub.ts.
+ */
+export const LANGUAGE_TAB_CATEGORIES: readonly BrowseCategory[] = Object.freeze(
+  Object.keys(LANGUAGE_BY_CATEGORY) as BrowseCategory[],
+);
+
+/** Whether a hub/tab slug names a language tab rather than a genre. */
+export function isLanguageCategory(value: string): value is BrowseCategory {
+  return (LANGUAGE_TAB_CATEGORIES as readonly string[]).includes(value);
+}
+
+/**
  * Escape hatch for a title whose tab does not imply its language — a Hindi
  * title cross-listed into Drama, say. Empty today, and the feed-integrity
  * gate walks the whole catalogue to prove the category rule still covers

@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { catalog } from "@/lib/catalog";
 import { DISCOVER_CATEGORY_SLUGS } from "@/lib/discover-categories";
-import { forGenreHub } from "@/lib/genre-hub";
+import { seriesForHub } from "@/lib/genre-hub";
 import { breadcrumbSchema } from "@/lib/schemas";
 import JsonLd from "@/components/JsonLd";
 import { T } from "@/lib/theme";
@@ -135,16 +135,15 @@ export default async function GenrePage({
   const BASE_URL =
     process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verzatv.com";
 
-  // Match broadly: "romance" matches "Mystery romance", "Billionaire romance", etc.
-  /* forGenreHub keeps a title that owns a language/section tab out of a
-     GENERIC hub. A Spanish title whose genre reads "Drama · Pasión" matched
-     /discover/drama on the word "Drama" alone; the tab separation had already
-     been done for browse and this path never got it. The hub's own category is
-     never excluded, so /discover/reality still lists reality. */
-  const matches = forGenreHub(
-    catalog.filter((s) => s.genre.toLowerCase().includes(genre.toLowerCase())),
-    genre,
-  );
+  /* seriesForHub does both halves. It matches broadly on the free-text genre,
+     so "romance" still reaches "Mystery romance" and "Billionaire romance" —
+     except for the two LANGUAGE hubs, which match by category because their
+     titles' genre strings are written in their own language and no English
+     slug can ever appear in one. Then it applies the eligibility rule that
+     keeps a title owning a language/section tab out of a GENERIC hub, while
+     never excluding a hub's own category, so /discover/reality still lists
+     reality and /discover/espanol lists Spanish. See lib/genre-hub.ts. */
+  const matches = seriesForHub(catalog, genre);
   const liveMatches = matches.filter((s) => s.status === "live");
 
   return (

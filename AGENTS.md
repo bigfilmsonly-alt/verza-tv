@@ -147,6 +147,7 @@ playback, legal copy, catalog data, or release configuration. `CLAUDE.md` and
 npm run test:playback-security
 npm run test:feed-integrity
 npm run test:platform
+npm run test:genre-hubs
 npm run test:mux-webhook-security
 npm run test:payments
 npm run test:payments:db
