@@ -27,6 +27,7 @@ const ALLOWED: AnalyticsEvent[] = [
   "play_completed",
   "play_progress",
   "paywall_viewed",
+  "auth_required",
   "purchase_started",
   "checkout_started",
 ];

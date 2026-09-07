@@ -25,6 +25,10 @@ export type AnalyticsEvent =
   | "play_progress"        // Periodic progress updates
   // Monetization
   | "paywall_viewed"
+  /* A buy control was tapped by a signed-out viewer and sent to sign-in. The
+     denominator for purchase_started/checkout_started: without it a guest who
+     tapped Unlock is indistinguishable from nobody tapping. */
+  | "auth_required"
   | "purchase_started"
   | "checkout_started"     // Client: tapped buy, redirected to Stripe (no revenue)
   | "purchase_completed"   // Server-side only (Stripe webhook)
