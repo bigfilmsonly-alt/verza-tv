@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import AudioLanguageBadge from "@/components/AudioLanguageBadge";
+import { audioLanguageOf } from "@/lib/audio-language";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import Image from "next/image";
@@ -141,6 +143,15 @@ export default function SearchButton() {
                             sizes="(max-width: 440px) 33vw, 146px"
                             className="object-cover"
                           />
+                        )}
+                        {/* Search stays GLOBAL on purpose — someone typing a
+                            title's name must find it whatever language it is
+                            in, so the genre-hub exclusion is deliberately not
+                            applied here. The trade is that language has to be
+                            visible rather than implied, so a non-English result
+                            says so before it is opened or bought. */}
+                        {audioLanguageOf(s).audio !== "en" && (
+                          <AudioLanguageBadge language={audioLanguageOf(s)} compact />
                         )}
                       </div>
                       {/* Fixed-height caption block so every tile's title + genre

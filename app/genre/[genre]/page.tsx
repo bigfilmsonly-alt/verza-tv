@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { catalog, getSeriesByGenre } from "@/lib/catalog";
+import { forGenreHub } from "@/lib/genre-hub";
 import { itemListSchema, breadcrumbSchema } from "@/lib/schemas";
 import JsonLd from "@/components/JsonLd";
 import { T } from "@/lib/theme";
@@ -177,7 +178,11 @@ export default async function GenreLandingPage({ params }: Props) {
   const BASE_URL =
     process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verzatv.com";
 
-  const matches = getSeriesByGenre(genre).filter((s) => s.status === "live");
+  /* Same rule as the other two genre hubs. */
+  const matches = forGenreHub(
+    getSeriesByGenre(genre).filter((s) => s.status === "live"),
+    genre,
+  );
 
   // Also broaden: search title/logline for the genre keyword
   const broadMatches = catalog.filter(

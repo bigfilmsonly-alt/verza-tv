@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { catalog } from "@/lib/catalog";
 import { DISCOVER_CATEGORY_SLUGS } from "@/lib/discover-categories";
+import { forGenreHub } from "@/lib/genre-hub";
 import { breadcrumbSchema } from "@/lib/schemas";
 import JsonLd from "@/components/JsonLd";
 import { T } from "@/lib/theme";
@@ -135,8 +136,14 @@ export default async function GenrePage({
     process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verzatv.com";
 
   // Match broadly: "romance" matches "Mystery romance", "Billionaire romance", etc.
-  const matches = catalog.filter(
-    (s) => s.genre.toLowerCase().includes(genre.toLowerCase()),
+  /* forGenreHub keeps a title that owns a language/section tab out of a
+     GENERIC hub. A Spanish title whose genre reads "Drama · Pasión" matched
+     /discover/drama on the word "Drama" alone; the tab separation had already
+     been done for browse and this path never got it. The hub's own category is
+     never excluded, so /discover/reality still lists reality. */
+  const matches = forGenreHub(
+    catalog.filter((s) => s.genre.toLowerCase().includes(genre.toLowerCase())),
+    genre,
   );
   const liveMatches = matches.filter((s) => s.status === "live");
 

@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { forGenreHub } from "@/lib/genre-hub";
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
@@ -38,7 +39,10 @@ export default async function GenreHubPage({ params }: Props) {
   const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.verzatv.com";
 
   // 1) Strict tag match against the series' genre string + tags array.
-  const allSeries = getLiveSeries();
+  /* Same rule as /discover/[genre]: a generic hub does not surface titles that
+     own a language/section tab. Applied to the POOL, so both the strict tag
+     match and the broad keyword fallback below inherit it. */
+  const allSeries = forGenreHub(getLiveSeries(), genre.slug);
   const tagMatches = allSeries.filter((s) => {
     const sGenre = s.genre.toLowerCase();
     const sTags = (s.tags || []).map((t) => t.toLowerCase());
