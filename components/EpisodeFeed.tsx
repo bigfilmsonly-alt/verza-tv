@@ -4228,10 +4228,18 @@ export default function EpisodeFeed({
             {!iosApp && (
             <button
               onClick={async () => {
-                if (!(await requireCheckoutUser())) return;
+                /* The tap is recorded BEFORE the auth guard, not after.
+                   requireCheckoutUser() navigates signed-out viewers to
+                   /sign-in and returns false, so everything below it was
+                   unreachable for exactly the people the funnel most needs to
+                   count. Measured over 30 days: series_unlock_click had ZERO
+                   events while paywall_viewed had 325 — every guest who tapped
+                   Unlock was invisible, and the paywall -> checkout step read
+                   as though nobody had tried. */
+                trackUnlockClick(seriesSlug);
+                if (!(await requireCheckoutUser(undefined, "episode_feed", seriesSlug))) return;
                 setUnlockLoading(true);
                 setUnlockError(null);
-                trackUnlockClick(seriesSlug);
                 emit("checkout_started", { show_id: seriesSlug, plan_type: "series_unlock", surface: "episode_feed" });
                 let navigating = false;
                 try {

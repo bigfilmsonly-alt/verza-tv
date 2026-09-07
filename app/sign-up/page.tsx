@@ -35,7 +35,7 @@ export default async function SignUpPage({ searchParams }: Props) {
   const redirectNext = next || "/";
 
   return (
-    <section className="px-4 pt-6 pb-12 max-w-sm mx-auto min-h-[80vh] flex flex-col">
+    <section className="px-4 pt-6 pb-24 max-w-sm mx-auto min-h-[80vh] flex flex-col">
       {/* Back link */}
       <Link
         href="/"

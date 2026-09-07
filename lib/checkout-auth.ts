@@ -1,6 +1,7 @@
 "use client";
 
 import { createBrowserSupabase } from "@/lib/supabase/client";
+import { trackAuthRequired } from "@/lib/track";
 
 /**
  * Require an authenticated browser session before starting digital checkout.
@@ -9,13 +10,24 @@ import { createBrowserSupabase } from "@/lib/supabase/client";
  * guard keeps signed-out taps from dead-ending on a 401 and avoids recording a
  * checkout-started event until the user can actually reach Checkout.
  */
-export async function requireCheckoutUser(returnTo?: string): Promise<boolean> {
+export async function requireCheckoutUser(
+  returnTo?: string,
+  /* Analytics context only — never affects authorization. Callers pass which
+     control was tapped so the turn-away can be attributed to a surface. */
+  surface = "unknown",
+  seriesSlug?: string,
+): Promise<boolean> {
   const supabase = createBrowserSupabase();
   const { data, error } = supabase
     ? await supabase.auth.getSession()
     : { data: { session: null }, error: new Error("Auth is unavailable") };
 
   if (!error && data.session) return true;
+
+  /* Record the turn-away BEFORE navigating away. window.location.assign()
+     tears the page down, so anything emitted after it is lost — which is the
+     same class of bug as recording the unlock tap after this guard. */
+  trackAuthRequired(surface, seriesSlug);
 
   const currentPath = `${window.location.pathname}${window.location.search}`;
   const next = returnTo?.startsWith("/") && !returnTo.startsWith("//")

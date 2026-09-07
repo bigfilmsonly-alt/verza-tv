@@ -39,7 +39,7 @@ export default function VipCard({
   const [portalError, setPortalError] = useState<string | null>(null);
 
   async function handleSubscribe(plan: "monthly" | "yearly") {
-    if (!(await requireCheckoutUser("/me"))) return;
+    if (!(await requireCheckoutUser("/me", "vip_card"))) return;
     setLoading(plan);
     setError(null);
 

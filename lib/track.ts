@@ -15,6 +15,12 @@ type TrackEvent =
   | "episode_complete"
   | "episode_unlock_prompt"
   | "series_unlock_click"
+  /* Fired when a tap on a buy control is turned away because the viewer is
+     signed out. It is the denominator series_unlock_click cannot supply on its
+     own: without it, an unlock tap from a guest is indistinguishable from no
+     tap at all, and the paywall -> checkout step of the funnel reads as though
+     nobody tried. */
+  | "auth_required"
   | "merch_add_to_cart"
   | "merch_checkout"
   | "search"
@@ -56,6 +62,11 @@ export function trackUnlockPrompt(seriesSlug: string) {
 
 export function trackUnlockClick(seriesSlug: string) {
   track("series_unlock_click", { series: seriesSlug });
+}
+
+/** A buy control was tapped by a signed-out viewer and sent to sign-in. */
+export function trackAuthRequired(surface: string, seriesSlug?: string) {
+  track("auth_required", seriesSlug ? { surface, series: seriesSlug } : { surface });
 }
 
 export function trackAddToCart(productName: string, price: number) {

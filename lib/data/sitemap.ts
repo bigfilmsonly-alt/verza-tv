@@ -221,7 +221,11 @@ export const SITEMAP_SECTIONS: SitemapSection[] = [
       { label: "Shorts Feed", href: "/shorts" },
       { label: "TikTok", href: "https://www.tiktok.com/@verzatv", external: true },
       { label: "Instagram", href: "https://www.instagram.com/verzatv", external: true },
-      { label: "YouTube", href: "https://www.youtube.com/@VerzaTV", external: true },
+      /* YouTube removed 2026-09-07: https://www.youtube.com/@VerzaTV 404s, and
+         so do @verzatv, /c/VerzaTV and /user/VerzaTV. This section feeds BOTH
+         the footer Sitemap dropdown and the /sitemap page, so the dead row
+         rendered twice on /sitemap. Needs a real handle from the owner before
+         the row comes back; see components/Footer.tsx for the full note. */
       { label: "X", href: "https://x.com/VerzaTV", external: true },
     ],
   },
