@@ -1069,7 +1069,7 @@ function runCodeAndCatalogSuite() {
   assert.match(vipCard, /href="\/refund-policy"/);
   assert.match(vipCard, /yearlyCheckoutEnabled \? \(/);
 
-  console.log("payment code/catalog suite: PASS (74 unlock SKUs, 2 VIP plans)");
+  console.log("payment code/catalog suite: PASS (86 unlock SKUs, 2 VIP plans)");
 }
 
 async function runSeriesCheckoutHistorySuite() {

@@ -13,7 +13,9 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 Last reconciled with code and release state: **2026-08-05**.
 
 This Next.js application is the web product and the production backend for the
-native client in `../verza-native`. Read
+native client in `~/verza-native`. (It is a sibling of this repo in name only:
+this repo lives under `~/E! CREATOR ECONOMY/`, so `../verza-native` does not
+resolve.) Read
 [`docs/LAUNCH-TRUTH.md`](docs/LAUNCH-TRUTH.md) before changing payments,
 playback, legal copy, catalog data, or release configuration. `CLAUDE.md` and
 `CODEX.md` intentionally point to this file.
@@ -144,6 +146,7 @@ playback, legal copy, catalog data, or release configuration. `CLAUDE.md` and
 ```bash
 npm run test:playback-security
 npm run test:feed-integrity
+npm run test:platform
 npm run test:mux-webhook-security
 npm run test:payments
 npm run test:payments:db
@@ -176,7 +179,7 @@ belong there.
 ## Working agreements
 
 - Backend changes deploy from this repository; native changes belong in
-  `../verza-native`.
+  `~/verza-native`.
 - Preserve unrelated work in the dirty tree. Do not rewrite historical evidence
   as current truth; label it archival and point to `docs/LAUNCH-TRUTH.md`.
 - Use canonical catalog helpers and per-title `freeEpisodes`; never hard-code a

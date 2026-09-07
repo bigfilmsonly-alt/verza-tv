@@ -1,6 +1,7 @@
 # Verza TV documentation index
 
-Last full Markdown reconciliation: **2026-08-05**.
+Last full Markdown reconciliation: **2026-08-05**. Catalog, Mux and Apple
+registry counts below were re-verified against source on **2026-09-07**.
 
 The documentation has three explicit statuses:
 
@@ -22,7 +23,7 @@ readback.
 | Operational | [`LAUNCH-TRUTH.md`](LAUNCH-TRUTH.md) | Current catalog, payments, Mux, tax, legal-deploy, webhook, and submission truth |
 | Operational | [`../AGENTS.md`](../AGENTS.md) | Mandatory engineering/release rules shared by humans, Claude, and Codex |
 | Operational | [`guides/PAYMENTS.md`](guides/PAYMENTS.md) | Payment/access authority, safeguards, cutover, and incident boundaries |
-| Operational | [`guides/APPLE-IAP.md`](guides/APPLE-IAP.md) | Exact 74-product StoreKit registry, backend trust boundary, migration 015, rollout, canaries, and stop rules |
+| Operational | [`guides/APPLE-IAP.md`](guides/APPLE-IAP.md) | Exact 86-product StoreKit registry, backend trust boundary, migration 015, rollout, canaries, and stop rules |
 | Operational | [`reports/PAYMENT-CUTOVER-EVIDENCE-2026-08-03.md`](reports/PAYMENT-CUTOVER-EVIDENCE-2026-08-03.md) | Exact non-secret current payment baseline, commands, and stop conditions |
 | Operational | [`guides/MUX.md`](guides/MUX.md) | Public-capability projection, signed playback, coexistence, and retirement gate |
 | Operational | [`guides/DEPLOYMENT.md`](guides/DEPLOYMENT.md) | Vercel deployment order and production readback |
@@ -32,7 +33,8 @@ readback.
 ## Current platform snapshot
 
 - **Production URL:** https://www.verzatv.com
-- **Catalog:** 80 titles; 79 live; 74 paid-live; five wholly free; one coming soon
+- **Catalog:** 96 titles; 91 live; 86 paid-live; five wholly free; five coming
+  soon
 - **Series Unlock:** one-time full-series access; Stripe $1.99 USD on web/
   eligible Android and Apple non-consumable with $1.99 US base/StoreKit-
   localized price on iOS
@@ -41,8 +43,8 @@ readback.
 - **VIP:** $9.99/month and $79.99/year configuration exists but both plans are
   hidden and API-blocked
 - **Coins / creator PPV / official merch Checkout:** disabled/fail-closed
-- **Mux:** 4,262 rows; 459 public capabilities; 3,803 withheld, including all
-  3,753 paid-live rows and 50 coming-soon rows
+- **Mux:** 4,913 rows; 519 public capabilities; 4,394 withheld, all of which
+  have server-only signed counterparts
 - **Webhook:** one canonical enabled endpoint is exact 19/19 with wildcard off;
   unsigned delivery returns 400
 - **Tax:** automatic tax off; zero active Stripe Tax registrations
@@ -59,9 +61,12 @@ readback.
   three Apple settings are Production Sensitive, and ASC production/sandbox V2
   URLs are exact, but real signed notification delivery and an actual Sandbox
   transaction remain open
-- **Apple product/owner gates:** all 74 ASC products still need review
-  screenshots and report `MISSING_METADATA`; Paid Applications banking/tax,
-  `Video` tax category, DSA trader status, and TestFlight proof remain open
+- **Apple product/owner gates:** the registry holds 86 products. Its ASC state
+  was last read back 2026-08-05, when every product reported
+  `MISSING_METADATA` pending review screenshots; as of 2026-09-07 twelve of the
+  86 are still unprovisioned in ASC and cannot be bought on iOS. Re-read ASC
+  before submission. Paid Applications banking/tax, `Video` tax category, DSA
+  trader status, and TestFlight proof remain open
 - **Credential incident:** Stripe secret/webhook, Supabase service role, and
   paired Mux token credentials still require dashboard rotation, Sensitive
   replacement deployment/canary, and predecessor revocation

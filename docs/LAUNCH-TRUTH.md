@@ -2,6 +2,11 @@
 
 **Operational snapshot:** 2026-08-05, America/New_York
 
+**Counts re-verified against source 2026-09-07.** The catalog, Mux and Apple
+registry figures below were stale: they described the August 3 inventory and
+survived two content ingests. The narrative status paragraphs around them are
+still the August 5 reading and are dated, not current.
+
 **Scope:** web/backend release serving the native iOS 2.0 submission
 
 **Status:** legal/payment compatibility, exact Stripe webhook, and signed Mux
@@ -22,19 +27,19 @@ are evidence/history, not release instructions.
 
 | Area | Source/verified inventory | Production truth | Submit implication |
 | --- | --- | --- | --- |
-| Catalog | 80 rows: 79 live and one coming soon; 74 paid-live and five wholly free | Catalog is live; local safety projections changed | Never charge free or non-live titles |
+| Catalog | 96 rows: 91 live and five coming soon; 86 paid-live and five wholly free | Catalog is live; local safety projections changed | Never charge free or non-live titles |
 | Series Unlock | One-time full-series product; Stripe is canonical $1.99 USD, Apple is one non-consumable per paid-live title with $1.99 US base/StoreKit-localized price | Stripe compatibility and Apple authenticated no-charge preflight are live; no actual Apple Sandbox transaction yet | Complete separate paid Stripe and signed Apple provider canaries; neither provider's UI state grants access |
 | VIP | $9.99/month and $79.99/year constants and guarded code exist | Both plans are hidden and API-blocked | Do not market or expose either plan; yearly has extra annual-reminder gate |
 | Coins | Constants remain as dormant future-product data | Purchase/balance/season-pass routes fail closed | Do not describe coins as monetization or revive without a new ledger/compliance review |
-| iOS payments | Native StoreKit module plus 74-product backend manifest/routes exist | Apple routes/migration/legal/preflight passed canonical readback; real signed notification and TestFlight transaction remain unproven | StoreKit is the only purchase method; no Stripe/web checkout or external-purchase steering |
+| iOS payments | Native StoreKit module plus 86-product backend manifest/routes exist | Apple routes/migration/legal/preflight passed canonical readback; real signed notification and TestFlight transaction remain unproven | StoreKit is the only purchase method; no Stripe/web checkout or external-purchase steering |
 | Stripe Terms consent | Explicit `false` compatibility and `true` required modes exist | Exact `false` compatibility is live; Public details is blank and Account API update returned 403 | Authorized Dashboard operator must set/verify details, portal, then deploy exact `true` |
 | Stripe webhook | Handler supports the reviewed 19-event contract | One canonical enabled endpoint is exact 19/19, wildcard off; unsigned POST = 400 | Preserve exact allowlist; no second endpoint or historical replay |
 | Stripe Tax | Tax-aware fields/codes and guarded feature flag exist | Automatic tax is off; zero active registrations | Nationwide sales authority is not registration evidence; keep off pending tax/legal decision |
 | Legal/support | Apple billing/refund/restore/account-deletion wording is in source | Terms, Privacy, Refund, and Help return 200 and canonical HTML contains the Apple IAP/restore/refund wording | Keep all siblings/native copy aligned and repeat readback after any deploy |
-| Mux inventory | 4,262 mapped rows; 459 public; 3,803 withheld; all 3,753 paid-live rows have signed counterparts | Signed mode true; 402/no-capability and entitled signed 1,800-second stream/poster + manifest canary passed | Exact new native-client acceptance remains open; legacy IDs coexist for 1.2 |
+| Mux inventory | 4,913 mapped rows; 519 public; 4,394 withheld; all 4,394 paid-live rows have signed counterparts | Signed mode true; 402/no-capability and entitled signed 1,800-second stream/poster + manifest canary passed | Exact new native-client acceptance remains open; legacy IDs coexist for 1.2 |
 | Creator Mux webhook | Mandatory awaited raw-body verification and retry-safe database handling | Hardened route is deployed; absent production verification secret returns 503 | Creator ingestion/PPV stays unavailable until a real secret is configured and a signed-event canary passes |
 | Legacy Mux IDs | Legacy public paid IDs coexist for live 1.2 compatibility | Direct legacy URLs remain public | Retirement is a separate post-2.0 forced-update/drain decision, never a pre-submit cleanup |
-| Apple products | 74 append-only non-consumables have exact IDs, metadata, $1.99 US base, 173 territories, notes, Family Sharing/content hosting off | ASC readback still says `MISSING_METADATA` for all 74 because IAP review screenshots are absent | Add truthful screenshots, activate Paid Applications banking/tax, set/read back `Video`, complete DSA trader state, and attach all 74 with version 2.0.0 |
+| Apple products | 86 append-only non-consumables have exact IDs, metadata, $1.99 US base, 173 territories, notes, Family Sharing/content hosting off | ASC readback of 2026-08-05 said `MISSING_METADATA` for every product then registered, because IAP review screenshots are absent; twelve of the 86 remain unprovisioned in ASC as of 2026-09-07 | Re-read ASC, add truthful screenshots, activate Paid Applications banking/tax, set/read back `Video`, complete DSA trader state, and attach the full registry with version 2.0.0 |
 | App Store binary | Native StoreKit/source/metadata audit is active | Every earlier diagnostic build is superseded; no StoreKit-enabled final TestFlight proof exists | Only a newly pinned, inspected, Apple-`VALID` binary approved by the owner may be submitted |
 
 ## Exact catalog and Mux accounting
@@ -43,23 +48,23 @@ These numbers use distinct denominators and must not be blended:
 
 | Set | Rows |
 | --- | ---: |
-| All catalog titles | 80 |
-| Live titles | 79 |
-| Paid live titles | 74 |
+| All catalog titles | 96 |
+| Live titles | 91 |
+| Paid live titles | 86 |
 | Wholly free live titles | 5 |
-| Coming-soon titles | 1 |
-| All mapped episode rows | 4,262 |
-| Rows belonging to live titles | 4,212 |
-| Intentionally public/free live capabilities | 459 |
-| Paid-live rows with server-only signed counterparts | 3,753 |
-| Coming-soon capabilities withheld | 50 |
-| Total capabilities withheld from client projections | 3,803 |
+| Coming-soon titles | 5 |
+| All mapped episode rows | 4,913 |
+| Rows belonging to live titles | 4,913 |
+| Intentionally public/free live capabilities | 519 |
+| Paid-live rows with server-only signed counterparts | 4,394 |
+| Coming-soon capabilities withheld | 0 |
+| Total capabilities withheld from client projections | 4,394 |
 
 `lib/mux-map.ts` is the complete legacy-capability audit/data-sync anchor.
 Clients import `lib/mux-public-map.ts`, which preserves logical episode and
-duration data but exposes playback IDs only for the 459 intentionally public
+duration data but exposes playback IDs only for the 519 intentionally public
 rows. `lib/mux-private-map.ts` is the server-only gateway to the complete map;
-`lib/mux-signed-map.ts` is the server-only correspondence for all 3,753
+`lib/mux-signed-map.ts` is the server-only correspondence for all 4,394
 paid-live rows. Never import either private map into a client module.
 
 The upstream browse-category reconciliation changes the generated projection's
@@ -102,7 +107,7 @@ snapshot is evidence, not permission to skip fresh verification.
 
 ## Apple StoreKit boundary
 
-The exact 74 `(series slug, product ID)` pairs are append-only in
+The exact 86 `(series slug, product ID)` pairs are append-only in
 `lib/apple-iap-product-manifest.ts` and mirrored in the native client. Product
 IDs use `com.verzatv.app.series.<slug_with_underscores>`. A delisted title stays
 in the registry for restore/refund/revocation processing and moves only to the
@@ -202,7 +207,7 @@ Still open and not to be claimed live:
   required-consent mode, and the restricted Billing Portal;
 - a controlled $1.99 purchase through the hardened path;
 - a real Apple-signed V2 notification delivery and actual Sandbox transaction;
-- all 74 IAP review screenshots, Paid Applications banking/tax, App Store
+- all 86 IAP review screenshots, Paid Applications banking/tax, App Store
   `Video` tax category, DSA trader status, and version/IAP attachment; and
 - final standalone native-client signed playback plus StoreKit purchase/
   cancel/restore/refund/account-deletion acceptance; and
@@ -237,7 +242,7 @@ The safe order is:
 10. **Open:** perform the independent authorized Stripe $1.99 smoke without an
     automatic Refund.
 11. **Open:** build, inspect, validate, attach the exact new iOS artifact plus
-    all 74 IAPs, obtain owner TestFlight approval, then submit the resulting
+    all 86 IAPs, obtain owner TestFlight approval, then submit the resulting
     ReviewSubmission and verify `WAITING_FOR_REVIEW`.
 12. **Open external security gate:** rotate the five exposed provider
     credentials, canary replacements, and revoke predecessors without printing
