@@ -1065,8 +1065,20 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
       {/* Espanol and Bollywood show ONLY their title grid: no hero, no
          slideshow above it. The homepage hero is untouched and still
          rotates the pinned FEATURED_NEW six on Drama. */}
-      {current && activeTab !== "reality" && activeTab !== "red-carpet" && activeTab !== "music"
-        && activeTab !== "espanol" && activeTab !== "bollywood" && (
+      {/*
+        Espanol and Bollywood get the slideshow back.
+
+        They were excluded here while those tabs were being reworked, which left
+        two language hubs opening straight into a two-up grid with no hero at
+        all: the only sections on the site where nothing was featured. They own
+        no competing hero of their own (twoUp above only changes the grid), so
+        restoring them stacks nothing, and heroSlides already falls back to the
+        tab's first four titles for every non-drama tab.
+
+        Reality, Red Carpet and Music stay out because each renders its own
+        purpose-built hero further up this file.
+      */}
+      {current && activeTab !== "reality" && activeTab !== "red-carpet" && activeTab !== "music" && (
         <div
           onMouseEnter={() => setHeroPaused(true)}
           onMouseLeave={() => setHeroPaused(false)}
