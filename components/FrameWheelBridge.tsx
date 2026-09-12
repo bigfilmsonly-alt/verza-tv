@@ -3,7 +3,8 @@
 import { useEffect } from "react";
 
 /**
- * Lets the wheel work anywhere on the desktop page, not only over the phone.
+ * Lets the wheel and the keyboard work anywhere on the desktop page, not only
+ * over the phone.
  *
  * On desktop the site is a 400px iPhone frame centred in the viewport, and
  * globals.css gives the body `overflow: hidden` because the page itself is not
@@ -11,56 +12,103 @@ import { useEffect } from "react";
  *
  * That is fine until you put a cursor on it. A wheel event goes to whatever
  * sits under the pointer, and on a wide desktop most of the window is body, not
- * phone. Body cannot scroll, so the gesture does nothing and the site reads as
- * frozen on landing: there is 2222px of content below the fold and no obvious
- * way to reach it. You had to find the 400px strip in the middle first.
+ * phone. Body cannot scroll, so the gesture did nothing and the site read as
+ * frozen on landing: 2222px of content below the fold and no obvious way down.
  *
- * This forwards those gestures to the real scroller. Keyboard paging is handled
- * for the same reason: Space and PageDown act on the focused scroller, and on
- * load that is the body.
+ * EVERY GUARD BELOW EXISTS BECAUSE THE FIRST VERSION BROKE SOMETHING.
  *
- * DELIBERATELY DOES NOT TOUCH GESTURES THAT ALREADY LAND SOMEWHERE. If the
- * pointer is over anything that can scroll itself — the episode feed, a drawer,
- * a modal, the shorts reel — the event is left alone. Hijacking those would
- * break the vertical feed, which is the whole product.
+ *   framed()      the frame only exists above 520px. Below it, and in any short
+ *                 landscape window, the DOCUMENT is the scroller and
+ *                 .device-screen is not a scroll container at all. The first
+ *                 version still ran there, cancelled every Space, PageDown and
+ *                 arrow key, and scrolled nothing: keyboard scrolling of the
+ *                 whole site was dead. A browser zoomed past about 125% lands
+ *                 in exactly that layout, so it hit the readers who need zoom.
+ *
+ *   ctrlKey       ctrl+wheel and trackpad pinch ARE wheel events. Cancelling
+ *                 one cancels browser zoom and turns it into a scroll instead.
+ *
+ *   activatable   Space activates buttons. Blacklisting INPUT and TEXTAREA was
+ *                 not enough; it stopped Space working on every button outside
+ *                 the frame, Checkout and Add to bag among them.
+ *
+ *   overlay       The search panel and the product sheet portal to the body and
+ *                 lock the background themselves with an INLINE body overflow.
+ *                 The stylesheet rule is not inline, so that inline value is a
+ *                 reliable "an overlay is open" signal, and while one is we
+ *                 forward nothing: otherwise the app scrolled behind them.
+ *
+ *   cross axis    A horizontal gesture is a swipe, often swipe-to-go-back.
+ *                 Cancelling it while discarding deltaX just killed it.
+ *
+ *   moved         preventDefault only if the scroller actually moved, so a
+ *                 no-op never swallows a key or a gesture the browser could
+ *                 have used.
+ *
+ * And it still leaves alone anything that scrolls itself — the episode feed, a
+ * drawer, the shorts reel — because hijacking those would break the vertical
+ * feed, which is the product.
  */
 export default function FrameWheelBridge() {
   useEffect(() => {
+    /* Matches globals.css:495 exactly. If these two ever drift, the bridge
+       starts acting on a layout that never had a frame. */
+    const framed = () =>
+      window.matchMedia(
+        "(min-width: 520px) and (orientation: portrait), (min-width: 520px) and (min-height: 600px)",
+      ).matches;
+
     const screen = () => document.querySelector<HTMLElement>(".device-screen");
 
-    /* Does this element, or anything between it and the frame, scroll on its
-       own? If so the gesture already has an owner and is none of our business. */
+    /* An overlay portalled to the body has locked the background itself. */
+    const overlayOpen = () => document.body.style.overflow === "hidden";
+
     const ownsScroll = (start: EventTarget | null) => {
       let el = start instanceof Element ? start : null;
       while (el && !el.classList.contains("device-screen")) {
         const s = getComputedStyle(el);
-        const scrolls = /(auto|scroll)/.test(s.overflowY) && el.scrollHeight > el.clientHeight + 2;
-        if (scrolls) return true;
+        if (/(auto|scroll)/.test(s.overflowY) && el.scrollHeight > el.clientHeight + 2) return true;
         el = el.parentElement;
       }
       return false;
     };
 
+    /* Returns true only if the scroller actually moved. */
+    const nudge = (sc: HTMLElement, by: number) => {
+      const before = sc.scrollTop;
+      sc.scrollTop += by;
+      return sc.scrollTop !== before;
+    };
+
     const onWheel = (e: WheelEvent) => {
+      if (!framed() || overlayOpen()) return;
+      /* Zoom is never a scroll request. */
+      if (e.ctrlKey || e.metaKey) return;
+      /* A sideways gesture is a swipe, not a scroll down. */
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+      if (!e.deltaY) return;
+
       const sc = screen();
       if (!sc) return;
-      /* Already inside the real scroller, or inside something that scrolls
-         itself. Leave it entirely alone. */
       if (sc.contains(e.target as Node) || ownsScroll(e.target)) return;
       if (sc.scrollHeight <= sc.clientHeight) return;
-      sc.scrollTop += e.deltaY;
-      /* The page cannot scroll anyway, but preventing the default stops the
-         overscroll bounce the gesture would otherwise produce on the body. */
-      e.preventDefault();
+
+      if (nudge(sc, e.deltaY)) e.preventDefault();
     };
 
     const onKey = (e: KeyboardEvent) => {
+      if (!framed() || overlayOpen()) return;
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+      const t = e.target as HTMLElement | null;
+      if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+      /* Space activates these. Taking it is worse than not scrolling. */
+      if (t?.closest?.('button, a[href], summary, [role="button"], [role="checkbox"], [role="switch"], [role="slider"], [role="tab"]')) return;
+
       const sc = screen();
       if (!sc) return;
-      const t = e.target as HTMLElement | null;
-      /* Never steal a key from something being typed into. */
-      if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
       if (sc.contains(t)) return;
+      if (sc.scrollHeight <= sc.clientHeight) return;
 
       const page = sc.clientHeight * 0.9;
       const step =
@@ -72,11 +120,10 @@ export default function FrameWheelBridge() {
         : e.key === "Home" ? -sc.scrollHeight
         : 0;
       if (!step) return;
-      sc.scrollTop += step;
-      e.preventDefault();
+
+      if (nudge(sc, step)) e.preventDefault();
     };
 
-    /* Not passive: the whole point is to preventDefault on the body. */
     window.addEventListener("wheel", onWheel, { passive: false });
     window.addEventListener("keydown", onKey);
     return () => {
