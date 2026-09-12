@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import ThirdPartyScripts from "@/components/ThirdPartyScripts";
+import FrameWheelBridge from "@/components/FrameWheelBridge";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import BottomNav from "@/components/BottomNav";
@@ -154,6 +155,9 @@ export default function RootLayout({
           <ContentTranslator />
           <ScrollToTop />
           {/* Single render — CSS adds iPhone frame on desktop */}
+          {/* Makes the wheel work anywhere on the desktop page, not only over
+              the 400px phone. See the component for why that was broken. */}
+          <FrameWheelBridge />
           <div className="device-frame">
             <div className="device-screen">
               <div className="app-shell">
