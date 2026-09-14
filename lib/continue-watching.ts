@@ -39,10 +39,20 @@ export const CONTINUE_WATCHING_LIMIT = 20;
  * fixture rows offline, against the real catalog, without a browser.
  */
 export function continueWatchingFromRows(rows: GuestProgressRow[]): ContinueWatchingItem[] {
-  return rows
-    .filter((r) => !r.completed)
-    .slice()
-    .sort((a, b) => b.updatedAt - a.updatedAt)
+  /* One row per SERIES, most recent first.
+     Guest progress is keyed by (seriesSlug, episodeNumber) — see
+     lib/guest-storage.ts — so a viewer who left episode 2 part-way and later
+     left episode 4 part-way holds two incomplete rows for one show, and the
+     rail rendered BOTH as separate tiles. "Continue watching" then offered the
+     same series twice, pointing at two different episodes, with no way to tell
+     which one was meant. Sorting by recency first and keeping the first row
+     seen per slug leaves the episode they actually left off at. */
+  const newestPerSeries = new Map<string, GuestProgressRow>();
+  for (const row of rows.filter((r) => !r.completed).slice().sort((a, b) => b.updatedAt - a.updatedAt)) {
+    if (!newestPerSeries.has(row.seriesSlug)) newestPerSeries.set(row.seriesSlug, row);
+  }
+
+  return [...newestPerSeries.values()]
     .flatMap((r) => {
       const series = getSeriesBySlug(r.seriesSlug);
       if (!series || series.status !== "live") return [];

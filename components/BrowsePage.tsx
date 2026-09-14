@@ -7,6 +7,7 @@ import CategoryTabs from "@/components/CategoryTabs";
 import { BROWSE_TABS, getEpisode, type Series, type BrowseCategory } from "@/lib/catalog";
 import { posterHref } from "@/lib/series-href";
 import AudioLanguageBadge from "@/components/AudioLanguageBadge";
+import { useTranslation } from "@/components/LangProvider";
 import { audioLanguageOf } from "@/lib/audio-language";
 import { buildResumeUrl } from "@/lib/resume";
 import { mergeContinueWatching, type ContinueWatchingItem } from "@/lib/continue-watching";
@@ -340,6 +341,10 @@ interface ContinueItem {
 }
 
 export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
+  /* The provider is already above this component — AudioLanguageBadge renders
+     here and reads it. The rest of this file's copy is still hardcoded English;
+     this is not the change that fixes that. */
+  const { t } = useTranslation();
   const activeTabs = BROWSE_TABS;
 
   /* ONLY for links whose destination is the player.
@@ -1182,7 +1187,17 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                         src={s.posterUrl}
                         alt={s.title}
                         fill
-                        priority={i === 0}
+                        /* The ACTIVE and NEXT layers both load eagerly. Only
+                           slide 0 was prioritised, so slides 1-5 were lazy: a
+                           layer mounted at opacity 0 had roughly four seconds
+                           to decode before it became active, and on mobile it
+                           frequently did not. The card's black ground showed
+                           through and the hero went fully black mid-rotation —
+                           observed on a 390px viewport against production.
+                           Prev needs nothing: it was active a moment ago, so
+                           it is already decoded. Two eager images above the
+                           fold, not six. */
+                        priority={i === activeIdx || i === nextIdx}
                         sizes="(max-width: 440px) 80vw, 320px"
                         className="object-contain hero-crossfade"
                         style={{ opacity: i === activeIdx ? 1 : 0 }}
@@ -1197,6 +1212,40 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                     {current.title}
                   </div>
                 )}
+
+                {/* The hero was a bare poster: no control, no play glyph, nothing
+                    saying a tap starts the show. Measured arrival -> episode-start
+                    was 28.5%, and the tap target was already one tap from
+                    playback — the product was not slow, it just did not look
+                    playable.
+
+                    pointer-events-none on purpose: the whole card is already the
+                    Link, so this must not intercept the tap it advertises. It is
+                    presentational, and the accessible name lives on the Link. */}
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                >
+                  <span
+                    className="flex items-center gap-2 rounded-full pl-3 pr-4 py-2 text-sm font-bold"
+                    style={{
+                      background: "rgba(8,8,16,0.62)",
+                      color: "#fff",
+                      backdropFilter: "blur(8px)",
+                      border: "1px solid rgba(255,255,255,0.18)",
+                      boxShadow: "0 6px 24px rgba(0,0,0,0.45)",
+                    }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                      <polygon points="7 4 20 12 7 20" />
+                    </svg>
+                    {/* Reuses an existing key rather than adding one: i18n.ts is
+                        byte-synced with native, so a new key would put that repo's
+                        data-sync gate into drift for a string that already exists
+                        in all 20 locales. */}
+                    {t("browse.startWatchingFree")}
+                  </span>
+                </div>
               </div>
             </Link>
 

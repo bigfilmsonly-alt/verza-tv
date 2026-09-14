@@ -173,6 +173,38 @@ for (const category of TAB_EXCLUSIVE) {
 }
 if (runs[0].some((x) => x.slug === "too-much-junk")) failures.push("Drama leaked too-much-junk (Music only)");
 
+/* ---- Continue Watching: one tile per series --------------------------- */
+
+/* Guest progress is keyed by (seriesSlug, episodeNumber), so a viewer who left
+   two different episodes of one show part-way held two incomplete rows and the
+   rail rendered both. */
+{
+  const cw = await read("lib/continue-watching.ts");
+  if (!cw.includes("newestPerSeries")) {
+    failures.push("Continue Watching must keep only the newest incomplete row per series");
+  }
+  if (!cw.includes("if (!newestPerSeries.has(row.seriesSlug)) newestPerSeries.set(row.seriesSlug, row);")) {
+    failures.push("Continue Watching dedupe must keep the FIRST row after a recency sort, not the last");
+  }
+}
+
+/* ---- the hero must look playable ------------------------------------- */
+
+/* Arrival -> episode-start was 28.5% while the hero was already one tap from
+   playback. It was a bare poster with no play glyph and nothing saying a tap
+   started anything. */
+{
+  if (!browse.includes("browse.startWatchingFree")) {
+    failures.push("the hero must carry a visible play affordance");
+  }
+  if (!browse.includes('aria-hidden="true"') || !browse.includes("pointer-events-none")) {
+    failures.push("the hero play affordance must be presentational and must not intercept the tap");
+  }
+  if (!browse.includes("priority={i === activeIdx || i === nextIdx}")) {
+    failures.push("the active and next hero layers must load eagerly or the hero goes black mid-rotation");
+  }
+}
+
 /* ---- report ----------------------------------------------------------- */
 
 if (failures.length > 0) {
