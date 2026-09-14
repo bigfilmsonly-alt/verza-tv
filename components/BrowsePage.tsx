@@ -11,6 +11,7 @@ import { useTranslation } from "@/components/LangProvider";
 import { audioLanguageOf } from "@/lib/audio-language";
 import { buildResumeUrl } from "@/lib/resume";
 import { mergeContinueWatching, type ContinueWatchingItem } from "@/lib/continue-watching";
+import { trackHeroClick, trackTileClick } from "@/lib/track";
 import {
   readDismissedContinue,
   setDismissedContinue as setDismissedContinueSlug,
@@ -356,10 +357,28 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
      nothing will ever adopt, burning the viewer's bandwidth for the full
      12s TTL in lib/instant-player.ts, and it seeds a transition poster that a
      LATER, unrelated navigation into the player would then paint. */
-  const posterClick = useCallback((e: React.MouseEvent<HTMLElement>, slug: string, epNum = 1, resumeS = 0) => {
+  const posterClick = useCallback((
+    e: React.MouseEvent<HTMLElement>,
+    slug: string,
+    epNum = 1,
+    resumeS = 0,
+    /* Analytics context only — never affects navigation or playback. Omitted by
+       any caller that is not a measured content surface. */
+    origin?: { surface: "hero" | "tile"; shelf: string; position: number },
+  ) => {
     // Modified clicks (open in new tab, etc.) get default browser behavior —
     // don't spin up a hidden player for a tab the user isn't watching.
     if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    /* Recorded HERE, in the one shared click seam every content surface already
+       routes through, rather than in three separate onClick handlers. One
+       handler means one event: no nested Link+button double-fire, no touch-then-
+       click duplication, and the modified-click guard above already excludes
+       open-in-new-tab from the counts. Sits after that guard on purpose — a
+       cmd-click is not a content selection on this page. */
+    if (origin) {
+      if (origin.surface === "hero") trackHeroClick(slug, origin.position, epNum);
+      else trackTileClick(slug, origin.shelf, origin.position, epNum);
+    }
     // The tapped poster doubles as the loading state (user preference:
     // poster > black) — the episode page paints it instantly from cache.
     try {
@@ -1129,7 +1148,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
             <Link
               href={posterHref(current)}
               className="block transition-transform duration-200 ease-out active:scale-[0.98]"
-              onClick={(e) => posterClick(e, current.slug)}
+              onClick={(e) => posterClick(e, current.slug, 1, 0, { surface: "hero", shelf: "hero", position: (heroIdx % Math.max(heroSlides.length, 1)) + 1 })}
             >
               <div
                 className="relative mx-auto overflow-hidden rounded-xl"
@@ -1343,6 +1362,16 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                  where those same top-ranked titles are badged. */
               const trending =
                 badgesApply && !soon && curated && i >= TRENDING_START && i < TRENDING_END;
+              /* Report the shelf the viewer ACTUALLY clicked, derived from the
+                 same positional rule as the badge above, so the event and the
+                 tile can never disagree. Position is 1-based inside that shelf:
+                 the first NEW tile is 1, and so is the first TRENDING tile. */
+              const tileShelf = isNew ? "new" : trending ? "trending" : activeTab;
+              const tilePosition = isNew
+                ? i + 1
+                : trending
+                  ? i - TRENDING_START + 1
+                  : i - TRENDING_END + 1;
               const tileLanguage = audioLanguageOf(s);
               const art = (
                 <>
@@ -1400,7 +1429,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                      sessionStorage poster seed it writes would be consumed by
                      whichever EpisodeFeed mounts next, flashing the wrong
                      title's artwork. */
-                  onClick={soon ? undefined : (e) => posterClick(e, s.slug)}
+                  onClick={soon ? undefined : (e) => posterClick(e, s.slug, 1, 0, { surface: "tile", shelf: tileShelf, position: tilePosition })}
                 >
                   {art}
                 </Link>
@@ -1443,7 +1472,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
             className="flex gap-1.5 overflow-x-auto no-scrollbar px-3 snap-x snap-mandatory"
             style={{ WebkitOverflowScrolling: "touch", overscrollBehaviorY: "none", touchAction: "pan-x pinch-zoom" }}
           >
-            {sectionContinueWatching.map((item) => {
+            {sectionContinueWatching.map((item, cwIndex) => {
               const durationS = getEpisode(item.seriesSlug, item.episodeNumber)?.durationS;
               const pct = durationS && durationS > 0 ? Math.min(96, Math.max(4, Math.round((item.progressSeconds / durationS) * 100))) : 8;
               return (
@@ -1468,7 +1497,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                   <Link
                     href={buildResumeUrl(item.seriesSlug, item.episodeNumber, item.progressSeconds)}
                     className="group block no-underline"
-                    onClick={(e) => posterClick(e, item.seriesSlug, item.episodeNumber, item.progressSeconds)}
+                    onClick={(e) => posterClick(e, item.seriesSlug, item.episodeNumber, item.progressSeconds, { surface: "tile", shelf: "continue_watching", position: cwIndex + 1 })}
                   >
                     <div className="relative rounded-lg overflow-hidden" style={{ aspectRatio: "2/3", background: "var(--t-raised)" }}>
                       <Image

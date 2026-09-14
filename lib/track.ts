@@ -15,6 +15,15 @@ type TrackEvent =
   | "episode_complete"
   | "episode_unlock_prompt"
   | "series_unlock_click"
+  /* Content-performance pair. Deliberately in THIS sink, alongside
+     episode_start: correlating a selection with the playback it produced is
+     the whole point, and an event in a different sink cannot be joined to one
+     here. Both fire from a real click only — never a render, never a carousel
+     rotation, never an image load. There are no matching impression events
+     yet, on purpose, so click COUNTS and click SHARE are reportable but CTR is
+     not: there is no honest denominator. */
+  | "hero_click"
+  | "tile_click"
   /* Fired when a tap on a buy control is turned away because the viewer is
      signed out. It is the denominator series_unlock_click cannot supply on its
      own: without it, an unlock tap from a guest is indistinguishable from no
@@ -47,6 +56,36 @@ export function track(event: TrackEvent, params?: Record<string, string | number
 }
 
 /* ---- Convenience helpers ---- */
+
+/**
+ * The hero carousel was clicked.
+ *
+ * `position` is the 1-based slide index the viewer was actually looking at, so
+ * slide 3 reports 3 — not the title's place in the catalogue.
+ */
+export function trackHeroClick(seriesSlug: string, position: number, destinationEpisode = 1) {
+  track("hero_click", { series: seriesSlug, position, destination_episode: destinationEpisode });
+}
+
+/**
+ * A content tile was clicked.
+ *
+ * `shelf` is the shelf the viewer actually clicked in, derived from the same
+ * positional rule that draws the badge — so the event cannot disagree with
+ * what was on screen. `position` is 1-based WITHIN that shelf: the first NEW
+ * tile is 1, and so is the first TRENDING tile.
+ *
+ * `destination_episode` is 1 everywhere except Continue Watching, where it is
+ * the episode actually being resumed.
+ */
+export function trackTileClick(
+  seriesSlug: string,
+  shelf: string,
+  position: number,
+  destinationEpisode = 1,
+) {
+  track("tile_click", { series: seriesSlug, shelf, position, destination_episode: destinationEpisode });
+}
 
 export function trackEpisodeStart(seriesSlug: string, episode: number) {
   track("episode_start", { series: seriesSlug, episode, source: document.referrer || "direct" });
