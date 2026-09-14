@@ -61,8 +61,9 @@ const TAB_EXCLUSIVE: BrowseCategory[] = ["espanol", "bollywood", "reality", "red
    Order here IS display order — reorder this array to reorder the shelf, and
    it drives both the badged top shelf and the hero, so the two always agree.
    Every entry must be live, Drama-visible and carry categories ["drama","new"].
-   Kept out: the-crown, which carries popularRank 4 and so is already pinned by
-   the Trending shelf below — listing it here would pin the same title twice. */
+   Nothing here may also appear in PINNED_TRENDING_SLUGS below, or the same
+   title would be pinned twice. NEW wins that tie: it is a current editorial
+   designation, where Trending is historical performance. */
 const FEATURED_NEW = [
   "lost-and-found",
   "help-im-falling-in-love-with-my-rude-ceo",
@@ -70,6 +71,31 @@ const FEATURED_NEW = [
   "twist-of-time",
   "the-inheritance-game",
   "billionaire-daughters-love-triangle",
+] as const;
+
+/* Slots 7-9. These are the three strongest Drama titles by MEASURED audience,
+   not by editorial guess: unique episode-1 viewers from the Verza audience
+   report — An Affair With My Boss 253, The Billionaire's Lost Love 213,
+   Mafia Lord's Secret Love 61.
+
+   This used to read the catalogue's popularRank and take the top three, which
+   put Betrayed at the Altar, The Call Girl Bought by Betrayal and The Killer
+   Caregiver here. popularRank is an editorial ranking that nobody had
+   reconciled against what people actually watched, and the three titles it
+   promoted were not in the measured top three at all.
+
+   popularRank is NOT removed from the catalogue — the AI host's trending
+   replies and the search haystack still read it. It simply no longer decides
+   this shelf.
+
+   Order here IS display order. Ranked below these, if one ever has to be
+   swapped out: the-mistress-trap (52), the-dumb-billionaire-heiress-* (50),
+   my-handsome-bodyguard (47), lost-and-found (41 — already pinned as NEW),
+   i-think-my-wife-wants-to-kill-me (41). */
+const PINNED_TRENDING_SLUGS = [
+  "an-affair-with-my-boss",
+  "the-billionaires-lost-love",
+  "mafia-lords-secret-love",
 ] as const;
 
 /* ------------------------------------------------------------------ */
@@ -433,9 +459,13 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
             ...FEATURED_NEW.map((slug) => base.find((x) => x.slug === slug)).filter(
               (x): x is Series => Boolean(x),
             ),
-            ...base
-              .filter((x) => x.popularRank && !FEATURED_NEW.includes(x.slug as never))
-              .sort((a, b) => (a.popularRank ?? 99) - (b.popularRank ?? 99))
+            /* Explicit, deterministic, and de-duplicated against the NEW
+               shelf so a title can never be pinned twice. */
+            ...PINNED_TRENDING_SLUGS.filter(
+              (slug) => !FEATURED_NEW.includes(slug as never),
+            )
+              .map((slug) => base.find((x) => x.slug === slug))
+              .filter((x): x is Series => Boolean(x))
               .slice(0, TRENDING_END - TRENDING_START),
           ]
         : base.slice(0, NEW_SLOTS);

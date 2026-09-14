@@ -16,6 +16,7 @@
     "test:feed-integrity": "node scripts/test-feed-integrity.mjs",
     "test:platform": "node scripts/test-platform-override.mjs",
     "test:genre-hubs": "node scripts/test-genre-hubs.mjs",
+    "test:drama-programming": "node scripts/test-drama-programming.mjs",
     "test:seo": "node scripts/test-seo-contract.mjs",
     "test:purchase-funnel": "node scripts/test-purchase-funnel.mjs",
     "test:payments": "node scripts/test-payment-integrity.mjs",

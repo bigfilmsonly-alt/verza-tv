@@ -148,6 +148,7 @@ npm run test:playback-security
 npm run test:feed-integrity
 npm run test:platform
 npm run test:genre-hubs
+npm run test:drama-programming
 npm run test:mux-webhook-security
 npm run test:payments
 npm run test:purchase-funnel
