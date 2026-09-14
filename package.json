@@ -17,6 +17,7 @@
     "test:platform": "node scripts/test-platform-override.mjs",
     "test:genre-hubs": "node scripts/test-genre-hubs.mjs",
     "test:seo": "node scripts/test-seo-contract.mjs",
+    "test:purchase-funnel": "node scripts/test-purchase-funnel.mjs",
     "test:payments": "node scripts/test-payment-integrity.mjs",
     "test:payments:db": "node --env-file=.env.local scripts/test-payment-integrity.mjs --database",
     "test:payments:stripe": "node --env-file=.env.local scripts/test-payment-integrity.mjs --stripe-config",

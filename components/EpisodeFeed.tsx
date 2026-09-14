@@ -5,9 +5,12 @@ import Image from "next/image";
 import type HlsType from "hls.js";
 import { adoptInstantPlayer } from "@/lib/instant-player";
 import { isIOSApp } from "@/lib/platform";
-import { trackEpisodeStart, trackEpisodeComplete, trackUnlockPrompt, trackUnlockClick } from "@/lib/track";
+/* trackUnlockPrompt is intentionally NOT imported: episode_unlock_prompt fired
+   from the same line as paywall_viewed and carried no distinct meaning. See
+   lib/track.ts. */
+import { trackEpisodeStart, trackEpisodeComplete, trackUnlockClick } from "@/lib/track";
 import { emit } from "@/lib/analytics";
-import { requireCheckoutUser } from "@/lib/checkout-auth";
+import { requireCheckoutUser, unlockReturnPath, UNLOCK_INTENT_PARAM } from "@/lib/checkout-auth";
 import { useTranslation } from "@/components/LangProvider";
 import { SERIES_UNLOCK_PRICE_CENTS } from "@/lib/price";
 import type { TranslationKey } from "@/lib/i18n";
@@ -2166,6 +2169,16 @@ export default function EpisodeFeed({
   // The paywall must not surface until then, or VIP/owners see a flash-then-hide
   // while the async check is in flight.
   const [authResolved, setAuthResolved] = useState(false);
+  /* Last paywall exposure already reported, as "<slug>:<episode>". Guards
+     against the same wall being counted twice on a re-render. */
+  const paywallReportedRef = useRef<string | null>(null);
+  /* One checkout at a time, and one resume per arrival. */
+  const unlockInFlightRef = useRef(false);
+  const resumeHandledRef = useRef(false);
+  /* True once the viewer has moved off the episode they arrived on. Separates
+     "watched into the paywall" from "landed on the paywall". */
+  const hasAdvancedRef = useRef(false);
+  const arrivedAtRef = useRef<number | null>(null);
 
   useEffect(() => {
     let stale = false;
@@ -2360,6 +2373,14 @@ export default function EpisodeFeed({
     if (isIOSApp()) queueMicrotask(() => setIosApp(true));
   }, []);
 
+  /* Records whether the viewer has moved off the episode they arrived on, which
+     is what separates "watched into the paywall" from "landed on it". Must live
+     below activeIndex's declaration. */
+  useEffect(() => {
+    if (arrivedAtRef.current === null) { arrivedAtRef.current = activeIndex; return; }
+    if (activeIndex !== arrivedAtRef.current) hasAdvancedRef.current = true;
+  }, [activeIndex]);
+
   // Surface the paywall from the SETTLED active episode, debounced. The
   // IntersectionObserver can flap activeIndex as a swipe settles; deriving +
   // debouncing here (instead of toggling inside the observer callback) means
@@ -2373,8 +2394,27 @@ export default function EpisodeFeed({
     if (!locked || !authResolved) { setShowUnlock(false); return; }
     const t = setTimeout(() => {
       setShowUnlock(true);
-      trackUnlockPrompt(seriesSlug);
-      emit("paywall_viewed", { show_id: seriesSlug, episode_number: ep.number, plan_type: "series_unlock", surface: "episode_feed" });
+      /* Report this exposure at most ONCE per episode.
+         `episodes` is in the dep array by identity, so this effect re-runs on
+         any render that rebuilds that array — each re-run re-armed the timer
+         and emitted paywall_viewed again for an episode already on screen,
+         inflating the funnel's denominator against a numerator that only a
+         real tap can move. */
+      const exposureKey = `${seriesSlug}:${ep.number}`;
+      if (paywallReportedRef.current === exposureKey) return;
+      paywallReportedRef.current = exposureKey;
+      emit("paywall_viewed", {
+        show_id: seriesSlug,
+        episode_number: ep.number,
+        plan_type: "series_unlock",
+        surface: "episode_feed",
+        /* Did they WATCH into this wall, or LAND on it? Two populations with
+           very different intent that the funnel previously averaged together.
+           "engaged" means the active episode changed at least once since mount,
+           i.e. they swiped here. "cold" means the paywall was the first thing
+           this page ever showed them. */
+        entry_type: hasAdvancedRef.current ? "engaged" : "cold",
+      });
     }, 250);
     return () => clearTimeout(t);
   }, [activeIndex, authFree, authResolved, episodes, seriesSlug]);
@@ -2407,6 +2447,101 @@ export default function EpisodeFeed({
      hides the header under .episode-immersive — so the paywall cannot fall
      back on "they can change it themselves". */
   const { t, formatPrice, locale } = useTranslation();
+
+  /* The unlock flow, lifted out of the button's onClick so it can be replayed
+     after sign-in. `origin` is "tap" for a real press and "resume" when we are
+     completing an unlock the auth wall interrupted.
+
+     Order is load-bearing. The tap is recorded BEFORE the auth guard:
+     requireCheckoutUser() navigates signed-out viewers away, so anything after
+     it was unreachable for exactly the people the funnel most needs to count.
+     Measured over 30 days, series_unlock_click had ZERO events against 325
+     paywall views. checkout_started stays BELOW the guard on purpose — it
+     means "checkout actually began", not "a button was pressed"; auth_required
+     (emitted inside the guard) is what accounts for the ones turned away. */
+  const startUnlock = useCallback(
+    async (origin: "tap" | "resume") => {
+      if (unlockInFlightRef.current) return;
+      if (origin === "tap") trackUnlockClick(seriesSlug);
+      if (!(await requireCheckoutUser(unlockReturnPath(), "episode_feed", seriesSlug))) return;
+      unlockInFlightRef.current = true;
+      setUnlockLoading(true);
+      setUnlockError(null);
+      emit("checkout_started", {
+        show_id: seriesSlug,
+        plan_type: "series_unlock",
+        surface: "episode_feed",
+        origin,
+      });
+      let navigating = false;
+      try {
+        const res = await fetch("/api/unlock", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ seriesSlug }),
+        });
+        const data = (await res.json().catch(() => ({}))) as {
+          url?: unknown;
+          error?: unknown;
+          code?: unknown;
+          alreadyOwned?: unknown;
+        };
+        if (!res.ok) {
+          if (data.alreadyOwned) {
+            setAuthFree(true);
+            return;
+          }
+          const key =
+            typeof data.code === "string" ? CHECKOUT_ERROR_KEYS[data.code] : undefined;
+          setUnlockError(
+            key
+              ? t(key)
+              : typeof data.error === "string"
+                ? data.error
+                : t("checkout.errorStart"),
+          );
+          return;
+        }
+        if (typeof data.url !== "string" || !data.url) {
+          setUnlockError(t("checkout.errorNotOpened"));
+          return;
+        }
+        navigating = true;
+        window.location.assign(data.url);
+      } catch {
+        setUnlockError(t("checkout.errorNetwork"));
+      } finally {
+        if (!navigating) {
+          setUnlockLoading(false);
+          unlockInFlightRef.current = false;
+        }
+      }
+    },
+    [seriesSlug, t],
+  );
+
+  /* Resume an unlock the auth wall interrupted. The marker is stripped from the
+     URL BEFORE checkout starts, so a refresh, a back button or a shared link
+     can never replay a purchase. The series comes from this component's own
+     props, never from the query string, so a crafted link cannot aim the resume
+     at a different title. */
+  useEffect(() => {
+    if (!authResolved || resumeHandledRef.current) return;
+    let params: URLSearchParams;
+    try { params = new URLSearchParams(window.location.search); } catch { return; }
+    if (params.get(UNLOCK_INTENT_PARAM) !== "1") return;
+    resumeHandledRef.current = true;
+    params.delete(UNLOCK_INTENT_PARAM);
+    const qs = params.toString();
+    window.history.replaceState(null, "", `${window.location.pathname}${qs ? `?${qs}` : ""}`);
+    if (authFree) return;  // they already own it — nothing to resume
+    /* Deferred: lets this effect commit — and the URL rewrite above land —
+       before checkout begins, so the marker is provably gone from the address
+       bar even if the redirect to Stripe is immediate. (Also keeps the
+       setState inside startUnlock out of this effect's synchronous body.) */
+    queueMicrotask(() => { void startUnlock("resume"); });
+  }, [authResolved, authFree, startUnlock]);
+
   const handlePlaybackAccessDenied = useCallback(() => {
     // A refund/dispute/account change can invalidate access after a prior URL
     // was cached. Re-lock immediately when the authenticated refresh says no.
@@ -4227,63 +4362,7 @@ export default function EpisodeFeed({
             )}
             {!iosApp && (
             <button
-              onClick={async () => {
-                /* The tap is recorded BEFORE the auth guard, not after.
-                   requireCheckoutUser() navigates signed-out viewers to
-                   /sign-in and returns false, so everything below it was
-                   unreachable for exactly the people the funnel most needs to
-                   count. Measured over 30 days: series_unlock_click had ZERO
-                   events while paywall_viewed had 325 — every guest who tapped
-                   Unlock was invisible, and the paywall -> checkout step read
-                   as though nobody had tried. */
-                trackUnlockClick(seriesSlug);
-                if (!(await requireCheckoutUser(undefined, "episode_feed", seriesSlug))) return;
-                setUnlockLoading(true);
-                setUnlockError(null);
-                emit("checkout_started", { show_id: seriesSlug, plan_type: "series_unlock", surface: "episode_feed" });
-                let navigating = false;
-                try {
-                  const res = await fetch("/api/unlock", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ seriesSlug }),
-                  });
-                  const data = (await res.json().catch(() => ({}))) as {
-                    url?: unknown;
-                    error?: unknown;
-                    code?: unknown;
-                    alreadyOwned?: unknown;
-                  };
-                  if (!res.ok) {
-                    if (data.alreadyOwned) {
-                      setAuthFree(true);
-                      return;
-                    }
-                    const key =
-                      typeof data.code === "string"
-                        ? CHECKOUT_ERROR_KEYS[data.code]
-                        : undefined;
-                    setUnlockError(
-                      key
-                        ? t(key)
-                        : typeof data.error === "string"
-                          ? data.error
-                          : t("checkout.errorStart"),
-                    );
-                    return;
-                  }
-                  if (typeof data.url !== "string" || !data.url) {
-                    setUnlockError(t("checkout.errorNotOpened"));
-                    return;
-                  }
-                  navigating = true;
-                  window.location.assign(data.url);
-                } catch {
-                  setUnlockError(t("checkout.errorNetwork"));
-                } finally {
-                  if (!navigating) setUnlockLoading(false);
-                }
-              }}
+              onClick={() => { void startUnlock("tap"); }}
               disabled={unlockLoading}
               className="glow-pulse w-full py-4 rounded-2xl text-base font-bold border-0 cursor-pointer transition-transform active:scale-[0.97]"
               style={{

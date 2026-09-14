@@ -150,6 +150,7 @@ npm run test:platform
 npm run test:genre-hubs
 npm run test:mux-webhook-security
 npm run test:payments
+npm run test:purchase-funnel
 npm run test:payments:db
 npx tsc --noEmit
 npm run lint

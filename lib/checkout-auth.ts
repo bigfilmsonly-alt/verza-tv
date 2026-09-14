@@ -4,6 +4,33 @@ import { createBrowserSupabase } from "@/lib/supabase/client";
 import { trackAuthRequired } from "@/lib/track";
 
 /**
+ * Marks a return path as "the viewer was trying to unlock when we interrupted
+ * them". Read once on arrival and stripped from the URL immediately, so a
+ * refresh or a shared link can never re-trigger checkout.
+ */
+export const UNLOCK_INTENT_PARAM = "resume_unlock";
+
+/**
+ * Where to send the viewer back to after sign-in so their unlock resumes.
+ *
+ * Deliberately returns pathname+search ONLY, never an absolute URL, so this
+ * cannot become an open redirect no matter what the page URL contains. The
+ * series being purchased is NOT encoded here — the resuming component reads it
+ * from its own props, so a crafted link cannot aim the resume at another title.
+ */
+export function unlockReturnPath(): string {
+  if (typeof window === "undefined") return "/";
+  try {
+    const url = new URL(window.location.href);
+    url.searchParams.set(UNLOCK_INTENT_PARAM, "1");
+    const path = `${url.pathname}${url.search}`;
+    return path.startsWith("/") && !path.startsWith("//") ? path : "/";
+  } catch {
+    return "/";
+  }
+}
+
+/**
  * Require an authenticated browser session before starting digital checkout.
  *
  * Checkout endpoints still enforce authentication server-side. This client
