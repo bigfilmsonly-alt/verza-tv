@@ -48,3 +48,8 @@ scripts/out/
 
 # Supabase CLI temp
 supabase/.temp/
+
+# Growth pilot working area. Recovered Mux masters are multi-GB originals and
+# must never enter Git; the manifests describing them are small but are
+# generated artefacts, not source.
+verza-growth/
