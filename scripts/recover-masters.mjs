@@ -33,7 +33,7 @@
  * Optional: --out <dir>  --limit <n>  --revert  --status
  */
 
-import { readFile, writeFile, mkdir, rename, stat, unlink } from "node:fs/promises";
+import { readFile, writeFile, mkdir, rename, stat, unlink, statfs } from "node:fs/promises";
 import { createWriteStream } from "node:fs";
 import { pipeline } from "node:stream/promises";
 import { resolve, join } from "node:path";
@@ -154,6 +154,32 @@ async function assetsByPlaybackId(wanted) {
   process.stderr.write("\n");
   return found;
 }
+
+/* ------------------------------------------------------------------ */
+/*  disk                                                               */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Refuse to start a download that cannot finish.
+ *
+ * This is here because it already happened. A 37.4 GB title was started on a
+ * volume with 15.6 GB free: 23 episodes landed, then 38 consecutive ENOSPC
+ * failures, and the machine was left with 118 MB free, which is its own
+ * hazard. The run "succeeded" with exit code 0 while failing 62% of the work.
+ *
+ * Checking costs one syscall. Running out of disk costs the whole run and
+ * endangers the host.
+ */
+async function freeBytes(dir) {
+  try {
+    const fs = await statfs(dir);
+    return fs.bavail * fs.bsize;
+  } catch {
+    return null; // unknown: caller decides, never silently assume plenty
+  }
+}
+
+function gb(n) { return (n / 1e9).toFixed(1); }
 
 /* ------------------------------------------------------------------ */
 /*  the ORIGINAL ingest source                                         */
@@ -376,6 +402,44 @@ if (!APPLY) {
 }
 
 await mkdir(OUT_DIR, { recursive: true });
+
+/* Preflight. Leave a margin so we never drive the volume to zero. */
+const HEADROOM = 5e9;
+const verified = Object.entries(state.episodes).filter(([, v]) => v.status === "verified");
+const alreadyHave = verified.reduce((n, [, v]) => n + (v.bytes || 0), 0);
+
+/* Estimate from what we have ACTUALLY measured, not from an assumed bitrate.
+   The 26.6 Mbps figure came from a direct-upload asset; the originals here run
+   ~44 Mbps, so the assumption under-counted by 4x and would have waved through
+   a run that could not finish. Once any episode is verified, its real
+   bytes-per-second is the honest basis. */
+const verifiedSeconds = verified.reduce((n, [, v]) => n + (v.seconds || 0), 0);
+const bytesPerSecond = verifiedSeconds > 0 ? alreadyHave / verifiedSeconds : 26.6e6 / 8;
+const doneKeys = new Set(verified.map(([k]) => k));
+const remainingSeconds = selected
+  .filter((e) => !doneKeys.has(String(e.episode)))
+  .reduce((n, e) => n + e.duration, 0);
+const stillNeed = remainingSeconds * bytesPerSecond;
+const free = await freeBytes(OUT_DIR);
+if (free !== null) {
+  console.log(`  disk free  : ${gb(free)} GB   still needed: ~${gb(stillNeed)} GB (+${gb(HEADROOM)} GB headroom)`);
+  if (free < stillNeed + HEADROOM) {
+    console.error(`
+  ABORTING: not enough disk.
+
+  This run needs roughly ${gb(stillNeed + HEADROOM)} GB and the volume has ${gb(free)} GB.
+  Starting anyway would fill the disk and fail most of the episodes, which is
+  exactly what happened once already.
+
+  Either free space, or send the files somewhere else:
+    --out /Volumes/<external>/verza-masters/the-mistress-trap
+`);
+    process.exit(1);
+  }
+} else {
+  console.log("  disk free  : could not be determined; proceeding with care");
+}
+
 console.log("");
 const queue = [...selected];
 await Promise.all(Array.from({ length: CONCURRENCY }, async () => {
@@ -388,6 +452,18 @@ await Promise.all(Array.from({ length: CONCURRENCY }, async () => {
 }));
 
 const done = Object.values(state.episodes).filter((v) => v.status === "verified");
+const failed = Object.entries(state.episodes).filter(([, v]) => v.status !== "verified");
 const bytes = done.reduce((n, v) => n + (v.bytes || 0), 0);
 console.log(`\n  ${done.length}/${selected.length} verified, ${(bytes / 1e9).toFixed(2)} GB`);
-console.log(`  checkpoint: ${STATE_PATH}\n`);
+console.log(`  checkpoint: ${STATE_PATH}`);
+if (failed.length) {
+  /* Exit non-zero. The first version of this returned 0 after failing 38 of
+     61 episodes, so the run looked like a success in every wrapper. */
+  console.error(`\n  ${failed.length} episode(s) did NOT verify:`);
+  for (const [k, v] of failed.slice(0, 8)) console.error(`    EP ${k}: ${v.why}`);
+  if (failed.length > 8) console.error(`    ... and ${failed.length - 8} more`);
+  console.error("  Re-run the same command to resume; verified episodes are skipped.\n");
+  process.exitCode = 1;
+} else {
+  console.log("");
+}
