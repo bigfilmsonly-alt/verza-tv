@@ -1274,30 +1274,40 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                   </div>
                 )}
 
-                <div
-                  aria-hidden="true"
-                  className="absolute inset-0 flex items-center justify-center pointer-events-none"
+              </div>
+
+              {/* BELOW the flyer, not over it. Centred on the art it covered the
+                  face and the title lockup — on a 9:16 poster whose whole job is
+                  to sell the story, the CTA was competing with the thing it was
+                  advertising. It now sits under the artwork's own VERZA TV logo
+                  and above the dots, so the card reads flyer, then call to
+                  action, then position.
+
+                  Still inside the Link: the whole card is one target, so the
+                  button does not need its own handler and cannot disagree with
+                  the card about where it goes. Not aria-hidden any more — it is
+                  real copy now rather than a decorative overlay, and it makes
+                  the link read "<title> Start Watching Free". */}
+              <div className="flex items-center justify-center pt-2.5">
+                <span
+                  className="flex items-center gap-2 rounded-full pl-3 pr-4 py-2 text-sm font-bold"
+                  style={{
+                    background: "rgba(8,8,16,0.62)",
+                    color: "#fff",
+                    backdropFilter: "blur(8px)",
+                    border: "1px solid rgba(255,255,255,0.18)",
+                    boxShadow: "0 6px 24px rgba(0,0,0,0.45)",
+                  }}
                 >
-                  <span
-                    className="flex items-center gap-2 rounded-full pl-3 pr-4 py-2 text-sm font-bold"
-                    style={{
-                      background: "rgba(8,8,16,0.62)",
-                      color: "#fff",
-                      backdropFilter: "blur(8px)",
-                      border: "1px solid rgba(255,255,255,0.18)",
-                      boxShadow: "0 6px 24px rgba(0,0,0,0.45)",
-                    }}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                      <polygon points="7 4 20 12 7 20" />
-                    </svg>
-                    {/* Reuses an existing key rather than adding one: i18n.ts is
-                        byte-synced with native, so a new key would put that repo's
-                        data-sync gate into drift for a string that already exists
-                        in all 20 locales. */}
-                    {t("browse.startWatchingFree")}
-                  </span>
-                </div>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <polygon points="7 4 20 12 7 20" />
+                  </svg>
+                  {/* Reuses an existing key rather than adding one: i18n.ts is
+                      byte-synced with native, so a new key would put that repo's
+                      data-sync gate into drift for a string that already exists
+                      in all 20 locales. */}
+                  {t("browse.startWatchingFree")}
+                </span>
               </div>
             </Link>
 

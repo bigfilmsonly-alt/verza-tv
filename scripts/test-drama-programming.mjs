@@ -198,8 +198,25 @@ if (runs[0].some((x) => x.slug === "too-much-junk")) failures.push("Drama leaked
   if (!browse.includes("browse.startWatchingFree")) {
     failures.push("the hero must carry a visible play affordance");
   }
-  if (!browse.includes('aria-hidden="true"') || !browse.includes("pointer-events-none")) {
-    failures.push("the hero play affordance must be presentational and must not intercept the tap");
+  /* The CTA sits BELOW the flyer now, not over it — centred on the art it
+     covered the face and the title lockup. So "must not intercept the tap" no
+     longer applies; it is not an overlay. What must hold is that it stays
+     inside the Link, so the button and the card cannot disagree about where
+     they navigate, and that it is not back over the artwork. */
+  if (!browse.includes('<div className="flex items-center justify-center pt-2.5">')) {
+    failures.push("the hero CTA must sit below the flyer");
+  }
+  if (/aria-hidden="true"\s*\n\s*className="absolute inset-0 flex items-center justify-center/.test(browse)) {
+    failures.push("the hero CTA must not be an overlay on the artwork again");
+  }
+  /* Inside the Link: the CTA must appear before the Link closes. */
+  {
+    const linkStart = browse.indexOf("href={posterHref(current)}");
+    const cta = browse.indexOf('justify-center pt-2.5', linkStart);
+    const linkEnd = browse.indexOf("</Link>", linkStart);
+    if (!(linkStart !== -1 && cta !== -1 && linkEnd !== -1 && cta < linkEnd)) {
+      failures.push("the hero CTA must stay inside the hero Link");
+    }
   }
   if (!browse.includes("priority={i === activeIdx || i === nextIdx}")) {
     failures.push("the active and next hero layers must load eagerly or the hero goes black mid-rotation");
