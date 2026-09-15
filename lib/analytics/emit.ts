@@ -96,11 +96,12 @@ function emitClient(event: AnalyticsEvent, props: EventProperties) {
     });
   }
 
-  // Vercel Analytics
+  // Vercel Analytics. Properties belong under `data` — see the note in
+  // lib/track.ts. Spreading them here drops every one of them silently.
   try {
     if ("va" in window) {
-      (window as unknown as Record<string, (cmd: string, data: Record<string, unknown>) => void>)
-        .va("event", { name: event, ...props });
+      (window as unknown as Record<string, (cmd: string, payload: Record<string, unknown>) => void>)
+        .va("event", { name: event, data: props });
     }
   } catch {}
 

@@ -23,11 +23,12 @@ import process from "node:process";
 const ROOT = resolve(import.meta.dirname, "..");
 const failures = [];
 const read = (p) => readFile(resolve(ROOT, p), "utf8");
-const [track, browse, events, sink] = await Promise.all([
+const [track, browse, events, sink, emitSrc] = await Promise.all([
   read("lib/track.ts"),
   read("components/BrowsePage.tsx"),
   read("lib/analytics/events.ts"),
   read("app/api/events/route.ts"),
+  read("lib/analytics/emit.ts"),
 ]);
 const must = (name, ok) => { if (!ok) failures.push(name); };
 
@@ -112,6 +113,48 @@ for (const premature of ["hero_impression", "tile_impression", "shelf_impression
   if (track.includes(premature) || browse.includes(premature)) {
     failures.push(`${premature} must not exist yet — click share is not CTR without a denominator`);
   }
+}
+
+/* ---- transport: the properties must actually leave the browser --------- */
+
+/* This is the defect that made the first shipment of hero_click/tile_click
+   worthless. @vercel/analytics reads custom-event properties from `data`:
+
+       window.va("event", { name, data: props })
+
+   Spreading them at the top level instead is accepted without any error and
+   the event is stored with NO properties. Production proved it: hero_click and
+   tile_click both arrived, and every `eventData/series` aggregate came back
+   empty, so the click could not be attributed to a title. Counting clicks you
+   cannot attribute is not measurement.
+
+   Asserted as source text on purpose. The shape is invisible at runtime — it
+   fails silently, in production only, and looks exactly like "no traffic yet". */
+
+for (const [file, src] of [["lib/track.ts", track], ["lib/analytics/emit.ts", emitSrc]]) {
+  const call = src.slice(src.indexOf('.va("event"'), src.indexOf('.va("event"') + 160);
+  if (!src.includes('.va("event"')) {
+    failures.push(`${file}: the Vercel Analytics call vanished`);
+    continue;
+  }
+  if (!/data:/.test(call)) {
+    failures.push(`${file}: custom-event properties must be nested under \`data\`, or Vercel drops them`);
+  }
+  if (/\{ name: event, \.\.\./.test(call)) {
+    failures.push(`${file}: properties are spread at the top level again — Vercel will store none`);
+  }
+}
+
+/* Pin the contract to the package that is actually installed, so an upgrade
+   that changes the payload shape fails here instead of silently emptying the
+   dashboard. Loud skip, never a silent pass. */
+try {
+  const pkg = await read("node_modules/@vercel/analytics/dist/index.js");
+  const impl = pkg.slice(pkg.indexOf("function track("), pkg.indexOf("function track(") + 900);
+  must("the installed @vercel/analytics must still read properties from `data`",
+    /data:\s*props/.test(impl));
+} catch {
+  console.warn("  SKIPPED: node_modules/@vercel/analytics not present — payload shape not pinned to the package");
 }
 
 /* ---- commerce semantics untouched ------------------------------------- */

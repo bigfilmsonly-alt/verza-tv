@@ -47,10 +47,19 @@ export function track(event: TrackEvent, params?: Record<string, string | number
     window.gtag("event", event, params);
   }
 
-  /* Vercel Analytics (custom events) */
+  /* Vercel Analytics (custom events).
+
+     The payload shape is load-bearing. @vercel/analytics reads the properties
+     from `data`; spreading them at the top level is accepted silently and the
+     event is stored with NO properties at all. That is not hypothetical — it
+     shipped. hero_click and tile_click reached production and every
+     `eventData/series` came back empty, so click COUNTS were reportable and
+     per-title ranking — the single reason those two events exist — was not.
+     Mirror the package: omit `data` entirely when there are no properties. */
   try {
     if (typeof window !== "undefined" && "va" in window) {
-      (window as unknown as Record<string, (event: string, params?: Record<string, string | number>) => void>).va("event", { name: event, ...params });
+      (window as unknown as Record<string, (cmd: string, payload: Record<string, unknown>) => void>)
+        .va("event", params ? { name: event, data: params } : { name: event });
     }
   } catch {}
 }
