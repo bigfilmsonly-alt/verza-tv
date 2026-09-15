@@ -69,6 +69,8 @@ const APPLY = flag("--confirm-enable-master-access");
 const LIMIT = Number(value("--limit", "0")) || 0;
 const STATUS_ONLY = flag("--status");
 const REVERT = flag("--revert");
+/* Default ON: the original beats Mux's mezzanine wherever one exists. */
+const PREFER_SOURCE = !flag("--force-mux-master");
 
 if (!TITLE || flag("--help")) {
   console.log(`
@@ -80,6 +82,7 @@ if (!TITLE || flag("--help")) {
     --limit <n>                        only the first n episodes
     --status                           print checkpoint state and exit
     --revert                           set master_access back to none for this title
+    --force-mux-master                 ignore the original source, use Mux master access
 
   Credentials come from MUX_TOKEN_ID / MUX_TOKEN_SECRET in the environment.
   Run with: node --env-file=.env.local scripts/recover-masters.mjs --title <slug>
@@ -153,6 +156,35 @@ async function assetsByPlaybackId(wanted) {
 }
 
 /* ------------------------------------------------------------------ */
+/*  the ORIGINAL ingest source                                         */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Mux's "master" is not always the file you uploaded.
+ *
+ * An asset carrying `max_resolution_tier: 1080p` was DOWNSCALED at ingest and
+ * the original was never retained, so master access hands back a derivative.
+ * Measured on the-mistress-trap E1: Mux returns 1152x2048 at ~9.3 Mbps / 159 MB,
+ * while the file actually ingested was 2160x3840 at 44.4 Mbps / 766 MB.
+ * Clipping the derivative would throw away three quarters of the picture before
+ * social ever re-encodes it.
+ *
+ * Assets ingested with `ingest_type: on_demand_url` still record that URL, so
+ * when it is a real http(s) location we can fetch the true original instead.
+ * That is higher quality, costs no Mux egress, needs no prepare step, and
+ * mutates nothing in production.
+ */
+async function originalSourceUrl(assetId) {
+  const { status, json } = await mux("GET", `/video/v1/assets/${assetId}/input-info`);
+  if (status !== 200) return null;
+  for (const item of json.data || []) {
+    const url = item?.settings?.url;
+    if (typeof url === "string" && /^https?:\/\//i.test(url)) return url;
+  }
+  return null; // direct upload: no URL was ever given to Mux
+}
+
+/* ------------------------------------------------------------------ */
 /*  checkpoint                                                         */
 /* ------------------------------------------------------------------ */
 async function loadState() {
@@ -220,7 +252,13 @@ async function recoverOne(ep, asset, state) {
     } catch { /* file vanished, fall through and redo */ }
   }
 
-  /* 1. ask Mux to prepare the master */
+  /* 1. Prefer the ORIGINAL ingest source when Mux still records one. Higher
+        quality than the mezzanine, no egress, no prepare wait, and it leaves
+        the production asset completely untouched. */
+  let url = PREFER_SOURCE ? await originalSourceUrl(asset.id) : null;
+  let via = url ? "source" : "mux-master";
+
+  if (!url) {
   const put = await mux("PUT", `/video/v1/assets/${asset.id}/master-access`, { master_access: "temporary" });
   if (put.status >= 400) {
     state.episodes[key] = { status: "failed", why: `master-access HTTP ${put.status}`, asset: asset.id };
@@ -229,7 +267,6 @@ async function recoverOne(ep, asset, state) {
   }
 
   /* 2. poll until ready. The URL is never logged. */
-  let url = null;
   for (let i = 0; i < MAX_POLLS; i += 1) {
     await sleep(POLL_INTERVAL_MS);
     const { json } = await mux("GET", `/video/v1/assets/${asset.id}`);
@@ -241,6 +278,7 @@ async function recoverOne(ep, asset, state) {
     state.episodes[key] = { status: "failed", why: "master never became ready", asset: asset.id };
     console.log(`  EP ${key.padStart(3)}  FAILED  master never became ready`);
     return;
+  }
   }
 
   /* 3. download to .part, then rename. A partial file must never be mistaken
@@ -265,6 +303,7 @@ async function recoverOne(ep, asset, state) {
   state.episodes[key] = {
     status: v.ok ? "verified" : "failed",
     why: v.why,
+    via,
     asset: asset.id,
     file: name,
     bytes: info?.size ?? 0,
@@ -274,7 +313,7 @@ async function recoverOne(ep, asset, state) {
     seconds: info?.duration ?? null,
     at: new Date().toISOString(),
   };
-  console.log(`  EP ${key.padStart(3)}  ${v.ok ? "OK  " : "BAD "}  ${v.why}`);
+  console.log(`  EP ${key.padStart(3)}  ${v.ok ? "OK  " : "BAD "}  ${via.padEnd(10)} ${v.why}`);
 }
 
 /* ------------------------------------------------------------------ */
