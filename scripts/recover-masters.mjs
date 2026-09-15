@@ -36,7 +36,7 @@
 import { readFile, writeFile, mkdir, rename, stat, unlink } from "node:fs/promises";
 import { createWriteStream } from "node:fs";
 import { pipeline } from "node:stream/promises";
-import { resolve, join, dirname } from "node:path";
+import { resolve, join } from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import process from "node:process";
