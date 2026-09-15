@@ -63,8 +63,21 @@ export function track(event: TrackEvent, params?: Record<string, string | number
  * `position` is the 1-based slide index the viewer was actually looking at, so
  * slide 3 reports 3 — not the title's place in the catalogue.
  */
-export function trackHeroClick(seriesSlug: string, position: number, destinationEpisode = 1) {
-  track("hero_click", { series: seriesSlug, position, destination_episode: destinationEpisode });
+export function trackHeroClick(
+  seriesSlug: string,
+  position: number,
+  contentStatus?: "new" | "trending",
+  destinationEpisode = 1,
+) {
+  track("hero_click", {
+    series: seriesSlug,
+    position,
+    destination_episode: destinationEpisode,
+    /* Which shelf this slide is promoting. Lets NEW be compared against
+       TRENDING directly: do viewers pick fresh programming, or the titles
+       that already proved themselves? */
+    ...(contentStatus ? { content_status: contentStatus } : {}),
+  });
 }
 
 /**

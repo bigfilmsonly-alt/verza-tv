@@ -100,6 +100,24 @@ const PINNED_TRENDING_SLUGS = [
   "mafia-lords-secret-love",
 ] as const;
 
+/* The nine titles Drama actively promotes, in display order: the NEW drop then
+   the measured TRENDING three.
+
+   ONE list, two consumers. The hero used to carry its own set — FEATURED_NEW's
+   six — while the grid pinned nine, so the showcase and the shelf directly
+   beneath it disagreed about what was being promoted. Deriving both from this
+   means they cannot drift apart again, and adding a tenth promoted title is a
+   one-line change in one place.
+
+   Slides 1-6 are NEW, 7-9 are TRENDING; that split is positional and is read
+   straight off this array's shape (FEATURED_NEW.length). */
+const DRAMA_PROMOTED_SLUGS = [...FEATURED_NEW, ...PINNED_TRENDING_SLUGS] as const;
+
+/** Which shelf a promoted hero slide belongs to, by its position. */
+function promotedStatus(index: number): "new" | "trending" {
+  return index < FEATURED_NEW.length ? "new" : "trending";
+}
+
 /* ------------------------------------------------------------------ */
 /*  Badges are POSITIONAL, and the same rule runs on every browse tab.  */
 /*                                                                      */
@@ -364,7 +382,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
     resumeS = 0,
     /* Analytics context only — never affects navigation or playback. Omitted by
        any caller that is not a measured content surface. */
-    origin?: { surface: "hero" | "tile"; shelf: string; position: number },
+    origin?: { surface: "hero" | "tile"; shelf: string; position: number; status?: "new" | "trending" },
   ) => {
     // Modified clicks (open in new tab, etc.) get default browser behavior —
     // don't spin up a hidden player for a tab the user isn't watching.
@@ -376,7 +394,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
        open-in-new-tab from the counts. Sits after that guard on purpose — a
        cmd-click is not a content selection on this page. */
     if (origin) {
-      if (origin.surface === "hero") trackHeroClick(slug, origin.position, epNum);
+      if (origin.surface === "hero") trackHeroClick(slug, origin.position, origin.status, epNum);
       else trackTileClick(slug, origin.shelf, origin.position, epNum);
     }
     // The tapped poster doubles as the loading state (user preference:
@@ -480,17 +498,14 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
     const head =
       activeTab === "drama"
         ? [
-            ...FEATURED_NEW.map((slug) => base.find((x) => x.slug === slug)).filter(
-              (x): x is Series => Boolean(x),
-            ),
-            /* Explicit, deterministic, and de-duplicated against the NEW
-               shelf so a title can never be pinned twice. */
-            ...PINNED_TRENDING_SLUGS.filter(
-              (slug) => !FEATURED_NEW.includes(slug as never),
+            /* The same nine the hero rotates, in the same order, from the same
+               list — explicit, deterministic, and de-duplicated so a title can
+               never be pinned twice. */
+            ...DRAMA_PROMOTED_SLUGS.filter(
+              (slug, idx) => DRAMA_PROMOTED_SLUGS.indexOf(slug) === idx,
             )
               .map((slug) => base.find((x) => x.slug === slug))
-              .filter((x): x is Series => Boolean(x))
-              .slice(0, TRENDING_END - TRENDING_START),
+              .filter((x): x is Series => Boolean(x)),
           ]
         : base.slice(0, NEW_SLOTS);
     const headSet = new Set(head.map((x) => x.slug));
@@ -503,14 +518,21 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
   // On other tabs it falls back to that tab's first four. The Mistress Trap
   // flyer isn't full-bleed like the other posters, so it stays out either way.
   const heroSlides = useMemo(() => {
+    /* The Mistress Trap's flyer is not full-bleed like the rest, so it stays
+       out of any hero it would otherwise fall into. It is not one of the nine,
+       so this only affects the other tabs' fallback. */
     const pool = filtered.filter((s) => s.slug !== "the-mistress-trap");
     if (activeTab !== "drama") return pool.slice(0, 4);
-    const six = FEATURED_NEW.map((slug) => pool.find((x) => x.slug === slug)).filter(
-      (x): x is Series => Boolean(x),
-    );
-    return six.length ? six : pool.slice(0, 6);
+    /* All nine promoted titles, not the six NEW. The showcase now sells exactly
+       what the shelves beneath it are programmed around. */
+    const nine = DRAMA_PROMOTED_SLUGS.map((slug) =>
+      filtered.find((x) => x.slug === slug),
+    ).filter((x): x is Series => Boolean(x));
+    return nine.length ? nine : pool.slice(0, 9);
   }, [filtered, activeTab]);
   const current = heroSlides[heroIdx % Math.max(heroSlides.length, 1)];
+  /* 1-based slide the viewer is actually looking at — 1..9 on Drama. */
+  const heroPosition = (heroIdx % Math.max(heroSlides.length, 1)) + 1;
 
   // Every time the active section changes, reset the hero AND scroll back to
   // the very top — so switching to a tab (or returning to one) always opens at
@@ -1148,7 +1170,7 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
             <Link
               href={posterHref(current)}
               className="block transition-transform duration-200 ease-out active:scale-[0.98]"
-              onClick={(e) => posterClick(e, current.slug, 1, 0, { surface: "hero", shelf: "hero", position: (heroIdx % Math.max(heroSlides.length, 1)) + 1 })}
+              onClick={(e) => posterClick(e, current.slug, 1, 0, { surface: "hero", shelf: "hero", position: heroPosition, status: activeTab === "drama" ? promotedStatus(heroPosition - 1) : undefined })}
             >
               <div
                 className="relative mx-auto overflow-hidden rounded-xl"
@@ -1241,6 +1263,17 @@ export default function BrowsePage({ allSeries, liveSeries, tabData }: Props) {
                     pointer-events-none on purpose: the whole card is already the
                     Link, so this must not intercept the tap it advertises. It is
                     presentational, and the accessible name lives on the Link. */}
+                {/* The hero now promotes the same nine the shelves below are
+                    programmed around, so it carries the same badge vocabulary:
+                    slides 1-6 NEW, 7-9 TRENDING. Without it the showcase and
+                    the shelf would label the identical title differently.
+                    Drama only — no other tab has this split. */}
+                {activeTab === "drama" && heroSlides.length > 0 && (
+                  <div className="absolute top-2 left-2 z-10 pointer-events-none">
+                    <Badge type={promotedStatus(heroPosition - 1)} />
+                  </div>
+                )}
+
                 <div
                   aria-hidden="true"
                   className="absolute inset-0 flex items-center justify-center pointer-events-none"

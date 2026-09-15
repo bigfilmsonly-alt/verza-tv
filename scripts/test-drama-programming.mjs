@@ -53,6 +53,7 @@ const catalog = arr.elements.map((e) => ({
   slug: prop(e, "slug").initializer.text,
   title: prop(e, "title").initializer.text,
   status: prop(e, "status").initializer.text,
+  poster: prop(e, "posterUrl")?.initializer.text ?? "",
   categories: (() => {
     const c = prop(e, "categories");
     return c && ts.isArrayLiteralExpression(c.initializer) ? c.initializer.elements.map((x) => x.text) : [];
@@ -203,6 +204,71 @@ if (runs[0].some((x) => x.slug === "too-much-junk")) failures.push("Drama leaked
   if (!browse.includes("priority={i === activeIdx || i === nextIdx}")) {
     failures.push("the active and next hero layers must load eagerly or the hero goes black mid-rotation");
   }
+}
+
+/* ---- the hero promotes the same nine, from the same list -------------- */
+
+/* The hero used to carry FEATURED_NEW's six while the grid pinned nine, so the
+   showcase and the shelf directly beneath it disagreed about what was being
+   promoted. Both now derive from DRAMA_PROMOTED_SLUGS. */
+{
+  if (!browse.includes("const DRAMA_PROMOTED_SLUGS = [...FEATURED_NEW, ...PINNED_TRENDING_SLUGS] as const;")) {
+    failures.push("hero and grid must share one canonical promoted list");
+  }
+  if (!browse.includes("const nine = DRAMA_PROMOTED_SLUGS.map((slug) =>")) {
+    failures.push("the Drama hero must rotate all nine promoted titles");
+  }
+  /* Slides 1-6 NEW, 7-9 TRENDING, read off the list's shape rather than
+     hardcoded, so a tenth promoted title cannot silently mislabel. */
+  if (!browse.includes('return index < FEATURED_NEW.length ? "new" : "trending";')) {
+    failures.push("hero slide status must be positional, derived from FEATURED_NEW.length");
+  }
+  if (!browse.includes("<Badge type={promotedStatus(heroPosition - 1)} />")) {
+    failures.push("the hero must carry the same NEW/TRENDING badge vocabulary as the shelves");
+  }
+
+  /* THE BLACK-FRAME FIX MUST SURVIVE NINE SLIDES. Eagerly loading all nine
+     1080x1920 posters on mobile would be roughly 18MB; only active and next
+     may be eager. */
+  if (!browse.includes("priority={i === activeIdx || i === nextIdx}")) {
+    failures.push("hero must still load only active+next eagerly — not all nine");
+  }
+  /* A bare `priority` on the Tubi and Reality heroes (single images, not a
+     carousel) is correct and must not be flagged — scoping the check to the
+     crossfade map is what keeps this honest. The positive assertion above is
+     the real guard: swapping the conditional for `priority` deletes that exact
+     string and fails it. */
+  const crossfade = browse.slice(browse.indexOf("hero-crossfade") - 1500, browse.indexOf("hero-crossfade"));
+  if (crossfade.includes("priority={true}")) {
+    failures.push("every hero slide must not be eager — nine 1080x1920 posters is ~18MB on mobile");
+  }
+
+  /* hero_click carries the shelf so NEW can be compared against TRENDING. */
+  if (!browse.includes("status: activeTab === \"drama\" ? promotedStatus(heroPosition - 1) : undefined")) {
+    failures.push("hero_click must record whether the slide was NEW or TRENDING");
+  }
+  /* Rotation must never emit. The event lives in posterClick, a click handler. */
+  if (/setInterval\([\s\S]{0,400}?trackHeroClick\(/.test(browse)) {
+    failures.push("automatic hero rotation must not emit hero_click");
+  }
+
+  /* Every promoted slug must be a live Drama title — same bar as the shelves. */
+  const promoted = [...NEW_SLUGS, ...TRENDING_SLUGS];
+  if (promoted.length !== 9) failures.push(`the hero must promote exactly 9 titles (found ${promoted.length})`);
+  if (new Set(promoted).size !== 9) failures.push("a title is promoted twice in the hero");
+  for (const slug of promoted) {
+    const row = catalog.find((c) => c.slug === slug);
+    if (!row) { failures.push(`hero promotes "${slug}", not in the catalogue`); continue; }
+    if (row.status !== "live") failures.push(`hero promotes ${slug}, which is ${row.status}`);
+    if (!row.poster || !row.poster.startsWith("/posters/")) {
+      failures.push(`hero promotes ${slug}, which has no key art`);
+    }
+  }
+
+  /* Every promoted title must be absent from the shuffled tail. */
+  const tailSlugs = runs[0].slice(9).map((x) => x.slug);
+  const dupes = promoted.filter((slug) => tailSlugs.includes(slug));
+  if (dupes.length > 0) failures.push(`promoted titles repeat in the shuffled tail: ${dupes.join(", ")}`);
 }
 
 /* ---- report ----------------------------------------------------------- */

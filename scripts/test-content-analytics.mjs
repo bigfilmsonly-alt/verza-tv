@@ -51,7 +51,7 @@ must("hero_click must be emitted from exactly one place",
 must("tile_click must be emitted from exactly one place",
   (browse.match(/trackTileClick\(/g) ?? []).length === 1);
 must("both must be emitted from inside posterClick",
-  browse.includes("if (origin.surface === \"hero\") trackHeroClick(slug, origin.position, epNum);"));
+  browse.includes("if (origin.surface === \"hero\") trackHeroClick(slug, origin.position, origin.status, epNum);"));
 
 /* ---- never from a render or a rotation -------------------------------- */
 
@@ -78,8 +78,13 @@ must("tile shelf must be derived from the same positional rule as the badge",
   browse.includes('const tileShelf = isNew ? "new" : trending ? "trending" : activeTab;'));
 must("tile position must be 1-based within its own shelf",
   browse.includes("? i + 1") && browse.includes("? i - TRENDING_START + 1"));
+/* heroPosition is derived once next to `current`, so the badge, the event and
+   the rendered slide cannot disagree about which slide is on screen. */
 must("hero position must be the slide actually on screen",
-  browse.includes("position: (heroIdx % Math.max(heroSlides.length, 1)) + 1"));
+  browse.includes("const heroPosition = (heroIdx % Math.max(heroSlides.length, 1)) + 1;")
+    && browse.includes("position: heroPosition"));
+must("hero_click must record NEW vs TRENDING",
+  browse.includes('status: activeTab === "drama" ? promotedStatus(heroPosition - 1) : undefined'));
 
 /* ---- Continue Watching resumes a real episode ------------------------- */
 
