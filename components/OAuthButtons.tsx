@@ -2,6 +2,7 @@
 
 import { createBrowserSupabase } from "@/lib/supabase/client";
 import { T } from "@/lib/theme";
+import { WEB_OAUTH_PROVIDERS, type WebOAuthProvider } from "@/lib/oauth-providers";
 
 /* ------------------------------------------------------------------ */
 /*  SVG icons (Google + Apple)                                         */
@@ -78,34 +79,42 @@ export default function OAuthButtons({
     }
   };
 
-  const google = (
-    <button
-      key="google"
-      type="button"
-      className={btnClass}
-      style={btnStyle}
-      onClick={() => handleOAuth("google")}
-    >
-      {GoogleIcon}
-      Continue with Google
-    </button>
+  const meta: Record<WebOAuthProvider | "apple", { icon: React.ReactNode; label: string }> = {
+    google: { icon: GoogleIcon, label: "Continue with Google" },
+    apple: { icon: AppleIcon, label: "Continue with Apple" },
+  };
+
+  /* Only providers Supabase actually has enabled. "Continue with Apple" used
+     to render unconditionally and answered every tap with
+     "Unsupported provider: provider is not enabled".
+
+     Order is expressed as a filter over a preference list rather than a sort,
+     so it stays correct however short the enabled list gets. Today Apple is
+     not enabled, so `appleFirst` changes nothing; it starts working the moment
+     "apple" is added to WEB_OAUTH_PROVIDERS. */
+  const preferred: readonly string[] = appleFirst
+    ? ["apple", "google"]
+    : ["google", "apple"];
+  const providers = preferred.filter((p): p is WebOAuthProvider =>
+    (WEB_OAUTH_PROVIDERS as readonly string[]).includes(p),
   );
-  const apple = (
-    <button
-      key="apple"
-      type="button"
-      className={btnClass}
-      style={btnStyle}
-      onClick={() => handleOAuth("apple")}
-    >
-      {AppleIcon}
-      Continue with Apple
-    </button>
-  );
+
+  if (providers.length === 0) return null;
 
   return (
     <div className="flex flex-col gap-3 mb-8">
-      {appleFirst ? [apple, google] : [google, apple]}
+      {providers.map((p) => (
+        <button
+          key={p}
+          type="button"
+          className={btnClass}
+          style={btnStyle}
+          onClick={() => handleOAuth(p)}
+        >
+          {meta[p].icon}
+          {meta[p].label}
+        </button>
+      ))}
     </div>
   );
 }

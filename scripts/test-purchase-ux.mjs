@@ -32,7 +32,7 @@ const order = (name, text, first, second) => {
   if (a > b) failures.push(name);
 };
 
-const [feed, signIn, card, copy, intent, auth, oauth, css, focus] = await Promise.all([
+const [feed, signIn, card, copy, intent, auth, oauth, css, focus, panel, providers, authActions] = await Promise.all([
   read("components/EpisodeFeed.tsx"),
   read("app/sign-in/page.tsx"),
   read("components/PurchaseIntentCard.tsx"),
@@ -42,6 +42,9 @@ const [feed, signIn, card, copy, intent, auth, oauth, css, focus] = await Promis
   read("components/OAuthButtons.tsx"),
   read("app/globals.css"),
   read("components/PurchaseFocusMode.tsx"),
+  read("components/PaywallCheckout.tsx"),
+  read("lib/oauth-providers.ts"),
+  read("app/actions/auth.ts"),
 ]);
 
 /* ---- PAYWALL: what is being bought, and for how much ------------------- */
@@ -86,12 +89,75 @@ for (const key of ["paywall.oneTimeUnlock", "paywall.previewOver",
   must(`${key} must no longer be rendered on the web paywall`, !feed.includes(key));
 }
 
-/* ---- Someone who already paid must have a route that is not "pay again" -- */
+/* ---- ONE PAGE: the paywall IS the checkout --------------------------- */
 
-must("the paywall must offer an already-purchased path",
-  feed.includes('purchaseCopy(locale, "alreadyPurchased")'));
-must("the already-purchased path must NOT carry the resume marker, or it starts a purchase",
-  !/already[\s\S]{0,400}resume_unlock/i.test(feed));
+/* The purchase used to span two screens. A viewer mid-episode tapped Unlock,
+   left the story, landed on an account page, and had to find their way back.
+   Everything needed to pay now lives on the screen the paywall appears on. */
+must("the paywall must render the inline checkout panel",
+  feed.includes("<PaywallCheckout"));
+must("the panel must receive signed-in state, or it shows an account form to an owner",
+  feed.includes("signedIn={signedIn}"));
+must("EpisodeFeed must resolve signed-in separately from entitlement",
+  feed.includes("useState<boolean | null>(null)") && feed.includes("onAuthStateChange"));
+
+/* Inline sign-in changes auth with no navigation, so the panel only learns
+   about it from the client listener. Without this the viewer authenticates and
+   the paywall keeps showing them a sign-in form. */
+must("the signed-in listener must be torn down on unmount",
+  feed.includes("sub.subscription.unsubscribe()"));
+
+must("signed-out viewers must authenticate in place, not on another page",
+  panel.includes("supabase.auth.signInWithPassword"));
+must("the same press must continue into checkout once auth succeeds",
+  panel.includes('onUnlock("inline_auth")'));
+must("checkout must only start once a session provably exists",
+  panel.includes("supabase.auth.getSession()") && panel.includes("if (!data.session)"));
+
+/* ---- the buy press must still be counted exactly once ----------------- */
+
+/* The panel records the press itself, before authenticating. startUnlock must
+   therefore NOT record it again for that origin, or every signed-out unlock
+   is double counted in the funnel. */
+must("the panel must record the press before it authenticates",
+  panel.includes("trackUnlockClick(seriesSlug)") && panel.includes('trackAuthRequired("episode_feed_inline"'));
+must("startUnlock must not re-record a press the panel already recorded",
+  /if \(origin === "tap"\) trackUnlockClick/.test(feed));
+{
+  const i = panel.indexOf("recordBuyPress();");
+  const j = panel.indexOf("signInWithPassword");
+  must("the press must be recorded BEFORE authentication can fail or navigate", i !== -1 && j !== -1 && i < j);
+}
+
+/* ---- the 18+ gate must not get weaker on the money screen ------------- */
+
+/* Account creation posts to signUpAction, which enforces the age gate SERVER
+   side. Calling supabase.auth.signUp from the browser here would have moved
+   that boundary into a checkbox anyone can skip. */
+must("account creation must go through the server action that enforces the age gate",
+  panel.includes("action={signUpAction}"));
+must("the age confirmation must be present and required",
+  panel.includes('name="ageGate"') && panel.includes("required"));
+must("the paywall must never create an account directly from the browser",
+  !panel.includes("auth.signUp("));
+must("signUpAction must still enforce the gate server side",
+  authActions.includes("if (!ageGate)"));
+
+/* ---- a dead button must never appear on the screen that takes money --- */
+
+/* "Continue with Apple" shipped while Supabase reported apple:false, so the
+   authorize endpoint answered every tap with HTTP 400
+   "Unsupported provider: provider is not enabled". */
+must("OAuth buttons must render only providers that are actually enabled",
+  oauth.includes("WEB_OAUTH_PROVIDERS") && panel.includes("WEB_OAUTH_PROVIDERS"));
+must("the enabled-provider list must be a single source of truth",
+  providers.includes("export const WEB_OAUTH_PROVIDERS"));
+
+/* ---- the overlay must not clip the price off the top ------------------ */
+
+must("the paywall overlay must scroll rather than centre-clip",
+  feed.includes('className="absolute inset-0 z-[60] overflow-y-auto overscroll-contain"') &&
+  feed.includes('className="min-h-full flex items-center justify-center py-8"'));
 
 /* ---- PURCHASE-INTENT SIGN-IN ------------------------------------------ */
 
@@ -148,14 +214,16 @@ must("purchase-intent sign-in must lead with the one-tap providers",
 /* ---- AUTH MECHANICS FROZEN -------------------------------------------- */
 
 must("email auth must still post to the same server action", signIn.includes("action={signInAction}"));
-must("OAuth provider calls must be untouched",
-  oauth.includes('supabase.auth.signInWithOAuth({') &&
-  oauth.includes('handleOAuth("google")') &&
-  oauth.includes('handleOAuth("apple")'));
+/* The provider strings and the call itself are frozen; only WHICH buttons get
+   rendered changed, and that is now driven by what Supabase has enabled. */
+must("the OAuth call must be untouched",
+  oauth.includes("supabase.auth.signInWithOAuth({") && oauth.includes("handleOAuth(p)"));
+must("both provider identities must survive for when Apple is enabled",
+  oauth.includes('google: { icon: GoogleIcon') && oauth.includes('apple: { icon: AppleIcon'));
 must("the OAuth redirect must still be built from the live origin",
   oauth.includes("`${window.location.origin}/api/auth/callback`"));
 must("appleFirst must reorder rendering ONLY, never the provider strings",
-  oauth.includes("{appleFirst ? [apple, google] : [google, apple]}"));
+  oauth.includes('? ["apple", "google"]') && oauth.includes(': ["google", "apple"]'));
 must("the auth guard must still refuse a protocol-relative returnTo",
   auth.includes('returnTo?.startsWith("/") && !returnTo.startsWith("//")'));
 
@@ -221,7 +289,6 @@ for (const [name, src] of [["lib/purchase-copy.ts", copy], ["PurchaseIntentCard"
   }
   /* i18n.ts is pure ASCII on disk so a missing charset header cannot turn it
      into mojibake, and that failure only ever appears over HTTP. Match it. */
-  // eslint-disable-next-line no-control-regex
   must("purchase copy must be pure ASCII on disk, like i18n.ts", !/[^\x00-\x7F]/.test(copy));
 }
 
@@ -247,6 +314,59 @@ for (const [name, src] of [["lib/purchase-copy.ts", copy], ["PurchaseIntentCard"
   }
   if (!checked) {
     console.warn("  SKIPPED: native repo not found, i18n byte-identity NOT verified");
+  }
+}
+
+/* ---- the enabled-provider list must match live Supabase --------------- */
+
+/* This is the check that would have caught the dead Apple button on the day it
+   shipped. It compares our list against what Supabase actually has enabled, so
+   drift fails in BOTH directions: a provider we offer but Supabase refuses, and
+   a provider Supabase supports that we are silently not offering.
+   Reads .env.local directly rather than requiring --env-file, so the gate still
+   runs for anyone with the file and skips loudly for anyone without it. */
+{
+  let url, key;
+  try {
+    const env = await read(".env.local");
+    for (const line of env.split("\n")) {
+      const m = /^\s*([A-Z_]+)\s*=\s*(.*)\s*$/.exec(line);
+      if (!m) continue;
+      const v = m[2].replace(/^["']|["']$/g, "");
+      if (m[1] === "SUPABASE_URL" || m[1] === "NEXT_PUBLIC_SUPABASE_URL") url ||= v;
+      if (m[1] === "NEXT_PUBLIC_SUPABASE_ANON_KEY") key ||= v;
+    }
+  } catch { /* no env file */ }
+
+  const listed = /WEB_OAUTH_PROVIDERS = \[([^\]]*)\]/.exec(providers);
+  const ours = listed ? [...listed[1].matchAll(/"(\w+)"/g)].map((m) => m[1]).sort() : [];
+
+  if (!url || !key) {
+    console.warn("  SKIPPED: no Supabase credentials on disk, provider list NOT checked against live settings");
+  } else {
+    try {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 8000);
+      const res = await fetch(`${url}/auth/v1/settings`, {
+        headers: { apikey: key },
+        signal: ctrl.signal,
+      });
+      clearTimeout(timer);
+      const settings = await res.json();
+      const external = settings.external || {};
+      const live = Object.keys(external)
+        .filter((k) => external[k] === true && k !== "email" && k !== "phone" && k !== "anonymous_users")
+        .sort();
+      if (ours.join(",") !== live.join(",")) {
+        failures.push(
+          `WEB_OAUTH_PROVIDERS is [${ours.join(", ") || "(none)"}] but Supabase has [${live.join(", ") || "(none)"}] enabled. ` +
+          "A provider we render that Supabase refuses is a dead button on the screen that takes money; " +
+          "one Supabase supports that we omit is a sign-in method nobody can use.",
+        );
+      }
+    } catch {
+      console.warn("  SKIPPED: could not reach Supabase, provider list NOT checked against live settings");
+    }
   }
 }
 

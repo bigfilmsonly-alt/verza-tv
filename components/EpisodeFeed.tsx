@@ -11,9 +11,11 @@ import { isIOSApp } from "@/lib/platform";
 import { trackEpisodeStart, trackEpisodeComplete, trackUnlockClick } from "@/lib/track";
 import { emit } from "@/lib/analytics";
 import { requireCheckoutUser, unlockReturnPath, UNLOCK_INTENT_PARAM } from "@/lib/checkout-auth";
+import { createBrowserSupabase } from "@/lib/supabase/client";
 import { useTranslation } from "@/components/LangProvider";
 import { SERIES_UNLOCK_PRICE_CENTS } from "@/lib/price";
 import { purchaseCopy } from "@/lib/purchase-copy";
+import PaywallCheckout from "@/components/PaywallCheckout";
 import type { TranslationKey } from "@/lib/i18n";
 import VideoWatermark from "@/components/VideoWatermark";
 import {
@@ -2170,6 +2172,33 @@ export default function EpisodeFeed({
   // The paywall must not surface until then, or VIP/owners see a flash-then-hide
   // while the async check is in flight.
   const [authResolved, setAuthResolved] = useState(false);
+  /* Signed in, signed out, or not known yet. Separate from authFree, which is
+     about ENTITLEMENT: a signed-in viewer who owns nothing is true here and
+     false there. The paywall needs this because it now carries the sign-in
+     itself, and showing an account form to someone already signed in would be
+     as wrong as hiding it from someone who is not. */
+  const [signedIn, setSignedIn] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const supabase = createBrowserSupabase();
+    let stale = false;
+    if (!supabase) {
+      /* Deferred rather than set inline: a synchronous setState in an effect
+         cascades a second render before this one has committed. Same reason
+         the entitlement effect above defers its own reset. */
+      queueMicrotask(() => { if (!stale) setSignedIn(false); });
+      return () => { stale = true; };
+    }
+    void supabase.auth.getSession().then(({ data }) => {
+      if (!stale) setSignedIn(!!data.session);
+    });
+    /* Inline sign-in on the paywall changes this without a navigation, so the
+       panel has to hear about it from the client rather than a page load. */
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      if (!stale) setSignedIn(!!session);
+    });
+    return () => { stale = true; sub.subscription.unsubscribe(); };
+  }, []);
   /* Last paywall exposure already reported, as "<slug>:<episode>". Guards
      against the same wall being counted twice on a re-render. */
   const paywallReportedRef = useRef<string | null>(null);
@@ -2461,8 +2490,11 @@ export default function EpisodeFeed({
      means "checkout actually began", not "a button was pressed"; auth_required
      (emitted inside the guard) is what accounts for the ones turned away. */
   const startUnlock = useCallback(
-    async (origin: "tap" | "resume") => {
+    async (origin: "tap" | "resume" | "inline_auth") => {
       if (unlockInFlightRef.current) return;
+      /* "inline_auth" means the paywall's own checkout panel already recorded
+         the press before authenticating. Recording it again here would double
+         every signed-out unlock in the funnel. */
       if (origin === "tap") trackUnlockClick(seriesSlug);
       if (!(await requireCheckoutUser(unlockReturnPath(), "episode_feed", seriesSlug))) return;
       unlockInFlightRef.current = true;
@@ -4298,7 +4330,12 @@ export default function EpisodeFeed({
       {/* ---- $1.99 Unlock overlay (first locked episode) ---- */}
       {showUnlock && (
         <div
-          className="absolute inset-0 z-[60] flex items-center justify-center"
+          /* Scrollable, and centred only when it fits. The signed-out panel now
+             carries provider buttons and a form, so on a short phone the
+             content can exceed the viewport. A plain centred flex box clips the
+             TOP, which would put the price and the title off screen with no way
+             to scroll back to them. */
+          className="absolute inset-0 z-[60] overflow-y-auto overscroll-contain"
           /* The whole payment screen declares its own language. <html lang> is
              set by LangProvider, but this overlay is the surface guaranteed to
              be translated even where the page around it is not, and a screen
@@ -4309,6 +4346,7 @@ export default function EpisodeFeed({
           dir={locale === "ar" ? "rtl" : undefined}
           style={{ background: "rgba(0,0,0,0.74)", backdropFilter: "blur(10px)", animation: "fadeIn 0.35s ease-out both" }}
         >
+          <div className="min-h-full flex items-center justify-center py-8">
           <div className="text-center px-8 max-w-xs" style={{ animation: "paywallIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both" }}>
             {/* The story, not a generic icon. The viewer is deciding whether to keep
                 watching THIS one, and a gradient play button says nothing about it.
@@ -4376,59 +4414,25 @@ export default function EpisodeFeed({
             )}
 
             {!iosApp && (
-              <button
-                onClick={() => { void startUnlock("tap"); }}
-                disabled={unlockLoading}
-                className="glow-pulse w-full py-4 rounded-2xl text-base font-bold border-0 cursor-pointer transition-transform active:scale-[0.97]"
-                style={{
-                  background: "linear-gradient(135deg, #E0115F, #8B5CF6)",
-                  color: "#fff",
-                  opacity: unlockLoading ? 0.7 : 1,
-                  boxShadow: "0 0 40px rgba(224,17,95,0.3)",
-                }}
-              >
-                {/* Repeating the price on the button is deliberate: the button is where
-                    the decision is made. "Series Unlock" is gone because it is our word
-                    for the product, not the viewer's reason to tap. */}
-                {unlockLoading
-                  ? t("paywall.ctaLoading")
-                  : `${t("paywall.unlockAll")} \u2022 ${formatPrice(SERIES_UNLOCK_PRICE_CENTS)}`}
-              </button>
-            )}
-            {!iosApp && unlockError && (
-              <p
-                className="mt-2.5 text-xs px-3 py-2 rounded-lg"
-                style={{
-                  color: "#FCA5A5",
-                  background: "rgba(239,68,68,0.12)",
-                  border: "1px solid rgba(239,68,68,0.35)",
-                }}
-                role="alert"
-              >
-                {unlockError}
-              </p>
+              /* Everything needed to finish the purchase, on this screen.
+                 Signed in: one button. Signed out: a provider button or email
+                 and password, where the SAME button authenticates AND starts
+                 checkout. No second page, and no second press of a control the
+                 viewer already pressed once. */
+              <PaywallCheckout
+                locale={locale}
+                seriesSlug={seriesSlug}
+                signedIn={signedIn}
+                unlockLoading={unlockLoading}
+                unlockError={unlockError}
+                ctaLabel={`${t("paywall.unlockAll")} \u2022 ${formatPrice(SERIES_UNLOCK_PRICE_CENTS)}`}
+                loadingLabel={t("paywall.ctaLoading")}
+                onUnlock={(origin) => { void startUnlock(origin); }}
+              />
             )}
             {!iosApp && (
-              <p className="mt-2.5 text-[11px]" style={{ color: "rgba(255,255,255,0.4)" }}>
+              <p className="mt-2.5 text-[11px] text-center" style={{ color: "rgba(255,255,255,0.4)" }}>
                 {purchaseCopy(locale, "secureCheckout")}
-              </p>
-            )}
-            {!iosApp && (
-              /* Someone who already bought this on another device meets the same
-                 paywall, because entitlement is per account and they are signed out.
-                 Without this there is no way to say so, and the only control on screen
-                 offers to charge them a second time. Routes through the ordinary
-                 sign-in page and carries NO resume marker, so it restores access
-                 instead of starting a purchase. */
-              <p className="mt-3 text-[12px]" style={{ color: "rgba(255,255,255,0.45)" }}>
-                {purchaseCopy(locale, "alreadyPurchased")}{" "}
-                <a
-                  href={`/sign-in?next=${encodeURIComponent(`/series/${seriesSlug}/${activeEp?.number ?? 1}`)}`}
-                  className="font-semibold"
-                  style={{ color: "rgba(255,255,255,0.85)" }}
-                >
-                  {purchaseCopy(locale, "signInAction")}
-                </a>
               </p>
             )}
             {/* A real link, not a button. As a <button onClick> this did nothing until
@@ -4455,6 +4459,7 @@ export default function EpisodeFeed({
             >
               {purchaseCopy(locale, "backToEpisodes")}
             </a>
+          </div>
           </div>
         </div>
       )}
