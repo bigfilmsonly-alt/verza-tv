@@ -939,3 +939,14 @@ img {
     border-top-color: rgba(255, 255, 255, 0.55);
   }
 }
+
+/* ------------------------------------------------------------------ */
+/*  Purchase focus mode                                                */
+/*  Set by <PurchaseFocusMode /> while a viewer who tapped Unlock is    */
+/*  signing in. The bottom navigation is five one-tap exits from a      */
+/*  checkout they already committed to. Presentation only: no route or  */
+/*  guard changes, and the nav returns as soon as the screen unmounts.  */
+/* ------------------------------------------------------------------ */
+body.purchase-focus .bottom-nav {
+  display: none;
+}

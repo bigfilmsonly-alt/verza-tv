@@ -47,7 +47,17 @@ const btnStyle = {
 /* ------------------------------------------------------------------ */
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
-export default function OAuthButtons({ redirectNext }: { redirectNext?: string }) {
+export default function OAuthButtons({
+  redirectNext,
+  /* Purchase-intent sign-in puts Apple first: on the iPhone where this screen
+     is actually used it is the one-tap option. Visual order ONLY. The provider
+     strings, the redirect construction and signInWithOAuth() below are
+     untouched, so neither OAuth implementation changes. */
+  appleFirst = false,
+}: {
+  redirectNext?: string;
+  appleFirst?: boolean;
+}) {
   const handleOAuth = async (provider: "google" | "apple") => {
     const supabase = createBrowserSupabase();
     if (!supabase) {
@@ -68,26 +78,34 @@ export default function OAuthButtons({ redirectNext }: { redirectNext?: string }
     }
   };
 
+  const google = (
+    <button
+      key="google"
+      type="button"
+      className={btnClass}
+      style={btnStyle}
+      onClick={() => handleOAuth("google")}
+    >
+      {GoogleIcon}
+      Continue with Google
+    </button>
+  );
+  const apple = (
+    <button
+      key="apple"
+      type="button"
+      className={btnClass}
+      style={btnStyle}
+      onClick={() => handleOAuth("apple")}
+    >
+      {AppleIcon}
+      Continue with Apple
+    </button>
+  );
+
   return (
     <div className="flex flex-col gap-3 mb-8">
-      <button
-        type="button"
-        className={btnClass}
-        style={btnStyle}
-        onClick={() => handleOAuth("google")}
-      >
-        {GoogleIcon}
-        Continue with Google
-      </button>
-      <button
-        type="button"
-        className={btnClass}
-        style={btnStyle}
-        onClick={() => handleOAuth("apple")}
-      >
-        {AppleIcon}
-        Continue with Apple
-      </button>
+      {appleFirst ? [apple, google] : [google, apple]}
     </div>
   );
 }

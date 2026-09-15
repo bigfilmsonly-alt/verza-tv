@@ -586,12 +586,17 @@ check(
    pay for it. */
 check(
   /\/ \{totalEpisodes\}/.test(feedCode) &&
-    /t\("paywall\.benefitEpisodes",\s*\{\s*count:\s*totalEpisodes\s*\}\)/.test(feedCode),
+    /purchaseCopy\(locale,\s*"unlockAllCount",\s*\{\s*count:\s*totalEpisodes\s*\}\)/.test(feedCode),
   "rail: series length is being read from the bounded rail",
   "The counter and the paywall's headline benefit must both come from totalEpisodes. Reading\n" +
     "      episodes.length there would advertise the free preview as the whole series.\n" +
     "      2026-08-29: that benefit line moved from the literal `All ${totalEpisodes} episodes,\n" +
     "      instantly` to t(\"paywall.benefitEpisodes\", { count: totalEpisodes }) when the paywall was\n" +
+    "      translated. 2026-09-15: it moved again, to purchaseCopy(locale, \"unlockAllCount\", { count:\n" +
+    "      totalEpisodes }), when the transaction copy moved to a web-only module so lib/i18n.ts could\n" +
+    "      stay byte-identical with the frozen native repo. The call keeps moving; the defect guarded\n" +
+    "      has never changed. The ARGUMENT must be totalEpisodes, never episodes.length.\n" +
+    "      (superseded wording below)\n" +
     "      translated into all 20 locales. The defect guarded is unchanged: the ARGUMENT must be\n" +
     "      totalEpisodes, never episodes.length.",
 );

@@ -13,6 +13,7 @@ import { emit } from "@/lib/analytics";
 import { requireCheckoutUser, unlockReturnPath, UNLOCK_INTENT_PARAM } from "@/lib/checkout-auth";
 import { useTranslation } from "@/components/LangProvider";
 import { SERIES_UNLOCK_PRICE_CENTS } from "@/lib/price";
+import { purchaseCopy } from "@/lib/purchase-copy";
 import type { TranslationKey } from "@/lib/i18n";
 import VideoWatermark from "@/components/VideoWatermark";
 import {
@@ -4306,76 +4307,93 @@ export default function EpisodeFeed({
              one RTL locale in the list. */
           lang={locale}
           dir={locale === "ar" ? "rtl" : undefined}
-          style={{ background: "rgba(0,0,0,0.8)", backdropFilter: "blur(12px)", animation: "fadeIn 0.35s ease-out both" }}
+          style={{ background: "rgba(0,0,0,0.74)", backdropFilter: "blur(10px)", animation: "fadeIn 0.35s ease-out both" }}
         >
           <div className="text-center px-8 max-w-xs" style={{ animation: "paywallIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both" }}>
-            <div
-              className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
-              style={{
-                background: "linear-gradient(135deg, rgba(224,17,95,0.25), rgba(139,92,246,0.25))",
-                boxShadow: "0 0 30px rgba(224,17,95,0.25)",
-              }}
-            >
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="#fff" stroke="none">
-                <polygon points="8 5 20 12 8 19" />
-              </svg>
-            </div>
-            <h3 className="text-2xl font-black mb-1.5 tracking-tight" style={{ color: "#fff" }}>
-              {t(iosApp ? "paywall.unavailableTitle" : "paywall.unlockAll")}
-            </h3>
-            <p className="text-sm mb-4" style={{ color: "rgba(255,255,255,0.55)" }}>
-              {iosApp
-                ? t("paywall.unavailableBody")
-                : t("paywall.previewOver", { title: seriesTitle })}
-            </p>
-            {!iosApp && (
-              <div className="flex flex-col gap-1.5 mb-5 text-left mx-auto" style={{ width: "fit-content" }}>
-                {[
-                  t("paywall.benefitEpisodes", { count: totalEpisodes }),
-                  t("paywall.benefitAccess"),
-                ].map((line) => (
-                  <div key={line} className="flex items-center gap-2">
-                    <span
-                      className="rounded-full shrink-0"
-                      style={{ width: 6, height: 6, background: "linear-gradient(135deg, #E0115F, #8B5CF6)" }}
-                    />
-                    <span className="text-[13px] font-medium" style={{ color: "rgba(255,255,255,0.8)" }}>{line}</span>
-                  </div>
-                ))}
+            {/* The story, not a generic icon. The viewer is deciding whether to keep
+                watching THIS one, and a gradient play button says nothing about it.
+                This poster already painted the first frame of this very feed, so it
+                is in cache and costs nothing to show again. */}
+            {!iosApp && posterUrl && (
+              <div className="flex justify-center mb-4">
+                <Image
+                  src={posterUrl}
+                  alt=""
+                  width={96}
+                  height={144}
+                  className="rounded-xl object-cover"
+                  style={{ width: 96, height: 144, boxShadow: "0 14px 44px rgba(0,0,0,0.6)" }}
+                />
               </div>
             )}
-            {!iosApp && (
-              <p className="mb-3">
-                {/* Same size, same weight, same position — the big honest
-                    price testers named as working. Only the WRITING of it
-                    follows the language now: "$1.99" in English (byte-identical
-                    to the literal this replaces), "1,99 US$" in Spanish, which
-                    also stops a LATAM viewer reading a bare "$" as pesos. The
-                    currency charged is unchanged and is always USD. */}
-                <span className="text-3xl font-black align-middle" style={{ color: "#fff" }}>
-                  {formatPrice(SERIES_UNLOCK_PRICE_CENTS)}
-                </span>
-                <span className="ml-2 text-xs font-semibold align-middle" style={{ color: "rgba(255,255,255,0.65)" }}>
-                  {t("paywall.oneTimeUnlock")}
-                </span>
-              </p>
+            {iosApp && (
+              <div
+                className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+                style={{
+                  background: "linear-gradient(135deg, rgba(224,17,95,0.25), rgba(139,92,246,0.25))",
+                  boxShadow: "0 0 30px rgba(224,17,95,0.25)",
+                }}
+              >
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="#fff" stroke="none">
+                  <polygon points="8 5 20 12 8 19" />
+                </svg>
+              </div>
             )}
+
+            <h3 className="text-2xl font-black mb-1 tracking-tight" style={{ color: "#fff" }}>
+              {iosApp ? t("paywall.unavailableTitle") : purchaseCopy(locale, "readyForRest")}
+            </h3>
+
+            {iosApp ? (
+              <p className="text-sm mb-4" style={{ color: "rgba(255,255,255,0.55)" }}>
+                {t("paywall.unavailableBody")}
+              </p>
+            ) : (
+              <>
+                {/* Exactly what is being bought, named. */}
+                <p className="text-[15px] font-bold mb-1 leading-snug" style={{ color: "rgba(255,255,255,0.92)" }}>
+                  {seriesTitle}
+                </p>
+                <p className="text-[13px] mb-4" style={{ color: "rgba(255,255,255,0.6)" }}>
+                  {purchaseCopy(locale, "unlockAllCount", { count: totalEpisodes })}
+                </p>
+              </>
+            )}
+
             {!iosApp && (
-            <button
-              onClick={() => { void startUnlock("tap"); }}
-              disabled={unlockLoading}
-              className="glow-pulse w-full py-4 rounded-2xl text-base font-bold border-0 cursor-pointer transition-transform active:scale-[0.97]"
-              style={{
-                background: "linear-gradient(135deg, #E0115F, #8B5CF6)",
-                color: "#fff",
-                opacity: unlockLoading ? 0.7 : 1,
-                boxShadow: "0 0 40px rgba(224,17,95,0.3)",
-              }}
-            >
-              {unlockLoading
-                ? t("paywall.ctaLoading")
-                : t("paywall.cta", { price: formatPrice(SERIES_UNLOCK_PRICE_CENTS) })}
-            </button>
+              <div className="mb-4">
+                {/* The price is the decision, so it gets its own line and the largest
+                    type on the screen. The word underneath answers the only question a
+                    viewer actually has about it: whether $1.99 is per episode, per
+                    month, or once. */}
+                <div className="text-4xl font-black leading-none" style={{ color: "#fff" }}>
+                  {formatPrice(SERIES_UNLOCK_PRICE_CENTS)}
+                </div>
+                <div className="text-xs font-semibold mt-1.5" style={{ color: "rgba(255,255,255,0.6)" }}>
+                  {purchaseCopy(locale, "oneTimePurchase")}
+                </div>
+              </div>
+            )}
+
+            {!iosApp && (
+              <button
+                onClick={() => { void startUnlock("tap"); }}
+                disabled={unlockLoading}
+                className="glow-pulse w-full py-4 rounded-2xl text-base font-bold border-0 cursor-pointer transition-transform active:scale-[0.97]"
+                style={{
+                  background: "linear-gradient(135deg, #E0115F, #8B5CF6)",
+                  color: "#fff",
+                  opacity: unlockLoading ? 0.7 : 1,
+                  boxShadow: "0 0 40px rgba(224,17,95,0.3)",
+                }}
+              >
+                {/* Repeating the price on the button is deliberate: the button is where
+                    the decision is made. "Series Unlock" is gone because it is our word
+                    for the product, not the viewer's reason to tap. */}
+                {unlockLoading
+                  ? t("paywall.ctaLoading")
+                  : `${t("paywall.unlockAll")} \u2022 ${formatPrice(SERIES_UNLOCK_PRICE_CENTS)}`}
+              </button>
             )}
             {!iosApp && unlockError && (
               <p
@@ -4391,41 +4409,51 @@ export default function EpisodeFeed({
               </p>
             )}
             {!iosApp && (
-            <p className="mt-2.5 text-[11px]" style={{ color: "rgba(255,255,255,0.4)" }}>
-              {t("paywall.secure")}
-            </p>
+              <p className="mt-2.5 text-[11px]" style={{ color: "rgba(255,255,255,0.4)" }}>
+                {purchaseCopy(locale, "secureCheckout")}
+              </p>
             )}
-            {/* A real link, not a button. As a <button onClick> this did
-                nothing until React finished hydrating, and the episode route
-                hydrates behind a video element and an HLS attach — so on a
-                phone the first taps landed on dead markup and the viewer tapped
-                again and again. An anchor navigates natively with no JS at all,
-                so the very first tap always leaves. The handler still runs when
-                hydrated, to mute the video and swap the history entry instead of
-                pushing one. */}
+            {!iosApp && (
+              /* Someone who already bought this on another device meets the same
+                 paywall, because entitlement is per account and they are signed out.
+                 Without this there is no way to say so, and the only control on screen
+                 offers to charge them a second time. Routes through the ordinary
+                 sign-in page and carries NO resume marker, so it restores access
+                 instead of starting a purchase. */
+              <p className="mt-3 text-[12px]" style={{ color: "rgba(255,255,255,0.45)" }}>
+                {purchaseCopy(locale, "alreadyPurchased")}{" "}
+                <a
+                  href={`/sign-in?next=${encodeURIComponent(`/series/${seriesSlug}/${activeEp?.number ?? 1}`)}`}
+                  className="font-semibold"
+                  style={{ color: "rgba(255,255,255,0.85)" }}
+                >
+                  {purchaseCopy(locale, "signInAction")}
+                </a>
+              </p>
+            )}
+            {/* A real link, not a button. As a <button onClick> this did nothing until
+                React finished hydrating, and the episode route hydrates behind a video
+                element and an HLS attach, so on a phone the first taps landed on dead
+                markup and the viewer tapped again and again. An anchor navigates
+                natively with no JS at all, so the very first tap always leaves. The
+                handler still runs when hydrated, to mute the video and swap the history
+                entry instead of pushing one.
+
+                Demoted from a full-width bordered button to a quiet text action: it was
+                drawn at nearly the same visual weight as the purchase CTA, which made
+                leaving look like an equally intended choice. It stays a full-width tap
+                target, and opacity stays hard-coded 1 because measured on production the
+                computed opacity of the old animated version was still 0 nine seconds
+                after load, so the one control that lets someone leave a paywall was
+                invisible and still taking clicks. That does not get to depend on an
+                animation finishing. */}
             <a
               href={backHref}
               onClick={handleBack}
-              className="mt-3.5 block w-full py-3.5 rounded-2xl text-[15px] font-bold text-center no-underline cursor-pointer transition-transform active:scale-[0.97]"
-              style={{
-                background: "rgba(255,255,255,0.1)",
-                border: "1.5px solid rgba(255,255,255,0.35)",
-                color: "#fff",
-                backdropFilter: "blur(8px)",
-                /* Visible unconditionally. This carried opacity:0 plus a
-                   delayed fadeIn animation, and measured on production the
-                   computed opacity was still 0 nine seconds after load — the
-                   animation had not run, and with a fill mode holding the
-                   from-state the only exit from the paywall stayed invisible.
-                   An opacity-0 element still takes clicks, so the viewer was
-                   tapping at where they guessed the button was and mostly
-                   missing: exactly the "takes a few taps" report.
-                   The one control that lets someone leave a paywall does not
-                   get to depend on an animation finishing. */
-                opacity: 1,
-              }}
+              className="mt-4 block w-full py-3 text-[13px] font-semibold text-center no-underline cursor-pointer"
+              style={{ color: "rgba(255,255,255,0.5)", opacity: 1 }}
             >
-              {t("paywall.goBack")}
+              {purchaseCopy(locale, "backToEpisodes")}
             </a>
           </div>
         </div>

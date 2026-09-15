@@ -20,6 +20,7 @@
     "test:content-analytics": "node scripts/test-content-analytics.mjs",
     "test:seo": "node scripts/test-seo-contract.mjs",
     "test:purchase-funnel": "node scripts/test-purchase-funnel.mjs",
+    "test:purchase-ux": "node scripts/test-purchase-ux.mjs",
     "test:payments": "node scripts/test-payment-integrity.mjs",
     "test:payments:db": "node --env-file=.env.local scripts/test-payment-integrity.mjs --database",
     "test:payments:stripe": "node --env-file=.env.local scripts/test-payment-integrity.mjs --stripe-config",
