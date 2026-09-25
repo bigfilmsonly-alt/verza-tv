@@ -994,15 +994,15 @@ check(
   const epParams = live.reduce((a, s) => a + Math.min(s.episodeCount, 25), 0);
 
   check(
-    showParams === 91,
+    showParams === 95,
     "seo: the show-page count moved",
-    `generateStaticParams builds one page per live row. Expected 91, got ${showParams}. Every one of\n` +
+    `generateStaticParams builds one page per live row. Expected 95, got ${showParams}. Every one of\n` +
       "      them is indexed and carries the merchandising copy.",
   );
   check(
-    epParams === 2214,
+    epParams === 2314,
     "seo: the prerendered episode-page count moved",
-    `Sum of min(episodeCount, 25) over live rows. Expected 2214, got ${epParams}.`,
+    `Sum of min(episodeCount, 25) over live rows. Expected 2314, got ${epParams}.`,
   );
   check(
     /SERIES\.filter\(\(s\) => s\.status === "live"\)/.test(showPage) &&
@@ -1956,12 +1956,14 @@ check(
   check(
     matches("pasion").includes("sentence-of-passion-es") &&
       matches("pasión").includes("sentence-of-passion-es") &&
-      matches("espanol").length === 5 &&
-      matches("español").length === 5 &&
+      matches("espanol").length === 6 &&
+      matches("español").length === 6 &&
       matches("cunado").includes("i-fell-in-love-with-my-presidential-brother-in-law-es"),
     "search: folded queries match nothing at all",
     "Both spellings agreeing on an EMPTY result set is not a fix. 'pasion' and 'pasión' must both\n" +
-      "      return sentence-of-passion-es, and both spellings of espanol must return all five Spanish rows.",
+      "      return sentence-of-passion-es, and both spellings of espanol must return all six Spanish rows.\n" +
+      "      2026-09-25: five became six when the Spanish cut of I Can't Resist My Mansion Gardener\n" +
+      "      was released from coming-soon. The number tracks the espanol category.",
   );
 
   /* 10b. BUG THIS CATCHES: the obvious fix for 10a —

@@ -675,18 +675,25 @@ function runCodeAndCatalogSuite() {
   // move whenever a coming-soon title is added, which is harmless. Live rows and
   // sellable rows moving is what actually warrants a payment review, so they get
   // their own guards rather than hiding behind the total.
+  /* 2026-09-25: four coming-soon rows were released. The Mux uploads for
+     The Billionaire's Apron (EN), The Chairman's Revenge, Protected by the
+     Devil and the Spanish cut of I Can't Resist My Mansion Gardener landed
+     2026-09-13/14; all 242 episodes read back `ready` with contiguous
+     numbering, so each gains a $1.99 unlock SKU and 86 -> 90.
+     The Last Will stays coming-soon: its EN upload is missing E31 and its HI
+     upload is missing E6, and a series cannot ship with a hole mid-run. */
   assert.equal(catalog.length, 96, "catalog size changed; review payment SKU policy");
   assert.equal(
     catalog.filter((series) => series.status === "live").length,
-    91,
+    95,
     "live series count changed; review payment SKU policy",
   );
   assert.equal(
     catalog.filter((series) => series.status === "coming_soon").length,
-    5,
+    1,
     "coming-soon count changed; these must never be sellable",
   );
-  assert.equal(purchasable.length, 86, "unlock SKU count changed; review checkout coverage");
+  assert.equal(purchasable.length, 90, "unlock SKU count changed; review checkout coverage");
   // A coming-soon row has no video, no price and no Apple product. If one ever
   // reaches a checkout path it would sell a title that cannot be watched.
   for (const series of catalog.filter((s) => s.status === "coming_soon")) {
@@ -696,7 +703,7 @@ function runCodeAndCatalogSuite() {
     );
     assert.equal(mux.MUX_MAP[series.slug], undefined, `${series.slug} must have no playback rows`);
   }
-  assert.equal(new Set(purchasable.map((series) => series.slug)).size, 86);
+  assert.equal(new Set(purchasable.map((series) => series.slug)).size, 90);
   for (const series of purchasable) {
     assert.equal(series.status, "live", `${series.slug} is not live`);
     assert.ok(series.episodeCount > series.freeEpisodes, `${series.slug} has no paid episodes`);

@@ -1056,6 +1056,17 @@ export const catalog: Series[] = [
   /*  duplicate in the other. Corrected at source in Mux on 2026-08-27. */
   /* ================================================================ */
   {
+    slug: "i-cant-resist-my-mansion-gardener",
+    title: "No puedo resistir a mi jardinero de la mansión",
+    logline: "Ella tiene el apellido, la casa y un matrimonio que todos envidian. El jardinero es el único que la mira como si nada de eso importara.",
+    genre: "Romance · Prohibido",
+    channel: "VERZA Originals",
+    categories: ["espanol"],
+    episodeCount: 61,
+    posterUrl: "/posters/i-cant-resist-my-mansion-gardener.png",
+    freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(61), status: "live",
+  },
+  {
     slug: "sentence-of-passion-es",
     title: "Sentencia de pasión",
     logline: "Ella entra a la sala como acusada y sale marcada por el hombre que debía juzgarla. La condena que ninguno de los dos esperaba no la dicta el tribunal.",
@@ -1127,6 +1138,39 @@ export const catalog: Series[] = [
   /*  All four carry Hindi audio with English burned-in subtitles and  */
   /*  English title lockups, matching the two titles already live.     */
   /* ================================================================ */
+  {
+    slug: "the-billionaires-apron",
+    title: "The Billionaire's Apron",
+    logline: "He owns the estate. The chef owns the kitchen, and refuses to be impressed by any of it. Neither of them planned on the argument that turns into something else entirely.",
+    genre: "Romance · Comedy",
+    channel: "VERZA Originals",
+    categories: ["bollywood"],
+    episodeCount: 61,
+    posterUrl: "/posters/the-billionaires-apron.png",
+    freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(61), status: "live",
+  },
+  {
+    slug: "the-chairmans-revenge",
+    title: "The Chairman's Revenge",
+    logline: "They voted him out of the company he built and toasted the decision the same night. He let them, because the only way to learn who moved against him was to stop being the man in the chair.",
+    genre: "Drama · Corporate power",
+    channel: "VERZA Originals",
+    categories: ["bollywood"],
+    episodeCount: 60,
+    posterUrl: "/posters/the-chairmans-revenge.png",
+    freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(60), status: "live",
+  },
+  {
+    slug: "protected-by-the-devil",
+    title: "Protected by the Devil",
+    logline: "The man the city is terrified of is the only one standing between her and the people who want her silenced. Accepting his protection means never being able to ask what he wants in return.",
+    genre: "Romance · Dark thriller",
+    channel: "VERZA Originals",
+    categories: ["bollywood"],
+    episodeCount: 60,
+    posterUrl: "/posters/protected-by-the-devil.png",
+    freeEpisodes: 5, coinPerEpisode: 49, seasonPassCoins: sp(60), status: "live",
+  },
   {
     slug: "falling-for-flatmate",
     title: "Falling for Flatmate",
@@ -1213,28 +1257,6 @@ export const catalog: Series[] = [
   /*  flip status to "live" — that is the whole migration.              */
   /* ================================================================ */
   {
-    slug: "the-chairmans-revenge",
-    title: "The Chairman's Revenge",
-    logline: "They voted him out of the company he built and toasted the decision the same night. He let them, because the only way to learn who moved against him was to stop being the man in the chair.",
-    genre: "Drama · Corporate power",
-    channel: "VERZA Originals",
-    categories: ["bollywood"],
-    episodeCount: 0,
-    posterUrl: "/posters/the-chairmans-revenge.png",
-    freeEpisodes: 0, coinPerEpisode: 0, seasonPassCoins: 0, status: "coming_soon",
-  },
-  {
-    slug: "protected-by-the-devil",
-    title: "Protected by the Devil",
-    logline: "The man the city is terrified of is the only one standing between her and the people who want her silenced. Accepting his protection means never being able to ask what he wants in return.",
-    genre: "Romance · Dark thriller",
-    channel: "VERZA Originals",
-    categories: ["bollywood"],
-    episodeCount: 0,
-    posterUrl: "/posters/protected-by-the-devil.png",
-    freeEpisodes: 0, coinPerEpisode: 0, seasonPassCoins: 0, status: "coming_soon",
-  },
-  {
     slug: "the-last-will",
     title: "The Last Will",
     logline: "The will is read to a room of people who each expected to hear their own name. What it actually says turns one family into rivals before the ink has finished drying.",
@@ -1243,28 +1265,6 @@ export const catalog: Series[] = [
     categories: ["bollywood"],
     episodeCount: 0,
     posterUrl: "/posters/the-last-will.png",
-    freeEpisodes: 0, coinPerEpisode: 0, seasonPassCoins: 0, status: "coming_soon",
-  },
-  {
-    slug: "the-billionaires-apron",
-    title: "The Billionaire's Apron",
-    logline: "He owns the estate. The chef owns the kitchen, and refuses to be impressed by any of it. Neither of them planned on the argument that turns into something else entirely.",
-    genre: "Romance · Comedy",
-    channel: "VERZA Originals",
-    categories: ["bollywood"],
-    episodeCount: 0,
-    posterUrl: "/posters/the-billionaires-apron.png",
-    freeEpisodes: 0, coinPerEpisode: 0, seasonPassCoins: 0, status: "coming_soon",
-  },
-  {
-    slug: "i-cant-resist-my-mansion-gardener",
-    title: "No puedo resistir a mi jardinero de la mansión",
-    logline: "Ella tiene el apellido, la casa y un matrimonio que todos envidian. El jardinero es el único que la mira como si nada de eso importara.",
-    genre: "Romance · Prohibido",
-    channel: "VERZA Originals",
-    categories: ["espanol"],
-    episodeCount: 0,
-    posterUrl: "/posters/i-cant-resist-my-mansion-gardener.png",
     freeEpisodes: 0, coinPerEpisode: 0, seasonPassCoins: 0, status: "coming_soon",
   },
   /* love-in-double-dose is deliberately ABSENT. Its key art is Portuguese
